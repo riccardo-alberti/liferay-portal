@@ -42,6 +42,8 @@ else {
 }
 %>
 
+<h1><%= commerceOrderEditDisplayContext.getWorkflowInstanceId() %></h1>
+
 <liferay-portlet:renderURL var="editCommerceOrderExternalReferenceCodeURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 	<portlet:param name="mvcRenderCommandName" value="editCommerceOrderExternalReferenceCode" />
 	<portlet:param name="commerceOrderId" value="<%= String.valueOf(commerceOrderEditDisplayContext.getCommerceOrderId()) %>" />
