@@ -22,6 +22,10 @@ CommercePaymentMethodGroupRelsDisplayContext commercePaymentMethodGroupRelsDispl
 long commerceChannelId = commercePaymentMethodGroupRelsDisplayContext.getCommerceChannelId();
 %>
 
+<aui:alert closeable="<%= false %>" type="info">
+	<liferay-ui:message key="the-setting-is-subtractive-you-must-have-at-least-one-active-payment-method-in-order-for-there-to-be-anything-to-configure" />
+</aui:alert>
+
 <portlet:actionURL name="/commerce_channels/edit_commerce_payment_method_group_rel_address_restriction" var="editCommercePaymentMethodAddressRestrictionActionURL" />
 
 <aui:form action="<%= editCommercePaymentMethodAddressRestrictionActionURL %>" method="post" name="fm">

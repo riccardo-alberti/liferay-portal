@@ -22,6 +22,10 @@ CommerceShippingMethodsDisplayContext commerceShippingMethodsDisplayContext = (C
 long commerceChannelId = commerceShippingMethodsDisplayContext.getCommerceChannelId();
 %>
 
+<aui:alert closeable="<%= false %>" type="info">
+	<liferay-ui:message key="the-setting-is-subtractive-you-must-have-at-least-one-active-shipping-method-in-order-for-there-to-be-anything-to-configure" />
+</aui:alert>
+
 <portlet:actionURL name="/commerce_channels/edit_commerce_shipping_method_address_restriction" var="editCommerceShippingMethodAddressRestrictionActionURL" />
 
 <aui:form action="<%= editCommerceShippingMethodAddressRestrictionActionURL %>" method="post" name="fm">
