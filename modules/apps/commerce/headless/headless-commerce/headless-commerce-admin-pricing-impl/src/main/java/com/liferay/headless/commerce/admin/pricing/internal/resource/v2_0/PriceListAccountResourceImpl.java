@@ -167,9 +167,13 @@ public class PriceListAccountResourceImpl
 					commercePriceListAccountRel.getCommercePriceList();
 
 				return addAction(
-					"UPDATE", commercePriceList.getCommercePriceListId(),
-					"deletePriceListAccount", commercePriceList.getUserId(),
-					"com.liferay.commerce.price.list.model.CommercePriceList",
+					"UPDATE",
+					commercePriceListAccountRel
+						.getCommercePriceListAccountRelId(),
+					"deletePriceListAccount",
+					commercePriceListAccountRel.getUserId(),
+					"com.liferay.commerce.price.list.model.CommercePriceListAccountRel",
+					// The groupId might come from somewhere else to be more efficient
 					commercePriceList.getGroupId());
 			}
 		).build();
