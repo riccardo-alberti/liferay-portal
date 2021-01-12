@@ -21,6 +21,7 @@ import com.liferay.commerce.price.list.service.CommercePriceListAccountRelLocalS
 import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.ArrayUtil;
 
@@ -163,7 +164,7 @@ public class CommercePriceListAccountRelPermissionImpl
 
 		return permissionChecker.hasPermission(
 			commercePriceList.getGroupId(), CommercePriceList.class.getName(),
-			commercePriceList.getCommercePriceListId(), actionId);
+			commercePriceList.getCommercePriceListId(), ActionKeys.UPDATE);
 	}
 
 	@Reference
