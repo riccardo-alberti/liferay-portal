@@ -18,6 +18,7 @@ import com.liferay.commerce.price.list.model.CommercePriceList;
 import com.liferay.commerce.price.list.model.CommercePriceListAccountRel;
 import com.liferay.commerce.price.list.service.base.CommercePriceListAccountRelLocalServiceBaseImpl;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
@@ -62,6 +63,11 @@ public class CommercePriceListAccountRelLocalServiceImpl
 		commercePriceListLocalService.cleanPriceListCache(
 			serviceContext.getCompanyId());
 
+		// Resources
+
+		resourceLocalService.addModelResources(
+			commercePriceListAccountRel, serviceContext);
+
 		return commercePriceListAccountRelPersistence.update(
 			commercePriceListAccountRel);
 	}
@@ -88,6 +94,11 @@ public class CommercePriceListAccountRelLocalServiceImpl
 
 		commercePriceListLocalService.cleanPriceListCache(
 			commercePriceListAccountRel.getCompanyId());
+
+		// Resources
+
+		resourceLocalService.deleteResource(
+			commercePriceListAccountRel, ResourceConstants.SCOPE_INDIVIDUAL);
 
 		return commercePriceListAccountRel;
 	}
