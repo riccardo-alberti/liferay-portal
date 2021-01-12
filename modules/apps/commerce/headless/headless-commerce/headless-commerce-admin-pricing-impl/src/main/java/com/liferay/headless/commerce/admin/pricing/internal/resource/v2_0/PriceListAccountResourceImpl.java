@@ -167,7 +167,7 @@ public class PriceListAccountResourceImpl
 					commercePriceListAccountRel.getCommercePriceList();
 
 				return addAction(
-					"UPDATE",
+					"DELETE",
 					commercePriceListAccountRel
 						.getCommercePriceListAccountRelId(),
 					"deletePriceListAccount",
