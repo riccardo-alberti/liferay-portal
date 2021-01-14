@@ -303,7 +303,7 @@ public class CommerceInventoryWarehouseItemLocalServiceImpl
 	@Override
 	public int getStockQuantity(long companyId, long groupId, String sku) {
 		return commerceInventoryWarehouseItemFinder.countStockQuantityByC_G_S(
-			companyId, groupId, sku);
+			companyId, groupId, sku, true);
 	}
 
 	@Override
