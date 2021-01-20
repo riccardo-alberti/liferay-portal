@@ -22,6 +22,8 @@ import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.payment.service.base.CommercePaymentMethodGroupRelLocalServiceBaseImpl;
 import com.liferay.commerce.service.CommerceAddressRestrictionLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -122,6 +124,14 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 				commercePaymentMethodGroupRel.getImageId(), imageFile);
 		}
 
+		// Resources
+
+		resourceLocalService.addResources(
+			user.getCompanyId(), groupId,
+			user.getUserId(), CommercePaymentMethodGroupRel.class.getName(),
+			commercePaymentMethodGroupRel.getCommercePaymentMethodGroupRelId(),
+			false, true, true);
+
 		return commercePaymentMethodGroupRel;
 	}
 
@@ -158,6 +168,9 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 				CommercePaymentMethodGroupRel.class.getName(),
 				commercePaymentMethodGroupRel.
 					getCommercePaymentMethodGroupRelId());
+
+		resourceLocalService.deleteResource(
+			commercePaymentMethodGroupRel, ResourceConstants.SCOPE_INDIVIDUAL);
 
 		return commercePaymentMethodGroupRel;
 	}
