@@ -16,6 +16,7 @@ package com.liferay.commerce.payment.service.base;
 
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelService;
+import com.liferay.commerce.payment.service.persistence.CommercePaymentMethodGroupRelFinder;
 import com.liferay.commerce.payment.service.persistence.CommercePaymentMethodGroupRelPersistence;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.db.DB;
@@ -126,6 +127,30 @@ public abstract class CommercePaymentMethodGroupRelServiceBaseImpl
 
 		this.commercePaymentMethodGroupRelPersistence =
 			commercePaymentMethodGroupRelPersistence;
+	}
+
+	/**
+	 * Returns the commerce payment method group rel finder.
+	 *
+	 * @return the commerce payment method group rel finder
+	 */
+	public CommercePaymentMethodGroupRelFinder
+		getCommercePaymentMethodGroupRelFinder() {
+
+		return commercePaymentMethodGroupRelFinder;
+	}
+
+	/**
+	 * Sets the commerce payment method group rel finder.
+	 *
+	 * @param commercePaymentMethodGroupRelFinder the commerce payment method group rel finder
+	 */
+	public void setCommercePaymentMethodGroupRelFinder(
+		CommercePaymentMethodGroupRelFinder
+			commercePaymentMethodGroupRelFinder) {
+
+		this.commercePaymentMethodGroupRelFinder =
+			commercePaymentMethodGroupRelFinder;
 	}
 
 	/**
@@ -422,6 +447,10 @@ public abstract class CommercePaymentMethodGroupRelServiceBaseImpl
 	@BeanReference(type = CommercePaymentMethodGroupRelPersistence.class)
 	protected CommercePaymentMethodGroupRelPersistence
 		commercePaymentMethodGroupRelPersistence;
+
+	@BeanReference(type = CommercePaymentMethodGroupRelFinder.class)
+	protected CommercePaymentMethodGroupRelFinder
+		commercePaymentMethodGroupRelFinder;
 
 	@ServiceReference(
 		type = com.liferay.counter.kernel.service.CounterLocalService.class
