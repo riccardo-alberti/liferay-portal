@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<custom-sql>
+	<sql id="com.liferay.commerce.payment.service.persistence.CommercePaymentMethodGroupRelFinder.countByG_A">
+		<![CDATA[
+			COUNT(CommercePaymentMethodGroupRelFinder.CPaymentMethodGroupRelId)
+			FROM
+				CommercePaymentMethodGroupRelFinder
+			WHERE
+				(CommercePaymentMethodGroupRelFinder.groupId = ?) AND
+				(CommercePaymentMethodGroupRelFinder.active_ = ?)
+		]]>
+	</sql>
+	<sql id="com.liferay.commerce.payment.service.persistence.CommercePaymentMethodGroupRelFinder.findByG_A">
+		<![CDATA[
+			SELECT
+				CommercePaymentMethodGroupRelFinder.*
+			FROM
+				CommercePaymentMethodGroupRelFinder
+			WHERE
+				(CommercePaymentMethodGroupRelFinder.groupId = ?) AND
+				(CommercePaymentMethodGroupRelFinder.active_ = ?)
+		]]>
+	</sql>
+</custom-sql>
