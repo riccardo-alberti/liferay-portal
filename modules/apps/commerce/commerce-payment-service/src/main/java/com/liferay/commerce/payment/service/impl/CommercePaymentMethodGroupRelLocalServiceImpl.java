@@ -240,8 +240,8 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 	public List<CommercePaymentMethodGroupRel>
 		getCommercePaymentMethodGroupRels(long groupId, boolean active) {
 
-		return commercePaymentMethodGroupRelPersistence.findByG_A(
-			groupId, active);
+		return commercePaymentMethodGroupRelFinder.findByG_A(
+			groupId, active, true);
 	}
 
 	@Override
@@ -284,7 +284,8 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 			filteredCommercePaymentMethodGroupRels = new ArrayList<>();
 
 		List<CommercePaymentMethodGroupRel> commercePaymentMethodGroupRels =
-			commercePaymentMethodGroupRelPersistence.findByG_A(groupId, active);
+			commercePaymentMethodGroupRelFinder.findByG_A(
+				groupId, active, true);
 
 		for (CommercePaymentMethodGroupRel commercePaymentMethodGroupRel :
 				commercePaymentMethodGroupRels) {
@@ -315,8 +316,8 @@ public class CommercePaymentMethodGroupRelLocalServiceImpl
 	public int getCommercePaymentMethodGroupRelsCount(
 		long groupId, boolean active) {
 
-		return commercePaymentMethodGroupRelPersistence.countByG_A(
-			groupId, active);
+		return commercePaymentMethodGroupRelFinder.countByG_A(
+			groupId, active, true);
 	}
 
 	@Override
