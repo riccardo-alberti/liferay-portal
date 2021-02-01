@@ -64,6 +64,9 @@ public class CommerceAccountUpgradeStepRegistrator
 		registry.register(
 			"1.5.0", "2.0.0", new CommerceAccountGroupSystemUpgradeProcess());
 
+		registry.register(
+			"2.0.0", "2.1.0", new CommerceAccountUpgradeProcess());
+
 		if (_log.isInfoEnabled()) {
 			_log.info("Commerce account upgrade step registrator finished");
 		}
