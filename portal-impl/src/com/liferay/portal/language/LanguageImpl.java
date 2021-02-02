@@ -1040,6 +1040,9 @@ public class LanguageImpl implements Language, Serializable {
 			}
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		Map<String, Locale> groupLanguageIdLocalesMap =
@@ -1144,7 +1147,8 @@ public class LanguageImpl implements Language, Serializable {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to check if group inherits locales");
+				_log.warn(
+					"Unable to check if group inherits locales", exception);
 			}
 		}
 
@@ -1561,6 +1565,9 @@ public class LanguageImpl implements Language, Serializable {
 			}
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		Map<String, Locale> groupLanguageIdLocalesMap =
@@ -1756,6 +1763,9 @@ public class LanguageImpl implements Language, Serializable {
 			}
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		HashMap<String, Locale> groupLanguageIdLocalesMap =

@@ -4,6 +4,12 @@ package ${configYAML.apiPackagePath}.dto.${escapedVersion};
 	import ${configYAML.apiPackagePath}.constant.${escapedVersion}.${globalEnumSchemaName};
 </#list>
 
+<#list allExternalSchemas?keys as externalSchemaName>
+	<#if javaDataTypeMap?keys?seq_contains(externalSchemaName)>
+		import ${javaDataTypeMap[externalSchemaName]};
+	</#if>
+</#list>
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -78,6 +84,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @JsonFilter("Liferay.Vulcan")
 <#if schema.requiredPropertySchemaNames?has_content>
 	@Schema(
+		<#if schema.deprecated>
+			deprecated = ${schema.deprecated?c},
+		</#if>
 		requiredProperties =
 			{
 				<#list schema.requiredPropertySchemaNames as requiredProperty>
@@ -87,7 +96,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 					</#if>
 				</#list>
 			}
-
 		<#if schema.description??>
 			, description = "${schema.description}"
 		</#if>
@@ -114,17 +122,25 @@ public class ${schemaName} <#if dtoParentClassName?has_content>extends ${dtoPare
 		<#if propertySchema.maximum??>
 			@DecimalMax("${propertySchema.maximum}")
 		</#if>
+
 		<#if propertySchema.minimum??>
 			@DecimalMin("${propertySchema.minimum}")
 		</#if>
 
 		@Schema(
+			<#if propertySchema.deprecated>
+				deprecated = ${propertySchema.deprecated?c}
+			</#if>
+
 			<#if propertySchema.description??>
+				<#if propertySchema.deprecated>
+					,
+				</#if>
 				description = "${propertySchema.description}"
 			</#if>
 
 			<#if propertySchema.example??>
-				<#if propertySchema.description??>
+				<#if propertySchema.deprecated || propertySchema.description??>
 					,
 				</#if>
 

@@ -38,7 +38,7 @@ AUI.add(
 			'<span class="collapse-icon-closed"><span class="icon-caret-right"></span></span>';
 
 		var TPL_LAYOUTS_NAVBAR =
-			'<nav class="navbar navbar-default">' +
+			'<nav class="navbar navbar-collapse-absolute navbar-expand-md navbar-underline navigation-bar navigation-bar-light">' +
 			'<div class="collapse navbar-collapse">' +
 			'<ul class="nav navbar-nav">' +
 			'<li class="public {publicLayoutClass}"><a href="javascript:;">' +
@@ -238,12 +238,48 @@ AUI.add(
 					delete templateResourceParameters.doAsGroupId;
 				}
 
+				var fields = instance._valueFields();
+
+				if (fields && fields.length) {
+					instance._removeDoAsGroupIdParam(
+						fields,
+						templateResourceParameters
+					);
+				}
+
 				var templateResourceURL = Liferay.Util.PortletURL.createResourceURL(
 					themeDisplay.getLayoutURL(),
 					templateResourceParameters
 				);
 
 				return templateResourceURL.toString();
+			},
+
+			_removeDoAsGroupIdParam(fields, templateResourceParameters) {
+				var instance = this;
+
+				fields.forEach((field) => {
+					if (!templateResourceParameters.doAsGroupId) {
+						return;
+					}
+
+					var dataType = field.get('dataType');
+
+					if (dataType && dataType === 'html') {
+						delete templateResourceParameters.doAsGroupId;
+
+						return;
+					}
+
+					var nestedFields = field.get('fields');
+
+					if (nestedFields && nestedFields.length) {
+						instance._removeDoAsGroupIdParam(
+							nestedFields,
+							templateResourceParameters
+						);
+					}
+				});
 			},
 
 			_valueDisplayLocale() {
@@ -819,7 +855,13 @@ AUI.add(
 							predefinedValue = field.predefinedValue[locale];
 						}
 
-						if (type === 'select' && predefinedValue === '[""]') {
+						var localizationMap = instance.get('localizationMap');
+
+						if (
+							type === 'select' &&
+							(predefinedValue === '[""]' ||
+								!A.Object.isEmpty(localizationMap))
+						) {
 							predefinedValue = '';
 						}
 					}

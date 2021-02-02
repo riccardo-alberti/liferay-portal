@@ -31,6 +31,11 @@ public class QAWebsitesTopLevelBuild
 	}
 
 	@Override
+	public String getBaseGitRepositoryName() {
+		return "liferay-qa-websites-ee";
+	}
+
+	@Override
 	public BranchInformation getPortalBaseBranchInformation() {
 		return null;
 	}
@@ -49,6 +54,11 @@ public class QAWebsitesTopLevelBuild
 	@Override
 	public BranchInformation getQAWebsitesBranchInformation() {
 		return getBranchInformation("qa.websites");
+	}
+
+	@Override
+	public String getTestSuiteName() {
+		return JenkinsResultsParserUtil.join(",", getProjectNames());
 	}
 
 	public static class PortalMasterBranchInformation

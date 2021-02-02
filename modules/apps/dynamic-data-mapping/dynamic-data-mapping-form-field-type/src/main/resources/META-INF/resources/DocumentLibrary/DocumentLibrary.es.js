@@ -12,7 +12,7 @@
  * details.
  */
 
-import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton from '@clayui/button';
 import ClayCard from '@clayui/card';
 import {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
@@ -21,7 +21,7 @@ import axios from 'axios';
 import {PagesVisitor, usePage} from 'dynamic-data-mapping-form-renderer';
 import {convertToFormData} from 'dynamic-data-mapping-form-renderer/js/util/fetch.es';
 import {ItemSelectorDialog} from 'frontend-js-web';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import {FieldBase} from '../FieldBase/ReactFieldBase.es';
 
@@ -45,6 +45,18 @@ const CardItem = ({fileEntryTitle, fileEntryURL}) => {
 	);
 };
 
+const getValue = (value) => {
+	if (!value) {
+		return '';
+	}
+
+	if (typeof value === 'string') {
+		return value;
+	}
+
+	return JSON.stringify(value);
+};
+
 function transformFileEntryProperties({fileEntryTitle, fileEntryURL, value}) {
 	if (value && typeof value === 'string') {
 		try {
@@ -61,7 +73,7 @@ function transformFileEntryProperties({fileEntryTitle, fileEntryURL, value}) {
 		}
 	}
 
-	return [fileEntryTitle, fileEntryURL];
+	return value ? [fileEntryTitle, fileEntryURL] : [];
 }
 
 const DocumentLibrary = ({
@@ -97,9 +109,10 @@ const DocumentLibrary = ({
 					<ClayInput.GroupItem prepend>
 						<ClayInput
 							aria-label={Liferay.Language.get('file')}
-							className="field"
-							disabled
+							className="bg-light field"
+							disabled={readOnly}
 							id={`${name}inputFile`}
+							onClick={onSelectButtonClicked}
 							value={transformedFileEntryTitle || ''}
 						/>
 					</ClayInput.GroupItem>
@@ -118,16 +131,17 @@ const DocumentLibrary = ({
 					</ClayInput.GroupItem>
 
 					{transformedFileEntryTitle && (
-						<ClayInput.GroupItem append shrink>
-							<ClayButtonWithIcon
+						<ClayInput.GroupItem shrink>
+							<ClayButton
 								aria-label={Liferay.Language.get(
 									'unselect-file'
 								)}
-								className="clear-button"
 								displayType="secondary"
 								onClick={onClearButtonClicked}
-								symbol="times"
-							/>
+								type="button"
+							>
+								{Liferay.Language.get('clear')}
+							</ClayButton>
 						</ClayInput.GroupItem>
 					)}
 				</ClayInput.Group>
@@ -138,7 +152,7 @@ const DocumentLibrary = ({
 				name={name}
 				placeholder={placeholder}
 				type="hidden"
-				value={value || ''}
+				value={getValue(value)}
 			/>
 		</div>
 	);
@@ -153,6 +167,7 @@ const GuestUploadFile = ({
 	onUploadSelectButtonClicked,
 	placeholder,
 	progress,
+	readOnly,
 	value,
 }) => {
 	const [transformedFileEntryTitle] = useMemo(
@@ -170,7 +185,9 @@ const GuestUploadFile = ({
 			<ClayInput.Group>
 				<ClayInput.GroupItem prepend>
 					<ClayInput
-						disabled
+						className="bg-light"
+						disabled={readOnly}
+						onClick={onUploadSelectButtonClicked}
 						type="text"
 						value={transformedFileEntryTitle || ''}
 					/>
@@ -181,7 +198,8 @@ const GuestUploadFile = ({
 							'btn btn-secondary select-button' +
 							(transformedFileEntryTitle
 								? ' clear-button-upload-on'
-								: '')
+								: '') +
+							(readOnly ? ' disabled' : '')
 						}
 						htmlFor={`${name}inputFileGuestUpload`}
 					>
@@ -189,19 +207,23 @@ const GuestUploadFile = ({
 					</label>
 					<input
 						className="input-file"
+						disabled={readOnly}
 						id={`${name}inputFileGuestUpload`}
 						onChange={onUploadSelectButtonClicked}
 						type="file"
 					/>
 				</ClayInput.GroupItem>
 				{transformedFileEntryTitle && (
-					<ClayButtonWithIcon
-						aria-label={Liferay.Language.get('unselect-file')}
-						className="clear-button-upload"
-						displayType="secondary"
-						onClick={onClearButtonClicked}
-						symbol="times"
-					/>
+					<ClayInput.GroupItem shrink>
+						<ClayButton
+							aria-label={Liferay.Language.get('unselect-file')}
+							displayType="secondary"
+							onClick={onClearButtonClicked}
+							type="button"
+						>
+							{Liferay.Language.get('clear')}
+						</ClayButton>
+					</ClayInput.GroupItem>
 				)}
 			</ClayInput.Group>
 
@@ -210,7 +232,7 @@ const GuestUploadFile = ({
 				name={name}
 				placeholder={placeholder}
 				type="hidden"
-				value={value || ''}
+				value={getValue(value)}
 			/>
 
 			{progress !== 0 && <ClayProgressBar value={progress} />}
@@ -229,6 +251,7 @@ const Main = ({
 	id,
 	itemSelectorURL,
 	maximumRepetitions,
+	maximumSubmissionLimitReached,
 	name,
 	onBlur,
 	onChange,
@@ -246,6 +269,37 @@ const Main = ({
 	const [valid, setValid] = useState(initialValid);
 	const [progress, setProgress] = useState(0);
 
+	const getErrorMessages = (errorMessage, isSignedIn) => {
+		const errorMessages = [errorMessage];
+
+		if (!isSignedIn && !allowGuestUsers) {
+			errorMessages.push(
+				Liferay.Language.get(
+					'you-need-to-be-signed-in-to-edit-this-field'
+				)
+			);
+		}
+		else if (maximumSubmissionLimitReached) {
+			errorMessages.push(
+				Liferay.Language.get(
+					'the-maximum-number-of-submissions-allowed-for-this-form-has-been-reached'
+				)
+			);
+		}
+
+		return errorMessages.join(' ');
+	};
+
+	const isSignedIn = Liferay.ThemeDisplay.isSignedIn();
+
+	useEffect(() => {
+		setDisplayErrors(initialDisplayErrors);
+		setErrorMessage(getErrorMessages(initialErrorMessage, isSignedIn));
+		setValid(initialValid);
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialDisplayErrors, initialErrorMessage, initialValid]);
+
 	const checkMaximumRepetitions = () => {
 		const visitor = new PagesVisitor(pages);
 
@@ -262,20 +316,6 @@ const Main = ({
 		);
 
 		return repetitionsCounter === maximumRepetitions;
-	};
-
-	const getErrorMessages = (errorMessage, isSignedIn) => {
-		const errorMessages = [errorMessage];
-
-		if (!isSignedIn && !allowGuestUsers) {
-			errorMessages.push(
-				Liferay.Language.get(
-					'you-need-to-be-signed-in-to-edit-this-field'
-				)
-			);
-		}
-
-		return errorMessages.join(' ');
 	};
 
 	const handleVisibleChange = (event) => {
@@ -325,9 +365,43 @@ const Main = ({
 		document.getElementById('ddm-form-submit').disabled = disable;
 	};
 
+	const handleGuestUploadFileChanged = (errorMessage, event, value) => {
+		configureErrorMessage(errorMessage);
+
+		setCurrentValue(value);
+
+		onChange(event, value ? value : '{}');
+	};
+
+	const isExceededUploadRequestSizeLimit = (fileSize) => {
+		const uploadRequestSizeLimit =
+			Liferay.PropsValues.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE;
+
+		if (fileSize <= uploadRequestSizeLimit) {
+			return false;
+		}
+
+		const errorMessage = Liferay.Util.sub(
+			Liferay.Language.get(
+				'please-enter-a-file-with-a-valid-file-size-no-larger-than-x'
+			),
+			[Liferay.Util.formatStorage(uploadRequestSizeLimit)]
+		);
+
+		handleGuestUploadFileChanged(errorMessage, {}, null);
+
+		return true;
+	};
+
 	const handleUploadSelectButtonClicked = (event) => {
+		const file = event.target.files[0];
+
+		if (isExceededUploadRequestSizeLimit(file.size)) {
+			return;
+		}
+
 		const data = {
-			[`${portletNamespace}file`]: event.target.files[0],
+			[`${portletNamespace}file`]: file,
 		};
 
 		axios
@@ -350,38 +424,40 @@ const Main = ({
 				disableSubmitButton(false);
 
 				if (error) {
-					configureErrorMessage(error.message);
-
-					setCurrentValue(null);
-
-					onChange(event, '{}');
+					handleGuestUploadFileChanged(error.message, event, null);
 				}
 				else {
-					configureErrorMessage('');
-
-					setCurrentValue(JSON.stringify(file));
-
-					onChange(event, JSON.stringify(file));
+					handleGuestUploadFileChanged(
+						'',
+						event,
+						JSON.stringify(file)
+					);
 				}
+
+				setProgress(0);
+			})
+			.catch(() => {
+				disableSubmitButton(false);
 
 				setProgress(0);
 			});
 	};
 
-	const isSignedIn = Liferay.ThemeDisplay.isSignedIn();
+	const hasCustomError =
+		(!isSignedIn && !allowGuestUsers) || maximumSubmissionLimitReached;
 
 	return (
 		<FieldBase
 			{...otherProps}
-			displayErrors={allowGuestUsers || isSignedIn ? displayErrors : true}
-			errorMessage={getErrorMessages(errorMessage, isSignedIn)}
+			displayErrors={hasCustomError ? true : displayErrors}
+			errorMessage={errorMessage}
 			id={id}
 			name={name}
 			overMaximumRepetitionsLimit={
 				maximumRepetitions > 0 ? checkMaximumRepetitions() : false
 			}
-			readOnly={allowGuestUsers || isSignedIn ? readOnly : true}
-			valid={allowGuestUsers || isSignedIn ? valid : false}
+			readOnly={hasCustomError ? true : readOnly}
+			valid={hasCustomError ? false : valid}
 		>
 			{allowGuestUsers && !isSignedIn ? (
 				<GuestUploadFile
@@ -399,6 +475,7 @@ const Main = ({
 					}
 					placeholder={placeholder}
 					progress={progress}
+					readOnly={hasCustomError ? true : readOnly}
 					value={currentValue || ''}
 				/>
 			) : (
@@ -419,7 +496,7 @@ const Main = ({
 						})
 					}
 					placeholder={placeholder}
-					readOnly={isSignedIn ? readOnly : true}
+					readOnly={hasCustomError ? true : readOnly}
 					value={currentValue || ''}
 				/>
 			)}

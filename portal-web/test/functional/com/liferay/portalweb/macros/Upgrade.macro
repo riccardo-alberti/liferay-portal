@@ -7,6 +7,8 @@ definition {
 			entryContent = "Alice's Adventures in Wonderland",
 			entryTitle = "Blogs Entry Title");
 
+		Pause(locator1 = "3000");
+
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/test-page");
 
 		AssertClick.assertTextClickAt(
@@ -1013,6 +1015,8 @@ definition {
 			category = "Content &amp; Data",
 			portlet = "Blogs");
 
+		Pause(locator1 = "3000");
+
 		Blogs.addWithWorkflow(
 			entryContent = "Blogs Entry Content",
 			entrySubtitle = "Subtitle",
@@ -1958,7 +1962,7 @@ definition {
 				imageSize = "0");
 
 			AssertElementPresent(
-				key_borderRadius = "lg",
+				key_borderRadius = "0.375rem",
 				key_fragmentName = "card",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_BORDER_RADIUS_IN_VIEW_MODE");
 
@@ -1985,7 +1989,7 @@ definition {
 
 			AssertElementPresent(
 				key_fragmentName = "heading",
-				key_textColor = "rgb(35, 109, 53)",
+				key_textColor = "#287D3C",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_TEXT_COLOR_IN_VIEW_MODE");
 
 			AssertElementPresent(
@@ -2025,7 +2029,7 @@ definition {
 		task ("Assert styles of Paragraph in view mode") {
 			AssertElementPresent(
 				key_fragmentName = "paragraph",
-				key_textColor = "rgb(164, 71, 0)",
+				key_textColor = "#B95000",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_TEXT_COLOR_IN_VIEW_MODE");
 
 			AssertElementPresent(
@@ -2041,7 +2045,7 @@ definition {
 
 		task ("Assert styles of Separator in view mode") {
 			PageEditor.viewFragmentStyle(
-				bottomSpacing = "3",
+				bottomSpacing = "1",
 				separatorColor = "dark");
 		}
 
@@ -2066,7 +2070,9 @@ definition {
 		}
 
 		task ("Navigate to page in edit mode") {
-			ContentPages.clickPencil();
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Fragment Content Page",
+				siteName = "Test Site Name");
 
 			Pause(locator1 = "10000");
 		}
@@ -2102,7 +2108,7 @@ definition {
 				marginBottom = "1");
 
 			AssertElementPresent(
-				key_borderRadius = "lg",
+				key_borderRadius = "0.375rem",
 				key_fragmentName = "card",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_BORDER_RADIUS_IN_VIEW_MODE");
 
@@ -2118,7 +2124,7 @@ definition {
 
 			AssertElementPresent(
 				key_fragmentName = "heading",
-				key_textColor = "rgb(35, 109, 53)",
+				key_textColor = "rgb(40, 125, 60)",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_TEXT_COLOR_IN_VIEW_MODE");
 		}
 
@@ -2140,7 +2146,7 @@ definition {
 		task ("Assert styles of Paragraph in edit mode") {
 			AssertElementPresent(
 				key_fragmentName = "paragraph",
-				key_textColor = "rgb(164, 71, 0)",
+				key_textColor = "rgb(185, 80, 0)",
 				locator1 = "Fragment#FRAGMENT_CONFIGURATION_TEXT_COLOR_IN_VIEW_MODE");
 
 			PageEditor.viewFragmentStyle(
@@ -2151,7 +2157,7 @@ definition {
 
 		task ("Assert styles of Separator in edit mode") {
 			PageEditor.viewFragmentStyle(
-				bottomSpacing = "3",
+				bottomSpacing = "1",
 				separatorColor = "dark");
 		}
 
@@ -3229,8 +3235,9 @@ definition {
 				workflowStatus = "Approved");
 		}
 
-		WebContentUpgrade.viewWithStructureCP(
-			webContentBoolean = "true",
+		WebContent.viewWithStructureCP(
+			webContentMultipleSelection = "Boolean",
+			webContentMultipleSelectionFieldLabel = "Boolean",
 			webContentTitle = "Boolean Web Content");
 
 		Navigator.gotoBack();
@@ -3262,16 +3269,16 @@ definition {
 
 		Navigator.gotoBack();
 
-		WebContentUpgrade.viewWithStructureCP(
-			webContentImage = "Document_1.jpg",
-			webContentTitle = "Image Web Content");
-
-		Navigator.gotoBack();
-
 		WebContent.viewWithStructureCP(
 			webContentNumeric = "9",
 			webContentNumericFieldLabel = "Integer",
 			webContentTitle = "Integer Web Content");
+
+		Navigator.gotoBack();
+
+		WebContent.viewWithStructureCP(
+			webContentLinkToPage = "Welcome",
+			webContentTitle = "Link to Page Web Content");
 
 		Navigator.gotoBack();
 
@@ -3291,8 +3298,14 @@ definition {
 
 		WebContent.viewWithStructureCP(
 			webContentSelectFromList = "option 2",
-			webContentSeparatorFieldLabel = "Select",
+			webContentSelectFromListFieldLabel = "Select",
 			webContentTitle = "Select Web Content");
+
+		Navigator.gotoBack();
+
+		WebContent.viewWithStructureCP(
+			webContentSeparator = "true",
+			webContentTitle = "Separator Web Content");
 
 		Navigator.gotoBack();
 
@@ -3310,15 +3323,26 @@ definition {
 
 		Navigator.gotoBack();
 
-		WebContent.viewWithStructureCP(
-			webContentLinkToPage = "Welcome",
-			webContentTitle = "Link to Page Web Content");
+		WebContentNavigator.gotoEditCP(webContentTitle = "Image Web Content");
 
-		Navigator.gotoBack();
+		AssertTextEquals(
+			locator1 = "TextInput#TITLE",
+			value1 = "Image Web Content");
 
-		WebContent.viewWithStructureCP(
-			webContentSeparator = "true",
-			webContentTitle = "Separator Web Content");
+		var imageFieldValue = selenium.getElementValue("//label[normalize-space(text())='Image']/following-sibling::div//div[contains(@class,'input-group')]//input[contains(@type,'text')]");
+
+		TestUtils.assertNotEquals(
+			actual = "${imageFieldValue}",
+			expected = "");
+
+		AssertVisible(
+			key_fieldFieldLabel = "Image",
+			locator1 = "WCEditWebContent#CLEAR_BUTTON");
+
+		AssertElementPresent(
+			key_fieldFieldLabel = "Image",
+			key_image = "/documents/",
+			locator1 = "WCEditWebContent#IMAGE_PICKER_PREVIEW");
 	}
 
 	macro viewWebContentWithPredefinedValueInWebContentField {

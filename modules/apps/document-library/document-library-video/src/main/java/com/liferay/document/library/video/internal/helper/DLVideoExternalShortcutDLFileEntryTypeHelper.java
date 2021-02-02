@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -64,11 +63,11 @@ public class DLVideoExternalShortcutDLFileEntryTypeHelper {
 			ddmStructure = _addDLVideoExternalShortcutDDMStructure();
 		}
 
-		List<DLFileEntryType> dlFileEntryTypes =
-			_dlFileEntryTypeLocalService.getFileEntryTypes(
-				ddmStructure.getStructureId());
+		DLFileEntryType dlFileEntryType =
+			_dlFileEntryTypeLocalService.fetchDataDefinitionFileEntryType(
+				_company.getGroupId(), ddmStructure.getStructureId());
 
-		if (dlFileEntryTypes.isEmpty()) {
+		if (dlFileEntryType == null) {
 			_addDLVideoExternalShortcutDLFileEntryType(
 				ddmStructure.getStructureId());
 		}
@@ -130,9 +129,9 @@ public class DLVideoExternalShortcutDLFileEntryTypeHelper {
 		serviceContext.setUserId(defaultUserId);
 
 		_dlFileEntryTypeLocalService.addFileEntryType(
-			defaultUserId, _company.getGroupId(),
+			defaultUserId, _company.getGroupId(), ddmStructureId,
 			DLVideoConstants.DL_FILE_ENTRY_TYPE_KEY, nameMap, descriptionMap,
-			new long[] {ddmStructureId}, serviceContext);
+			serviceContext);
 	}
 
 	private Map<Locale, String> _updateDescriptionMap(

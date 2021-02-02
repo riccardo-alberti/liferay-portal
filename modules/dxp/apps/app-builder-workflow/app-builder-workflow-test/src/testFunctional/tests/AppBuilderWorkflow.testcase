@@ -111,16 +111,6 @@ definition {
 			userScreenName = "usersn2");
 
 		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Password Policies");
-
-		PasswordPolicies.togglePasswordChangeRequired(
-			enableChangeRequired = "true",
-			passwordPolicyName = "Default Password Policy",
-			passwordPolicyPanel = "Password Changes");
-
-		ApplicationsMenu.gotoPortlet(
 			category = "Users",
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
@@ -256,6 +246,7 @@ definition {
 	@description = "Create a Basic Workflow App"
 	@priority = "5"
 	test CreateBasicWorkflowApp {
+		property environment.acceptance = "true";
 		property portal.acceptance = "true";
 
 		AppBuilderAdmin.addCustomObject(
@@ -604,6 +595,7 @@ definition {
 	@description = "Create an App through the 'Apps' portlet"
 	@priority = "5"
 	test CreateStandardApp {
+		property environment.acceptance = "true";
 		property portal.acceptance = "true";
 
 		ApplicationsMenu.gotoPortlet(
@@ -612,8 +604,6 @@ definition {
 			portlet = "Apps");
 
 		AppBuilderAppAdmin.validateTabsPresent();
-
-		AppBuilderAppAdmin.validateObjectSearchBoxDisabled();
 
 		ApplicationsMenu.gotoPortlet(
 			category = "App Builder",
@@ -1147,6 +1137,56 @@ definition {
 			value1 = "Process Builder");
 
 		Navigator.closeWindow();
+	}
+
+	@description = "LRQA-63477 - Automate LPS-111683: As an App Admin, I want to view and edit existing Form and Table Views during my App creation experience"
+	@priority = "4"
+	test OpenFormViewOnNewStep {
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		AppBuilderAdmin.createFormViewAndTableView(
+			fieldType = "Text",
+			formViewName = "My Form View",
+			tableViewName = "My Table View");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "App Builder",
+			panel = "Applications",
+			portlet = "Apps");
+
+		AppBuilderAppAdmin.goToWorkflowPoweredTab();
+		AppBuilderAppAdmin.clickOnPlusButton();
+		AppBuilderWorkflow.selectDataAndViewsCard();
+		AppBuilderWorkflow.clickOnSelectObject();
+		AppBuilderWorkflow.selectObject(objectName = "my custom object");
+		AppBuilderWorkflow.clickOnSelectFormView(positionNumber = "1");
+		AppBuilderWorkflow.selectFormView(formViewName = "My Form View");
+		AppBuilderWorkflow.clickOnSelectTableView();
+		AppBuilderWorkflow.selectTableView(tableViewName = "My Table View");
+
+		AppBuilderWorkflow.addNewStep();
+		AppBuilderWorkflow.selectDataAndViewsCard();
+		AppBuilderWorkflow.assertFormViewSelected(
+			formViewName = "My Form View",
+			positionNumber = "1");
+		AppBuilderWorkflow.openFormView(positionNumber = "1");
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Text");
+		AppBuilderAdmin.cancel();
+
+		AppBuilderWorkflow.addNewFormView();
+		AppBuilderWorkflow.clickOnSelectFormView(positionNumber = "2");
+		AppBuilderWorkflow.clickToCreateFormView(positionNumber = "2");
+		AppBuilderWorkflow.createSimpleFormView(
+			fieldType = "Numeric",
+			formViewName = "My Form View 2");
+		AppBuilderWorkflow.assertFormViewSelected(
+			formViewName = "My Form View 2",
+			positionNumber = "2");
+		AppBuilderWorkflow.openFormView(positionNumber = "2");
+		FormViewBuilder.validateFieldLabel(fieldLabel = "Numeric");
 	}
 
 	@description = "LRQA-63084 - Automate LPS-105493: As an App Adm, I want create the workflow process of my App during the App deployment"
@@ -2107,16 +2147,6 @@ definition {
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
-
-		ApplicationsMenu.gotoPortlet(
-			category = "Security",
-			panel = "Control Panel",
-			portlet = "Password Policies");
-
-		PasswordPolicies.togglePasswordChangeRequired(
-			enableChangeRequired = "true",
-			passwordPolicyName = "Default Password Policy",
-			passwordPolicyPanel = "Password Changes");
 
 		ApplicationsMenu.gotoPortlet(
 			category = "Users",

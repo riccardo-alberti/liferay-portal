@@ -333,6 +333,27 @@ public abstract class BaseBuild implements Build {
 	}
 
 	@Override
+	public Job.BuildProfile getBuildProfile() {
+		String buildProfile = getParameterValue("TEST_PORTAL_BUILD_PROFILE");
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(buildProfile)) {
+			if (buildProfile.equals("dxp")) {
+				return Job.BuildProfile.DXP;
+			}
+
+			return Job.BuildProfile.PORTAL;
+		}
+
+		String branchName = getBranchName();
+
+		if (!branchName.equals("master") && !branchName.startsWith("ee-")) {
+			return Job.BuildProfile.DXP;
+		}
+
+		return Job.BuildProfile.PORTAL;
+	}
+
+	@Override
 	public String getBuildURL() {
 		String jobURL = getJobURL();
 
@@ -604,6 +625,29 @@ public abstract class BaseBuild implements Build {
 		return upstreamJobFailureMessageElement;
 	}
 
+	public Map<String, String> getInjectedEnvironmentVariablesMap()
+		throws IOException {
+
+		String localBuildURL = JenkinsResultsParserUtil.getLocalURL(
+			getBuildURL());
+
+		JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
+			localBuildURL + "/injectedEnvVars/api/json", false);
+
+		JSONObject envMapJSONObject = jsonObject.getJSONObject("envMap");
+
+		Set<String> envMapJSONObjectKeySet = envMapJSONObject.keySet();
+
+		Map<String, String> injectedEnvironmentVariablesMap = new HashMap<>();
+
+		for (String key : envMapJSONObjectKeySet) {
+			injectedEnvironmentVariablesMap.put(
+				key, envMapJSONObject.getString(key));
+		}
+
+		return injectedEnvironmentVariablesMap;
+	}
+
 	@Override
 	public String getInvocationURL() {
 		String jobURL = getJobURL();
@@ -697,34 +741,7 @@ public abstract class BaseBuild implements Build {
 			return _job;
 		}
 
-		TopLevelBuild topLevelBuild = getTopLevelBuild();
-
-		String topLevelJobName = topLevelBuild.getJobName();
-
-		String repositoryName = null;
-
-		if (topLevelJobName.contains("subrepository")) {
-			repositoryName = topLevelBuild.getBaseGitRepositoryName();
-		}
-
-		Map<String, String> buildParameters = topLevelBuild.getParameters();
-
-		String buildProfile = buildParameters.get("TEST_PORTAL_BUILD_PROFILE");
-
-		if ((buildProfile == null) || !buildProfile.equals("dxp")) {
-			buildProfile = "portal";
-		}
-
-		String branchName = topLevelBuild.getBranchName();
-
-		if (branchName.startsWith("ee-")) {
-			buildProfile = "portal";
-		}
-
-		_job = JobFactory.newJob(
-			topLevelJobName, topLevelBuild.getTestSuiteName(),
-			topLevelBuild.getBranchName(), repositoryName,
-			Job.BuildProfile.valueOf(buildProfile.toUpperCase()));
+		_job = JobFactory.newJob(this);
 
 		return _job;
 	}
@@ -1191,6 +1208,12 @@ public abstract class BaseBuild implements Build {
 	}
 
 	public List<TestResult> getTestResults(
+		Build build, JSONArray suitesJSONArray) {
+
+		return getTestResults(build, suitesJSONArray, null);
+	}
+
+	public List<TestResult> getTestResults(
 		Build build, JSONArray suitesJSONArray, String testStatus) {
 
 		List<TestResult> testResults = new ArrayList<>();
@@ -1514,6 +1537,11 @@ public abstract class BaseBuild implements Build {
 		System.out.println(getReinvokedMessage());
 
 		reset();
+	}
+
+	@Override
+	public void removeDownstreamBuild(Build build) {
+		downstreamBuilds.remove(build);
 	}
 
 	@Override
@@ -2081,7 +2109,7 @@ public abstract class BaseBuild implements Build {
 			return JenkinsResultsParserUtil.combine(
 				getName(), " started at ",
 				JenkinsResultsParserUtil.toDateString(
-					new Date(getStartTimestamp()), "America/Los_Angeles"),
+					new Date(getStartTimestamp())),
 				" and ran for ",
 				JenkinsResultsParserUtil.toDurationString(getDuration()), ".");
 		}
@@ -2406,8 +2434,8 @@ public abstract class BaseBuild implements Build {
 
 		try {
 			content = JenkinsResultsParserUtil.toString(
-				JenkinsResultsParserUtil.getLocalURL(urlString), false, 0, 0,
-				0);
+				JenkinsResultsParserUtil.getLocalURL(urlString), false, 0, 0, 0,
+				true);
 		}
 		catch (IOException ioException) {
 			if (required) {
@@ -2718,29 +2746,6 @@ public abstract class BaseBuild implements Build {
 		boolean showCommonFailuresCount) {
 
 		return getGitHubMessageJobResultsElement();
-	}
-
-	protected Map<String, String> getInjectedEnvironmentVariablesMap()
-		throws IOException {
-
-		String localBuildURL = JenkinsResultsParserUtil.getLocalURL(
-			getBuildURL());
-
-		JSONObject jsonObject = JenkinsResultsParserUtil.toJSONObject(
-			localBuildURL + "/injectedEnvVars/api/json", false);
-
-		JSONObject envMapJSONObject = jsonObject.getJSONObject("envMap");
-
-		Set<String> envMapJSONObjectKeySet = envMapJSONObject.keySet();
-
-		Map<String, String> injectedEnvironmentVariablesMap = new HashMap<>();
-
-		for (String key : envMapJSONObjectKeySet) {
-			injectedEnvironmentVariablesMap.put(
-				key, envMapJSONObject.getString(key));
-		}
-
-		return injectedEnvironmentVariablesMap;
 	}
 
 	protected String getJenkinsReportBuildInfoCellElementTagName() {

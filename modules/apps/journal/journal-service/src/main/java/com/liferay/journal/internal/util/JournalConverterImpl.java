@@ -15,9 +15,11 @@
 package com.liferay.journal.internal.util;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
-import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.Field;
 import com.liferay.dynamic.data.mapping.storage.Fields;
@@ -26,10 +28,12 @@ import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.dynamic.data.mapping.util.DDMFieldsCounter;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.journal.article.dynamic.data.mapping.form.field.type.constants.JournalArticleDDMFormFieldTypeConstants;
 import com.liferay.journal.exception.ArticleContentException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.util.JournalConverter;
+import com.liferay.layout.dynamic.data.mapping.form.field.type.constants.LayoutDDMFormFieldTypeConstants;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -64,8 +68,10 @@ import com.liferay.trash.TrashHelper;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -348,8 +354,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 		ddmField.setName(name);
 
-		String dataType = ddmStructure.getFieldDataType(name);
-		String type = ddmStructure.getFieldType(name);
+		DDMFormField ddmFormField = ddmStructure.getDDMFormField(name);
 
 		Set<String> missingLanguageIds = SetUtil.fromArray(
 			availableLanguageIds);
@@ -376,7 +381,7 @@ public class JournalConverterImpl implements JournalConverter {
 			}
 
 			Serializable serializable = getFieldValue(
-				dataType, type, dynamicContentElement, defaultLocale);
+				ddmFormField, dynamicContentElement, defaultLocale);
 
 			ddmField.addValue(locale, serializable);
 		}
@@ -411,30 +416,49 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	protected Serializable getFieldValue(
-		String dataType, String type, Element dynamicContentElement,
+		DDMFormField ddmFormField, Element dynamicContentElement,
 		Locale defaultLocale) {
 
-		if (Objects.equals(DDMFormFieldType.DOCUMENT_LIBRARY, type) ||
-			Objects.equals(DDMFormFieldType.IMAGE, type)) {
+		if (Objects.equals(
+				DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE,
+				ddmFormField.getType())) {
+
+			return _getCheckboxMultipleValue(
+				ddmFormField, dynamicContentElement);
+		}
+
+		if (Objects.equals(
+				DDMFormFieldTypeConstants.DOCUMENT_LIBRARY,
+				ddmFormField.getType()) ||
+			Objects.equals(
+				DDMFormFieldTypeConstants.IMAGE, ddmFormField.getType())) {
 
 			return _getFileEntryValue(defaultLocale, dynamicContentElement);
 		}
 
-		if (Objects.equals("journal_article", type)) {
+		if (Objects.equals(
+				JournalArticleDDMFormFieldTypeConstants.JOURNAL_ARTICLE,
+				ddmFormField.getType())) {
+
 			return _getJournalArticleValue(
 				defaultLocale, dynamicContentElement);
 		}
 
-		if (Objects.equals("link_to_layout", type)) {
+		if (Objects.equals(
+				LayoutDDMFormFieldTypeConstants.LINK_TO_LAYOUT,
+				ddmFormField.getType())) {
+
 			return _getLinkToLayoutValue(defaultLocale, dynamicContentElement);
 		}
 
-		if (Objects.equals(DDMFormFieldType.SELECT, type)) {
+		if (Objects.equals(
+				DDMFormFieldTypeConstants.SELECT, ddmFormField.getType())) {
+
 			return _getSelectValue(dynamicContentElement);
 		}
 
 		return FieldConstants.getSerializable(
-			dataType, dynamicContentElement.getText());
+			ddmFormField.getDataType(), dynamicContentElement.getText());
 	}
 
 	protected String[] splitFieldsDisplayValue(Field fieldsDisplayField) {
@@ -526,8 +550,8 @@ public class JournalConverterImpl implements JournalConverter {
 				String valueString = String.valueOf(fieldValue);
 
 				updateDynamicContentValue(
-					dynamicContentElement, fieldType, multiple,
-					valueString.trim());
+					ddmStructure, dynamicContentElement, fieldName, fieldType,
+					multiple, valueString.trim());
 			}
 		}
 
@@ -535,17 +559,51 @@ public class JournalConverterImpl implements JournalConverter {
 	}
 
 	protected void updateDynamicContentValue(
-		Element dynamicContentElement, String fieldType, boolean multiple,
+		DDMStructure ddmStructure, Element dynamicContentElement,
+		String fieldName, String fieldType, boolean multiple,
 		String fieldValue) {
 
-		if (DDMFormFieldType.CHECKBOX.equals(fieldType)) {
-			if (fieldValue.equals(Boolean.FALSE.toString())) {
-				fieldValue = StringPool.BLANK;
+		if (Objects.equals(
+				DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE, fieldType)) {
+
+			try {
+				DDMFormField ddmFormField = ddmStructure.getDDMFormField(
+					fieldName);
+
+				DDMFormFieldOptions ddmFormFieldOptions =
+					(DDMFormFieldOptions)ddmFormField.getProperty("options");
+
+				Map<String, LocalizedValue> options =
+					ddmFormFieldOptions.getOptions();
+
+				if (options.size() > 1) {
+					dynamicContentElement.addCDATA(fieldValue);
+
+					return;
+				}
+
+				JSONArray fieldValueJSONArray = JSONFactoryUtil.createJSONArray(
+					fieldValue);
+
+				if (fieldValueJSONArray.length() == 1) {
+					fieldValue = Boolean.TRUE.toString();
+				}
+				else {
+					fieldValue = StringPool.BLANK;
+				}
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to get dynamic data mapping form field for " +
+							fieldName,
+						portalException);
+				}
 			}
 
 			dynamicContentElement.addCDATA(fieldValue);
 		}
-		else if (DDMFormFieldType.SELECT.equals(fieldType) &&
+		else if (Objects.equals(DDMFormFieldTypeConstants.SELECT, fieldType) &&
 				 Validator.isNotNull(fieldValue)) {
 
 			JSONArray jsonArray = null;
@@ -604,31 +662,78 @@ public class JournalConverterImpl implements JournalConverter {
 
 		String type = ddmFieldType;
 
-		if (Objects.equals(ddmFieldType, "color")) {
+		if (Objects.equals(
+				ddmFieldType, DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE)) {
+
+			try {
+				DDMFormField ddmFormField = ddmStructure.getDDMFormField(
+					fieldName);
+
+				DDMFormFieldOptions ddmFormFieldOptions =
+					(DDMFormFieldOptions)ddmFormField.getProperty("options");
+
+				Map<String, LocalizedValue> options =
+					ddmFormFieldOptions.getOptions();
+
+				if (options.size() == 1) {
+					type = "boolean";
+				}
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unable to get dynamic data mapping form field for " +
+							fieldName,
+						portalException);
+				}
+			}
+		}
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.COLOR)) {
+
 			type = "ddm-color";
 		}
-		else if (Objects.equals(ddmFieldType, "date")) {
+		else if (Objects.equals(ddmFieldType, DDMFormFieldTypeConstants.DATE)) {
 			type = "ddm-date";
 		}
-		else if (Objects.equals(ddmFieldType, "geolocation")) {
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.GEOLOCATION)) {
+
 			type = "ddm-geolocation";
 		}
-		else if (Objects.equals(ddmFieldType, "journal_article")) {
+		else if (Objects.equals(
+					ddmFieldType,
+					JournalArticleDDMFormFieldTypeConstants.JOURNAL_ARTICLE)) {
+
 			type = "ddm-journal-article";
 		}
-		else if (Objects.equals(ddmFieldType, "numeric")) {
+		else if (Objects.equals(
+					ddmFieldType,
+					LayoutDDMFormFieldTypeConstants.LINK_TO_LAYOUT)) {
+
+			type = "ddm-link-to-page";
+		}
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.NUMERIC)) {
+
 			type = "ddm-number";
 		}
-		else if (Objects.equals(ddmFieldType, "rich_text")) {
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.RICH_TEXT)) {
+
 			type = "text_area";
 		}
-		else if (Objects.equals(ddmFieldType, "select")) {
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.SELECT)) {
+
 			type = "list";
 		}
-		else if (Objects.equals(ddmFieldType, "separator")) {
+		else if (Objects.equals(
+					ddmFieldType, DDMFormFieldTypeConstants.SEPARATOR)) {
+
 			type = "selection_break";
 		}
-		else if (Objects.equals(ddmFieldType, "text")) {
+		else if (Objects.equals(ddmFieldType, DDMFormFieldTypeConstants.TEXT)) {
 			type = "text";
 
 			try {
@@ -653,6 +758,36 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 
 		return type;
+	}
+
+	private Serializable _getCheckboxMultipleValue(
+		DDMFormField ddmFormField, Element dynamicContentElement) {
+
+		DDMFormFieldOptions ddmFormFieldOptions =
+			(DDMFormFieldOptions)ddmFormField.getProperty("options");
+
+		Map<String, LocalizedValue> options = ddmFormFieldOptions.getOptions();
+
+		if (options.size() == 1) {
+			if (GetterUtil.getBoolean(dynamicContentElement.getText())) {
+				Set<Map.Entry<String, LocalizedValue>> entrySet =
+					options.entrySet();
+
+				Iterator<Map.Entry<String, LocalizedValue>> iterator =
+					entrySet.iterator();
+
+				Map.Entry<String, LocalizedValue> entry = iterator.next();
+
+				return JSONUtil.putAll(
+					entry.getKey()
+				).toJSONString();
+			}
+
+			return StringPool.BLANK;
+		}
+
+		return FieldConstants.getSerializable(
+			ddmFormField.getDataType(), dynamicContentElement.getText());
 	}
 
 	private String _getFileEntryValue(
@@ -706,7 +841,8 @@ public class JournalConverterImpl implements JournalConverter {
 				_log.warn(
 					StringBundler.concat(
 						"Unable to get file entry for UUID ", uuid,
-						" and group ID ", groupId));
+						" and group ID ", groupId),
+					exception);
 			}
 
 			jsonObject.put(

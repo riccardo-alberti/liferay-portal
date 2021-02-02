@@ -81,6 +81,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>YOUR_RATING_STAR_COUNT_ANY</td>
+	<td>//div[contains(@class,'ratings-stars-dropdown')][contains(@class,'show')]//button[contains(.,'Rate this ${key_ratingStar} out of 5')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>YOUR_RATING_STAR_DELETE</td>
 	<td>//div[contains(@class,'ratings-stars')]//button[@class='dropdown-item' and contains(.,'Delete')]</td>
 	<td></td>
@@ -113,6 +118,16 @@
 <tr>
 	<td>YOUR_RATING_STAR_RESULT_COUNT</td>
 	<td>//div[contains(@class,'ratings-stars')]//button[contains(@title,'You have rated this ${key_ratingStarCount} stars out of 5') or contains(@data-title,'You have rated this ${key_ratingStarCount} stars out of 5')]//span[contains(@class,'ratings-stars-button-text')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>YOUR_RATING_STAR_RESULT_SPECIFIC_ASSET</td>
+	<td>//div[contains(@class,'asset-abstract')][contains(.,'${key_assetTitle}')]//div[contains(@class,'ratings-stars')]//button[@*='You have rated this ${key_ratingStar} out of 5.']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>YOUR_RATING_STAR_SPECIFIC_ASSET</td>
+	<td>//div[contains(@class,'asset-abstract')][contains(.,'${key_assetTitle}')]//div[contains(@class,'ratings-stars')]//button[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 <tr>

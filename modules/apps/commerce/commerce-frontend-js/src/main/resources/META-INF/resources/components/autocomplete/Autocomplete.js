@@ -15,19 +15,23 @@
 import ClayAutocomplete from '@clayui/autocomplete';
 import ClayDropDown from '@clayui/drop-down';
 import {FocusScope} from '@clayui/shared';
+import {useIsMounted} from 'frontend-js-react-web';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 
 import {debouncePromise} from '../../utilities/debounce';
 import {AUTOCOMPLETE_VALUE_UPDATED} from '../../utilities/eventsDefinitions';
+import {useLiferayModule} from '../../utilities/hooks';
 import {getData, getValueFromItem} from '../../utilities/index';
-import {useLiferayModule} from '../../utilities/modules';
 import {showErrorNotification} from '../../utilities/notifications';
+import InfiniteScroller from '../infinite_scroller/InfiniteScroller';
 
-function Autocomplete({onValueUpdated, ...props}) {
+function Autocomplete({onItemsUpdated, onValueUpdated, ...props}) {
 	const [query, setQuery] = useState(props.initialLabel || '');
-	const [initialised, setInitialised] = useState(false);
-	const [debouncedGetItems, updateDebouncedGetItems] = useState(null);
+	const [initialised, setInitialised] = useState(
+		Boolean(props.customViewModuleUrl || props.customView)
+	);
 	const [active, setActive] = useState(false);
 	const [selectedItem, updateSelectedItem] = useState(props.initialValue);
 	const [items, updateItems] = useState(null);
@@ -40,12 +44,23 @@ function Autocomplete({onValueUpdated, ...props}) {
 	const dropdownNode = useRef();
 	const inputNode = useRef();
 	const FetchedCustomView = useLiferayModule(props.customViewModuleUrl);
+	const isMounted = useIsMounted();
+	const [debouncedGetItems, updateDebouncedGetItems] = useState(null);
 
 	useEffect(() => {
 		updateDebouncedGetItems(() =>
 			debouncePromise(getData, props.fetchDataDebounce)
 		);
 	}, [props.fetchDataDebounce]);
+
+	const currentValue = selectedItem
+		? getValueFromItem(selectedItem, props.itemsKey)
+		: null;
+	const currentLabel = selectedItem
+		? getValueFromItem(selectedItem, props.itemsLabel)
+		: null;
+
+	const CustomView = props.customView || FetchedCustomView;
 
 	useEffect(() => {
 		if (items && items.length === 1 && props.autofill) {
@@ -75,28 +90,42 @@ function Autocomplete({onValueUpdated, ...props}) {
 		if (query) {
 			setInitialised(true);
 		}
-	}, [query]);
+
+		if (props.infiniteScrollMode) {
+			updateItems(null);
+		}
+
+		updatePage(1);
+		updateTotalCount(null);
+		updateLastPage(null);
+	}, [props.infiniteScrollMode, query]);
 
 	useEffect(() => {
-		if (initialised) {
+		if (initialised && debouncedGetItems && !props.disabled) {
 			setLoading(true);
 
 			debouncedGetItems(props.apiUrl, query, page, pageSize)
 				.then((jsonResponse) => {
-					if (props.infinityScrollMode) {
-						updateItems((prevItems) => {
-							return prevItems?.length && page > 1
-								? [...prevItems, ...jsonResponse.items]
-								: jsonResponse.items;
-						});
+					if (!isMounted()) {
+						return;
 					}
-					else {
-						updateItems(jsonResponse.items);
-					}
+
+					updateItems((prevItems) => {
+						if (
+							props.infiniteScrollMode &&
+							prevItems?.length &&
+							page > 1
+						) {
+							return [...prevItems, ...jsonResponse.items];
+						}
+
+						return jsonResponse.items;
+					});
+
 					updateTotalCount(jsonResponse.totalCount);
 					updateLastPage(jsonResponse.lastPage);
-
 					setLoading(false);
+
 					if (!query) {
 						return;
 					}
@@ -116,14 +145,22 @@ function Autocomplete({onValueUpdated, ...props}) {
 	}, [
 		debouncedGetItems,
 		initialised,
+		isMounted,
 		query,
 		page,
 		pageSize,
-		props.infinityScrollMode,
+		props.disabled,
+		props.infiniteScrollMode,
 		props.apiUrl,
 		props.itemsLabel,
 		props.showErrorNotification,
 	]);
+
+	useEffect(() => {
+		if (onItemsUpdated) {
+			onItemsUpdated(items);
+		}
+	}, [items, onItemsUpdated]);
 
 	useEffect(() => {
 		function handleClick(e) {
@@ -146,19 +183,73 @@ function Autocomplete({onValueUpdated, ...props}) {
 		};
 	}, [active]);
 
-	const currentValue = selectedItem
-		? getValueFromItem(selectedItem, props.itemsKey)
-		: null;
-	const currentLabel = selectedItem
-		? getValueFromItem(selectedItem, props.itemsLabel)
-		: null;
+	let results;
 
-	const CustomView = props.customView || FetchedCustomView;
+	if (CustomView) {
+		results = (
+			<CustomView
+				items={items}
+				lastPage={lastPage}
+				loading={loading}
+				page={page}
+				pageSize={pageSize}
+				totalCount={totalCount}
+				updatePage={updatePage}
+				updatePageSize={updatePageSize}
+				updateSelectedItem={updateSelectedItem}
+			/>
+		);
+	}
+	else {
+		results = (
+			<ClayDropDown.ItemList className="mb-0">
+				{items && items.length === 0 && (
+					<ClayDropDown.Item className="disabled">
+						{Liferay.Language.get('no-items-were-found')}
+					</ClayDropDown.Item>
+				)}
+				{items &&
+					items.length > 0 &&
+					items.map((item) => (
+						<ClayAutocomplete.Item
+							key={String(item[props.itemsKey])}
+							onClick={() => {
+								updateSelectedItem(item);
+								setActive(false);
+							}}
+							value={String(
+								getValueFromItem(item, props.itemsLabel)
+							)}
+						/>
+					))}
+			</ClayDropDown.ItemList>
+		);
+	}
+
+	const wrappedResults =
+		props.infiniteScrollMode && CustomView ? (
+			<InfiniteScroller
+				onBottomTouched={() => {
+					if (!loading) {
+						updatePage((currentPage) =>
+							currentPage < lastPage
+								? currentPage + 1
+								: currentPage
+						);
+					}
+				}}
+				scrollCompleted={!items || items.length === totalCount}
+			>
+				{results}
+			</InfiniteScroller>
+		) : (
+			results
+		);
 
 	return (
 		<>
 			<FocusScope>
-				<ClayAutocomplete ref={node}>
+				<ClayAutocomplete className={props.inputClass} ref={node}>
 					<input
 						id={props.inputId || props.inputName}
 						name={props.inputName}
@@ -176,69 +267,39 @@ function Autocomplete({onValueUpdated, ...props}) {
 							setInitialised(true);
 						}}
 						onKeyUp={(e) => {
-							if (e.keyCode === 27) {
-								setActive(false);
-							}
-							else {
-								setActive(true);
-							}
+							setActive(e.keyCode !== 27);
 						}}
 						placeholder={props.inputPlaceholder}
 						ref={inputNode}
 						required={props.required || false}
 						value={currentLabel || query}
 					/>
-					{!CustomView && (
-						<ClayAutocomplete.DropDown active={active && !loading}>
+					{!CustomView && !props.disabled && (
+						<ClayAutocomplete.DropDown
+							active={
+								active && ((items && page === 1) || page > 1)
+							}
+						>
 							<div
 								className="autocomplete-items"
 								ref={dropdownNode}
 							>
-								<ClayDropDown.ItemList className="mb-0">
-									{items && items.length === 0 && (
-										<ClayDropDown.Item className="disabled">
-											{Liferay.Language.get(
-												'no-items-were-found'
-											)}
-										</ClayDropDown.Item>
-									)}
-									{items &&
-										items.length > 0 &&
-										items.map((item) => (
-											<ClayAutocomplete.Item
-												key={String(
-													item[props.itemsKey]
-												)}
-												onClick={() => {
-													updateSelectedItem(item);
-													setActive(false);
-												}}
-												value={String(
-													getValueFromItem(
-														item,
-														props.itemsLabel
-													)
-												)}
-											/>
-										))}
-								</ClayDropDown.ItemList>
+								{wrappedResults}
 							</div>
 						</ClayAutocomplete.DropDown>
 					)}
 					{loading && <ClayAutocomplete.LoadingIndicator />}
 				</ClayAutocomplete>
 			</FocusScope>
-			{CustomView && (
-				<CustomView
-					items={items}
-					lastPage={lastPage}
-					page={page}
-					pageSize={pageSize}
-					totalCount={totalCount}
-					updatePage={updatePage}
-					updatePageSize={updatePageSize}
-				/>
-			)}
+			{CustomView &&
+				!props.disabled &&
+				(props.contentWrapperRef
+					? props.contentWrapperRef.current &&
+					  createPortal(
+							wrappedResults,
+							props.contentWrapperRef.current
+					  )
+					: wrappedResults)}
 		</>
 	);
 }
@@ -246,15 +307,18 @@ function Autocomplete({onValueUpdated, ...props}) {
 Autocomplete.propTypes = {
 	apiUrl: PropTypes.string.isRequired,
 	autofill: PropTypes.bool,
+	contentWrapperRef: PropTypes.object,
 	customView: PropTypes.func,
 	customViewModuleUrl: PropTypes.string,
+	disabled: PropTypes.bool,
 	fetchDataDebounce: PropTypes.number,
 	id: PropTypes.string,
-	infinityScrollMode: PropTypes.bool,
+	infiniteScrollMode: PropTypes.bool,
 	initialLabel: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
 		.isRequired,
 	initialValue: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
 		.isRequired,
+	inputClass: PropTypes.string,
 	inputId: PropTypes.string,
 	inputName: PropTypes.string.isRequired,
 	inputPlaceholder: PropTypes.string,
@@ -263,18 +327,21 @@ Autocomplete.propTypes = {
 		PropTypes.string,
 		PropTypes.arrayOf(PropTypes.string),
 	]).isRequired,
+	loadingView: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+	onItemsUpdated: PropTypes.func,
 	onValueUpdated: PropTypes.func,
 	required: PropTypes.bool,
 };
 
 Autocomplete.defaultProps = {
 	autofill: false,
+	disabled: false,
 	fetchDataDebounce: 200,
-	infinityScrollMode: false,
+	infiniteScrollMode: false,
 	initialLabel: '',
 	initialValue: '',
 	inputPlaceholder: Liferay.Language.get('type-here'),
-	pageSize: 20,
+	pageSize: 10,
 };
 
 export default Autocomplete;

@@ -19,6 +19,8 @@ import {EVENT_TYPES} from '../actions/eventTypes.es';
 
 const formatDataRecord = (languageId, pages, preserveValue) => {
 	const dataRecordValues = {};
+	let previousFieldName;
+	let repeatableIndex = 0;
 
 	const visitor = new PagesVisitor(pages);
 
@@ -36,32 +38,46 @@ const formatDataRecord = (languageId, pages, preserveValue) => {
 			return;
 		}
 
-		let _value = value;
+		let _value = null;
+
+		try {
+			_value = JSON.parse(value);
+		}
+		catch (e) {
+			_value = value;
+		}
 
 		if (!visible) {
 			_value = '';
 		}
 
+		if (previousFieldName !== fieldName) {
+			repeatableIndex = 0;
+		}
+
+		previousFieldName = fieldName;
+
 		if (localizable) {
 			const edited =
-				!!localizedValue[languageId] ||
+				!!localizedValue?.[languageId] ||
 				(localizedValueEdited && localizedValueEdited[languageId]);
 
+			let availableLanguageIds;
+
+			if (localizedValue) {
+				availableLanguageIds = Object.keys(localizedValue);
+			}
+			else {
+				availableLanguageIds = [];
+			}
+
+			if (!availableLanguageIds.includes(languageId)) {
+				availableLanguageIds.push(languageId);
+			}
+
 			if (!dataRecordValues[fieldName]) {
-				if (preserveValue) {
-					dataRecordValues[fieldName] = {
-						...localizedValue,
-						[languageId]: value,
-					};
-				}
-				else if (!repeatable && edited) {
-					dataRecordValues[fieldName] = {
-						[languageId]: [],
-						...localizedValue,
-					};
-				}
-				else if (repeatable) {
-					Object.keys(localizedValue).forEach((key) => {
+				if (repeatable) {
+					availableLanguageIds.forEach((key) => {
 						dataRecordValues[fieldName] = {
 							...dataRecordValues[fieldName],
 							[key]: [],
@@ -69,32 +85,35 @@ const formatDataRecord = (languageId, pages, preserveValue) => {
 						};
 					});
 				}
+				else if (edited) {
+					dataRecordValues[fieldName] = {...localizedValue};
+				}
+				else if (preserveValue) {
+					dataRecordValues[fieldName] = {
+						...localizedValue,
+						[languageId]: value,
+					};
+				}
 			}
 
 			if (repeatable) {
-				Object.keys(localizedValue).forEach((key) => {
-					if (edited && key === languageId) {
+				availableLanguageIds.forEach((key) => {
+					if (!localizedValue || (edited && key === languageId)) {
 						dataRecordValues[fieldName][key].push(_value);
 					}
 					else {
-						dataRecordValues[fieldName][key].push(
-							localizedValue[key]
-						);
+						dataRecordValues[fieldName][key][repeatableIndex] =
+							localizedValue[key];
 					}
 				});
+
+				repeatableIndex++;
 			}
 			else if (edited) {
 				dataRecordValues[fieldName] = {
 					...localizedValue,
 					[languageId]: _value,
 				};
-			}
-
-			if (preserveValue) {
-				Object.keys(dataRecordValues[fieldName]).forEach((key) => {
-					dataRecordValues[fieldName][key] =
-						dataRecordValues[fieldName][languageId];
-				});
 			}
 		}
 		else {
@@ -114,6 +133,7 @@ const formatDataRecord = (languageId, pages, preserveValue) => {
 };
 
 const getDataRecordValues = ({
+	defaultSiteLanguageId,
 	nextEditingLanguageId,
 	pages,
 	preserveValue,
@@ -129,6 +149,9 @@ const getDataRecordValues = ({
 
 	Object.keys(dataRecordValues).forEach((key) => {
 		if (newDataRecordValues[key]) {
+			newDataRecordValues[key][defaultSiteLanguageId] =
+				dataRecordValues[key][defaultSiteLanguageId];
+
 			newDataRecordValues[key][prevEditingLanguageId] =
 				dataRecordValues[key][prevEditingLanguageId];
 		}
@@ -140,18 +163,19 @@ const getDataRecordValues = ({
 	return newDataRecordValues;
 };
 
-const getLocalizedValueEdited = (fieldName, pages) => {
+const getFieldProperties = (fieldName, pages) => {
 	const visitor = new PagesVisitor(pages);
 
-	const {localizedValueEdited} = visitor.findField(
+	const {itemSelectorURL, localizedValueEdited} = visitor.findField(
 		(field) => field.fieldName === fieldName
 	);
 
-	return {localizedValueEdited};
+	return {itemSelectorURL, localizedValueEdited};
 };
 
 export default function pageLanguageUpdate({
 	ddmStructureLayoutId,
+	defaultSiteLanguageId,
 	nextEditingLanguageId,
 	pages,
 	portletNamespace,
@@ -162,6 +186,7 @@ export default function pageLanguageUpdate({
 }) {
 	return (dispatch) => {
 		const newDataRecordValues = getDataRecordValues({
+			defaultSiteLanguageId,
 			nextEditingLanguageId,
 			pages,
 			preserveValue,
@@ -177,6 +202,8 @@ export default function pageLanguageUpdate({
 					namespace: portletNamespace,
 					pathThemeImages: themeDisplay.getPathThemeImages(),
 					readOnly,
+					scopeGroupId: themeDisplay.getScopeGroupId(),
+					siteGroupId: themeDisplay.getSiteGroupId(),
 				}),
 				headers: {
 					'Accept-Language': nextEditingLanguageId.replace('_', '-'),
@@ -193,12 +220,7 @@ export default function pageLanguageUpdate({
 				const visitor = new PagesVisitor(response.pages);
 				const newPages = visitor.mapFields(
 					(field) => {
-						if (
-							(previousField &&
-								previousField.repeatable &&
-								previousField.fieldName !== field.fieldName) ||
-							!field.repeatable
-						) {
+						if (previousField?.fieldName !== field.fieldName) {
 							repeatableIndex = 0;
 						}
 
@@ -232,7 +254,7 @@ export default function pageLanguageUpdate({
 
 						return {
 							...field,
-							...getLocalizedValueEdited(field.fieldName, pages),
+							...getFieldProperties(field.fieldName, pages),
 						};
 					},
 					true,

@@ -114,15 +114,19 @@ PoshiIndentationCheck | .function, .macro or .testcase | Finds incorrect indenta
 PoshiParametersOrderCheck | .function, .macro or .testcase | Checks the order of parameters in `.function` and `.macro` files. |
 PoshiStylingCheck | .function, .macro or .testcase | Applies rules to enforce consisteny in code style. |
 PoshiWhitespaceCheck | .function, .macro or .testcase | Finds missing and unnecessary whitespace in poshi files. |
-PropertiesCommentsCheck | .prettierignore or .properties | Validates comments in `.properties` files. |
-PropertiesDefinitionKeysCheck | .prettierignore or .properties | Sorts definition keys in `liferay-plugin-package.properties` file. |
-PropertiesDependenciesFileCheck | .prettierignore or .properties | Sorts the properties in `dependencies.properties` file. |
-PropertiesEmptyLinesCheck | .prettierignore or .properties | Finds missing and unnecessary empty lines. |
-PropertiesLanguageKeysOrderCheck | .prettierignore or .properties | Sort language keys in `Language.properties` file. |
-PropertiesLongLinesCheck | .prettierignore or .properties | Finds lines that are longer than the specified maximum line length. |
-PropertiesMultiLineValuesOrderCheck | .prettierignore or .properties | Verifies that property with multiple values is not on a single line. |
-PropertiesStylingCheck | .prettierignore or .properties | Applies rules to enforce consisteny in code style. |
-PropertiesWhitespaceCheck | .prettierignore or .properties | Finds missing and unnecessary whitespace in `.properties` files. |
+PropertiesCommentsCheck | .eslintignore, .prettierignore or .properties | Validates comments in `.properties` files. |
+PropertiesDefinitionKeysCheck | .eslintignore, .prettierignore or .properties | Sorts definition keys in `liferay-plugin-package.properties` file. |
+PropertiesDependenciesFileCheck | .eslintignore, .prettierignore or .properties | Sorts the properties in `dependencies.properties` file. |
+PropertiesEmptyLinesCheck | .eslintignore, .prettierignore or .properties | Finds missing and unnecessary empty lines. |
+PropertiesLanguageKeysOrderCheck | .eslintignore, .prettierignore or .properties | Sort language keys in `Language.properties` file. |
+PropertiesLongLinesCheck | .eslintignore, .prettierignore or .properties | Finds lines that are longer than the specified maximum line length. |
+PropertiesMultiLineValuesOrderCheck | .eslintignore, .prettierignore or .properties | Verifies that property with multiple values is not on a single line. |
+PropertiesStylingCheck | .eslintignore, .prettierignore or .properties | Applies rules to enforce consisteny in code style. |
+PropertiesWhitespaceCheck | .eslintignore, .prettierignore or .properties | Finds missing and unnecessary whitespace in `.properties` files. |
+PythonClassesAndMethodsOrderCheck | .py | Checks the order of classes and methods. |
+PythonImportsCheck | .py | Sorts and groups imports in `.py` files. |
+PythonStylingCheck | .py | Applies rules to enforce consisteny in code style. |
+PythonWhitespaceCheck | .py | Finds missing and unnecessary whitespace. |
 SQLEmptyLinesCheck | .sql | Finds missing and unnecessary empty lines. |
 SQLStylingCheck | .sql | Applies rules to enforce consisteny in code style. |
 SemiColonCheck | .java, .jsp, .jspf, .tag, .tpl or .vm | Finds cases of unnecessary semicolon. |

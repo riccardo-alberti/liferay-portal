@@ -28,9 +28,8 @@ import {concatValues} from 'app-builder-web/js/utils/utils.es';
 import classNames from 'classnames';
 import {DataDefinitionUtils} from 'data-engine-taglib';
 import {openModal} from 'frontend-js-web';
-import React, {useContext} from 'react';
+import React, {createContext, useContext} from 'react';
 
-import SelectDropdown from '../../../../components/select-dropdown/SelectDropdown.es';
 import {getFormViews, getTableViews} from '../actions.es';
 import {
 	ADD_STEP_FORM_VIEW,
@@ -42,6 +41,11 @@ import {
 	UPDATE_STEP_FORM_VIEW_READONLY,
 	UPDATE_TABLE_VIEW,
 } from '../configReducer.es';
+import {checkRequiredFields} from '../utils.es';
+import SelectFormView from './SelectFormView.es';
+import SelectTableView from './SelectTableView.es';
+
+export const DataAndViewsTabContext = createContext();
 
 const NoObjectEmptyState = () => (
 	<div className="taglib-empty-result-message">
@@ -59,7 +63,7 @@ const NoObjectEmptyState = () => (
 	</div>
 );
 
-const OpenButton = (props) => (
+export const OpenButton = (props) => (
 	<ClayTooltipProvider>
 		<Button
 			className="ml-2 px-2 tap-ahead-icon-wrapper"
@@ -72,58 +76,6 @@ const OpenButton = (props) => (
 		/>
 	</ClayTooltipProvider>
 );
-
-const SelectFormView = ({openButtonProps, ...props}) => {
-	props = {
-		...props,
-		emptyResultMessage: Liferay.Language.get(
-			'no-form-views-were-found-with-this-name-try-searching-again-with-a-different-name'
-		),
-		label: Liferay.Language.get('select-a-form-view'),
-		stateProps: {
-			emptyProps: {
-				label: Liferay.Language.get('there-are-no-form-views-yet'),
-			},
-			loadingProps: {
-				label: Liferay.Language.get('retrieving-all-form-views'),
-			},
-		},
-	};
-
-	return (
-		<div className="d-flex">
-			<SelectDropdown {...props} />
-
-			<OpenButton {...openButtonProps} />
-		</div>
-	);
-};
-
-const SelectTableView = ({openButtonProps, ...props}) => {
-	props = {
-		...props,
-		emptyResultMessage: Liferay.Language.get(
-			'no-table-views-were-found-with-this-name-try-searching-again-with-a-different-name'
-		),
-		label: Liferay.Language.get('select-a-table-view'),
-		stateProps: {
-			emptyProps: {
-				label: Liferay.Language.get('there-are-no-table-views-yet'),
-			},
-			loadingProps: {
-				label: Liferay.Language.get('retrieving-all-table-views'),
-			},
-		},
-	};
-
-	return (
-		<div className="d-flex">
-			<SelectDropdown {...props} />
-
-			<OpenButton {...openButtonProps} />
-		</div>
-	);
-};
 
 export default function DataAndViewsTab({
 	config: {
@@ -232,7 +184,7 @@ export default function DataAndViewsTab({
 	) => {
 		const event = window.top?.Liferay.once(
 			'newFormViewCreated',
-			({newFormView}) => {
+			({dataDefinition, newFormView}) => {
 				successToast(
 					Liferay.Language.get('the-form-view-was-saved-successfully')
 				);
@@ -242,7 +194,10 @@ export default function DataAndViewsTab({
 						dispatchConfig({
 							listItems: {
 								fetching: false,
-								formViews,
+								formViews: checkRequiredFields(
+									formViews,
+									dataDefinition
+								),
 							},
 							type: UPDATE_LIST_ITEMS,
 						});
@@ -387,7 +342,9 @@ export default function DataAndViewsTab({
 	}
 
 	return (
-		<>
+		<DataAndViewsTabContext.Provider
+			value={{openFormViewModal, updateFormView}}
+		>
 			{stepIndex > 0 ? (
 				<>
 					{duplicatedFields.length > 0 && (
@@ -571,7 +528,12 @@ export default function DataAndViewsTab({
 										),
 								}}
 								selectedValue={formView.name}
-							/>
+								showWarningIcon={
+									formView.missingRequiredFields?.missing
+								}
+							>
+								{SelectFormView.Item}
+							</SelectFormView>
 
 							<h5 className="mt-3 text-secondary text-uppercase">
 								{Liferay.Language.get('display-data')}
@@ -616,6 +578,6 @@ export default function DataAndViewsTab({
 					)}
 				</>
 			)}
-		</>
+		</DataAndViewsTabContext.Provider>
 	);
 }

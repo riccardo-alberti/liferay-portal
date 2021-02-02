@@ -19,7 +19,7 @@ import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
 import DataSetDisplayContext from '../../DataSetDisplayContext';
-import {triggerAction} from '../../utilities/actionItems/index';
+import {triggerAction} from '../../utils/actionItems/index';
 
 function CreationMenu({primaryItems}) {
 	const [active, setActive] = useState(false);
@@ -33,7 +33,12 @@ function CreationMenu({primaryItems}) {
 						<ClayDropDown
 							active={active}
 							onActiveChange={setActive}
-							trigger={<ClayButtonWithIcon symbol="plus" />}
+							trigger={
+								<ClayButtonWithIcon
+									className="nav-btn nav-btn-monospaced"
+									symbol="plus"
+								/>
+							}
 						>
 							<ClayDropDown.ItemList>
 								{primaryItems.map((item, i) => (
@@ -53,6 +58,7 @@ function CreationMenu({primaryItems}) {
 					) : (
 						<ClayTooltipProvider>
 							<ClayButtonWithIcon
+								className="nav-btn nav-btn-monospaced"
 								data-tooltip-align="top"
 								onClick={() =>
 									triggerAction(

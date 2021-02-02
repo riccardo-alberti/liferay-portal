@@ -19,10 +19,12 @@ import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.dynamic.data.mapping.constants.DDMFormConstants;
 import com.liferay.dynamic.data.mapping.constants.DDMPortletKeys;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
+import com.liferay.dynamic.data.mapping.form.item.selector.criterion.DDMUserPersonalFolderItemSelectorCriterion;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.item.selector.ItemSelector;
-import com.liferay.item.selector.ItemSelectorReturnType;
+import com.liferay.item.selector.ItemSelectorCriterion;
 import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.file.criterion.FileItemSelectorCriterion;
 import com.liferay.petra.string.StringBundler;
@@ -56,14 +58,16 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -80,7 +84,8 @@ import org.osgi.service.component.annotations.Reference;
  * @author Pedro Queiroz
  */
 @Component(
-	immediate = true, property = "ddm.form.field.type.name=document_library",
+	immediate = true,
+	property = "ddm.form.field.type.name=" + DDMFormFieldTypeConstants.DOCUMENT_LIBRARY,
 	service = {
 		DDMFormFieldTemplateContextContributor.class,
 		DocumentLibraryDDMFormFieldTemplateContextContributor.class
@@ -141,17 +146,25 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 					httpServletRequest));
 		}
 		else {
-			parameters.put(
-				"guestUploadURL",
-				getGuestUploadURL(
-					ddmFormFieldRenderingContext, folderId,
-					httpServletRequest));
+			String guestUploadURL = GetterUtil.getString(
+				ddmFormField.getProperty("guestUploadURL"));
+
+			if (Validator.isNull(guestUploadURL)) {
+				guestUploadURL = getGuestUploadURL(
+					ddmFormFieldRenderingContext, folderId, httpServletRequest);
+			}
+
+			parameters.put("guestUploadURL", guestUploadURL);
 		}
 
 		parameters.put(
 			"maximumRepetitions",
 			GetterUtil.getInteger(
 				ddmFormField.getProperty("maximumRepetitions")));
+		parameters.put(
+			"maximumSubmissionLimitReached",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("maximumSubmissionLimitReached")));
 
 		String value = ddmFormFieldRenderingContext.getValue();
 
@@ -261,21 +274,40 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 			}
 		}
 
-		FileItemSelectorCriterion fileItemSelectorCriterion =
-			new FileItemSelectorCriterion();
+		List<ItemSelectorCriterion> itemSelectorCriteria = new ArrayList<>();
 
-		fileItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			Collections.<ItemSelectorReturnType>singletonList(
-				new FileEntryItemSelectorReturnType()));
+		DDMUserPersonalFolderItemSelectorCriterion
+			ddmUserPersonalFolderItemSelectorCriterion =
+				new DDMUserPersonalFolderItemSelectorCriterion(
+					folderId, groupId);
+
+		ddmUserPersonalFolderItemSelectorCriterion.
+			setDesiredItemSelectorReturnTypes(
+				new FileEntryItemSelectorReturnType());
+
+		itemSelectorCriteria.add(ddmUserPersonalFolderItemSelectorCriterion);
+
+		String portletNamespace =
+			ddmFormFieldRenderingContext.getPortletNamespace();
+
+		if (!StringUtil.startsWith(
+				portletNamespace,
+				portal.getPortletNamespace(
+					DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM))) {
+
+			FileItemSelectorCriterion fileItemSelectorCriterion =
+				new FileItemSelectorCriterion();
+
+			fileItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+				new FileEntryItemSelectorReturnType());
+
+			itemSelectorCriteria.add(fileItemSelectorCriterion);
+		}
 
 		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
 			RequestBackedPortletURLFactoryUtil.create(httpServletRequest),
-			group, groupId,
-			ddmFormFieldRenderingContext.getPortletNamespace() +
-				"selectDocumentLibrary",
-			fileItemSelectorCriterion);
-
-		itemSelectorURL.setParameter("folderId", String.valueOf(folderId));
+			group, groupId, portletNamespace + "selectDocumentLibrary",
+			itemSelectorCriteria.toArray(new ItemSelectorCriterion[0]));
 
 		return itemSelectorURL.toString();
 	}
@@ -408,7 +440,7 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 					getResourceBundle(user.getLocale()),
 					"this-folder-was-automatically-created-by-forms-to-store-" +
 						"all-your-uploaded-files"),
-				_getServiceContext(httpServletRequest));
+				ServiceContextFactory.getInstance(httpServletRequest));
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {

@@ -20,6 +20,7 @@ import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
+import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormGuestUploadFieldUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormInstanceStagingUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.security.permission.resource.DDMFormInstancePermission;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -48,6 +49,7 @@ import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -180,12 +182,19 @@ public class DDMFormDisplayContext {
 		return _containerId;
 	}
 
-	public String getDDMFormHTML() throws PortalException {
+	public Map<String, Object> getDDMFormContext() throws Exception {
 		DDMFormInstance ddmFormInstance = getFormInstance();
 
 		if (ddmFormInstance == null) {
-			return StringPool.BLANK;
+			return null;
 		}
+
+		boolean maximumSubmissionLimitReached =
+			DDMFormGuestUploadFieldUtil.isMaximumSubmissionLimitReached(
+				ddmFormInstance,
+				PortalUtil.getHttpServletRequest(_renderRequest),
+				_ddmFormWebConfiguration.
+					maximumSubmissionsForGuestUploadFields());
 
 		boolean requireCaptcha = isCaptchaRequired(ddmFormInstance);
 
@@ -195,13 +204,17 @@ public class DDMFormDisplayContext {
 			ddmForm.getDDMFormFieldsMap(true);
 
 		for (DDMFormField ddmFormField : ddmFormFieldsMap.values()) {
-			if (ddmFormField.isRepeatable() &&
-				Objects.equals(ddmFormField.getType(), "document_library")) {
-
+			if (Objects.equals(ddmFormField.getType(), "document_library")) {
 				ddmFormField.setProperty(
-					"maximumRepetitions",
-					_ddmFormWebConfiguration.
-						maximumRepetitionsForUploadFields());
+					"maximumSubmissionLimitReached",
+					maximumSubmissionLimitReached);
+
+				if (ddmFormField.isRepeatable()) {
+					ddmFormField.setProperty(
+						"maximumRepetitions",
+						_ddmFormWebConfiguration.
+							maximumRepetitionsForUploadFields());
+				}
 			}
 		}
 
@@ -247,7 +260,7 @@ public class DDMFormDisplayContext {
 		ddmFormRenderingContext.setShowSubmitButton(isShowSubmitButton());
 		ddmFormRenderingContext.setSubmitLabel(getSubmitLabel());
 
-		return _ddmFormRenderer.render(
+		return _ddmFormRenderer.getDDMFormTemplateContext(
 			ddmForm, ddmFormLayout, ddmFormRenderingContext);
 	}
 
@@ -350,6 +363,24 @@ public class DDMFormDisplayContext {
 	}
 
 	public String getSubmitLabel() throws PortalException {
+		DDMFormInstance ddmFormInstance = getFormInstance();
+
+		if (ddmFormInstance == null) {
+			return StringPool.BLANK;
+		}
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			ddmFormInstance.getSettingsModel();
+
+		JSONObject jsonObject = _jsonFactory.createJSONObject(
+			ddmFormInstanceSettings.submitLabel());
+
+		String submitLabel = jsonObject.getString(getDefaultLanguageId());
+
+		if (Validator.isNotNull(submitLabel)) {
+			return submitLabel;
+		}
+
 		ResourceBundle resourceBundle = getResourceBundle(
 			getLocale(
 				PortalUtil.getHttpServletRequest(_renderRequest),

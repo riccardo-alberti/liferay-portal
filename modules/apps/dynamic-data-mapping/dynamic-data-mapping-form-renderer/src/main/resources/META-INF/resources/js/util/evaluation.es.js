@@ -71,6 +71,14 @@ export const mergePages = (
 					) || {};
 			}
 
+			let fieldValue = field.valueChanged
+				? field.value
+				: sourceField.value;
+
+			if (field.visible !== sourceField.visible && field.visible) {
+				fieldValue = '';
+			}
+
 			let newField = {
 				...sourceField,
 				...field,
@@ -79,7 +87,7 @@ export const mergePages = (
 					sourceField.displayErrors || field.fieldName === fieldName,
 				editingLanguageId,
 				valid: field.valid !== false,
-				value: field.valueChanged ? field.value : sourceField.value,
+				value: fieldValue,
 			};
 
 			if (newField.type === 'options') {
@@ -109,6 +117,7 @@ const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 	const {
 		defaultLanguageId,
 		editingLanguageId,
+		groupId,
 		pages,
 		portletNamespace,
 	} = evaluatorContext;
@@ -128,7 +137,7 @@ const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 			portletNamespace,
 			serializedFormContext: JSON.stringify({
 				...evaluatorContext,
-				groupId: themeDisplay.getScopeGroupId(),
+				groupId: groupId ? groupId : themeDisplay.getScopeGroupId(),
 				portletNamespace,
 			}),
 			trigger: fieldName,

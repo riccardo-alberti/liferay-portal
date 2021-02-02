@@ -94,7 +94,10 @@ public interface NumericDDMFormFieldTypeSettings
 
 	@DDMFormField(
 		dataType = "string", label = "%placeholder-text",
-		properties = "tooltip=%enter-text-that-assists-the-user-but-is-not-submitted-as-a-field-value",
+		properties = {
+			"tooltip=%enter-text-that-assists-the-user-but-is-not-submitted-as-a-field-value",
+			"visualProperty=true"
+		},
 		type = "text"
 	)
 	public LocalizedValue placeholder();

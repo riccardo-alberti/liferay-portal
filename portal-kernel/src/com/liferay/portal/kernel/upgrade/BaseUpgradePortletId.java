@@ -256,11 +256,24 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 			runSQL(
 				StringBundler.concat(
 					"update PortletPreferences set preferences = replace(",
+					preferencesExpression, ", '#p_p_id_", oldRootPortletId,
+					"', '#p_p_id_", newRootPortletId, "') where portletId = '",
+					newRootPortletId, "'"));
+			runSQL(
+				StringBundler.concat(
+					"update PortletPreferences set preferences = replace(",
 					preferencesExpression, ", '#portlet_", oldRootPortletId,
 					"', '#portlet_", newRootPortletId, "') where portletId = '",
 					newRootPortletId, "'"));
 
 			if (!newRootPortletId.contains("_INSTANCE_")) {
+				runSQL(
+					StringBundler.concat(
+						"update PortletPreferences set preferences = replace(",
+						preferencesExpression, ", '#p_p_id_", oldRootPortletId,
+						"_INSTANCE_', '#p_p_id_", newRootPortletId,
+						"_INSTANCE_') where portletId like '", newRootPortletId,
+						"_INSTANCE_%'"));
 				runSQL(
 					StringBundler.concat(
 						"update PortletPreferences set preferences = replace(",
@@ -270,6 +283,13 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 						"_INSTANCE_%'"));
 			}
 
+			runSQL(
+				StringBundler.concat(
+					"update PortletPreferences set preferences = replace(",
+					preferencesExpression, ", '#p_p_id_", oldRootPortletId,
+					"_USER_', '#p_p_id_", newRootPortletId,
+					"_USER_') where portletId like '", newRootPortletId,
+					"_USER_%'"));
 			runSQL(
 				StringBundler.concat(
 					"update PortletPreferences set preferences = replace(",
@@ -289,11 +309,11 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 				"PortletPreferenceValue inner join PortletPreferences on ",
 				"PortletPreferences.portletPreferencesId = ",
 				"PortletPreferenceValue.portletPreferencesId where ",
-				"PortletPreferences.portletId = '", newRootPortletId,
+				"(PortletPreferences.portletId = '", newRootPortletId,
 				"' or PortletPreferences.portletId like '", newRootPortletId,
 				"_INSTANCE_%' or PortletPreferences.portletId like '",
-				newRootPortletId,
-				"_USER_%' and PortletPreferenceValue.name = 'portletSetupCss'");
+				newRootPortletId, "_USER_%') and PortletPreferenceValue.name ",
+				"= 'portletSetupCss'");
 
 			String updateSQL =
 				"update PortletPreferenceValue set largeValue = ?, " +
@@ -314,8 +334,15 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 					}
 
 					String newValue = StringUtil.replace(
-						value, "#portlet_" + oldRootPortletId,
-						"#portlet_" + newRootPortletId);
+						value,
+						new String[] {
+							"#p_p_id_" + oldRootPortletId,
+							"#portlet_" + oldRootPortletId
+						},
+						new String[] {
+							"#p_p_id_" + newRootPortletId,
+							"#portlet_" + newRootPortletId
+						});
 
 					if (Objects.equals(value, newValue)) {
 						continue;
@@ -325,10 +352,10 @@ public abstract class BaseUpgradePortletId extends UpgradeProcess {
 					String smallValue = null;
 
 					if (newValue.length() > smallValueMaxLength) {
-						largeValue = value;
+						largeValue = newValue;
 					}
 					else {
-						smallValue = value;
+						smallValue = newValue;
 					}
 
 					updatePreparedStatement.setString(1, largeValue);

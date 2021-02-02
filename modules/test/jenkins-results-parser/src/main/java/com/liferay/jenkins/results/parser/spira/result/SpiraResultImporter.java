@@ -20,6 +20,7 @@ import com.liferay.jenkins.results.parser.AnalyticsCloudBranchInformationBuild;
 import com.liferay.jenkins.results.parser.AntException;
 import com.liferay.jenkins.results.parser.AntUtil;
 import com.liferay.jenkins.results.parser.AxisBuild;
+import com.liferay.jenkins.results.parser.BatchDependentJob;
 import com.liferay.jenkins.results.parser.Build;
 import com.liferay.jenkins.results.parser.BuildDatabase;
 import com.liferay.jenkins.results.parser.BuildDatabaseUtil;
@@ -39,6 +40,7 @@ import com.liferay.jenkins.results.parser.PortalBranchInformationBuild;
 import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
 import com.liferay.jenkins.results.parser.PullRequest;
 import com.liferay.jenkins.results.parser.QAWebsitesBranchInformationBuild;
+import com.liferay.jenkins.results.parser.TestResult;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
 import com.liferay.jenkins.results.parser.spira.SpiraAutomationHost;
 import com.liferay.jenkins.results.parser.spira.SpiraProject;
@@ -49,6 +51,9 @@ import com.liferay.jenkins.results.parser.spira.SpiraTestCaseComponent;
 import com.liferay.jenkins.results.parser.spira.SpiraTestCaseObject;
 import com.liferay.jenkins.results.parser.spira.SpiraTestCaseRun;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.CucumberAxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.FunctionalAxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.JUnitAxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.TestClassGroup;
 
 import java.io.File;
@@ -61,7 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -74,7 +81,7 @@ public class SpiraResultImporter {
 		Build build = BuildFactory.newBuild(buildURL, null);
 
 		if (!(build instanceof TopLevelBuild)) {
-			throw new RuntimeException("Invalid top level build" + buildURL);
+			throw new RuntimeException("Invalid top level build " + buildURL);
 		}
 
 		_topLevelBuild = (TopLevelBuild)build;
@@ -86,11 +93,21 @@ public class SpiraResultImporter {
 	public void record() {
 		long start = System.currentTimeMillis();
 
+		Job job = _topLevelBuild.getJob();
+
+		String spiraEnabled = JenkinsResultsParserUtil.getProperty(
+			job.getJobProperties(), "test.batch.spira.enabled",
+			_topLevelBuild.getJobName(), _topLevelBuild.getTestSuiteName());
+
+		if ((spiraEnabled == null) || !spiraEnabled.equals("true")) {
+			return;
+		}
+
+		_cacheBuildDatabase();
+		_cacheBuildResults();
 		_cacheSpiraAutomationHosts();
 		_cacheSpiraTestCaseComponents();
 		_cacheSpiraTestCaseObjects();
-
-		Job job = _topLevelBuild.getJob();
 
 		List<SpiraTestResult> spiraTestResults = new ArrayList<>();
 
@@ -98,16 +115,35 @@ public class SpiraResultImporter {
 			SpiraResultFactory.newSpiraTestResult(
 				_spiraBuildResult, null, null));
 
-		for (AxisTestClassGroup axisTestClassGroup :
-				job.getAxisTestClassGroups()) {
+		List<AxisTestClassGroup> axisTestClassGroups =
+			job.getAxisTestClassGroups();
 
-			for (TestClassGroup.TestClass testClass :
-					axisTestClassGroup.getTestClasses()) {
+		if (job instanceof BatchDependentJob) {
+			BatchDependentJob batchDependentJob = (BatchDependentJob)job;
 
-				spiraTestResults.add(
-					SpiraResultFactory.newSpiraTestResult(
-						_spiraBuildResult, axisTestClassGroup, testClass));
+			axisTestClassGroups.addAll(
+				batchDependentJob.getDependentAxisTestClassGroups());
+		}
+
+		for (AxisTestClassGroup axisTestClassGroup : axisTestClassGroups) {
+			if (axisTestClassGroup instanceof CucumberAxisTestClassGroup ||
+				axisTestClassGroup instanceof FunctionalAxisTestClassGroup ||
+				axisTestClassGroup instanceof JUnitAxisTestClassGroup) {
+
+				for (TestClassGroup.TestClass testClass :
+						axisTestClassGroup.getTestClasses()) {
+
+					spiraTestResults.add(
+						SpiraResultFactory.newSpiraTestResult(
+							_spiraBuildResult, axisTestClassGroup, testClass));
+				}
+
+				continue;
 			}
+
+			spiraTestResults.add(
+				SpiraResultFactory.newSpiraTestResult(
+					_spiraBuildResult, axisTestClassGroup, null));
 		}
 
 		List<List<SpiraTestResult>> partition = Lists.partition(
@@ -132,8 +168,7 @@ public class SpiraResultImporter {
 							JenkinsResultsParserUtil.combine(
 								"[", groupName, "] ",
 								JenkinsResultsParserUtil.toDateString(
-									new Date(startGroup),
-									"America/Los_Angeles"),
+									new Date(startGroup)),
 								" - Start recording ",
 								String.valueOf(results.size()), " tests"));
 
@@ -148,8 +183,7 @@ public class SpiraResultImporter {
 							JenkinsResultsParserUtil.combine(
 								"[", groupName, "] ",
 								JenkinsResultsParserUtil.toDateString(
-									new Date(startGroup),
-									"America/Los_Angeles"),
+									new Date(startGroup)),
 								" - Completed recording ",
 								String.valueOf(spiraTestCaseRuns.size()),
 								" tests in ",
@@ -174,15 +208,10 @@ public class SpiraResultImporter {
 				throw new RuntimeException(exception);
 			}
 
-			List<Callable<List<SpiraTestCaseRun>>> callableSubList =
-				callableList.subList(1, callableList.size());
-
-			ThreadPoolExecutor threadPoolExecutor =
-				JenkinsResultsParserUtil.getNewThreadPoolExecutor(
-					_GROUP_THREAD_COUNT, true);
-
 			ParallelExecutor<List<SpiraTestCaseRun>> parallelExecutor =
-				new ParallelExecutor<>(callableSubList, threadPoolExecutor);
+				new ParallelExecutor<>(
+					callableList.subList(1, callableList.size()),
+					_groupExecutorService);
 
 			for (List<SpiraTestCaseRun> spiraTestCaseRunsList :
 					parallelExecutor.execute()) {
@@ -211,9 +240,119 @@ public class SpiraResultImporter {
 
 		_checkoutPortalBaseBranch();
 
+		_setupProfileDXP();
+
+		_callPrepareTCK();
+
 		_checkoutOSBFaroBranch();
 		_checkoutPluginsBranch();
 		_checkoutQAWebsitesBranch();
+	}
+
+	private void _cacheBuildDatabase() {
+		long start = System.currentTimeMillis();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started loading for Build Database at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
+
+		try {
+			BuildDatabaseUtil.getBuildDatabase(_topLevelBuild);
+		}
+		catch (Exception exception) {
+			System.out.println("Unable to find build-database.json");
+		}
+
+		long end = System.currentTimeMillis();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Completed loading Build Database in ",
+				JenkinsResultsParserUtil.toDurationString(end - start), " at ",
+				JenkinsResultsParserUtil.toDateString(new Date(end))));
+	}
+
+	private void _cacheBuildResults() {
+		long start = System.currentTimeMillis();
+
+		List<Callable<List<TestResult>>> callables = new ArrayList<>();
+
+		List<AxisBuild> downstreamAxisBuilds =
+			_topLevelBuild.getDownstreamAxisBuilds();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started loading for Build Results in ",
+				String.valueOf(downstreamAxisBuilds.size()), " Axis Builds at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
+
+		for (int i = 0; i < downstreamAxisBuilds.size(); i++) {
+			final AxisBuild axisBuild = downstreamAxisBuilds.get(i);
+			final String axisBuildName = "axis-" + i;
+
+			callables.add(
+				new Callable<List<TestResult>>() {
+
+					@Override
+					public List<TestResult> call() throws Exception {
+						long start = System.currentTimeMillis();
+
+						System.out.println(
+							JenkinsResultsParserUtil.combine(
+								"[", axisBuildName,
+								"] Start loading Test Results for ",
+								axisBuild.getAxisName(), " at ",
+								JenkinsResultsParserUtil.toDateString(
+									new Date(start))));
+
+						try {
+							String result = axisBuild.getResult();
+
+							if (result.equals("UNSTABLE") ||
+								result.equals("SUCCESS")) {
+
+								return axisBuild.getTestResults(null);
+							}
+
+							return new ArrayList<>();
+						}
+						catch (Exception exception) {
+							throw new RuntimeException(exception);
+						}
+						finally {
+							System.out.println(
+								JenkinsResultsParserUtil.combine(
+									"[", axisBuildName,
+									"] Completed loading Test Results for ",
+									axisBuild.getAxisName(), " in ",
+									JenkinsResultsParserUtil.toDurationString(
+										System.currentTimeMillis() - start),
+									" at ",
+									JenkinsResultsParserUtil.toDateString(
+										new Date())));
+						}
+					}
+
+				});
+		}
+
+		List<TestResult> testResults = new ArrayList<>();
+
+		ParallelExecutor<List<TestResult>> parallelExecutor =
+			new ParallelExecutor<>(callables, _buildResultExecutorService);
+
+		for (List<TestResult> testResultList : parallelExecutor.execute()) {
+			testResults.addAll(testResultList);
+		}
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Completed loading ", String.valueOf(testResults.size()),
+				" Build Results in ",
+				JenkinsResultsParserUtil.toDurationString(
+					System.currentTimeMillis() - start),
+				" at ", JenkinsResultsParserUtil.toDateString(new Date())));
 	}
 
 	private void _cacheSpiraAutomationHosts() {
@@ -222,6 +361,11 @@ public class SpiraResultImporter {
 		}
 
 		long start = System.currentTimeMillis();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started searching for Spira Automation Hosts at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
 
 		Map<String, SpiraAutomationHost> spiraAutomationHostMap =
 			new HashMap<>();
@@ -235,29 +379,72 @@ public class SpiraResultImporter {
 				spiraAutomationHost.getName(), spiraAutomationHost);
 		}
 
-		for (AxisBuild axisBuild : _topLevelBuild.getDownstreamAxisBuilds()) {
-			JenkinsSlave jenkinsSlave = axisBuild.getJenkinsSlave();
+		Properties buildProperties = _getBuildProperties();
 
-			if ((jenkinsSlave != null) &&
-				!spiraAutomationHostMap.containsKey(jenkinsSlave.getName())) {
+		for (String buildPropertyName : buildProperties.stringPropertyNames()) {
+			Matcher masterPropertyNameMatcher =
+				_masterPropertyNamePattern.matcher(buildPropertyName);
 
-				SpiraAutomationHost spiraAutomationHost =
-					_getSpiraAutomationHost(jenkinsSlave);
-
-				spiraAutomationHostMap.put(
-					spiraAutomationHost.getName(), spiraAutomationHost);
+			if (!masterPropertyNameMatcher.find()) {
+				continue;
 			}
 
-			JenkinsMaster jenkinsMaster = axisBuild.getJenkinsMaster();
+			String masterHostname = masterPropertyNameMatcher.group(
+				"masterHostname");
 
-			if ((jenkinsMaster != null) &&
-				!spiraAutomationHostMap.containsKey(jenkinsMaster.getName())) {
-
+			if (!spiraAutomationHostMap.containsKey(masterHostname)) {
 				SpiraAutomationHost spiraAutomationHost =
-					_getSpiraAutomationHost(jenkinsMaster);
+					_getSpiraAutomationHost(new JenkinsMaster(masterHostname));
 
 				spiraAutomationHostMap.put(
 					spiraAutomationHost.getName(), spiraAutomationHost);
+
+				System.out.println(
+					JenkinsResultsParserUtil.combine(
+						"Creating ", spiraAutomationHost.getName(), " at ",
+						spiraAutomationHost.getURL()));
+			}
+
+			String slaveHostnameRanges = JenkinsResultsParserUtil.getProperty(
+				_getBuildProperties(), buildPropertyName);
+
+			for (String slaveHostnameRange : slaveHostnameRanges.split(",")) {
+				Matcher slaveHostnameRangeMatcher =
+					_slaveHostnameRangePattern.matcher(slaveHostnameRange);
+
+				if (!slaveHostnameRangeMatcher.find()) {
+					continue;
+				}
+
+				String slaveHostnamePrefix = slaveHostnameRangeMatcher.group(
+					"slaveHostnamePrefix");
+
+				int first = Integer.valueOf(
+					slaveHostnameRangeMatcher.group("first"));
+
+				int last = Integer.valueOf(
+					slaveHostnameRangeMatcher.group("last"));
+
+				for (int j = first; j <= last; j++) {
+					String slaveHostname = JenkinsResultsParserUtil.combine(
+						slaveHostnamePrefix, "-", String.valueOf(j));
+
+					if (spiraAutomationHostMap.containsKey(slaveHostname)) {
+						continue;
+					}
+
+					SpiraAutomationHost spiraAutomationHost =
+						_getSpiraAutomationHost(
+							new JenkinsSlave(slaveHostname));
+
+					spiraAutomationHostMap.put(
+						spiraAutomationHost.getName(), spiraAutomationHost);
+
+					System.out.println(
+						JenkinsResultsParserUtil.combine(
+							"Creating ", spiraAutomationHost.getName(), " at ",
+							spiraAutomationHost.getURL()));
+				}
 			}
 		}
 
@@ -278,6 +465,11 @@ public class SpiraResultImporter {
 		}
 
 		long start = System.currentTimeMillis();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started searching for Spira Test Case Components at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
 
 		Map<String, SpiraTestCaseComponent> spiraTestCaseComponentsMap =
 			new HashMap<>();
@@ -333,6 +525,11 @@ public class SpiraResultImporter {
 
 		long start = System.currentTimeMillis();
 
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started searching for Spira Test Cases at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
+
 		SpiraProject spiraProject = _spiraBuildResult.getSpiraProject();
 
 		_spiraTestCaseObjects = spiraProject.getSpiraTestCaseObjects(
@@ -347,6 +544,40 @@ public class SpiraResultImporter {
 				" Spira Test Cases in ",
 				JenkinsResultsParserUtil.toDurationString(
 					System.currentTimeMillis() - start)));
+	}
+
+	private void _callPrepareTCK() {
+		PortalGitWorkingDirectory portalGitWorkingDirectory =
+			_getPortalGitWorkingDirectory();
+
+		Map<String, String> parameters = new HashMap<>();
+
+		String portalUpstreamBranchName =
+			portalGitWorkingDirectory.getUpstreamBranchName();
+
+		if (!portalUpstreamBranchName.contains("ee-")) {
+			GitWorkingDirectory jenkinsGitWorkingDirectory =
+				_getJenkinsGitWorkingDirectory();
+
+			Properties testProperties = JenkinsResultsParserUtil.getProperties(
+				new File(
+					jenkinsGitWorkingDirectory.getWorkingDirectory(),
+					"commands/dependencies/test.properties"));
+
+			parameters.put(
+				"tck.home",
+				JenkinsResultsParserUtil.getProperty(
+					testProperties, "tck.home"));
+		}
+
+		try {
+			AntUtil.callTarget(
+				portalGitWorkingDirectory.getWorkingDirectory(),
+				"build-test-tck.xml", "prepare-tck", parameters);
+		}
+		catch (AntException antException) {
+			throw new RuntimeException(antException);
+		}
 	}
 
 	private void _checkoutOSBFaroBranch() {
@@ -403,13 +634,33 @@ public class SpiraResultImporter {
 		String upstreamRepository = JenkinsResultsParserUtil.getProperty(
 			_getBuildProperties(), "plugins.repository", upstreamBranchName);
 
-		GitWorkingDirectory gitWorkingDirectory =
+		GitWorkingDirectory pluginsGitWorkingDirectory =
 			GitWorkingDirectoryFactory.newGitWorkingDirectory(
 				upstreamBranchName, upstreamDirPath, upstreamRepository);
 
-		gitWorkingDirectory.checkoutLocalGitBranch(branchInformation);
+		pluginsGitWorkingDirectory.checkoutLocalGitBranch(branchInformation);
 
-		gitWorkingDirectory.displayLog();
+		pluginsGitWorkingDirectory.displayLog();
+
+		PortalGitWorkingDirectory portalGitWorkingDirectory =
+			_getPortalGitWorkingDirectory();
+
+		File releasePropertiesFile = new File(
+			portalGitWorkingDirectory.getWorkingDirectory(),
+			JenkinsResultsParserUtil.combine(
+				"release.", System.getenv("HOSTNAME"), ".properties"));
+
+		try {
+			JenkinsResultsParserUtil.write(
+				releasePropertiesFile,
+				JenkinsResultsParserUtil.combine(
+					"lp.plugins.dir=",
+					JenkinsResultsParserUtil.getCanonicalPath(
+						pluginsGitWorkingDirectory.getWorkingDirectory())));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
 	}
 
 	private void _checkoutPortalBaseBranch() {
@@ -529,6 +780,19 @@ public class SpiraResultImporter {
 		}
 	}
 
+	private GitWorkingDirectory _getJenkinsGitWorkingDirectory() {
+		String upstreamBranchName = "master";
+
+		String upstreamDirPath = JenkinsResultsParserUtil.getProperty(
+			_getBuildProperties(), "jenkins.dir", upstreamBranchName);
+
+		String upstreamRepository = JenkinsResultsParserUtil.getProperty(
+			_getBuildProperties(), "jenkins.repository", upstreamBranchName);
+
+		return GitWorkingDirectoryFactory.newGitWorkingDirectory(
+			upstreamBranchName, upstreamDirPath, upstreamRepository);
+	}
+
 	private PortalGitWorkingDirectory _getPortalGitWorkingDirectory() {
 		return GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
 			_topLevelBuild.getBranchName());
@@ -610,6 +874,44 @@ public class SpiraResultImporter {
 		}
 
 		return sb.toString();
+	}
+
+	private void _setupProfileDXP() {
+		boolean setupProfileDXP = false;
+
+		TopLevelBuild topLevelBuild = _spiraBuildResult.getTopLevelBuild();
+
+		String branchName = topLevelBuild.getBranchName();
+		String jobName = topLevelBuild.getJobName();
+
+		if (!branchName.startsWith("ee-") && !branchName.endsWith("-private") &&
+			jobName.contains("environment")) {
+
+			setupProfileDXP = true;
+		}
+
+		String portalBuildProfile = topLevelBuild.getParameterValue(
+			"TEST_PORTAL_BUILD_PROFILE");
+
+		if ((portalBuildProfile != null) && portalBuildProfile.equals("dxp")) {
+			setupProfileDXP = true;
+		}
+
+		if (!setupProfileDXP) {
+			return;
+		}
+
+		PortalGitWorkingDirectory portalGitWorkingDirectory =
+			_getPortalGitWorkingDirectory();
+
+		try {
+			AntUtil.callTarget(
+				portalGitWorkingDirectory.getWorkingDirectory(), "build.xml",
+				"setup-profile-dxp");
+		}
+		catch (AntException antException) {
+			throw new RuntimeException(antException);
+		}
 	}
 
 	private void _updateCurrentBuildDescription() {
@@ -720,6 +1022,20 @@ public class SpiraResultImporter {
 		NotificationUtil.sendSlackNotification(
 			sb.toString(), "#spira-reports", ":liferay-ci:", buildName,
 			"Liferay CI");
+
+		Job job = _topLevelBuild.getJob();
+
+		String spiraSlackChannels = JenkinsResultsParserUtil.getProperty(
+			job.getJobProperties(), "test.batch.spira.slack.channels",
+			_topLevelBuild.getJobName(), _topLevelBuild.getTestSuiteName());
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(spiraSlackChannels)) {
+			for (String spiraSlackChannel : spiraSlackChannels.split(",")) {
+				NotificationUtil.sendSlackNotification(
+					sb.toString(), spiraSlackChannel, ":liferay-ci:", buildName,
+					"Liferay CI");
+			}
+		}
 	}
 
 	private void _updateTopLevelBuildDescription() {
@@ -757,9 +1073,23 @@ public class SpiraResultImporter {
 			_topLevelBuild.getJobName(), jenkinsMaster.getName());
 	}
 
+	private static final int _BUILD_RESULT_THREAD_COUNT = 50;
+
 	private static final int _GROUP_SIZE = 25;
 
-	private static final int _GROUP_THREAD_COUNT = 5;
+	private static final int _GROUP_THREAD_COUNT = 10;
+
+	private static final ExecutorService _buildResultExecutorService =
+		JenkinsResultsParserUtil.getNewThreadPoolExecutor(
+			_BUILD_RESULT_THREAD_COUNT, true);
+	private static final ExecutorService _groupExecutorService =
+		JenkinsResultsParserUtil.getNewThreadPoolExecutor(
+			_GROUP_THREAD_COUNT, true);
+	private static final Pattern _masterPropertyNamePattern = Pattern.compile(
+		"master\\.slaves\\((?<masterHostname>test-\\d+-\\d+)\\)");
+	private static final Pattern _slaveHostnameRangePattern = Pattern.compile(
+		"(?<slaveHostnamePrefix>cloud-\\d+-\\d+-\\d+)-(?<first>\\d+)\\.\\." +
+			"(?<last>\\d+)");
 
 	private List<SpiraAutomationHost> _spiraAutomationHosts;
 	private final SpiraBuildResult _spiraBuildResult;

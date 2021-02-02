@@ -66,7 +66,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 					<c:when test="<%= cpSku != null %>">
 						<h4 class="sku"><%= HtmlUtil.escape(cpSku.getSku()) %></h4>
 
-						<div class="price"><liferay-commerce:price CPDefinitionId="<%= cpDefinitionId %>" CPInstanceId="<%= cpSku.getCPInstanceId() %>" /></div>
+						<div class="price"><commerce-ui:price CPDefinitionId="<%= cpDefinitionId %>" CPInstanceId="<%= cpSku.getCPInstanceId() %>" /></div>
 
 						<div class="subscription-info"><commerce-ui:product-subscription-info CPInstanceId="<%= cpSku.getCPInstanceId() %>" /></div>
 
@@ -79,7 +79,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 					<c:otherwise>
 						<h4 class="sku" data-text-cp-instance-sku=""></h4>
 
-						<div class="price" data-text-cp-instance-price=""></div>
+						<div class="price"><commerce-ui:price CPDefinitionId="<%= cpDefinitionId %>" /></div>
 
 						<div class="subscription-info" data-text-cp-instance-subscription-info="" data-text-cp-instance-subscription-info-show></div>
 
@@ -103,7 +103,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 
 				<div class="row">
 					<div class="col-md-12">
-						<liferay-commerce:compare-product CPDefinitionId="<%= cpDefinitionId %>" />
+						<commerce-ui:compare-checkbox CPDefinitionId="<%= cpDefinitionId %>" />
 					</div>
 				</div>
 
@@ -266,7 +266,7 @@ String productContentAuthToken = AuthTokenUtil.getToken(request, plid, CPPortlet
 	});
 </aui:script>
 
-<liferay-portlet:actionURL name="checkCPInstance" portletName="com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet" var="checkCPInstanceURL">
+<liferay-portlet:actionURL name="/cp_content_web/check_cp_instance" portletName="com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet" var="checkCPInstanceURL">
 	<portlet:param name="cpDefinitionId" value="<%= String.valueOf(cpDefinitionId) %>" />
 	<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getScopeGroupId()) %>" />
 </liferay-portlet:actionURL>

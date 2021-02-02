@@ -166,6 +166,9 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 		boolean active = ParamUtil.getBoolean(actionRequest, "active");
 		String cronExpression = ParamUtil.getString(
 			actionRequest, "cronExpression");
+		DispatchTaskClusterMode dispatchTaskClusterMode =
+			DispatchTaskClusterMode.valueOf(
+				ParamUtil.getInteger(actionRequest, "dispatchTaskClusterMode"));
 		int endDateMonth = ParamUtil.getInteger(actionRequest, "endDateMonth");
 		int endDateDay = ParamUtil.getInteger(actionRequest, "endDateDay");
 		int endDateYear = ParamUtil.getInteger(actionRequest, "endDateYear");
@@ -200,15 +203,11 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 			startDateHour += 12;
 		}
 
-		DispatchTaskClusterMode dispatchTaskClusterMode =
-			DispatchTaskClusterMode.valueOf(
-				ParamUtil.getInteger(actionRequest, "taskClusterMode"));
-
 		_dispatchTriggerService.updateDispatchTrigger(
-			dispatchTriggerId, active, cronExpression, endDateMonth, endDateDay,
-			endDateYear, endDateHour, endDateMinute, neverEnd, overlapAllowed,
-			startDateMonth, startDateDay, startDateYear, startDateHour,
-			startDateMinute, dispatchTaskClusterMode);
+			dispatchTriggerId, active, cronExpression, dispatchTaskClusterMode,
+			endDateMonth, endDateDay, endDateYear, endDateHour, endDateMinute,
+			neverEnd, overlapAllowed, startDateMonth, startDateDay,
+			startDateYear, startDateHour, startDateMinute);
 	}
 
 	protected DispatchTrigger updateDispatchTrigger(
@@ -219,25 +218,25 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "dispatchTriggerId");
 
 		String name = ParamUtil.getString(actionRequest, "name");
-		String taskExecutorType = ParamUtil.getString(
-			actionRequest, "taskExecutorType");
+		String dispatchTaskExecutorType = ParamUtil.getString(
+			actionRequest, "dispatchTaskExecutorType");
 
-		UnicodeProperties taskSettingsUnicodeProperties = new UnicodeProperties(
-			true);
+		UnicodeProperties dispatchTaskSettingsUnicodeProperties =
+			new UnicodeProperties(true);
 
-		taskSettingsUnicodeProperties.fastLoad(
-			ParamUtil.getString(actionRequest, "taskSettings"));
+		dispatchTaskSettingsUnicodeProperties.fastLoad(
+			ParamUtil.getString(actionRequest, "dispatchTaskSettings"));
 
 		DispatchTrigger dispatchTrigger = null;
 
 		if (dispatchTriggerId > 0) {
 			dispatchTrigger = _dispatchTriggerService.updateDispatchTrigger(
-				dispatchTriggerId, name, taskSettingsUnicodeProperties);
+				dispatchTriggerId, dispatchTaskSettingsUnicodeProperties, name);
 		}
 		else {
 			dispatchTrigger = _dispatchTriggerService.addDispatchTrigger(
-				_portal.getUserId(actionRequest), name, taskExecutorType,
-				taskSettingsUnicodeProperties);
+				_portal.getUserId(actionRequest), dispatchTaskExecutorType,
+				dispatchTaskSettingsUnicodeProperties, name);
 		}
 
 		return dispatchTrigger;

@@ -14,7 +14,6 @@
 
 package com.liferay.jenkins.results.parser.test.clazz.group;
 
-import com.liferay.jenkins.results.parser.GitWorkingDirectoryFactory;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.PluginsGitWorkingDirectory;
 import com.liferay.jenkins.results.parser.PortalTestClassJob;
@@ -28,10 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 
 /**
  * @author Michael Hashimoto
@@ -45,43 +41,6 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 		}
 
 		return super.getAxisCount();
-	}
-
-	@Override
-	public String getTestCasePropertiesContent() {
-		StringBuilder sb = new StringBuilder();
-
-		List<String> axisIndexes = new ArrayList<>();
-
-		for (int axisIndex = 0; axisIndex < getAxisCount(); axisIndex++) {
-			axisIndexes.add(String.valueOf(axisIndex));
-
-			AxisTestClassGroup axisTestClassGroup = getAxisTestClassGroup(
-				axisIndex);
-
-			List<File> testClassFiles = axisTestClassGroup.getTestClassFiles();
-
-			sb.append("TEST_PLUGIN_GROUP_");
-			sb.append(axisIndex);
-			sb.append("=");
-
-			for (File testClassFile : testClassFiles) {
-				sb.append(testClassFile.getName());
-				sb.append(",");
-			}
-
-			if (!testClassFiles.isEmpty()) {
-				sb.setLength(sb.length() - 1);
-			}
-
-			sb.append("\n");
-		}
-
-		sb.append("TEST_PLUGIN_GROUPS=");
-		sb.append(JenkinsResultsParserUtil.join(" ", axisIndexes));
-		sb.append("\n");
-
-		return sb.toString();
 	}
 
 	public static class PluginsBatchTestClass extends BaseTestClass {
@@ -107,18 +66,8 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 
 		super(batchName, portalTestClassJob);
 
-		Properties portalReleaseProperties =
-			JenkinsResultsParserUtil.getProperties(
-				new File(
-					portalGitWorkingDirectory.getWorkingDirectory(),
-					"release.properties"));
-
 		_pluginsGitWorkingDirectory =
-			(PluginsGitWorkingDirectory)
-				GitWorkingDirectoryFactory.newGitWorkingDirectory(
-					portalGitWorkingDirectory.getUpstreamBranchName(),
-					JenkinsResultsParserUtil.getProperty(
-						portalReleaseProperties, "lp.plugins.dir"));
+			portalGitWorkingDirectory.getPluginsGitWorkingDirectory();
 
 		excludesPathMatchers.addAll(
 			getPathMatchers(

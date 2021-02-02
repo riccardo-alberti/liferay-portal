@@ -16,8 +16,12 @@ package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 
+import java.io.File;
+
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -78,6 +82,22 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 		return functionalAxisTestClassGroup.getPoshiProperties();
 	}
 
+	public File getTestBaseDir() {
+		List<FunctionalAxisTestClassGroup> functionalAxisTestClassGroups =
+			getFunctionalAxisTestClassGroups();
+
+		if ((functionalAxisTestClassGroups == null) ||
+			functionalAxisTestClassGroups.isEmpty()) {
+
+			return null;
+		}
+
+		FunctionalAxisTestClassGroup functionalAxisTestClassGroup =
+			functionalAxisTestClassGroups.get(0);
+
+		return functionalAxisTestClassGroup.getTestBaseDir();
+	}
+
 	@Override
 	public String getTestCasePropertiesContent() {
 		StringBuilder sb = new StringBuilder();
@@ -112,6 +132,14 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 		sb.append(JenkinsResultsParserUtil.join(" ", axisGroupNames));
 		sb.append("\n");
 
+		File testBaseDir = getTestBaseDir();
+
+		if ((testBaseDir != null) && testBaseDir.exists()) {
+			sb.append("TEST_BASE_DIR_NAME=");
+			sb.append(JenkinsResultsParserUtil.getCanonicalPath(testBaseDir));
+			sb.append("/\n");
+		}
+
 		return sb.toString();
 	}
 
@@ -119,6 +147,32 @@ public class FunctionalSegmentTestClassGroup extends SegmentTestClassGroup {
 		FunctionalBatchTestClassGroup parentFunctionalBatchTestClassGroup) {
 
 		super(parentFunctionalBatchTestClassGroup);
+
+		_parentFunctionalBatchTestClassGroup =
+			parentFunctionalBatchTestClassGroup;
 	}
+
+	protected Map.Entry<String, String> getEnvironmentVariableEntry(
+		String key, String name) {
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(key) ||
+			JenkinsResultsParserUtil.isNullOrEmpty(name)) {
+
+			return null;
+		}
+
+		String value = JenkinsResultsParserUtil.getProperty(
+			_parentFunctionalBatchTestClassGroup.getJobProperties(), name,
+			_parentFunctionalBatchTestClassGroup.getBatchName());
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(value)) {
+			return null;
+		}
+
+		return new AbstractMap.SimpleEntry<>(key, value);
+	}
+
+	private final FunctionalBatchTestClassGroup
+		_parentFunctionalBatchTestClassGroup;
 
 }

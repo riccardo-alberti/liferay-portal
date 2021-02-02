@@ -53,7 +53,7 @@ import org.osgi.service.component.annotations.Reference;
 	enabled = false, immediate = true,
 	property = {
 		"javax.portlet.name=" + CPPortletKeys.COMMERCE_CHANNELS,
-		"mvc.command.name=editCommerceNotificationTemplate"
+		"mvc.command.name=/commerce_channels/edit_commerce_notification_template"
 	},
 	service = MVCActionCommand.class
 )
@@ -128,7 +128,8 @@ public class EditCommerceNotificationTemplateMVCActionCommand
 				SessionErrors.add(actionRequest, exception.getClass());
 
 				actionResponse.setRenderParameter(
-					"mvcRenderCommandName", "editCommerceNotificationTemplate");
+					"mvcRenderCommandName",
+					"/commerce_channels/edit_commerce_notification_template");
 			}
 			else {
 				throw exception;

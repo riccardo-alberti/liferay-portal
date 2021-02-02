@@ -61,7 +61,7 @@ public class CommerceOrderClayTableDataSetDisplayView
 		clayTableSchemaBuilder.addClayTableSchemaField("amount", "amount");
 
 		clayTableSchemaBuilder.addClayTableSchemaField(
-			"createDate", "order-date");
+			"orderDate", "order-date");
 
 		ClayTableSchemaField orderStatusField =
 			clayTableSchemaBuilder.addClayTableSchemaField(

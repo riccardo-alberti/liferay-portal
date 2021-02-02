@@ -14,7 +14,6 @@
 
 import '../../css/main.scss';
 
-import Soy from 'metal-soy';
 import React, {
 	useCallback,
 	useEffect,
@@ -29,7 +28,6 @@ import pageLanguageUpdate from '../thunks/pageLanguageUpdate.es';
 import {getConnectedReactComponentAdapter} from '../util/ReactComponentAdapter.es';
 import {evaluate} from '../util/evaluation.es';
 import {getFormId, getFormNode} from '../util/formId.es';
-import templates from './Form.soy';
 
 const Form = React.forwardRef(
 	(
@@ -38,8 +36,10 @@ const Form = React.forwardRef(
 			dataRecordValues,
 			ddmStructureLayoutId,
 			defaultLanguageId,
+			defaultSiteLanguageId,
 			description,
 			editingLanguageId,
+			groupId,
 			name,
 			pages,
 			paginationMode,
@@ -61,6 +61,7 @@ const Form = React.forwardRef(
 						activePage,
 						defaultLanguageId,
 						editingLanguageId,
+						groupId,
 						pages,
 						portletNamespace,
 						rules,
@@ -71,6 +72,7 @@ const Form = React.forwardRef(
 				activePage,
 				defaultLanguageId,
 				editingLanguageId,
+				groupId,
 				pages,
 				portletNamespace,
 				rules,
@@ -84,6 +86,18 @@ const Form = React.forwardRef(
 				validate()
 					.then((validForm) => {
 						if (validForm) {
+							const liferayForm =
+								event.target.id &&
+								Liferay.Form.get(event.target.id);
+
+							const validLiferayForm = !Object.keys(
+								liferayForm?.formValidator?.errors ?? {}
+							).length;
+
+							if (!validLiferayForm) {
+								return;
+							}
+
 							Liferay.Util.submitForm(event.target);
 
 							Liferay.fire('ddmFormSubmit', {
@@ -105,6 +119,7 @@ const Form = React.forwardRef(
 				evaluate(null, {
 					defaultLanguageId,
 					editingLanguageId,
+					groupId,
 					pages,
 					portletNamespace,
 					rules,
@@ -147,6 +162,7 @@ const Form = React.forwardRef(
 				dispatch(
 					pageLanguageUpdate({
 						ddmStructureLayoutId,
+						defaultSiteLanguageId,
 						nextEditingLanguageId,
 						pages,
 						portletNamespace,
@@ -214,6 +230,7 @@ const Form = React.forwardRef(
 				defaultLanguageId={defaultLanguageId}
 				description={description}
 				editingLanguageId={editingLanguageId}
+				groupId={groupId}
 				name={name}
 				pages={pages}
 				paginationMode={paginationMode}
@@ -230,29 +247,57 @@ const Form = React.forwardRef(
 
 Form.displayName = 'Form';
 
-const FormProxy = React.forwardRef(
+const FormEditor = React.forwardRef(
 	(
 		{
-			instance,
+			onEvent = () => {},
 			activePage = 0,
 			defaultLanguageId = themeDisplay.getLanguageId(),
 			...otherProps
 		},
 		ref
-	) => (
-		<FormProvider
-			onEvent={(type, payload) => instance.emit(type, payload)}
-			value={{...otherProps, activePage, defaultLanguageId}}
-		>
-			{(props) => <Form {...props} ref={ref} />}
-		</FormProvider>
-	)
+	) => {
+		const {containerId} = otherProps;
+
+		const defaultRef = useRef(null);
+
+		const reactComponentRef = ref ?? defaultRef;
+
+		useEffect(() => {
+			Liferay.component(
+				containerId,
+				{
+					reactComponentRef,
+				},
+				{
+					destroyOnNavigate: true,
+				}
+			);
+		}, [containerId, reactComponentRef]);
+
+		return (
+			<FormProvider
+				onEvent={onEvent}
+				value={{...otherProps, activePage, defaultLanguageId}}
+			>
+				{(props) => <Form {...props} ref={reactComponentRef} />}
+			</FormProvider>
+		);
+	}
 );
+
+FormEditor.displayName = 'FormEditor';
+
+const FormProxy = React.forwardRef(({instance, ...otherProps}, ref) => (
+	<FormEditor
+		{...otherProps}
+		onEvent={(type, payload) => instance.emit(type, payload)}
+		ref={ref}
+	/>
+));
 
 FormProxy.displayName = 'FormProxy';
 
-const ReactFormAdapter = getConnectedReactComponentAdapter(FormProxy);
+export const ReactFormAdapter = getConnectedReactComponentAdapter(FormProxy);
 
-Soy.register(ReactFormAdapter, templates);
-
-export default ReactFormAdapter;
+export default FormEditor;

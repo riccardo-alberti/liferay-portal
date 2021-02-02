@@ -37,6 +37,8 @@ public interface Job {
 
 	public BuildProfile getBuildProfile();
 
+	public DistType getDistType();
+
 	public Set<String> getDistTypes();
 
 	public Set<String> getDistTypesExcludingTomcat();
@@ -80,6 +82,23 @@ public interface Job {
 		}
 
 		private final String _displayString;
+		private final String _string;
+
+	}
+
+	public static enum DistType {
+
+		CI("ci"), RELEASE("release");
+
+		@Override
+		public String toString() {
+			return _string;
+		}
+
+		private DistType(String string) {
+			_string = string;
+		}
+
 		private final String _string;
 
 	}

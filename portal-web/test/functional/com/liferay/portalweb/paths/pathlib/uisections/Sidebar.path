@@ -44,6 +44,11 @@
     <td></td>
 </tr>
 <tr>
+    <td>DDM_HELP_TEXT</td>
+    <td>//div[contains(@class,'sidebar')]//label[contains(.,'Help Text')]//following-sibling::input</td>
+    <td></td>
+</tr>
+<tr>
 	<td>FORM_BUILDER</td>
 	<td>//div[contains(@class,'form-builder-layout')]</td>
 	<td></td>
@@ -52,6 +57,11 @@
 	<td>ACTIVE_TAB</td>
 	<td>//div[contains(@class,'sidebar')]//*[@*='${key_tabName}'][contains(@aria-pressed,'true')]</td>
 	<td></td>
+</tr>
+<tr>
+    <td>TEXT_INPUT</td>
+    <td>//div[contains(@data-field-name,'${key_fieldName}')]//label[normalize-space(text())='${key_fieldLabel}']//following-sibling::input[@type='text']</td>
+    <td></td>
 </tr>
 <tr>
     <td>OPTION_INPUT</td>
@@ -64,9 +74,24 @@
     <td></td>
 </tr>
 <tr>
+    <td>OPTION_FIELD_REFERENCE_INPUT</td>
+    <td>xpath=(//label[normalize-space(text())='${key_optionFieldLabel}']//following-sibling::div[contains(@class,'options-container')]//div[contains(@class,'ddm-option-entry')]//input[contains(@class,'key-value-reference')])[${index}]</td>
+    <td></td>
+</tr>
+<tr>
+    <td>OPTION_WITHOUT_LABEL_FIELD_REFERENCE_INPUT</td>
+    <td>xpath=(//div[contains(@class,'ddm-option-entry')]//input[contains(@class,'key-value-reference')])[${index}]</td>
+    <td></td>
+</tr>
+<tr>
 	<td>TAB</td>
 	<td>//div[contains(@class,'sidebar')]//*[@*='${key_tabName}']</td>
 	<td></td>
+</tr>
+<tr>
+    <td>DDM_FIELD_REFERENCE</td>
+    <td>//div[contains(@class,'sidebar')]//label[contains(.,'Field Reference')]//following-sibling::input</td>
+    <td></td>
 </tr>
 </tbody>
 </table>

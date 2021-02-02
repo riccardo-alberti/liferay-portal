@@ -14,12 +14,14 @@
 
 package com.liferay.jenkins.results.parser.spira.result;
 
+import com.liferay.jenkins.results.parser.AxisBuild;
 import com.liferay.jenkins.results.parser.TestClassResult;
 import com.liferay.jenkins.results.parser.TestResult;
 import com.liferay.jenkins.results.parser.spira.BaseSpiraArtifact;
 import com.liferay.jenkins.results.parser.spira.SpiraCustomProperty;
 import com.liferay.jenkins.results.parser.spira.SpiraCustomPropertyValue;
 import com.liferay.jenkins.results.parser.spira.SpiraTestCaseRun;
+import com.liferay.jenkins.results.parser.test.clazz.group.TestClassGroup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,15 +56,6 @@ public class JUnitAxisSpiraTestResultValues
 
 				@Override
 				public List<SpiraCustomPropertyValue> call() throws Exception {
-					return Collections.singletonList(_getErrorMessageValue());
-				}
-
-			});
-		callables.add(
-			new Callable<List<SpiraCustomPropertyValue>>() {
-
-				@Override
-				public List<SpiraCustomPropertyValue> call() throws Exception {
 					return Collections.singletonList(_getMethodsValue());
 				}
 
@@ -71,11 +64,38 @@ public class JUnitAxisSpiraTestResultValues
 		return callables;
 	}
 
-	private SpiraCustomPropertyValue _getErrorMessageValue() {
+	@Override
+	protected SpiraCustomPropertyValue getErrorMessageValue() {
+		SpiraBuildResult spiraBuildResult = getSpiraBuildResult();
+
+		SpiraCustomProperty spiraCustomProperty =
+			SpiraCustomProperty.createSpiraCustomProperty(
+				spiraBuildResult.getSpiraProject(), SpiraTestCaseRun.class,
+				"Error Message", SpiraCustomProperty.Type.TEXT, true);
+
 		TestClassResult testClassResult =
 			_jUnitAxisSpiraTestResult.getTestClassResult();
 
-		if ((testClassResult == null) || !testClassResult.isFailing()) {
+		if (testClassResult == null) {
+			AxisBuild axisBuild = _jUnitAxisSpiraTestResult.getAxisBuild();
+
+			if (axisBuild == null) {
+				return SpiraCustomPropertyValue.createSpiraCustomPropertyValue(
+					spiraCustomProperty, "The test class failed to run.");
+			}
+
+			String status = axisBuild.getResult();
+
+			if (!status.equals("SUCCESS")) {
+				return SpiraCustomPropertyValue.createSpiraCustomPropertyValue(
+					spiraCustomProperty,
+					"The build failed prior to running the test.");
+			}
+
+			return null;
+		}
+
+		if (!testClassResult.isFailing()) {
 			return null;
 		}
 
@@ -158,46 +178,36 @@ public class JUnitAxisSpiraTestResultValues
 
 		sb.append("</ol></details>");
 
-		SpiraBuildResult spiraBuildResult = getSpiraBuildResult();
-
 		return SpiraCustomPropertyValue.createSpiraCustomPropertyValue(
-			SpiraCustomProperty.createSpiraCustomProperty(
-				spiraBuildResult.getSpiraProject(), SpiraTestCaseRun.class,
-				"Error Message", SpiraCustomProperty.Type.TEXT, true),
-			sb.toString());
+			spiraCustomProperty, sb.toString());
 	}
 
 	private SpiraCustomPropertyValue _getMethodsValue() {
-		TestClassResult testClassResult =
-			_jUnitAxisSpiraTestResult.getTestClassResult();
+		TestClassGroup.TestClass testClass =
+			_jUnitAxisSpiraTestResult.getTestClass();
 
-		if (testClassResult == null) {
-			return null;
-		}
-
-		List<TestResult> testResults = testClassResult.getTestResults();
-
-		if ((testResults == null) || testResults.isEmpty()) {
-			return null;
-		}
+		List<TestClassGroup.TestClass.TestClassMethod> testClassMethods =
+			testClass.getTestClassMethods();
 
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("<details><summary>methods (");
-		sb.append(testResults.size());
+		sb.append(testClassMethods.size());
 		sb.append(")</summary><hr /><ol>");
 
-		List<String> testResultNames = new ArrayList<>();
+		List<String> testClassMethodNames = new ArrayList<>();
 
-		for (TestResult testResult : testResults) {
-			testResultNames.add(testResult.getTestName());
+		for (TestClassGroup.TestClass.TestClassMethod testClassMethod :
+				testClassMethods) {
+
+			testClassMethodNames.add(testClassMethod.getName());
 		}
 
-		Collections.sort(testResultNames);
+		Collections.sort(testClassMethodNames);
 
-		for (String testResultName : testResultNames) {
+		for (String testClassMethodName : testClassMethodNames) {
 			sb.append("<li>");
-			sb.append(BaseSpiraArtifact.fixStringForJSON(testResultName));
+			sb.append(BaseSpiraArtifact.fixStringForJSON(testClassMethodName));
 			sb.append("</li>");
 		}
 

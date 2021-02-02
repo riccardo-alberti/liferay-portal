@@ -214,7 +214,7 @@ public class RESTBuilder {
 				openAPIYAML);
 
 			Map<String, Schema> allExternalSchemas =
-				OpenAPIUtil.getAllExternalSchemas(allSchemas, openAPIYAML);
+				OpenAPIUtil.getAllExternalSchemas(openAPIYAML);
 
 			context.put("allExternalSchemas", allExternalSchemas);
 
@@ -1668,15 +1668,15 @@ public class RESTBuilder {
 					continue;
 				}
 
+				String propertyName = entry2.getKey();
+				String schemaVarName = _getSchemaVarName(
+					freeMarkerTool, reference);
+
 				int x = yamlString.indexOf(' ' + entry1.getKey() + ':');
 
 				int y = yamlString.indexOf(' ' + entry2.getKey() + ':', x);
 
 				int z = yamlString.indexOf(':', y);
-
-				String propertyName = entry2.getKey();
-				String schemaVarName = freeMarkerTool.getSchemaVarName(
-					reference.substring(reference.lastIndexOf('/') + 1));
 
 				if (Objects.equals(propertySchema.getType(), "array")) {
 					String plural = TextFormatter.formatPlural(schemaVarName);
@@ -1806,6 +1806,15 @@ public class RESTBuilder {
 		}
 
 		return relatedSchemaNames;
+	}
+
+	private String _getSchemaVarName(
+		FreeMarkerTool freeMarkerTool, String reference) {
+
+		int index = Math.max(
+			reference.lastIndexOf('#'), reference.lastIndexOf('/'));
+
+		return freeMarkerTool.getSchemaVarName(reference.substring(index + 1));
 	}
 
 	private OpenAPIYAML _loadOpenAPIYAML(String yamlString) {

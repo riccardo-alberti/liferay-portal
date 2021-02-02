@@ -72,7 +72,6 @@ Map<Long, List<CommerceOrderValidatorResult>> commerceOrderValidatorResultMap = 
 			>
 				<liferay-ui:search-container-row
 					className="com.liferay.commerce.model.CommerceOrderItem"
-					cssClass="entry-display-style"
 					keyProperty="CommerceOrderItemId"
 					modelVar="commerceOrderItem"
 				>
@@ -218,7 +217,7 @@ Map<Long, List<CommerceOrderValidatorResult>> commerceOrderValidatorResultMap = 
 	</div>
 
 	<aui:script>
-		Liferay.after('commerce:productAddedToCart', function (event) {
+		Liferay.after('current-order-updated', function (event) {
 			Liferay.Portlet.refresh('#p_p_id<portlet:namespace />');
 		});
 	</aui:script>

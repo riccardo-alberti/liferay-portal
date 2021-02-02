@@ -107,13 +107,27 @@ exports[`EditFormViewApp renders 1`] = `
               <div
                 class="pr-2 autofit-col autofit-col-expand"
               >
-                <h4
-                  class="list-group-title text-truncate"
+                <div
+                  class="d-flex list-group-title"
                 >
-                  <span>
+                  <span
+                    class="text-truncate"
+                  >
                     Name
                   </span>
-                </h4>
+                  <span
+                    class="reference-mark"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-asterisk"
+                      role="presentation"
+                    >
+                      <use
+                        xlink:href="#asterisk"
+                      />
+                    </svg>
+                  </span>
+                </div>
                 <p
                   class="list-group-subtitle text-truncate"
                 >
@@ -186,13 +200,27 @@ exports[`EditFormViewApp renders 1`] = `
               <div
                 class="pr-2 autofit-col autofit-col-expand"
               >
-                <h4
-                  class="list-group-title text-truncate"
+                <div
+                  class="d-flex list-group-title"
                 >
-                  <span>
+                  <span
+                    class="text-truncate"
+                  >
                     Options
                   </span>
-                </h4>
+                  <span
+                    class="reference-mark"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-asterisk"
+                      role="presentation"
+                    >
+                      <use
+                        xlink:href="#asterisk"
+                      />
+                    </svg>
+                  </span>
+                </div>
                 <p
                   class="list-group-subtitle text-truncate"
                 >
@@ -272,13 +300,15 @@ exports[`EditFormViewApp renders 1`] = `
                   <div
                     class="pr-2 autofit-col autofit-col-expand"
                   >
-                    <h4
-                      class="list-group-title text-truncate"
+                    <div
+                      class="d-flex list-group-title"
                     >
-                      <span>
+                      <span
+                        class="text-truncate"
+                      >
                         Address
                       </span>
-                    </h4>
+                    </div>
                     <p
                       class="list-group-subtitle text-truncate"
                     >
@@ -361,13 +391,15 @@ exports[`EditFormViewApp renders 1`] = `
                         <div
                           class="pr-2 autofit-col autofit-col-expand"
                         >
-                          <h4
-                            class="list-group-title text-truncate"
+                          <div
+                            class="d-flex list-group-title"
                           >
-                            <span>
+                            <span
+                              class="text-truncate"
+                            >
                               Text Field
                             </span>
-                          </h4>
+                          </div>
                           <p
                             class="list-group-subtitle text-truncate"
                           >

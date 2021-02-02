@@ -269,19 +269,9 @@ public class LayoutStagedModelDataHandler
 
 		boolean privateLayout = GetterUtil.getBoolean(
 			referenceElement.attributeValue("private-layout"));
-		String type = GetterUtil.getString(
-			referenceElement.attributeValue("type"));
 
-		Layout existingLayout = null;
-
-		if (type.equals(PortletDataContext.REFERENCE_TYPE_DEPENDENCY)) {
-			existingLayout = _layoutLocalService.fetchLayout(
-				uuid, portletDataContext.getGroupId(), privateLayout);
-		}
-		else {
-			existingLayout = fetchMissingReference(
-				uuid, groupId, privateLayout);
-		}
+		Layout existingLayout = fetchMissingReference(
+			uuid, groupId, privateLayout);
 
 		if (existingLayout == null) {
 			return false;
@@ -2017,6 +2007,10 @@ public class LayoutStagedModelDataHandler
 				previousTypeSettingsUnicodeProperties.toString());
 		}
 		catch (IOException ioException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(ioException, ioException);
+			}
+
 			layout.setTypeSettings(newTypeSettings);
 		}
 	}
@@ -2362,11 +2356,16 @@ public class LayoutStagedModelDataHandler
 				fetchLayoutPageTemplateStructure(
 					layout.getGroupId(), layout.getPlid());
 
-		if (layoutPageTemplateStructure != null) {
-			StagedModelDataHandlerUtil.exportReferenceStagedModel(
-				portletDataContext, layout, layoutPageTemplateStructure,
-				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+		if (layoutPageTemplateStructure == null) {
+			layoutPageTemplateStructure =
+				_layoutPageTemplateStructureLocalService.
+					rebuildLayoutPageTemplateStructure(
+						layout.getGroupId(), layout.getPlid());
 		}
+
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, layout, layoutPageTemplateStructure,
+			PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
 	}
 
 	private void _exportMasterLayout(

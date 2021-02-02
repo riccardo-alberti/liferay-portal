@@ -14,13 +14,12 @@
 
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import ServiceProvider from '../../ServiceProvider/index';
 import {
-	ADD_TO_ORDER,
-	CHANGE_ACCOUNT,
-	CHANGE_ORDER,
+	CURRENT_ACCOUNT_UPDATED,
+	CURRENT_ORDER_UPDATED,
 } from '../../utilities/eventsDefinitions';
 import {showErrorNotification} from '../../utilities/notifications';
 import MiniCartContext from './MiniCartContext';
@@ -58,11 +57,14 @@ function MiniCart({
 	summaryDataMapper,
 	toggleable,
 }) {
-	const CartResource = ServiceProvider.DeliveryCartAPI('v1');
+	const CartResource = useMemo(
+		() => ServiceProvider.DeliveryCartAPI('v1'),
+		[]
+	);
 
 	const [isOpen, setIsOpen] = useState(!toggleable);
 	const [isUpdating, setIsUpdating] = useState(false);
-	const [cartState, updateCartState] = useState({itemsQuantity});
+	const [cartState, updateCartState] = useState({itemsQuantity, orderId});
 	const [actionURLs, setActionURLs] = useState(cartActionURLs);
 	const [CartViews, setCartViews] = useState({});
 
@@ -72,27 +74,48 @@ function MiniCart({
 		updateCartState,
 	]);
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const updateCartModel = ({orderId: cartId}) =>
-		CartResource.getCartByIdWithItems(cartId)
-			.then((model) => {
-				if (orderId !== cartId) {
-					const {orderUUID} = model,
-						{checkoutURL, orderDetailURL} = actionURLs;
+	const updateCartModel = useCallback(
+		({orderId: cartId}) => {
+			CartResource.getCartByIdWithItems(cartId)
+				.then((model) => {
+					let latestActionURLs, latestCartState;
 
-					setActionURLs({
-						checkoutURL,
-						orderDetailURL: regenerateOrderDetailURL(
-							orderDetailURL,
-							orderUUID
-						),
+					setActionURLs((currentURLs) => {
+						const {checkoutURL, orderDetailURL} = currentURLs;
+						const {orderUUID} = model;
+
+						latestActionURLs =
+							orderId !== cartId
+								? {
+										checkoutURL,
+										orderDetailURL: regenerateOrderDetailURL(
+											orderDetailURL,
+											orderUUID
+										),
+								  }
+								: currentURLs;
+
+						return latestActionURLs;
 					});
-				}
 
-				updateCartState({...cartState, ...model});
-				onAddToCart(actionURLs, cartState);
-			})
-			.catch(showErrorNotification);
+					updateCartState((currentState) => {
+						latestCartState = {...currentState, ...model};
+
+						return latestCartState;
+					});
+
+					return Promise.resolve({
+						actionURLs: latestActionURLs,
+						cartState: latestCartState,
+					});
+				})
+				.then(({actionURLs, cartState}) => {
+					onAddToCart(actionURLs, cartState);
+				})
+				.catch(showErrorNotification);
+		},
+		[CartResource, onAddToCart, orderId]
+	);
 
 	useEffect(() => {
 		resolveCartViews({
@@ -102,12 +125,10 @@ function MiniCart({
 	}, [cartViews]);
 
 	useEffect(() => {
-		Liferay.on(ADD_TO_ORDER, updateCartModel);
-		Liferay.on(CHANGE_ORDER, updateCartModel);
+		Liferay.on(CURRENT_ORDER_UPDATED, updateCartModel);
 
 		return () => {
-			Liferay.detach(ADD_TO_ORDER, updateCartModel);
-			Liferay.detach(CHANGE_ORDER, updateCartModel);
+			Liferay.detach(CURRENT_ORDER_UPDATED, updateCartModel);
 		};
 	}, [updateCartModel]);
 
@@ -115,22 +136,12 @@ function MiniCart({
 		if (orderId && orderId !== 0) {
 			updateCartModel({orderId});
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [orderId]);
+	}, [orderId, updateCartModel]);
 
 	useEffect(() => {
-		if (isOpen) {
-			updateCartModel({orderId: cartState.id});
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen]);
+		Liferay.on(CURRENT_ACCOUNT_UPDATED, resetCartState);
 
-	useEffect(() => {
-		Liferay.on(CHANGE_ACCOUNT, resetCartState);
-
-		return () => {
-			Liferay.detach(CHANGE_ACCOUNT, resetCartState);
-		};
+		return () => Liferay.detach(CURRENT_ACCOUNT_UPDATED, resetCartState);
 	}, [resetCartState]);
 
 	return (
@@ -186,6 +197,7 @@ MiniCart.defaultProps = {
 	itemsQuantity: 0,
 	labels: DEFAULT_LABELS,
 	onAddToCart: () => {},
+	orderId: 0,
 	summaryDataMapper,
 	toggleable: true,
 };

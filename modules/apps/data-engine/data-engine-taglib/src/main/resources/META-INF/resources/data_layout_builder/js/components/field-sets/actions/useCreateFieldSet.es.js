@@ -21,11 +21,20 @@ import {addItem} from '../../../utils/client.es';
 import {normalizeDataDefinition} from '../../../utils/normalizers.es';
 import {errorToast, successToast} from '../../../utils/toast.es';
 
-export default ({availableLanguageIds, childrenContext, defaultLanguageId}) => {
+export default ({
+	availableLanguageIds,
+	childrenContext,
+	defaultLanguageId,
+	onEditingLanguageIdChange: setEditingLanguageId,
+}) => {
 	const [{fieldSets}, dispatch] = useContext(AppContext);
 	const {state: childrenState} = childrenContext;
 	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
-	const {contentType, fieldSetContentType} = dataLayoutBuilder.props;
+	const {
+		contentType,
+		contentTypeConfig: {allowInvalidAvailableLocalesForProperty},
+		fieldSetContentType,
+	} = dataLayoutBuilder.props;
 
 	return (name) => {
 		const {
@@ -33,14 +42,29 @@ export default ({availableLanguageIds, childrenContext, defaultLanguageId}) => {
 			dataLayout: {dataLayoutPages},
 		} = childrenState;
 
-		const normalizedDataDefinition = normalizeDataDefinition({
+		let dataDefinition = {
 			availableLanguageIds,
 			dataDefinitionFields,
 			name,
-		});
+		};
+
+		if (!dataDefinition.name[defaultLanguageId]) {
+			setEditingLanguageId(defaultLanguageId);
+
+			return Promise.reject(
+				new Error(Liferay.Language.get('please-enter-a-valid-title'))
+			);
+		}
+
+		if (!allowInvalidAvailableLocalesForProperty) {
+			dataDefinition = normalizeDataDefinition(
+				dataDefinition,
+				defaultLanguageId
+			);
+		}
 
 		const fieldSet = {
-			...normalizedDataDefinition,
+			...dataDefinition,
 			defaultDataLayout: {
 				dataLayoutPages,
 				name,

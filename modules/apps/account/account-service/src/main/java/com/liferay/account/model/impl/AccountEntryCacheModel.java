@@ -77,7 +77,7 @@ public class AccountEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(37);
+		StringBundler sb = new StringBundler(41);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -105,10 +105,14 @@ public class AccountEntryCacheModel
 		sb.append(description);
 		sb.append(", domains=");
 		sb.append(domains);
+		sb.append(", emailAddress=");
+		sb.append(emailAddress);
 		sb.append(", logoId=");
 		sb.append(logoId);
 		sb.append(", name=");
 		sb.append(name);
+		sb.append(", taxExemptionCode=");
+		sb.append(taxExemptionCode);
 		sb.append(", taxIdNumber=");
 		sb.append(taxIdNumber);
 		sb.append(", type=");
@@ -176,6 +180,13 @@ public class AccountEntryCacheModel
 			accountEntryImpl.setDomains(domains);
 		}
 
+		if (emailAddress == null) {
+			accountEntryImpl.setEmailAddress("");
+		}
+		else {
+			accountEntryImpl.setEmailAddress(emailAddress);
+		}
+
 		accountEntryImpl.setLogoId(logoId);
 
 		if (name == null) {
@@ -183,6 +194,13 @@ public class AccountEntryCacheModel
 		}
 		else {
 			accountEntryImpl.setName(name);
+		}
+
+		if (taxExemptionCode == null) {
+			accountEntryImpl.setTaxExemptionCode("");
+		}
+		else {
+			accountEntryImpl.setTaxExemptionCode(taxExemptionCode);
 		}
 
 		if (taxIdNumber == null) {
@@ -227,9 +245,11 @@ public class AccountEntryCacheModel
 		parentAccountEntryId = objectInput.readLong();
 		description = objectInput.readUTF();
 		domains = objectInput.readUTF();
+		emailAddress = objectInput.readUTF();
 
 		logoId = objectInput.readLong();
 		name = objectInput.readUTF();
+		taxExemptionCode = objectInput.readUTF();
 		taxIdNumber = objectInput.readUTF();
 		type = objectInput.readUTF();
 
@@ -283,6 +303,13 @@ public class AccountEntryCacheModel
 			objectOutput.writeUTF(domains);
 		}
 
+		if (emailAddress == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(emailAddress);
+		}
+
 		objectOutput.writeLong(logoId);
 
 		if (name == null) {
@@ -290,6 +317,13 @@ public class AccountEntryCacheModel
 		}
 		else {
 			objectOutput.writeUTF(name);
+		}
+
+		if (taxExemptionCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(taxExemptionCode);
 		}
 
 		if (taxIdNumber == null) {
@@ -322,8 +356,10 @@ public class AccountEntryCacheModel
 	public long parentAccountEntryId;
 	public String description;
 	public String domains;
+	public String emailAddress;
 	public long logoId;
 	public String name;
+	public String taxExemptionCode;
 	public String taxIdNumber;
 	public String type;
 	public int status;

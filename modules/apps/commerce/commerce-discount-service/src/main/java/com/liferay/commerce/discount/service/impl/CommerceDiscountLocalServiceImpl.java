@@ -642,6 +642,16 @@ public class CommerceDiscountLocalServiceImpl
 			companyId, commerceDiscountTargetType);
 	}
 
+	@Override
+	public int getValidCommerceDiscountsCount(
+		long commerceAccountId, long[] commerceAccountGroupIds,
+		long commerceChannelId, long commerceDiscountId) {
+
+		return commerceDiscountFinder.countByValidCommerceDiscount(
+			commerceAccountId, commerceAccountGroupIds, commerceChannelId,
+			commerceDiscountId);
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public CommerceDiscount incrementCommerceDiscountNumberOfUse(
@@ -929,6 +939,8 @@ public class CommerceDiscountLocalServiceImpl
 			(commerceDiscount.getDisplayDate() != null) &&
 			now.before(commerceDiscount.getDisplayDate())) {
 
+			commerceDiscount.setActive(false);
+
 			status = WorkflowConstants.STATUS_SCHEDULED;
 		}
 
@@ -938,9 +950,12 @@ public class CommerceDiscountLocalServiceImpl
 			if ((expirationDate != null) && expirationDate.before(now)) {
 				commerceDiscount.setExpirationDate(null);
 			}
+
+			commerceDiscount.setActive(true);
 		}
 
 		if (status == WorkflowConstants.STATUS_EXPIRED) {
+			commerceDiscount.setActive(false);
 			commerceDiscount.setExpirationDate(now);
 		}
 
@@ -1124,7 +1139,8 @@ public class CommerceDiscountLocalServiceImpl
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						"Unable to find discount with ID: " +
-							commerceDiscountId);
+							commerceDiscountId,
+						noSuchDiscountException);
 				}
 			}
 		}
@@ -1197,7 +1213,8 @@ public class CommerceDiscountLocalServiceImpl
 				if (_log.isDebugEnabled()) {
 					_log.debug(
 						"Unable to find discount with ID: " +
-							commerceDiscountId);
+							commerceDiscountId,
+						noSuchDiscountException);
 				}
 			}
 		}

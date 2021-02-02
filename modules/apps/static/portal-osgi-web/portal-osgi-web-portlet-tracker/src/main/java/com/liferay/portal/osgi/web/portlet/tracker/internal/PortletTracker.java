@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.ResourceActionsException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -67,6 +68,7 @@ import com.liferay.portal.model.impl.PublicRenderParameterImpl;
 import com.liferay.portal.osgi.web.servlet.context.helper.ServletContextHelperFactory;
 import com.liferay.portal.osgi.web.servlet.context.helper.ServletContextHelperRegistration;
 import com.liferay.portal.service.impl.ResourcePermissionLocalServiceImpl.IndividualPortletResourcePermissionProvider;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebAppPool;
 import com.liferay.portlet.PortletBagFactory;
 import com.liferay.portlet.PortletContextBag;
@@ -219,6 +221,9 @@ public class PortletTracker
 			_bundleContext.ungetService(serviceReference);
 		}
 		catch (IllegalStateException illegalStateException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(illegalStateException, illegalStateException);
+			}
 
 			// We still need to remove the service so we can ignore this and
 			// keep going
@@ -438,7 +443,9 @@ public class PortletTracker
 				applicationTypes.add(applicationType);
 			}
 			catch (IllegalArgumentException illegalArgumentException) {
-				_log.error("Application type " + applicationTypeValue);
+				_log.error(
+					"Application type " + applicationTypeValue,
+					illegalArgumentException);
 			}
 		}
 
@@ -1522,6 +1529,19 @@ public class PortletTracker
 
 				_sources = StringUtil.split(
 					properties.getProperty(PropsKeys.RESOURCE_ACTIONS_CONFIGS));
+
+				if (!PropsValues.RESOURCE_ACTIONS_STRICT_MODE_ENABLED) {
+					try {
+						_resourceActions.populateModelResources(
+							classLoader, _sources);
+					}
+					catch (ResourceActionsException resourceActionsException) {
+						_log.error(
+							"Unable to read resource actions config in " +
+								PropsKeys.RESOURCE_ACTIONS_CONFIGS,
+							resourceActionsException);
+					}
+				}
 			}
 		}
 

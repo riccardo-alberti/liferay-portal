@@ -16,6 +16,8 @@ package com.liferay.jenkins.results.parser.spira.result;
 
 import com.liferay.jenkins.results.parser.TopLevelBuild;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.CucumberAxisTestClassGroup;
+import com.liferay.jenkins.results.parser.test.clazz.group.CucumberBatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.FunctionalAxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.FunctionalBatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.JUnitAxisTestClassGroup;
@@ -56,6 +58,13 @@ public class SpiraResultFactory {
 			return new TopLevelSpiraTestResult(spiraBuildResult);
 		}
 
+		if (axisTestClassGroup instanceof CucumberAxisTestClassGroup) {
+			return new CucumberAxisSpiraTestResult(
+				spiraBuildResult,
+				(CucumberAxisTestClassGroup)axisTestClassGroup,
+				(CucumberBatchTestClassGroup.CucumberTestClass)testClass);
+		}
+
 		if (axisTestClassGroup instanceof FunctionalAxisTestClassGroup) {
 			return new FunctionalAxisSpiraTestResult(
 				spiraBuildResult,
@@ -69,12 +78,24 @@ public class SpiraResultFactory {
 				testClass);
 		}
 
+		String batchName = axisTestClassGroup.getBatchName();
+
+		if (batchName.startsWith("source-format-")) {
+			return new SFBatchAxisSpiraTestResult(
+				spiraBuildResult, axisTestClassGroup);
+		}
+
 		return new BatchAxisSpiraTestResult(
 			spiraBuildResult, axisTestClassGroup);
 	}
 
 	public static SpiraTestResultDetails newSpiraTestResultDetails(
 		SpiraTestResult spiraTestResult) {
+
+		if (spiraTestResult instanceof CucumberAxisSpiraTestResult) {
+			return new CucumberAxisSpiraTestResultDetails(
+				(CucumberAxisSpiraTestResult)spiraTestResult);
+		}
 
 		if (spiraTestResult instanceof FunctionalAxisSpiraTestResult) {
 			return new FunctionalAxisSpiraTestResultDetails(
@@ -96,6 +117,11 @@ public class SpiraResultFactory {
 
 	public static SpiraTestResultValues newSpiraTestResultValues(
 		SpiraTestResult spiraTestResult) {
+
+		if (spiraTestResult instanceof CucumberAxisSpiraTestResult) {
+			return new CucumberAxisSpiraTestResultValues(
+				(CucumberAxisSpiraTestResult)spiraTestResult);
+		}
 
 		if (spiraTestResult instanceof FunctionalAxisSpiraTestResult) {
 			return new FunctionalAxisSpiraTestResultValues(

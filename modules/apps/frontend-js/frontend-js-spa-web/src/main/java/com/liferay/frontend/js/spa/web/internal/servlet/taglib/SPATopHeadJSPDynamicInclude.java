@@ -14,7 +14,7 @@
 
 package com.liferay.frontend.js.spa.web.internal.servlet.taglib;
 
-import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
+import com.liferay.frontend.js.module.launcher.JSModuleLauncher;
 import com.liferay.frontend.js.spa.web.internal.servlet.taglib.helper.SPAHelper;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.servlet.taglib.BaseJSPDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
-import com.liferay.portal.kernel.servlet.taglib.aui.ScriptData;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Html;
@@ -101,19 +100,9 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 			"validStatusCodes", _spaHelper.getValidStatusCodesJSONArray()
 		);
 
-		String initModuleName = _npmResolver.resolveModuleName(
-			"frontend-js-spa-web/init");
-
-		ScriptData initScriptData = new ScriptData();
-
-		initScriptData.append(
-			null,
-			"frontendJsSpaWebInit.default(" + configJSONObject.toJSONString() +
-				")",
-			initModuleName + " as frontendJsSpaWebInit",
-			ScriptData.ModulesType.ES6);
-
-		initScriptData.writeTo(httpServletResponse.getWriter());
+		_jsModuleLauncher.writeModuleInvocation(
+			httpServletResponse.getWriter(), "frontend-js-spa-web",
+			configJSONObject.toJSONString());
 	}
 
 	@Override
@@ -141,10 +130,10 @@ public class SPATopHeadJSPDynamicInclude extends BaseJSPDynamicInclude {
 	private Html _html;
 
 	@Reference
-	private Language _language;
+	private JSModuleLauncher _jsModuleLauncher;
 
 	@Reference
-	private NPMResolver _npmResolver;
+	private Language _language;
 
 	@Reference
 	private Props _props;

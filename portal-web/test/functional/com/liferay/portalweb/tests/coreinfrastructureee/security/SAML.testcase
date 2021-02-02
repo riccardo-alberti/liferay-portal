@@ -600,6 +600,7 @@ definition {
 
 	@priority = "4"
 	test AssertSSOWithSignAuthnRequests {
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "SAML#AssertSSOWithSignAuthnRequests";
 
 		SAML.configureLiferaySAMLAsIdP(samlEntityID = "samlidp");
@@ -986,10 +987,14 @@ definition {
 
 		User.viewLoggedOutPG();
 
-		User.loginPG(
-			password = "test",
-			specificURL = "http://www.able.com:9080",
-			userEmailAddress = "test@liferay.com");
+		Navigator.openSpecificURL(url = "http://www.able.com:9080");
+
+		if (IsElementNotPresent(locator1 = "UserBar#USER_AVATAR_IMAGE")) {
+			User.loginPG(
+				password = "test",
+				specificURL = "http://www.able.com:9080",
+				userEmailAddress = "test@liferay.com");
+		}
 	}
 
 	@priority = "4"

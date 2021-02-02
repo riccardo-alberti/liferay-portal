@@ -4,14 +4,12 @@
 	<checkstyle>
 		<suppress checks="CamelCaseNameCheck" files="commerce-google-merchant/src/main/java/com/liferay/commerce/google/merchant/internal/sftp/SftpUploader\.java" />
 		<suppress checks="ChainingCheck" files="commerce-frontend-impl/src/main/java/com/liferay/commerce/frontend/internal/account/CommerceAccountResource\.java" />
-		<suppress checks="MVCCommandNameCheck" files=".*" />
 		<suppress checks="VariableNameCheck" files="commerce-google-merchant/src/main/java/com/liferay/commerce/google/merchant/internal/jsch/FingerprintHostKeyRepository\.java" />
 	</checkstyle>
 	<source-check>
 		<suppress checks="BNDExportsCheck" files="commerce-application-list/bnd\.bnd" />
 		<suppress checks="BNDExportsCheck" files="commerce-initializer-util/bnd\.bnd" />
 		<suppress checks="BNDExportsCheck" files="commerce-media-impl/bnd\.bnd" />
-		<suppress checks="BNDExportsCheck" files="commerce-price-list-web/bnd\.bnd" />
 		<suppress checks="BNDExportsCheck" files="commerce-product-definitions-web/bnd\.bnd" />
 		<suppress checks="BNDExportsCheck" files="commerce-product-service/bnd\.bnd" />
 		<suppress checks="BNDExportsCheck" files="commerce-product-type-simple/bnd\.bnd" />
@@ -65,7 +63,6 @@
 		<suppress checks="JavaAPISignatureCheck" files="headless/headless-commerce/headless-commerce-admin-pricing-impl/src/main/java/com/liferay/headless/commerce/admin/pricing/internal/util/v1_0/DiscountRuleUtil\.java" />
 		<suppress checks="JavaAPISignatureCheck" files="headless/headless-commerce/headless-commerce-admin-pricing-impl/src/main/java/com/liferay/headless/commerce/admin/pricing/internal/util/v1_0/PriceListAccountGroupUtil\.java" />
 		<suppress checks="JavaAPISignatureCheck" files="headless/headless-commerce/headless-commerce-admin-pricing-impl/src/main/java/com/liferay/headless/commerce/admin/pricing/internal/util/v1_0/TierPriceUtil\.java" />
-		<suppress checks="JavaClassNameCheck" files=".*" />
 		<suppress checks="JavaConfigurationCategoryCheck" files=".*" />
 		<suppress checks="JavaHelperUtilCheck" files="commerce-checkout-web/src/main/java/com/liferay/commerce/checkout/web/internal/util/AddressCommerceCheckoutStepUtil\.java" />
 		<suppress checks="JavaHelperUtilCheck" files="commerce-frontend-impl/src/main/java/com/liferay/commerce/frontend/internal/cart/CommerceCartResourceUtil\.java" />
@@ -82,7 +79,6 @@
 		<suppress checks="JSONPackageJSONCheck" files="commerce-theme-minium/commerce-theme-minium-impl/package\.json" />
 		<suppress checks="PropertiesLiferayPluginPackageLiferayVersionsCheck" files="commerce-theme-minium/commerce-theme-minium/src/WEB-INF/liferay-plugin-package\.properties" />
 		<suppress checks="PropertiesLiferayPluginPackageLiferayVersionsCheck" files="commerce-theme-speedwell/commerce-theme-speedwell/src/WEB-INF/liferay-plugin-package\.properties" />
-		<suppress checks="StringMethodsCheck" files="commerce-discount-web/src/main/java/com/liferay/commerce/discount/web/internal/display/context/CommerceDiscountDisplayContext\.java" />
 		<suppress checks="XMLCustomSQLStylingCheck" files="commerce-inventory-service/src/main/resources/META-INF/custom-sql/default\.xml" />
 		<suppress checks="XMLServiceEntityNameCheck" files="commerce-account-service/service\.xml" />
 		<suppress checks="XMLServiceEntityNameCheck" files="commerce-currency-service/service\.xml" />

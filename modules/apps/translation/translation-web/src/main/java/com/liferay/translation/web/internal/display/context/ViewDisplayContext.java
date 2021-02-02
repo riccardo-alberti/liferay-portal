@@ -105,18 +105,20 @@ public class ViewDisplayContext {
 				_themeDisplay.getPermissionChecker(), translationEntry,
 				ActionKeys.DELETE),
 			dropdownItem -> {
+				dropdownItem.putData("action", "delete");
+
 				ActionURL deleteTranslationEntryURL =
 					_liferayPortletResponse.createActionURL();
 
 				deleteTranslationEntryURL.setParameter(
 					ActionRequest.ACTION_NAME,
 					"/translation/delete_translation_entry");
-
 				deleteTranslationEntryURL.setParameter(
 					"translationEntryId",
 					String.valueOf(translationEntry.getTranslationEntryId()));
 
-				dropdownItem.setHref(deleteTranslationEntryURL);
+				dropdownItem.putData(
+					"deleteURL", deleteTranslationEntryURL.toString());
 
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "delete"));
@@ -160,8 +162,8 @@ public class ViewDisplayContext {
 		).build();
 	}
 
-	public String getDefaultEventHandler() {
-		return "translationManagementToolbarDefaultEventHandler";
+	public String getElementsDefaultEventHandler() {
+		return "translationEntryDefaultEventHandler";
 	}
 
 	public String getLanguageIcon(TranslationEntry translationEntry) {
@@ -172,6 +174,10 @@ public class ViewDisplayContext {
 		return StringUtil.replace(
 			translationEntry.getLanguageId(), CharPool.UNDERLINE,
 			CharPool.DASH);
+	}
+
+	public String getManagementToolbarDefaultEventHandler() {
+		return "translationManagementToolbarDefaultEventHandler";
 	}
 
 	public SearchContainer<TranslationEntry> getSearchContainer()
@@ -267,7 +273,7 @@ public class ViewDisplayContext {
 		translatePortletURL.setParameter(
 			"classPK", String.valueOf(translationEntry.getClassPK()));
 		translatePortletURL.setParameter(
-			"sourceLanguageId",
+			"targetLanguageId",
 			String.valueOf(translationEntry.getLanguageId()));
 
 		return translatePortletURL;
@@ -278,7 +284,7 @@ public class ViewDisplayContext {
 		throws PortalException {
 
 		return new TranslationEntryManagementToolbarDisplayContext(
-			getDefaultEventHandler(), _httpServletRequest,
+			getManagementToolbarDefaultEventHandler(), _httpServletRequest,
 			_liferayPortletRequest, _liferayPortletResponse,
 			getSearchContainer());
 	}

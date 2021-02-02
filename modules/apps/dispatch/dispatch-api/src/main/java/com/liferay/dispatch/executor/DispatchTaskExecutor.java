@@ -34,7 +34,7 @@ public interface DispatchTaskExecutor {
 		throws IOException, PortalException;
 
 	/**
-	 * @deprecated As of Cavanaugh (7.4.x), (7.4.x), with no direct replacement
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
 	 */
 	@Deprecated
 	public String getName();

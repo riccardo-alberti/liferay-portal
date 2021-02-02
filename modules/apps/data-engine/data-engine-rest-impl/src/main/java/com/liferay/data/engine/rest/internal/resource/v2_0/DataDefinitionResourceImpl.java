@@ -32,6 +32,7 @@ import com.liferay.data.engine.rest.dto.v2_0.DataLayoutPage;
 import com.liferay.data.engine.rest.dto.v2_0.DataLayoutRow;
 import com.liferay.data.engine.rest.dto.v2_0.DataListView;
 import com.liferay.data.engine.rest.dto.v2_0.DataRecordCollection;
+import com.liferay.data.engine.rest.dto.v2_0.util.DataDefinitionDDMFormUtil;
 import com.liferay.data.engine.rest.internal.content.type.DataDefinitionContentTypeTracker;
 import com.liferay.data.engine.rest.internal.dto.v2_0.util.DataDefinitionUtil;
 import com.liferay.data.engine.rest.internal.dto.v2_0.util.DataLayoutUtil;
@@ -220,7 +221,7 @@ public class DataDefinitionResourceImpl
 
 			_updateDataDefinition(
 				dataDefinition, dataDefinition.getId(),
-				DataDefinitionUtil.toDDMForm(
+				DataDefinitionDDMFormUtil.toDDMForm(
 					dataDefinition, _ddmFormFieldTypeServicesTracker));
 		}
 
@@ -311,13 +312,19 @@ public class DataDefinitionResourceImpl
 			Long siteId, String contentType, String dataDefinitionKey)
 		throws Exception {
 
+		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
+			siteId,
+			_dataDefinitionContentTypeTracker.getClassNameId(contentType),
+			dataDefinitionKey);
+
+		_dataDefinitionModelResourcePermission.check(
+			PermissionThreadLocal.getPermissionChecker(),
+			ddmStructure.getStructureId(), ActionKeys.VIEW);
+
 		return DataDefinitionUtil.toDataDefinition(
 			_dataDefinitionContentTypeTracker, _ddmFormFieldTypeServicesTracker,
-			_ddmStructureLocalService.getStructure(
-				siteId,
-				_dataDefinitionContentTypeTracker.getClassNameId(contentType),
-				dataDefinitionKey),
-			_ddmStructureLayoutLocalService, _spiDDMFormRuleConverter);
+			ddmStructure, _ddmStructureLayoutLocalService,
+			_spiDDMFormRuleConverter);
 	}
 
 	@Override
@@ -406,7 +413,7 @@ public class DataDefinitionResourceImpl
 			PermissionThreadLocal.getPermissionChecker(), contentType, siteId,
 			DataActionKeys.ADD_DATA_DEFINITION);
 
-		DDMForm ddmForm = DataDefinitionUtil.toDDMForm(
+		DDMForm ddmForm = DataDefinitionDDMFormUtil.toDDMForm(
 			dataDefinition, _ddmFormFieldTypeServicesTracker);
 
 		ddmForm.setDefinitionSchemaVersion("2.0");
@@ -525,7 +532,7 @@ public class DataDefinitionResourceImpl
 		JSONObject definitionJSONObject = _jsonFactory.createJSONObject(
 			ddmStructure.getDefinition());
 
-		DDMForm ddmForm = DataDefinitionUtil.toDDMForm(
+		DDMForm ddmForm = DataDefinitionDDMFormUtil.toDDMForm(
 			dataDefinition, _ddmFormFieldTypeServicesTracker);
 
 		ddmForm.setDefinitionSchemaVersion(
@@ -835,23 +842,14 @@ public class DataDefinitionResourceImpl
 	}
 
 	private DDMForm _getDDMForm() {
-		try {
-			DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
-				ParamUtil.getLong(contextHttpServletRequest, "ddmStructureId"));
+		DDMStructure ddmStructure = _ddmStructureLocalService.fetchDDMStructure(
+			ParamUtil.getLong(contextHttpServletRequest, "ddmStructureId"));
 
-			if (ddmStructure == null) {
-				return null;
-			}
-
-			return ddmStructure.getDDMForm();
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
-			}
+		if (ddmStructure == null) {
+			return null;
 		}
 
-		return null;
+		return ddmStructure.getDDMForm();
 	}
 
 	private long _getDefaultDataLayoutId(long dataDefinitionId)
@@ -952,7 +950,7 @@ public class DataDefinitionResourceImpl
 
 		List<String> removedFieldNames = new ArrayList<>();
 
-		DDMForm ddmForm = DataDefinitionUtil.toDDMForm(
+		DDMForm ddmForm = DataDefinitionDDMFormUtil.toDDMForm(
 			dataDefinition, _ddmFormFieldTypeServicesTracker);
 
 		Map<String, DDMFormField> ddmFormFieldsMap =
@@ -968,7 +966,7 @@ public class DataDefinitionResourceImpl
 				_ddmStructureLocalService.getStructure(dataDefinitionId),
 				_ddmStructureLayoutLocalService, _spiDDMFormRuleConverter);
 
-		DDMForm existingDDMForm = DataDefinitionUtil.toDDMForm(
+		DDMForm existingDDMForm = DataDefinitionDDMFormUtil.toDDMForm(
 			existingDataDefinition, _ddmFormFieldTypeServicesTracker);
 
 		Map<String, DDMFormField> existingDDMFormFieldsMap =
@@ -989,10 +987,15 @@ public class DataDefinitionResourceImpl
 				continue;
 			}
 
+			long ddmStructureId = MapUtil.getLong(
+				ddmFormField.getProperties(), "ddmStructureId");
+
 			DDMStructure fieldSetDDMStructure =
-				_ddmStructureLocalService.getDDMStructure(
-					MapUtil.getLong(
-						ddmFormField.getProperties(), "ddmStructureId"));
+				_ddmStructureLocalService.fetchDDMStructure(ddmStructureId);
+
+			if (fieldSetDDMStructure == null) {
+				continue;
+			}
 
 			Map<String, DDMFormField> map =
 				fieldSetDDMStructure.getFullHierarchyDDMFormFieldsMap(false);
@@ -1020,6 +1023,14 @@ public class DataDefinitionResourceImpl
 
 	private void _removeFieldsFromDataLayout(
 		DataLayout dataLayout, String[] fieldNames) {
+
+		Map<String, Object> dataLayoutFields = dataLayout.getDataLayoutFields();
+
+		Set<String> dataLayoutFieldNames = dataLayoutFields.keySet();
+
+		dataLayoutFieldNames.removeIf(
+			dataLayoutFieldName -> ArrayUtil.contains(
+				fieldNames, dataLayoutFieldName));
 
 		Stream<DataLayoutPage> dataLayoutPages = Arrays.stream(
 			dataLayout.getDataLayoutPages());
@@ -1080,7 +1091,7 @@ public class DataDefinitionResourceImpl
 
 			ddmFormLayout = DataLayoutUtil.toDDMFormLayout(
 				dataLayout,
-				DataDefinitionUtil.toDDMForm(
+				DataDefinitionDDMFormUtil.toDDMForm(
 					dataDefinition, _ddmFormFieldTypeServicesTracker),
 				_ddmFormRuleDeserializer);
 
@@ -1272,6 +1283,7 @@ public class DataDefinitionResourceImpl
 						ddmFormValidationException;
 
 			return new DataDefinitionValidationException.MustSetOptionsForField(
+				mustSetOptionsForField.getFieldLabel(),
 				mustSetOptionsForField.getFieldName());
 		}
 

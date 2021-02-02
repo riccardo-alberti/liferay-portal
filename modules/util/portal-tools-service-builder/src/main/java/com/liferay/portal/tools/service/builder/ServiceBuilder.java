@@ -2219,6 +2219,24 @@ public class ServiceBuilder {
 		}
 	}
 
+	private boolean _containSpecialCharacter(String name) {
+		for (char c : name.toCharArray()) {
+			if (((c >= CharPool.LOWER_CASE_A) &&
+				 (c <= CharPool.LOWER_CASE_Z)) ||
+				((c >= CharPool.UPPER_CASE_A) &&
+				 (c <= CharPool.UPPER_CASE_Z)) ||
+				((c >= CharPool.NUMBER_0) && (c <= CharPool.NUMBER_9)) ||
+				(c == CharPool.UNDERLINE)) {
+
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private void _createBaseUADAnonymizer(Entity entity) throws Exception {
 		Map<String, Object> context = _getContext();
 
@@ -5962,8 +5980,15 @@ public class ServiceBuilder {
 			entityElement.attributeValue("uuid"));
 		boolean uuidAccessor = GetterUtil.getBoolean(
 			entityElement.attributeValue("uuid-accessor"));
-		boolean externalReferenceCode = GetterUtil.getBoolean(
-			entityElement.attributeValue("external-reference-code"));
+
+		String externalReferenceCode = GetterUtil.getString(
+			entityElement.attributeValue("external-reference-code"), "none");
+
+		externalReferenceCode = StringUtil.replace(
+			externalReferenceCode, "false", "none");
+		externalReferenceCode = StringUtil.replace(
+			externalReferenceCode, "true", "company");
+
 		boolean localService = GetterUtil.getBoolean(
 			entityElement.attributeValue("local-service"));
 		boolean remoteService = GetterUtil.getBoolean(
@@ -6130,7 +6155,13 @@ public class ServiceBuilder {
 			derivedColumnElements.add(columnElement);
 		}
 
-		if (externalReferenceCode) {
+		if (columnElements.contains(
+				new EntityColumn(this, "externalReferenceCode"))) {
+
+			externalReferenceCode = "none";
+		}
+
+		if (!StringUtil.equals(externalReferenceCode, "none")) {
 			Element columnElement = DocumentHelper.createElement("column");
 
 			columnElement.addAttribute("name", "externalReferenceCode");
@@ -6442,18 +6473,22 @@ public class ServiceBuilder {
 			finderElements.add(0, finderElement);
 		}
 
-		if (externalReferenceCode &&
-			entityColumns.contains(new EntityColumn(this, "companyId"))) {
-
+		if (!StringUtil.equals(externalReferenceCode, "none")) {
 			Element finderElement = DocumentHelper.createElement("finder");
 
-			finderElement.addAttribute("name", "C_ERC");
+			String externalReferenceCodeUpperCase = StringUtil.toUpperCase(
+				externalReferenceCode);
+
+			finderElement.addAttribute(
+				"name", externalReferenceCodeUpperCase.charAt(0) + "_ERC");
+
 			finderElement.addAttribute("return-type", entityName);
 
 			Element finderColumnElement = finderElement.addElement(
 				"finder-column");
 
-			finderColumnElement.addAttribute("name", "companyId");
+			finderColumnElement.addAttribute(
+				"name", externalReferenceCode + "Id");
 
 			finderColumnElement = finderElement.addElement("finder-column");
 
@@ -6527,10 +6562,20 @@ public class ServiceBuilder {
 				for (EntityColumn column : entityColumns) {
 					String name = column.getName();
 
-					finderWhere = StringUtil.replace(
-						finderWhere, name, alias + "." + name);
-					finderDBWhere = StringUtil.replace(
-						finderDBWhere, name, alias + "." + column.getDBName());
+					if (_containSpecialCharacter(name)) {
+						finderWhere = StringUtil.replace(
+							finderWhere, name, alias + "." + name);
+						finderDBWhere = StringUtil.replace(
+							finderDBWhere, name,
+							alias + "." + column.getDBName());
+					}
+					else {
+						finderWhere = finderWhere.replaceAll(
+							"\\b" + name + "\\b", alias + "." + name);
+						finderDBWhere = finderDBWhere.replaceAll(
+							"\\b" + name + "\\b",
+							alias + "." + column.getDBName());
+					}
 				}
 			}
 

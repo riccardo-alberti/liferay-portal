@@ -61,8 +61,8 @@ export const Column = forwardRef(
 		};
 
 		const firstField = column.fields[0];
-		const isFieldSetOrGroup = firstField.type === 'fieldset';
-		const isFieldSet = isFieldSetOrGroup && firstField.ddmStructureId;
+		const isFieldSetOrGroup = firstField?.type === 'fieldset';
+		const isFieldSet = firstField?.ddmStructureId && isFieldSetOrGroup;
 
 		return (
 			<ClayLayout.Col
@@ -80,8 +80,8 @@ export const Column = forwardRef(
 						className={classnames(
 							'ddm-field-container ddm-target h-100',
 							{
-								'ddm-fieldset': isFieldSet,
-								'fields-group': isFieldSetOrGroup,
+								'ddm-fieldset': !!isFieldSet,
+								'fields-group': !!isFieldSetOrGroup,
 							},
 							className
 						)}
@@ -114,12 +114,7 @@ export const Page = ({
 		data-ddm-page={pageIndex}
 	>
 		{invalidFormMessage && (
-			<span
-				aria-atomic="true"
-				aria-hidden="false"
-				aria-live="polite"
-				hidden
-			>
+			<span aria-atomic="true" aria-live="polite" className="sr-only">
 				{invalidFormMessage}
 				<span aria-hidden="true">{forceAriaUpdate}</span>
 			</span>

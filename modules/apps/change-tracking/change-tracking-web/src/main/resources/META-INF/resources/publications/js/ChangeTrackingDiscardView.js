@@ -15,7 +15,10 @@
 import ClayModal, {useModal} from '@clayui/modal';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
 import ClayTable from '@clayui/table';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import React, {useState} from 'react';
+
+import ChangeTrackingRenderView from './ChangeTrackingRenderView';
 
 const ChangeTrackingDiscardView = ({
 	ctEntriesJSONArray,
@@ -39,8 +42,10 @@ const ChangeTrackingDiscardView = ({
 
 		const entryUserInfo = userInfo[entry.userId.toString()];
 
-		entry.portraitURL = entryUserInfo.portraitURL;
 		entry.userName = entryUserInfo.userName;
+		entry.userPortraitHTML = {
+			__html: entryUserInfo.userPortraitHTML,
+		};
 
 		entry.typeName = typeNames[entry.modelClassNameId.toString()];
 	}
@@ -72,45 +77,10 @@ const ChangeTrackingDiscardView = ({
 
 	const filterDisplayEntries = (entries) => {
 		if (entries.length > 5) {
-			entries = entries.slice(delta * (page - 1), delta * page);
+			return entries.slice(delta * (page - 1), delta * page);
 		}
 
 		return entries;
-	};
-
-	const getUserPortrait = (entry) => {
-		if (entry.portraitURL) {
-			return (
-				<span className="lfr-portal-tooltip" title={entry.userName}>
-					<span className="rounded-circle sticker sticker-primary">
-						<span className="sticker-overlay">
-							<img
-								alt="thumbnail"
-								className="img-fluid"
-								src={entry.portraitURL}
-							/>
-						</span>
-					</span>
-				</span>
-			);
-		}
-
-		let userPortraitCss =
-			'sticker sticker-circle sticker-light user-icon-color-';
-
-		userPortraitCss += entry.userId % 10;
-
-		return (
-			<span className="lfr-portal-tooltip" title={entry.userName}>
-				<span className={userPortraitCss}>
-					<span className="inline-item">
-						<svg className="lexicon-icon">
-							<use href={spritemap + '#user'} />
-						</svg>
-					</span>
-				</span>
-			</span>
-		);
 	};
 
 	const getTableRows = () => {
@@ -140,7 +110,13 @@ const ChangeTrackingDiscardView = ({
 					className="cursor-pointer"
 					onClick={() => setViewEntry(entry)}
 				>
-					<ClayTable.Cell>{getUserPortrait(entry)}</ClayTable.Cell>
+					<ClayTable.Cell>
+						<div
+							dangerouslySetInnerHTML={entry.userPortraitHTML}
+							data-tooltip-align="top"
+							title={entry.userName}
+						/>
+					</ClayTable.Cell>
 					<ClayTable.Cell>
 						<div className="publication-name">{entry.title}</div>
 						<div className="publication-description">
@@ -192,7 +168,13 @@ const ChangeTrackingDiscardView = ({
 				<ClayModal.Header>
 					<div className="autofit-row">
 						<div className="autofit-col publications-discard-user-portrait">
-							{getUserPortrait(viewEntry)}
+							<div
+								dangerouslySetInnerHTML={
+									viewEntry.userPortraitHTML
+								}
+								data-tooltip-align="top"
+								title={viewEntry.userName}
+							/>
 						</div>
 						<div className="autofit-col">
 							<div className="modal-title">{viewEntry.title}</div>
@@ -202,7 +184,12 @@ const ChangeTrackingDiscardView = ({
 						</div>
 					</div>
 				</ClayModal.Header>
-				<ClayModal.Body url={viewEntry.viewURL}></ClayModal.Body>
+				<div className="publications-modal-body">
+					<ChangeTrackingRenderView
+						dataURL={viewEntry.dataURL}
+						spritemap={spritemap}
+					/>
+				</div>
 			</ClayModal>
 		);
 	};
@@ -211,20 +198,22 @@ const ChangeTrackingDiscardView = ({
 		<>
 			{renderViewModal()}
 
-			<ClayTable className="publications-table" hover>
-				<ClayTable.Head>
-					<ClayTable.Row>
-						<ClayTable.Cell headingCell style={{width: '5%'}}>
-							{Liferay.Language.get('user')}
-						</ClayTable.Cell>
+			<ClayTooltipProvider>
+				<ClayTable className="publications-table" hover>
+					<ClayTable.Head>
+						<ClayTable.Row>
+							<ClayTable.Cell headingCell style={{width: '5%'}}>
+								{Liferay.Language.get('user')}
+							</ClayTable.Cell>
 
-						<ClayTable.Cell headingCell style={{width: '95%'}}>
-							{Liferay.Language.get('change')}
-						</ClayTable.Cell>
-					</ClayTable.Row>
-				</ClayTable.Head>
-				<ClayTable.Body>{getTableRows()}</ClayTable.Body>
-			</ClayTable>
+							<ClayTable.Cell headingCell style={{width: '95%'}}>
+								{Liferay.Language.get('change')}
+							</ClayTable.Cell>
+						</ClayTable.Row>
+					</ClayTable.Head>
+					<ClayTable.Body>{getTableRows()}</ClayTable.Body>
+				</ClayTable>
+			</ClayTooltipProvider>
 
 			{renderPagination()}
 		</>

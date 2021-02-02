@@ -35,6 +35,19 @@ public class UpgradeAccountEntry extends UpgradeProcess {
 				AccountEntryTable.class,
 				new AlterTableAddColumn("defaultShippingAddressId", "LONG"));
 		}
+
+		if (!hasColumn("AccountEntry", "emailAddress")) {
+			alter(
+				AccountEntryTable.class,
+				new AlterTableAddColumn("emailAddress", "VARCHAR(254) null"));
+		}
+
+		if (!hasColumn("AccountEntry", "taxExemptionCode")) {
+			alter(
+				AccountEntryTable.class,
+				new AlterTableAddColumn(
+					"taxExemptionCode", "VARCHAR(75) null"));
+		}
 	}
 
 }

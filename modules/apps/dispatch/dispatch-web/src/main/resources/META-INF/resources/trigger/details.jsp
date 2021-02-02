@@ -23,20 +23,23 @@ long dispatchTriggerId = 0;
 
 DispatchTrigger dispatchTrigger = dispatchTriggerDisplayContext.getDispatchTrigger();
 
-String taskExecutorType = ParamUtil.getString(request, "taskExecutorType");
-String taskSettings = StringPool.BLANK;
+String dispatchTaskExecutorType = ParamUtil.getString(request, "dispatchTaskExecutorType");
+String dispatchTaskSettings = StringPool.BLANK;
 
 if (dispatchTrigger != null) {
 	dispatchTriggerId = dispatchTrigger.getDispatchTriggerId();
-	taskExecutorType = dispatchTrigger.getTaskExecutorType();
-	taskSettings = dispatchTrigger.getTaskSettings();
+	dispatchTaskExecutorType = dispatchTrigger.getDispatchTaskExecutorType();
+	dispatchTaskSettings = dispatchTrigger.getDispatchTaskSettings();
 }
 %>
 
 <portlet:actionURL name="/dispatch/edit_dispatch_trigger" var="editDispatchTriggerActionURL" />
 
-<div class="closed container-fluid container-fluid-max-xl" id="<portlet:namespace />editDispatchTriggerId">
-	<div class="container main-content-body sheet">
+<clay:container-fluid
+	cssClass="closed container-form-lg"
+	id='<%= liferayPortletResponse.getNamespace() + "editDispatchTriggerId" %>'
+>
+	<div class="sheet">
 		<liferay-ui:error exception="<%= NoSuchLogException.class %>" message="the-log-could-not-be-found" />
 		<liferay-ui:error exception="<%= NoSuchTriggerException.class %>" message="the-trigger-could-not-be-found" />
 
@@ -46,8 +49,8 @@ if (dispatchTrigger != null) {
 			<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 			<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 			<aui:input name="dispatchTriggerId" type="hidden" value="<%= String.valueOf(dispatchTriggerId) %>" />
-			<aui:input name="taskExecutorType" type="hidden" value="<%= taskExecutorType %>" />
-			<aui:input name="taskSettings" type="hidden" />
+			<aui:input name="dispatchTaskExecutorType" type="hidden" value="<%= dispatchTaskExecutorType %>" />
+			<aui:input name="dispatchTaskSettings" type="hidden" />
 
 			<div class="lfr-form-content">
 				<aui:model-context bean="<%= dispatchTrigger %>" model="<%= DispatchTrigger.class %>" />
@@ -56,22 +59,22 @@ if (dispatchTrigger != null) {
 					<aui:input disabled="<%= (dispatchTrigger != null) && dispatchTrigger.isSystem() %>" name="name" required="<%= true %>" />
 				</aui:fieldset>
 
-				<div id="<portlet:namespace />taskSettingsEditor"></div>
+				<div id="<portlet:namespace />dispatchTaskSettingsEditor"></div>
 
-				<aui:button-row>
+				<div class="sheet-footer">
 
 					<%
 					String taglibSaveOnClick = "Liferay.fire('" + liferayPortletResponse.getNamespace() + "saveTrigger');";
 					%>
 
-					<aui:button onClick="<%= taglibSaveOnClick %>" value="save" />
+					<aui:button onClick="<%= taglibSaveOnClick %>" primary="<%= true %>" value="save" />
 
-					<aui:button cssClass="btn-lg" href="<%= backURL %>" type="cancel" />
-				</aui:button-row>
+					<aui:button href="<%= backURL %>" type="cancel" />
+				</div>
 			</div>
 		</aui:form>
 	</div>
-</div>
+</clay:container-fluid>
 
 <aui:script>
 	Liferay.provide(
@@ -98,7 +101,7 @@ if (dispatchTrigger != null) {
 	var STR_VALUE = 'value';
 
 	var contentEditor = new A.AceEditor({
-		boundingBox: '#<portlet:namespace />taskSettingsEditor',
+		boundingBox: '#<portlet:namespace />dispatchTaskSettingsEditor',
 		height: 600,
 		mode: 'xml',
 		tabSize: 4,
@@ -107,7 +110,11 @@ if (dispatchTrigger != null) {
 
 	var xmlFormatter = new Liferay.XMLFormatter();
 
-	var content = xmlFormatter.format('<%= HtmlUtil.escapeJS(taskSettings) %>');
+	var content = xmlFormatter.format(
+		'<%=
+			HtmlUtil.escapeJS(dispatchTaskSettings)
+		%>'
+	);
 
 	if (content) {
 		content = content.trim();
@@ -118,7 +125,7 @@ if (dispatchTrigger != null) {
 	Liferay.on('<portlet:namespace />saveTrigger', function (event) {
 		var form = window.document['<portlet:namespace />fm'];
 
-		form['<portlet:namespace />taskSettings'].value = contentEditor.get(
+		form['<portlet:namespace />dispatchTaskSettings'].value = contentEditor.get(
 			STR_VALUE
 		);
 

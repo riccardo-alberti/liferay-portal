@@ -280,8 +280,8 @@ renderResponse.setTitle(workflowTaskDisplayContext.getHeaderTitle(workflowTask))
 							<liferay-comment:discussion
 								assetEntryVisible="<%= false %>"
 								className="<%= assetRenderer.getClassName() %>"
-								classPK="<%= assetEntry.getClassPK() %>"
-								formName='<%= "fm" + assetEntry.getClassPK() %>'
+								classPK="<%= classPK %>"
+								formName='<%= "fm" + classPK %>'
 								ratingsEnabled="<%= false %>"
 								redirect="<%= currentURL %>"
 								userId="<%= user.getUserId() %>"

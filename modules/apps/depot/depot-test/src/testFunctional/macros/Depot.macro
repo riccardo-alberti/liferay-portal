@@ -391,7 +391,14 @@ definition {
 
 			Navigator.gotoNavItem(navItem = "My Sites");
 
-			SiteSelector.selectSite(site = "${siteName}");
+			if (isSet(parentSiteName)) {
+				Search.searchCP(searchTerm = "${parentSiteName}");
+
+				LexiconEntry.gotoEntry(rowEntry = "${siteList}");
+			}
+			else {
+				SiteSelector.selectSite(site = "${siteName}");
+			}
 
 			SelectFrame(value1 = "relative=top");
 
@@ -511,6 +518,20 @@ definition {
 		}
 		else {
 			Alert.viewSuccessMessage();
+		}
+
+		if (isSet(checkTranslatedName)) {
+			Click.clickNoMouseOver(
+				key_fieldName = "Name",
+				locator1 = "Button#LOCALIZATION");
+
+			Click(
+				key_locale = StringUtil.replace("${language}", "-", "_"),
+				locator1 = "Translation#LOCALIZATION_NAME");
+
+			AssertTextEquals.assertValue(
+				locator1 = "TextInput#NAME",
+				value1 = "${depotNameEdit}");
 		}
 	}
 

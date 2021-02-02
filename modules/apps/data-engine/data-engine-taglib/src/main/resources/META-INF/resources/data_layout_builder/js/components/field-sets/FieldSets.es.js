@@ -71,11 +71,14 @@ export default function FieldSets({keywords}) {
 
 	const filteredFieldsets = getFilteredFieldsets(fieldSets, keywords);
 
-	let defaultLanguageId = dataDefinition.defaultLanguageId;
+	let defaultLanguageId = dataDefinition.id
+		? dataDefinition.defaultLanguageId
+		: appProps.defaultLanguageId;
 
 	const toggleFieldSet = (fieldSet, editingDataDefinition) => {
 		let childrenAppProps = {
 			availableLanguageIds: [defaultLanguageId],
+			contentType: 'data-engine-fieldset',
 			context: {},
 			dataDefinitionId: null,
 			dataLayoutId: null,
@@ -116,7 +119,10 @@ export default function FieldSets({keywords}) {
 		}
 
 		setState({
-			childrenAppProps,
+			childrenAppProps: {
+				...childrenAppProps,
+				contentType: 'data-engine-fieldset',
+			},
 			defaultLanguageId,
 			editingDataDefinition,
 			fieldSet,
@@ -135,6 +141,7 @@ export default function FieldSets({keywords}) {
 			dropFieldSet({
 				availableLanguageIds: dataDefinition.availableLanguageIds,
 				dataLayoutBuilder,
+				defaultLanguageId: dataDefinition.defaultLanguageId,
 				fieldName,
 				fieldSet,
 				indexes: {

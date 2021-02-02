@@ -14,6 +14,7 @@
 
 import {PagesVisitor} from 'dynamic-data-mapping-form-renderer';
 
+import {Tokenizer} from '../../expressions/Tokenizer.es';
 import {DEFAULT_FIELD_NAMES_REGEX_FOR_EXPRESSION} from '../../util/regex.es';
 import {getFieldProperty} from '../LayoutProvider/util/fields.es';
 
@@ -337,6 +338,52 @@ const findRuleByFieldName = (fieldName, pages, rules) => {
 	);
 };
 
+const isOperandValid = (operand) =>
+	operand && Boolean(operand.type) && Boolean(operand.value);
+
+const isConditionsValid = (conditions) =>
+	conditions
+		.map(({operator, operands: [left, right]}) => {
+			if (['is-empty', 'not-is-empty'].includes(operator)) {
+				return isOperandValid(left);
+			}
+
+			return (
+				Boolean(operator) &&
+				isOperandValid(left) &&
+				isOperandValid(right)
+			);
+		})
+		.every((result) => result === true);
+
+const isActionsValid = (actions) =>
+	actions
+		.map(({action, target, ...payload}) => {
+			switch (action) {
+				case 'calculate': {
+					const {expression} = payload;
+
+					return (
+						Boolean(target) &&
+						Boolean(expression) &&
+						Tokenizer.isValid(expression)
+					);
+				}
+				case 'auto-fill': {
+					const {inputs, outputs} = payload;
+
+					return (
+						Boolean(target) &&
+						(Boolean(Object.values(inputs).length) ||
+							Boolean(Object.values(outputs).length))
+					);
+				}
+				default:
+					return Boolean(target);
+			}
+		})
+		.every((result) => result === true);
+
 const findInvalidRule = (pages, rule) => {
 	return findRuleByFieldName('', pages, [rule]);
 };
@@ -374,6 +421,8 @@ export default {
 	formatRules,
 	getFieldOptions,
 	getFieldType,
+	isActionsValid,
+	isConditionsValid,
 	replaceFieldNameByFieldLabel,
 	syncActions,
 };

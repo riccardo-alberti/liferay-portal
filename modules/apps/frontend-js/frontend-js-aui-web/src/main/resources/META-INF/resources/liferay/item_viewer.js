@@ -132,7 +132,7 @@ AUI.add(
 			'<dt class="{dtClassName}">{dt}</dt><dd class="{ddClassName}">{dd}</dd>';
 
 		var TPL_INFO_TAB_TITLE =
-			'<li><a aria-expanded="false" class="{className}" data-toggle="liferay-tab" href="#{tabId}">{tabTitle}</a></li>';
+			'<li class="nav-item"><a aria-expanded="false" class="nav-link {className}" data-toggle="liferay-tab" href="#{tabId}">{tabTitle}</a></li>';
 
 		var LiferayItemViewer = A.Component.create({
 			ATTRS: {
@@ -662,7 +662,7 @@ AUI.add(
 					Liferay.Util.getLexiconIconTpl('times') +
 					'</a>' +
 					'<h4 class="image-viewer-sidenav-header">' +
-					'<ul class="nav nav-tabs nav-tabs-default"></ul>' +
+					'<ul class="nav nav-tabs"></ul>' +
 					'</h4>' +
 					'</div>' +
 					'<div class="image-viewer-sidenav-body sidebar-body">' +

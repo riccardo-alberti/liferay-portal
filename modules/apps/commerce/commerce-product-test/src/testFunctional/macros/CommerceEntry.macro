@@ -340,13 +340,9 @@ definition {
 			locator1 = "CommerceEntry#NAME_FIELD",
 			value1 = "${productName}");
 
-		Type(
-			locator1 = "CommerceEntry#CREATE_NEW_PRODUCT_CATALOG_FIELD",
-			value1 = "${productCatalog}");
-
-		Click(
-			key_menuItem = "${productCatalog}",
-			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
+		CommerceEntry.selectAutoCompleteField(
+			entryName = "${productCatalog}",
+			label = "Catalog");
 
 		Click(locator1 = "Button#SUBMIT");
 
@@ -378,6 +374,13 @@ definition {
 		ClickNoError(
 			key_menuItem = "${menuItem}",
 			locator1 = "CommerceEntry#ANY_MENU_ITEM");
+	}
+
+	macro clickTableEntryEditButton {
+		Click(
+			key_entryName = "${entryName}",
+			key_table = "${table}",
+			locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
 	}
 
 	macro createNewAccountGroup {
@@ -603,6 +606,17 @@ definition {
 				key_optionValue = "${optionValue}",
 				locator1 = "CommerceEntry#OPTION_VALUE");
 		}
+	}
+
+	macro selectAutoCompleteField {
+		Type(
+			key_label = "${label}",
+			locator1 = "CommerceEntry#ANY_AUTOCOMPLETE_TEXT_FIELD",
+			value1 = "${entryName}");
+
+		Click(
+			key_menuItem = "${entryName}",
+			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 	}
 
 	macro setEntryEligibility {

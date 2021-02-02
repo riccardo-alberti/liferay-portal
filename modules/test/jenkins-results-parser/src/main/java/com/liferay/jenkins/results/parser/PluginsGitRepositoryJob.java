@@ -17,14 +17,19 @@ package com.liferay.jenkins.results.parser;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 /**
  * @author Peter Yoo
  */
-public class PluginsGitRepositoryJob
+public abstract class PluginsGitRepositoryJob
 	extends GitRepositoryJob implements PortalTestClassJob {
+
+	public String getBranchName() {
+		return _branchName;
+	}
 
 	@Override
 	public Set<String> getDistTypes() {
@@ -52,15 +57,19 @@ public class PluginsGitRepositoryJob
 		return gitWorkingDirectory;
 	}
 
+	public abstract List<File> getPluginsTestBaseDirs();
+
 	@Override
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
 		return portalGitWorkingDirectory;
 	}
 
 	protected PluginsGitRepositoryJob(
-		String jobName, BuildProfile buildProfile) {
+		String jobName, BuildProfile buildProfile, String branchName) {
 
 		super(jobName, buildProfile);
+
+		_branchName = branchName;
 
 		getGitWorkingDirectory();
 
@@ -79,8 +88,6 @@ public class PluginsGitRepositoryJob
 
 		jobPropertiesFiles.add(
 			new File(portalGitRepositoryDir, "test.properties"));
-
-		readJobProperties();
 
 		portalGitWorkingDirectory =
 			(PortalGitWorkingDirectory)
@@ -106,10 +113,12 @@ public class PluginsGitRepositoryJob
 	protected Set<String> getRawBatchNames() {
 		return getSetFromString(
 			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names"));
+				getJobProperties(), "test.batch.names", getJobName()));
 	}
 
 	protected Properties buildProperties;
 	protected PortalGitWorkingDirectory portalGitWorkingDirectory;
+
+	private final String _branchName;
 
 }

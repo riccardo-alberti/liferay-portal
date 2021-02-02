@@ -171,28 +171,10 @@ public class DDMStructureLocalServiceImpl
 			groupId, parentStructureId, classNameId, structureKey, nameMap,
 			ddmForm);
 
-		long structureId = counterLocalService.increment();
-
-		DDMStructure structure = ddmStructurePersistence.create(structureId);
-
-		structure.setUuid(serviceContext.getUuid());
-		structure.setGroupId(groupId);
-		structure.setCompanyId(user.getCompanyId());
-		structure.setUserId(user.getUserId());
-		structure.setUserName(user.getFullName());
-		structure.setVersionUserId(user.getUserId());
-		structure.setVersionUserName(user.getFullName());
-		structure.setParentStructureId(parentStructureId);
-		structure.setClassNameId(classNameId);
-		structure.setStructureKey(structureKey);
-		structure.setVersion(DDMStructureConstants.VERSION_DEFAULT);
-		structure.setDescriptionMap(descriptionMap, ddmForm.getDefaultLocale());
-		structure.setNameMap(nameMap, ddmForm.getDefaultLocale());
-		structure.setDefinition(serializeJSONDDMForm(ddmForm));
-		structure.setStorageType(storageType);
-		structure.setType(type);
-
-		structure = ddmStructurePersistence.update(structure);
+		DDMStructure structure = addStructure(
+			user, groupId, parentStructureId, classNameId, structureKey,
+			nameMap, descriptionMap, ddmForm, storageType, type,
+			serviceContext);
 
 		// Resources
 
@@ -231,7 +213,8 @@ public class DDMStructureLocalServiceImpl
 
 		// Data provider instance links
 
-		addDataProviderInstanceLinks(groupId, structureId, ddmForm);
+		addDataProviderInstanceLinks(
+			groupId, structure.getStructureId(), ddmForm);
 
 		return structure;
 	}
@@ -384,22 +367,64 @@ public class DDMStructureLocalServiceImpl
 	 *         group permissions for the structure.
 	 * @return the new structure
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDMStructure copyStructure(
 			long userId, long structureId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
 		throws PortalException {
 
+		// Structure
+
+		User user = userLocalService.getUser(userId);
+
 		DDMStructure structure = ddmStructurePersistence.findByPrimaryKey(
 			structureId);
+		String structureKey = String.valueOf(counterLocalService.increment());
 
-		return addStructure(
-			userId, structure.getGroupId(), structure.getParentStructureId(),
-			structure.getClassNameId(), null, nameMap, descriptionMap,
-			structure.getDDMForm(), structure.getDDMFormLayout(),
-			structure.getStorageType(), structure.getType(), serviceContext);
+		validate(
+			structure.getGroupId(), structure.getParentStructureId(),
+			structure.getClassNameId(), structureKey, nameMap,
+			structure.getDDMForm());
+
+		DDMStructure newStructure = addStructure(
+			user, structure.getGroupId(), structure.getParentStructureId(),
+			structure.getClassNameId(), structureKey, nameMap, descriptionMap,
+			structure.getDDMForm(), structure.getStorageType(),
+			structure.getType(), serviceContext);
+
+		// Resources
+
+		resourceLocalService.copyModelResources(
+			structure.getCompanyId(), DDMStructure.class.getName(),
+			structure.getPrimaryKey(), newStructure.getPrimaryKey());
+
+		// Structure version
+
+		DDMStructureVersion structureVersion = addStructureVersion(
+			user, newStructure, DDMStructureConstants.VERSION_DEFAULT,
+			serviceContext);
+
+		// Structure layout
+
+		if (structure.getDDMFormLayout() != null) {
+			_ddmStructureLayoutLocalService.addStructureLayout(
+				userId, structure.getGroupId(), newStructure.getClassNameId(),
+				newStructure.getStructureKey(),
+				structureVersion.getStructureVersionId(),
+				structure.getDDMFormLayout(), serviceContext);
+		}
+
+		// Data provider instance links
+
+		addDataProviderInstanceLinks(
+			structure.getGroupId(), newStructure.getStructureId(),
+			structure.getDDMForm());
+
+		return newStructure;
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDMStructure copyStructure(
 			long userId, long structureId, ServiceContext serviceContext)
@@ -408,12 +433,9 @@ public class DDMStructureLocalServiceImpl
 		DDMStructure structure = ddmStructurePersistence.findByPrimaryKey(
 			structureId);
 
-		return addStructure(
-			userId, structure.getGroupId(), structure.getParentStructureId(),
-			structure.getClassNameId(), null, structure.getNameMap(),
-			structure.getDescriptionMap(), structure.getDDMForm(),
-			structure.getDDMFormLayout(), structure.getStorageType(),
-			structure.getType(), serviceContext);
+		return copyStructure(
+			userId, structureId, structure.getNameMap(),
+			structure.getDescriptionMap(), serviceContext);
 	}
 
 	/**
@@ -488,6 +510,12 @@ public class DDMStructureLocalServiceImpl
 			}
 			catch (NoSuchStructureLayoutException
 						noSuchStructureLayoutException) {
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						noSuchStructureLayoutException,
+						noSuchStructureLayoutException);
+				}
 
 				continue;
 			}
@@ -1497,6 +1525,37 @@ public class DDMStructureLocalServiceImpl
 		}
 	}
 
+	protected DDMStructure addStructure(
+			User user, long groupId, long parentStructureId, long classNameId,
+			String structureKey, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, DDMForm ddmForm,
+			String storageType, int type, ServiceContext serviceContext)
+		throws PortalException {
+
+		long structureId = counterLocalService.increment();
+
+		DDMStructure structure = ddmStructurePersistence.create(structureId);
+
+		structure.setUuid(serviceContext.getUuid());
+		structure.setGroupId(groupId);
+		structure.setCompanyId(user.getCompanyId());
+		structure.setUserId(user.getUserId());
+		structure.setUserName(user.getFullName());
+		structure.setVersionUserId(user.getUserId());
+		structure.setVersionUserName(user.getFullName());
+		structure.setParentStructureId(parentStructureId);
+		structure.setClassNameId(classNameId);
+		structure.setStructureKey(structureKey);
+		structure.setVersion(DDMStructureConstants.VERSION_DEFAULT);
+		structure.setDescriptionMap(descriptionMap, ddmForm.getDefaultLocale());
+		structure.setNameMap(nameMap, ddmForm.getDefaultLocale());
+		structure.setDefinition(serializeJSONDDMForm(ddmForm));
+		structure.setStorageType(storageType);
+		structure.setType(type);
+
+		return ddmStructurePersistence.update(structure);
+	}
+
 	protected DDMStructureVersion addStructureVersion(
 		User user, DDMStructure structure, String version,
 		ServiceContext serviceContext) {
@@ -1748,6 +1807,9 @@ public class DDMStructureLocalServiceImpl
 				return getDDMDataProviderInstanceIds(jsonArray);
 			}
 			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(exception, exception);
+				}
 			}
 		}
 

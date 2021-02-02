@@ -23,7 +23,7 @@ import com.liferay.commerce.shipping.engine.fixed.constants.CommerceShippingEngi
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOption;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionService;
 import com.liferay.commerce.shipping.engine.fixed.web.internal.FixedCommerceShippingEngine;
-import com.liferay.commerce.shipping.engine.fixed.web.internal.servlet.taglib.ui.CommerceShippingMethodFixedOptionsScreenNavigationEntry;
+import com.liferay.commerce.shipping.engine.fixed.web.internal.frontend.taglib.servlet.taglib.CommerceShippingMethodFixedOptionsScreenNavigationCategory;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -68,7 +68,8 @@ public class CommerceShippingFixedOptionsDisplayContext
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter(
-			"mvcRenderCommandName", "editCommerceShippingFixedOption");
+			"mvcRenderCommandName",
+			"/commerce_shipping_methods/edit_commerce_shipping_fixed_option");
 		portletURL.setParameter(
 			"commerceShippingMethodId",
 			String.valueOf(getCommerceShippingMethodId()));
@@ -121,7 +122,7 @@ public class CommerceShippingFixedOptionsDisplayContext
 
 	@Override
 	public String getScreenNavigationCategoryKey() {
-		return CommerceShippingMethodFixedOptionsScreenNavigationEntry.
+		return CommerceShippingMethodFixedOptionsScreenNavigationCategory.
 			CATEGORY_KEY;
 	}
 

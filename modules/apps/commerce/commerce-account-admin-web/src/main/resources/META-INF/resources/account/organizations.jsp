@@ -38,7 +38,7 @@ PortletURL portletURL = commerceAccountOrganizationRelAdminDisplayContext.getPor
 				selectedDisplayStyle="list"
 			/>
 
-			<portlet:actionURL name="editCommerceAccountOrganizationRel" var="addCommerceAccountOrganizationRelURL" />
+			<portlet:actionURL name="/commerce_account_admin/edit_commerce_account_organization_rel" var="addCommerceAccountOrganizationRelURL" />
 
 			<aui:form action="<%= addCommerceAccountOrganizationRelURL %>" cssClass="hide" name="addCommerceAccountOrganizationRelFm">
 				<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.ADD_MULTIPLE %>" />
@@ -88,7 +88,6 @@ PortletURL portletURL = commerceAccountOrganizationRelAdminDisplayContext.getPor
 			>
 				<liferay-ui:search-container-row
 					className="com.liferay.commerce.account.model.CommerceAccountOrganizationRel"
-					cssClass="entry-display-style"
 					keyProperty="organizationId"
 					modelVar="commerceAccountOrganizationRel"
 				>
@@ -144,7 +143,7 @@ PortletURL portletURL = commerceAccountOrganizationRelAdminDisplayContext.getPor
 
 				submitForm(
 					form,
-					'<portlet:actionURL name="editCommerceAccountOrganizationRel" />'
+					'<portlet:actionURL name="/commerce_account_admin/edit_commerce_account_organization_rel" />'
 				);
 			}
 		}

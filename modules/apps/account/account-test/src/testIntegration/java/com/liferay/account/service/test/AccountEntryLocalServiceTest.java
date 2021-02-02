@@ -99,7 +99,7 @@ public class AccountEntryLocalServiceTest {
 			TestPropsValues.getUserId(),
 			AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
-			null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 		List<AssetTag> assetTags = _assetTagLocalService.getTags(
@@ -843,7 +843,8 @@ public class AccountEntryLocalServiceTest {
 		return _accountEntryLocalService.addAccountEntry(
 			TestPropsValues.getUserId(), parentAccountEntryId,
 			RandomTestUtil.randomString(50), RandomTestUtil.randomString(50),
-			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			null, null, null, null,
+			AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
 			WorkflowConstants.STATUS_APPROVED,
 			ServiceContextTestUtil.getServiceContext());
 	}
@@ -897,7 +898,7 @@ public class AccountEntryLocalServiceTest {
 
 		AccountEntry accountEntry = _accountEntryLocalService.addAccountEntry(
 			userId, AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT, name,
-			RandomTestUtil.randomString(), null, null, null, type,
+			RandomTestUtil.randomString(), null, null, null, null, type,
 			WorkflowConstants.STATUS_APPROVED, null);
 
 		if (ArrayUtil.isNotEmpty(organizationIds)) {
@@ -943,7 +944,7 @@ public class AccountEntryLocalServiceTest {
 		}
 
 		BaseModelSearchResult<AccountEntry> baseModelSearchResult =
-			_accountEntryLocalService.search(
+			_accountEntryLocalService.searchAccountEntries(
 				TestPropsValues.getCompanyId(), keywords, null, start, delta,
 				"name", reversed);
 
@@ -967,7 +968,7 @@ public class AccountEntryLocalServiceTest {
 		throws Exception {
 
 		BaseModelSearchResult<AccountEntry> baseModelSearchResult =
-			_accountEntryLocalService.search(
+			_accountEntryLocalService.searchAccountEntries(
 				TestPropsValues.getCompanyId(), null, params, 0, 10, null,
 				false);
 
@@ -1008,7 +1009,7 @@ public class AccountEntryLocalServiceTest {
 	private BaseModelSearchResult<AccountEntry> _keywordSearch(String keywords)
 		throws Exception {
 
-		return _accountEntryLocalService.search(
+		return _accountEntryLocalService.searchAccountEntries(
 			TestPropsValues.getCompanyId(), keywords, null, 0, 10, null, false);
 	}
 

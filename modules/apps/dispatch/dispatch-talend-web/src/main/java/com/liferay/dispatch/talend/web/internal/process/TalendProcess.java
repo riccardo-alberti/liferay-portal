@@ -49,6 +49,19 @@ public class TalendProcess {
 		return _processConfig;
 	}
 
+	@Override
+	public String toString() {
+		StringBundler sb = new StringBundler(5);
+
+		sb.append("{mainMethodArguments=");
+		sb.append(_mainMethodArguments.toString());
+		sb.append(", processConfig=");
+		sb.append(_processConfig.toString());
+		sb.append("}");
+
+		return sb.toString();
+	}
+
 	public static class Builder {
 
 		public TalendProcess build() {

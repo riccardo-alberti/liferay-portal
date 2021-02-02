@@ -67,7 +67,7 @@ DLFilePicker dlFilePicker = dlEditFileEntryDisplayContext.getDLFilePicker(lifera
 
 				var titleElement = document.getElementById('<portlet:namespace />title');
 
-				if (titleElement) {
+				if (titleElement && !titleElement.value) {
 					titleElement.value = title;
 				}
 
@@ -88,7 +88,7 @@ DLFilePicker dlFilePicker = dlEditFileEntryDisplayContext.getDLFilePicker(lifera
 					'<portlet:namespace />description'
 				);
 
-				if (documentDescriptionElement) {
+				if (documentDescriptionElement && !documentDescriptionElement.value) {
 					documentDescriptionElement.value = documentDescription;
 				}
 

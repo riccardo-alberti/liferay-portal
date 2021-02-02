@@ -21,6 +21,8 @@ import {
 } from 'dynamic-data-mapping-form-renderer';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 
+import AppContext from '../../../AppContext.es';
+import DataLayoutBuilderContext from '../../../data-layout-builder/DataLayoutBuilderContext.es';
 import {getFilteredSettingsContext} from '../../../utils/settingsForm.es';
 
 function getSettingsContext(
@@ -46,7 +48,11 @@ function getSettingsContext(
  *     required: (props) => <NewRequiredComponent {...props} />
  * }
  */
-const getColumn = (customFields = {}) => ({children, column, index}) => {
+const getColumn = ({customFields = {}, ...otherProps}) => ({
+	children,
+	column,
+	index,
+}) => {
 	if (column.fields.length === 0) {
 		return null;
 	}
@@ -54,10 +60,25 @@ const getColumn = (customFields = {}) => ({children, column, index}) => {
 	return (
 		<ClayLayout.Col key={index} md={column.size}>
 			{column.fields.map((field, index) => {
-				const customField = customFields[field.fieldName];
+				const {fieldName} = field;
+				const CustomField = customFields[fieldName];
 
-				if (customField) {
-					return customField({children, field, index});
+				if (CustomField) {
+					return (
+						<div
+							className="ddm-field"
+							data-field-name={fieldName}
+							key={index}
+						>
+							<CustomField
+								{...otherProps}
+								field={field}
+								index={index}
+							>
+								{children}
+							</CustomField>
+						</div>
+					);
 				}
 
 				return children({field, index});
@@ -70,16 +91,21 @@ export default function ({
 	config,
 	customFields,
 	dataRules,
+	defaultLanguageId,
 	dispatchEvent,
 	editingLanguageId,
 	focusedCustomObjectField,
 	focusedField,
 	hasFocusedCustomObjectField,
 }) {
-	const spritemap = useContext(ClayIconSpriteContext);
 	const [activePage, setActivePage] = useState(0);
+	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
+	const spritemap = useContext(ClayIconSpriteContext);
 
-	const Column = useMemo(() => getColumn(customFields), [customFields]);
+	const Column = useMemo(
+		() => getColumn({AppContext, customFields, dataLayoutBuilder}),
+		[customFields, dataLayoutBuilder]
+	);
 
 	const settingsContext = getSettingsContext(
 		hasFocusedCustomObjectField,
@@ -91,10 +117,11 @@ export default function ({
 		() =>
 			getFilteredSettingsContext({
 				config,
+				defaultLanguageId,
 				editingLanguageId,
 				settingsContext,
 			}),
-		[config, editingLanguageId, settingsContext]
+		[config, defaultLanguageId, editingLanguageId, settingsContext]
 	);
 
 	useEffect(() => {
@@ -136,6 +163,7 @@ export default function ({
 					...filteredSettingsContext,
 					activePage,
 					builderRules: dataRules,
+					defaultLanguageId,
 					editable: true,
 					editingLanguageId,
 					spritemap,

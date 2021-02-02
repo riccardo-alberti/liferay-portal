@@ -623,6 +623,9 @@ public class DDMImpl implements DDM {
 					JSONFactoryUtil.createJSONArray(propertyValue));
 			}
 			catch (Exception exception) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(exception, exception);
+				}
 			}
 
 			return;
@@ -1038,7 +1041,9 @@ public class DDMImpl implements DDM {
 							serviceContext.getLocale());
 					}
 					catch (ParseException parseException) {
-						_log.error("Unable to parse date " + fieldValue);
+						_log.error(
+							"Unable to parse date " + fieldValue,
+							parseException);
 					}
 				}
 
@@ -1137,6 +1142,9 @@ public class DDMImpl implements DDM {
 			}
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
 		}
 
 		return StringPool.BLANK;

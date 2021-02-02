@@ -15,10 +15,12 @@
 import ActionsLinkRenderer from './ActionLinkRenderer';
 import ActionsDropdownRenderer from './ActionsDropdownRenderer';
 import BooleanRenderer from './BooleanRenderer';
-import CheckboxRenderer from './CheckboxRenderer';
 import DateRenderer from './DateRenderer';
 import DefaultRenderer from './DefaultRenderer';
 import ImageRenderer from './ImageRenderer';
+import InputCheckboxRenderer from './InputCheckboxRenderer';
+import InputDateTimeRenderer from './InputDateTimeRenderer';
+import InputTextRenderer from './InputTextRenderer';
 import LabelRenderer from './LabelRenderer';
 import LinkRenderer from './LinkRenderer';
 import ListRenderer from './ListRenderer';
@@ -30,7 +32,6 @@ const dataRenderers = {
 	actionLink: ActionsLinkRenderer,
 	actionsDropdown: ActionsDropdownRenderer,
 	boolean: BooleanRenderer,
-	checkbox: CheckboxRenderer,
 	date: DateRenderer,
 	default: DefaultRenderer,
 	image: ImageRenderer,
@@ -40,6 +41,12 @@ const dataRenderers = {
 	quantitySelector: QuantitySelectorRenderer,
 	status: StatusRenderer,
 	tooltipSummary: TooltipSummaryRenderer,
+};
+
+export const inputRenderers = {
+	checkbox: InputCheckboxRenderer,
+	dateTime: InputDateTimeRenderer,
+	text: InputTextRenderer,
 };
 
 export default dataRenderers;

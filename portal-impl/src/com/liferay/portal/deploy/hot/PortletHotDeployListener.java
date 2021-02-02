@@ -263,6 +263,8 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		String[] sources = _processPortletProperties(classLoader);
 
+		ResourceActionsUtil.populateModelResources(classLoader, sources);
+
 		for (Portlet portlet : portlets) {
 			ResourceActionsUtil.populatePortletResource(
 				portlet, classLoader, sources);
@@ -480,6 +482,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 				context.unbind(_JNDI_JDBC_LIFERAY_POOL);
 			}
 			catch (NamingException namingException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(namingException, namingException);
+				}
 			}
 
 			try {
@@ -488,6 +493,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 				context.destroySubcontext(_JNDI_JDBC);
 			}
 			catch (NamingException namingException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(namingException, namingException);
+				}
 			}
 		}
 		catch (Exception exception) {
@@ -545,7 +553,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Unable to read portlet.properties");
+				_log.debug("Unable to read portlet.properties", exception);
 			}
 
 			return new String[0];

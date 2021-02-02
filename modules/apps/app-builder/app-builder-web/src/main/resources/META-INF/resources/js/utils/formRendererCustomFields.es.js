@@ -12,10 +12,10 @@
  * details.
  */
 
-import React from 'react';
-
+import RepeatableField from '../components/form-renderer-custom-fields/RepeatableField.es';
 import RequiredField from '../components/form-renderer-custom-fields/RequiredField.es';
 
 export default {
-	required: (props) => <RequiredField {...props} />,
+	repeatable: RepeatableField,
+	required: RequiredField,
 };

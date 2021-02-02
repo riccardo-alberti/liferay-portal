@@ -53,27 +53,13 @@ definition {
 
 		Navigator.openStagingSiteURL(defaultSite = "true");
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
 		// Workaround for LPS-110206
 
-		//AssertCssValue(
-		//	locator1 = "//body",
-		//	locator2 = "background-color",
-		//	value1 = "rgba(255, 165, 0, 1)");
-
-		takeScreenshot();
+		//Theme.viewTestThemeBackgroundColor();
 
 		Navigator.openURL();
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		AssertCssValue(
-			locator1 = "//body",
-			locator2 = "background-color",
-			value1 = "rgba(255, 165, 0, 1)");
-
-		takeScreenshot();
+		Theme.viewTestThemeBackgroundColor();
 	}
 
 	@description = "This test validates that a theme can be applied to a single page."
@@ -102,9 +88,7 @@ definition {
 
 		ProductMenuHelper.closeProductMenu();
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		takeScreenshot();
+		Theme.viewTestThemeBackgroundColor();
 	}
 
 	@priority = "5"
@@ -135,7 +119,7 @@ definition {
 			pageName = "Theme Test Page",
 			siteName = "Guest");
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
+		Theme.viewTestThemeBackgroundColor();
 
 		ApplicationsMenu.gotoPortlet(
 			category = "System",
@@ -154,9 +138,7 @@ definition {
 
 		AssertConsoleTextPresent(value1 = "No theme found for specified theme id testtheme74_WAR_testtheme. Returning the default theme.");
 
-		SikuliAssertElementNotPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		takeScreenshot();
+		Theme.viewClassicThemeBackgroundColor();
 
 		Page.viewCurrentTheme(
 			page = "Public Pages",
@@ -176,9 +158,7 @@ definition {
 			pageName = "Theme Test Page",
 			siteName = "Guest");
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		takeScreenshot();
+		Theme.viewTestThemeBackgroundColor();
 
 		Page.viewCurrentTheme(
 			page = "Public Pages",
@@ -186,6 +166,9 @@ definition {
 			themeName = "test-theme-7-4");
 	}
 
+	// Ignore test until LPS-126081 is resolved
+
+	@ignore = "true"
 	@priority = "5"
 	test PublishThemeFromStagedToLive {
 		property test.name.skip.portal.instance = "Theme#PublishThemeFromStagedToLive";
@@ -212,27 +195,13 @@ definition {
 
 		Button.clickPublish();
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
 		// Workaround for LPS-110206
 
-		//AssertCssValue(
-		//	locator1 = "//body",
-		//	locator2 = "background-color",
-		//	value1 = "rgba(255, 165, 0, 1)");
-
-		takeScreenshot();
+		//Theme.viewTestThemeBackgroundColor();
 
 		Navigator.openURL();
 
-		SikuliAssertElementNotPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		AssertCssValue(
-			locator1 = "//body",
-			locator2 = "background-color",
-			value1 = "rgba(255, 255, 255, 1)");
-
-		takeScreenshot();
+		Theme.viewClassicThemeBackgroundColor();
 
 		Navigator.openStagingSiteURL(defaultSite = "true");
 
@@ -242,14 +211,7 @@ definition {
 
 		Navigator.openURL();
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		AssertCssValue(
-			locator1 = "//body",
-			locator2 = "background-color",
-			value1 = "rgba(255, 165, 0, 1)");
-
-		takeScreenshot();
+		Theme.viewTestThemeBackgroundColor();
 	}
 
 	@priority = "5"
@@ -308,7 +270,7 @@ definition {
 			pageName = "Theme Test Page",
 			siteName = "Guest");
 
-		SikuliAssertElementPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
+		Theme.viewTestThemeBackgroundColor();
 
 		ApplicationsMenu.gotoPortlet(
 			category = "System",
@@ -327,9 +289,7 @@ definition {
 
 		AssertConsoleTextPresent(value1 = "No theme found for specified theme id testtheme74_WAR_testtheme. Returning the default theme.");
 
-		SikuliAssertElementNotPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		takeScreenshot();
+		Theme.viewClassicThemeBackgroundColor();
 
 		Page.viewCurrentTheme(
 			page = "Public Pages",
@@ -352,9 +312,7 @@ definition {
 			pageName = "Theme Test Page",
 			siteName = "Guest");
 
-		SikuliAssertElementNotPresent(locator1 = "Theme#TEST_THEME_HOME_PAGE_PNG");
-
-		takeScreenshot();
+		Theme.viewClassicThemeBackgroundColor();
 
 		Page.viewCurrentTheme(
 			page = "Public Pages",

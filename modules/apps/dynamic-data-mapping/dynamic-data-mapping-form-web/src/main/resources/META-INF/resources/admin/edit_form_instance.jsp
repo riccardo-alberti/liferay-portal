@@ -133,27 +133,11 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 		<div class="ddm-form-basic-info">
 			<clay:container-fluid>
 				<h1>
-					<liferay-editor:editor
-						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escapeAttribute(ddmFormAdminDisplayContext.getFormName()) %>"
-						cssClass="ddm-form-name"
-						editorName="alloyeditor"
-						name="nameEditor"
-						placeholder="untitled-form"
-						showSource="<%= false %>"
-					/>
+					<aui:input autoSize="<%= true %>" cssClass="ddm-form-name ddm-placeholder hidden" label="" name="nameEditor" placeholder='<%= LanguageUtil.get(request, "untitled-form") %>' type="textarea" value="<%= HtmlUtil.escapeAttribute(ddmFormAdminDisplayContext.getFormName()) %>" />
 				</h1>
 
 				<h5>
-					<liferay-editor:editor
-						autoCreate="<%= false %>"
-						contents="<%= HtmlUtil.escapeAttribute(ddmFormAdminDisplayContext.getFormDescription()) %>"
-						cssClass="ddm-form-description h5"
-						editorName="alloyeditor"
-						name="descriptionEditor"
-						placeholder="add-a-short-description-for-this-form"
-						showSource="<%= false %>"
-					/>
+					<aui:input autoSize="<%= true %>" cssClass="ddm-form-description ddm-placeholder hidden" label="" name="descriptionEditor" placeholder='<%= LanguageUtil.get(request, "add-a-short-description-for-this-form") %>' type="textarea" value="<%= HtmlUtil.escapeAttribute(ddmFormAdminDisplayContext.getFormDescription()) %>" />
 				</h5>
 			</clay:container-fluid>
 		</div>
@@ -165,7 +149,10 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 		cssClass="ddm-form-instance-settings hide"
 		id='<%= liferayPortletResponse.getNamespace() + "settings" %>'
 	>
-		<%= ddmFormAdminDisplayContext.serializeSettingsForm(pageContext) %>
+		<react:component
+			module="admin/js/index.es"
+			props="<%= ddmFormAdminDisplayContext.getDDMFormSettingsContext(pageContext) %>"
+		/>
 	</clay:container-fluid>
 </div>
 
@@ -303,7 +290,7 @@ renderResponse.setTitle((formInstance == null) ? LanguageUtil.get(request, "new-
 		Liferay.Util.openWindow(
 			{
 				dialog: {
-					cssClass: 'ddm-form-settings-modal',
+					cssClass: 'ddm-form-settings-modal modal-full-screen',
 					height: 700,
 					resizable: false,
 					'toolbars.footer': [

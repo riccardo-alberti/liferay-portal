@@ -20,6 +20,8 @@ definition {
 		else {
 			BlogsEntry.tearDownCP();
 
+			Depot.tearDownCP();
+
 			User.logoutPG();
 		}
 	}
@@ -294,6 +296,8 @@ definition {
 			locator1 = "WCDConfiguration#SELECT_WEB_CONTENT_BUTTON",
 			value1 = "Select");
 
+		Pause(locator1 = "3000");
+
 		SelectFrame.selectSecondFrame(locator1 = "IFrame#MODAL_BODY");
 
 		ItemSelector.viewWCCurrentSiteFilterResults(
@@ -343,7 +347,7 @@ definition {
 	test PaginateFiles {
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
-		DMDocument.addMultipleCP(dmDocumentFileList = "Document_1.jpg,Document_2.jpg,Document_3.jpg,Document_1.png,Document_2.png,Document_3.png");
+		DMDocument.addMultipleCP(dmDocumentFileList = "Document_1.jpg,Document_2.jpg,Document_3.jpg,Document_4.jpg,Commerce_Black.jpg,Commerce_White.jpg");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
 
@@ -358,7 +362,7 @@ definition {
 			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
 			value1 = "Documents and Media");
 
-		for (var imageFileName : list "Document_1,Document_2,Document_3,Document_1,Document_2,Document_3") {
+		for (var imageFileName : list "Document_1,Document_2,Document_3,Document_4,Commerce_Black,Commerce_White") {
 			AssertElementPresent(
 				key_imageFileName = "${imageFileName}",
 				locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
@@ -368,13 +372,13 @@ definition {
 
 		Pagination.changePagination(itemsPerPage = "4");
 
-		for (var imageFileName : list "Document_1,Document_2,Document_1,Document_2") {
+		for (var imageFileName : list "Commerce_Black,Commerce_White,Document_1,Document_2") {
 			AssertElementPresent(
 				key_imageFileName = "${imageFileName}",
 				locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 		}
 
-		for (var imageFileName : list "Document_3,Document_3") {
+		for (var imageFileName : list "Document_3,Document_4") {
 			AssertElementNotPresent(
 				key_imageFileName = "${imageFileName}",
 				locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
@@ -452,6 +456,8 @@ definition {
 	@description = "This ensures that users can preview the Facebook video in item selector."
 	@priority = "5"
 	test PreviewFacebookVideo {
+		property test.name.skip.portal.instance = "ItemSelector#PreviewFacebookVideo";
+
 		JSONGroup.addGroup(groupName = "Site Name");
 
 		JSONLayout.addPublicLayout(
@@ -564,12 +570,14 @@ definition {
 
 		ItemSelector.previewEmbeddedVideo(validURL = "https://www.facebook.com");
 
-		ItemSelector.addVideoFromURL(
-			navTab = "URL",
-			unpublish = "true",
-			videoSourceURL = "https://www.twitch.tv/videos/806178790");
+		for (var videoSourceURL : list "https://www.twitch.tv/videos/806178790,https://www.twitch.tv/esl_csgo") {
+			ItemSelector.addVideoFromURL(
+				navTab = "URL",
+				unpublish = "true",
+				videoSourceURL = "${videoSourceURL}");
 
-		ItemSelector.previewEmbeddedVideo(validURL = "https://player.twitch.tv");
+			ItemSelector.previewEmbeddedVideo(validURL = "https://player.twitch.tv");
+		}
 
 		ItemSelector.addVideoFromURL(
 			navTab = "URL",
@@ -603,6 +611,8 @@ definition {
 	@description = "This ensures that users can preview the Twitch video in item selector."
 	@priority = "5"
 	test PreviewTwitchVideo {
+		property test.name.skip.portal.instance = "ItemSelector#PreviewTwitchVideo";
+
 		JSONGroup.addGroup(groupName = "Site Name");
 
 		JSONLayout.addPublicLayout(
@@ -995,6 +1005,60 @@ definition {
 			viewFolderWC = "true",
 			wcFolderName = "WC Folder Name",
 			webContentTitle = "WC WebContent From Site");
+	}
+
+	@description = "This ensures that the video thumbnails can be viewed in Item Selector."
+	@priority = "5"
+	test ViewVideoThumbnailsViaWC {
+		JSONGroup.addGroup(groupName = "Site Name");
+
+		JSONDepot.addDepot(
+			depotDescription = "This is the description of a depot",
+			depotName = "Test Depot Name");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video",
+			videoURL = "https://www.youtube.com/watch?v=HOdbzGCI5ME");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Shortened URL Video",
+			videoURL = "https://youtu.be/HOdbzGCI5ME");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test Vimeo Video",
+			videoURL = "https://vimeo.com/483035084");
+
+		DepotNavigator.openDepotAdmin();
+
+		DepotNavigator.gotoEdit(depotName = "Test Depot Name");
+
+		DepotNavigator.gotoSites(depotName = "Test Depot Name");
+
+		Depot.connectSite(siteList = "Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		ItemSelector.gotoItemSelectorViaCKEditor(video = "true");
+
+		ItemSelector.viewCardThumbnails(
+			cardList = "Test YouTube Video,Test Shortened URL Video,Test Vimeo Video",
+			depotName = "Test Depot Name",
+			navTab = "Documents and Media");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		ItemSelector.gotoItemSelectorViaCKEditor(video = "true");
+
+		ItemSelector.viewListThumbnails(
+			depotName = "Test Depot Name",
+			listEntry = "Test YouTube Video,Test Shortened URL Video,Test Vimeo Video",
+			navTab = "Documents and Media");
 	}
 
 	@description = "It ensures that the web content draft in an Asset Library cannot be found when searching in an Item Selector in that Library."

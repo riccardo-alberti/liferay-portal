@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -102,27 +103,15 @@ public class DDMFormTemplateContextProcessor {
 
 		DDMFormField ddmFormField = new DDMFormField(name, type);
 
-		setDDMFormFieldAllowGuestUsers(
-			jsonObject.getBoolean("allowGuestUsers"), ddmFormField);
-		setDDMFormFieldAlphabeticalOrder(
-			jsonObject.getBoolean("alphabeticalOrder"), ddmFormField);
-		setDDMFormFieldCollapsible(
-			jsonObject.getBoolean("collapsible"), ddmFormField);
-		setDDMFormFieldDataProviderSettings(
-			jsonObject.getLong("ddmDataProviderInstanceId"),
-			jsonObject.getString("ddmDataProviderInstanceOutput"),
-			ddmFormField);
+		setDDMFormFieldCustomProperties(jsonObject, ddmFormField);
 		setDDMFormFieldDataType(jsonObject.getString("dataType"), ddmFormField);
 		setDDMFormFieldFieldName(
 			jsonObject.getString("fieldName"), ddmFormField);
 		setDDMFormFieldFieldReference(
 			jsonObject.getString("fieldReference"), ddmFormField);
-		setDDMFormFieldInline(jsonObject.getBoolean("inline"), ddmFormField);
 		setDDMFormFieldLabel(jsonObject.getString("label"), ddmFormField);
 		setDDMFormFieldLocalizable(
 			jsonObject.getBoolean("localizable", false), ddmFormField);
-		setDDMFormFieldMaximumRepetitions(
-			jsonObject.getInt("maximumRepetitions"), ddmFormField);
 		setDDMFormFieldMultiple(
 			jsonObject.getBoolean("multiple"), ddmFormField);
 		setDDMFormFieldOptions(
@@ -140,8 +129,6 @@ public class DDMFormTemplateContextProcessor {
 			jsonObject.getBoolean("repeatable", false), ddmFormField);
 		setDDMFormFieldRequired(
 			jsonObject.getBoolean("required", false), ddmFormField);
-		setDDMFormFieldShowAsSwitcher(
-			jsonObject.getBoolean("showAsSwitcher"), ddmFormField);
 		setDDMFormFieldText(jsonObject.getString("text"), ddmFormField);
 		setDDMFormFieldTooltip(jsonObject.getString("tooltip"), ddmFormField);
 		setDDMFormFieldValid(
@@ -248,32 +235,20 @@ public class DDMFormTemplateContextProcessor {
 		_ddmForm.setDefaultLocale(_locale);
 	}
 
-	protected void setDDMFormFieldAllowGuestUsers(
-		boolean allowGuestUsers, DDMFormField ddmFormField) {
+	protected void setDDMFormFieldCustomProperties(
+		JSONObject jsonObject, DDMFormField ddmFormField) {
 
-		ddmFormField.setProperty("allowGuestUsers", allowGuestUsers);
-	}
+		Iterator<String> iterator = jsonObject.keys();
 
-	protected void setDDMFormFieldAlphabeticalOrder(
-		boolean alphabeticalOrder, DDMFormField ddmFormField) {
+		Map<String, Object> properties = ddmFormField.getProperties();
 
-		ddmFormField.setProperty("alphabeticalOrder", alphabeticalOrder);
-	}
+		while (iterator.hasNext()) {
+			String key = iterator.next();
 
-	protected void setDDMFormFieldCollapsible(
-		boolean collapsible, DDMFormField ddmFormField) {
-
-		ddmFormField.setProperty("collapsible", collapsible);
-	}
-
-	protected void setDDMFormFieldDataProviderSettings(
-		long ddmDataProviderInstanceId, String ddmDataProviderInstanceOutput,
-		DDMFormField ddmFormField) {
-
-		ddmFormField.setProperty(
-			"ddmDataProviderInstanceId", ddmDataProviderInstanceId);
-		ddmFormField.setProperty(
-			"ddmDataProviderInstanceOutput", ddmDataProviderInstanceOutput);
+			if (!properties.containsKey(key) && !key.equals("dataSourceType")) {
+				ddmFormField.setProperty(key, jsonObject.get(key));
+			}
+		}
 	}
 
 	protected void setDDMFormFieldDataType(
@@ -294,12 +269,6 @@ public class DDMFormTemplateContextProcessor {
 		ddmFormField.setFieldReference(GetterUtil.getString(fieldReference));
 	}
 
-	protected void setDDMFormFieldInline(
-		boolean inline, DDMFormField ddmFormField) {
-
-		ddmFormField.setProperty("inline", inline);
-	}
-
 	protected void setDDMFormFieldLabel(
 		String label, DDMFormField ddmFormField) {
 
@@ -310,12 +279,6 @@ public class DDMFormTemplateContextProcessor {
 		boolean localizable, DDMFormField ddmFormField) {
 
 		ddmFormField.setLocalizable(localizable);
-	}
-
-	protected void setDDMFormFieldMaximumRepetitions(
-		int maximumRepetitions, DDMFormField ddmFormField) {
-
-		ddmFormField.setProperty("maximumRepetitions", maximumRepetitions);
 	}
 
 	protected void setDDMFormFieldMultiple(
@@ -443,12 +406,6 @@ public class DDMFormTemplateContextProcessor {
 		boolean required, DDMFormField ddmFormField) {
 
 		ddmFormField.setRequired(required);
-	}
-
-	protected void setDDMFormFieldShowAsSwitcher(
-		boolean showAsSwitcher, DDMFormField ddmFormField) {
-
-		ddmFormField.setProperty("showAsSwitcher", showAsSwitcher);
 	}
 
 	protected void setDDMFormFieldText(String text, DDMFormField ddmFormField) {

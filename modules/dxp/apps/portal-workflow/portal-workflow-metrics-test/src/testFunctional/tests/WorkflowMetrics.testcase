@@ -368,6 +368,7 @@ definition {
 	@description = "Apply filter for workload distribution for all assignees(LRQA-53632)"
 	@priority = "5"
 	test ApplyFilterForWorkloadDistribution {
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "WorkflowMetrics#ApplyFilterForWorkloadDistribution";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
@@ -2968,6 +2969,7 @@ definition {
 	@description = "LRQA-53659 Automate LPS-86652 [Reports] View all items for a certain process"
 	@priority = "5"
 	test ViewReports {
+		property environment.acceptance = "true";
 		property test.name.skip.portal.instance = "WorkflowMetrics#ViewReports";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");

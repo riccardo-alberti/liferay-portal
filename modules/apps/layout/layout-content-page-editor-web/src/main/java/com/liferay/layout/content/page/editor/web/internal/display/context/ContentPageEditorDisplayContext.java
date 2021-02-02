@@ -352,6 +352,10 @@ public class ContentPageEditorDisplayContext {
 				getFragmentEntryActionURL(
 					"/layout_content_page_editor/duplicate_item")
 			).put(
+				"duplicateSegmentsExperienceURL",
+				getFragmentEntryActionURL(
+					"/layout_content_page_editor/duplicate_segments_experience")
+			).put(
 				"editFragmentEntryLinkCommentURL",
 				getFragmentEntryActionURL(
 					"/layout_content_page_editor" +
@@ -523,6 +527,22 @@ public class ContentPageEditorDisplayContext {
 			).put(
 				"siteNavigationMenuItemSelectorURL",
 				_getSiteNavigationMenuItemSelectorURL()
+			).put(
+				"styleBookEnabled",
+				() -> {
+					Layout layout = themeDisplay.getLayout();
+
+					LayoutSet layoutSet = layout.getLayoutSet();
+
+					if (Validator.isNull(layout.getThemeId()) ||
+						Objects.equals(
+							layout.getThemeId(), layoutSet.getThemeId())) {
+
+						return true;
+					}
+
+					return false;
+				}
 			).put(
 				"styleBookEntryId",
 				() -> {

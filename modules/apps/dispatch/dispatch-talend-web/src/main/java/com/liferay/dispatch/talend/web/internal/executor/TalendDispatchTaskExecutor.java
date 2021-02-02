@@ -76,6 +76,10 @@ public class TalendDispatchTaskExecutor extends BaseDispatchTaskExecutor {
 		TalendProcess talendProcess = _getTalendProcess(
 			dispatchTrigger, talendArchive);
 
+		if (_log.isTraceEnabled()) {
+			_log.trace("Execute Talend process " + talendProcess.toString());
+		}
+
 		try {
 			ProcessChannel<Serializable> processChannel =
 				_processExecutor.execute(
@@ -139,12 +143,12 @@ public class TalendDispatchTaskExecutor extends BaseDispatchTaskExecutor {
 
 		talendProcessBuilder.talendArchive(talendArchive);
 
-		UnicodeProperties taskSettingsUnicodeProperties =
-			dispatchTrigger.getTaskSettingsUnicodeProperties();
+		UnicodeProperties dispatchTaskSettingsUnicodeProperties =
+			dispatchTrigger.getDispatchTaskSettingsUnicodeProperties();
 
-		if (taskSettingsUnicodeProperties != null) {
+		if (dispatchTaskSettingsUnicodeProperties != null) {
 			for (Map.Entry<String, String> propEntry :
-					taskSettingsUnicodeProperties.entrySet()) {
+					dispatchTaskSettingsUnicodeProperties.entrySet()) {
 
 				talendProcessBuilder.contextParam(
 					propEntry.getKey(), propEntry.getValue());

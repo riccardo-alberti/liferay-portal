@@ -18,7 +18,10 @@ import {
 	generateInstanceId,
 } from 'dynamic-data-mapping-form-renderer';
 
-import {getDefaultFieldName} from '../../../util/fieldSupport.es';
+import {
+	getDefaultFieldName,
+	localizeField,
+} from '../../../util/fieldSupport.es';
 import {sub} from '../../../util/strings.es';
 import {getFieldLocalizedValue} from '../util/fields.es';
 import {
@@ -34,18 +37,14 @@ export const getLabel = (
 	defaultLanguageId,
 	editingLanguageId
 ) => {
-	let labelFieldLocalizedValue = getFieldLocalizedValue(
+	const labelFieldLocalizedValue = getFieldLocalizedValue(
 		originalField.settingsContext.pages,
 		'label',
 		editingLanguageId
 	);
 
 	if (!labelFieldLocalizedValue) {
-		labelFieldLocalizedValue = getFieldLocalizedValue(
-			originalField.settingsContext.pages,
-			'label',
-			defaultLanguageId
-		);
+		return;
 	}
 
 	return sub(Liferay.Language.get('copy-of-x'), [labelFieldLocalizedValue]);
@@ -64,6 +63,7 @@ export const createDuplicatedField = (originalField, props, blacklist = []) => {
 	const {
 		availableLanguageIds,
 		defaultLanguageId,
+		editingLanguageId,
 		fieldNameGenerator,
 		generateFieldNameUsingFieldLabel,
 	} = props;
@@ -96,14 +96,16 @@ export const createDuplicatedField = (originalField, props, blacklist = []) => {
 			availableLanguageId
 		);
 
-		duplicatedField = updateFieldLabel(
-			defaultLanguageId,
-			availableLanguageId,
-			fieldNameGenerator,
-			duplicatedField,
-			generateFieldNameUsingFieldLabel,
-			label
-		);
+		if (label) {
+			duplicatedField = updateFieldLabel(
+				defaultLanguageId,
+				availableLanguageId,
+				fieldNameGenerator,
+				duplicatedField,
+				generateFieldNameUsingFieldLabel,
+				label
+			);
+		}
 	});
 
 	if (duplicatedField.nestedFields?.length > 0) {
@@ -117,9 +119,15 @@ export const createDuplicatedField = (originalField, props, blacklist = []) => {
 
 				blacklist.push(newDuplicatedNestedField.fieldName);
 
+				let {rows = []} = duplicatedField;
+
+				if (typeof rows === 'string') {
+					rows = JSON.parse(rows);
+				}
+
 				const visitor = new PagesVisitor([
 					{
-						rows: duplicatedField.rows ?? [],
+						rows,
 					},
 				]);
 
@@ -150,9 +158,16 @@ export const createDuplicatedField = (originalField, props, blacklist = []) => {
 		);
 	}
 
-	duplicatedField.settingsContext = updateSettingsContextInstanceId(
-		duplicatedField
-	);
+	const settingsContext = updateSettingsContextInstanceId(duplicatedField);
+
+	const settingsVisitor = new PagesVisitor(settingsContext.pages);
+
+	duplicatedField.settingsContext = {
+		...settingsContext,
+		pages: settingsVisitor.mapFields((field) =>
+			localizeField(field, defaultLanguageId, editingLanguageId)
+		),
+	};
 
 	return updateField(
 		props,
@@ -191,7 +206,13 @@ export const duplicateField = (
 						nestedFields
 					);
 
-					let pages = [{rows: field.rows}];
+					let {rows} = field;
+
+					if (typeof rows === 'string') {
+						rows = JSON.parse(rows);
+					}
+
+					let pages = [{rows}];
 
 					const {rowIndex} = FormSupport.getFieldIndexes(
 						pages,

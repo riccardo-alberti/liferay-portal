@@ -54,7 +54,7 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"javax.portlet.name=" + CPPortletKeys.CP_DEFINITIONS,
-		"mvc.command.name=editCPAttachmentFileEntry"
+		"mvc.command.name=/cp_definitions/edit_cp_attachment_file_entry"
 	},
 	service = MVCRenderCommand.class
 )
@@ -97,10 +97,10 @@ public class EditCPAttachmentFileEntryMVCRenderCommand
 			renderRequest, "type", CPAttachmentFileEntryConstants.TYPE_IMAGE);
 
 		if (type == CPAttachmentFileEntryConstants.TYPE_IMAGE) {
-			return "/edit_attachment_file_entry_image.jsp";
+			return "/edit_cp_attachment_file_entry_image.jsp";
 		}
 
-		return "/edit_attachment_file_entry_attachment.jsp";
+		return "/edit_cp_attachment_file_entry_attachment.jsp";
 	}
 
 	@Activate

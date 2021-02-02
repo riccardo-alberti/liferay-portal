@@ -34,7 +34,7 @@ export const fetchHeaders = new Headers({
 });
 
 export const fetchParams = {
-	headers: Liferay.staticEnvHeaders || fetchHeaders,
+	headers: fetchHeaders,
 };
 
 export function getData(apiUrl, query, page, pageSize) {

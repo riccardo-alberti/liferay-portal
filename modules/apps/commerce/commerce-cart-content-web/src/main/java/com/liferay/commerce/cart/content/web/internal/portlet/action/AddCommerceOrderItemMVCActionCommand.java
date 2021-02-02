@@ -62,7 +62,7 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_CART_CONTENT,
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_CART_CONTENT_MINI,
-		"mvc.command.name=addCommerceOrderItem"
+		"mvc.command.name=/commerce_cart_content/add_commerce_order_item"
 	},
 	service = MVCActionCommand.class
 )
@@ -118,8 +118,9 @@ public class AddCommerceOrderItemMVCActionCommand extends BaseMVCActionCommand {
 
 			CommerceOrderItem commerceOrderItem =
 				_commerceOrderItemService.upsertCommerceOrderItem(
-					commerceOrder.getCommerceOrderId(), cpInstanceId, quantity,
-					0, ddmFormValues, commerceContext, serviceContext);
+					commerceOrder.getCommerceOrderId(), cpInstanceId,
+					ddmFormValues, quantity, 0, commerceContext,
+					serviceContext);
 
 			int commerceOrderItemsQuantity =
 				_commerceOrderItemService.getCommerceOrderItemsQuantity(

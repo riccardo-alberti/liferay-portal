@@ -52,7 +52,7 @@ definition {
 			key_text = "Add",
 			locator1 = "Button#ANY_DISABLED");
 
-		Type.sendKeys(
+		Type(
 			locator1 = "TextInput#URL",
 			value1 = "${imageSourceURL}");
 
@@ -71,6 +71,28 @@ definition {
 			locator1 = "Button#ANY");
 
 		Button.clickAdd();
+
+		SelectFrameTop(value1 = "relative=top");
+	}
+
+	macro addVideo {
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		AssertClick(
+			key_navTab = "Documents and Media",
+			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+			value1 = "Documents and Media");
+
+		VideoShortcut.addCP(
+			extractedVideoShortcutTitle = "${extractedVideoShortcutTitle}",
+			videoShortcutDescription = "${videoShortcutDescription}",
+			videoShortcutPreview = "${videoShortcutPreview}",
+			videoShortcutTitle = "${videoShortcutTitle}",
+			videoURL = "${videoURL}");
+
+		Click(
+			key_imageFileName = "${videoShortcutTitle}",
+			locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
 
 		SelectFrameTop(value1 = "relative=top");
 	}
@@ -97,9 +119,29 @@ definition {
 			LexiconCard.clickCard(card = "${depotName}");
 		}
 
-		Click(
-			key_imageFileName = "${videoShortcutTitle}",
-			locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+		if (isSet(videoShortcutPreview)) {
+			Click(
+				key_cardTitle = "${videoShortcutTitle}",
+				locator1 = "Icon#EYE_PREVIEW_SPECIFIC");
+
+			AssertVisible(
+				key_videoShortcutPreview = "${videoShortcutPreview}",
+				locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_PREVIEW");
+
+			AssertTextEquals(
+				key_imageFileName = "${videoShortcutTitle}",
+				locator1 = "ItemSelector#VIEWER_FOOTER_IMAGE",
+				value1 = "${videoShortcutTitle}");
+
+			AssertClick(
+				locator1 = "ItemSelector#ADD_BUTTON",
+				value1 = "Add");
+		}
+		else {
+			Click(
+				key_imageFileName = "${videoShortcutTitle}",
+				locator1 = "ItemSelector#SELECT_FILE_IMAGE_CARD");
+		}
 
 		SelectFrameTop(value1 = "relative=top");
 	}
@@ -290,7 +332,9 @@ definition {
 			LexiconCard.clickCard(card = "${depotName}");
 		}
 
-		Click(locator1 = "Icon#EYE_PREVIEW");
+		Click(
+			key_cardTitle = "${videoShortcutTitle}",
+			locator1 = "Icon#EYE_PREVIEW_SPECIFIC");
 
 		AssertVisible(
 			key_videoShortcutPreview = "${validURL}",
@@ -531,6 +575,26 @@ definition {
 		SelectFrameTop(value1 = "relative=top");
 	}
 
+	macro viewCardThumbnails {
+		if (isSet(depotName)) {
+			ItemSelector.changeWorkspaces(
+				customImage = "${customImage}",
+				navTab = "${navTab}",
+				workspacesType = "Asset Library");
+
+			LexiconCard.clickCard(card = "${depotName}");
+		}
+		else {
+			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+		}
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
+
+		for (var card : list "${cardList}") {
+			LexiconCard.viewCardThumbnail(card = "${card}");
+		}
+	}
+
 	macro viewCurrentSiteFilterResults {
 		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
@@ -630,6 +694,28 @@ definition {
 				key_tableEntry = "${videoShortcutTitle}",
 				locator1 = "LexiconTable#TABLE_ENTRY_TITLE",
 				value1 = "${videoShortcutTitle}");
+		}
+	}
+
+	macro viewListThumbnails {
+		if (isSet(depotName)) {
+			ItemSelector.changeWorkspaces(
+				customImage = "${customImage}",
+				navTab = "${navTab}",
+				workspacesType = "Asset Library");
+
+			LexiconCard.clickCard(card = "${depotName}");
+		}
+		else {
+			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+		}
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+		for (var list : list "${listEntry}") {
+			AssertVisible(
+				key_list = "${list}",
+				locator1 = "DocumentsAndMediaDocument#VIDEO_SHORTCUT_THUMBNAIL_LIST");
 		}
 	}
 

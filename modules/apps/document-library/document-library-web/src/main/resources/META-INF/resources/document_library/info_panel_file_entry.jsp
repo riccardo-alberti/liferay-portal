@@ -424,7 +424,7 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 			</c:if>
 
 			<liferay-ui:panel-container
-				cssClass="metadata-panel-container"
+				cssClass="metadata-panel-container panel-group-flush panel-group-sm"
 				extended="<%= true %>"
 				markupView="lexicon"
 				persistState="<%= true %>"
@@ -516,7 +516,7 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 
 							<liferay-ui:panel
 								collapsible="<%= true %>"
-								cssClass="lfr-asset-metadata"
+								cssClass="lfr-asset-metadata panel-unstyled"
 								defaultState="closed"
 								id='<%= "documentLibraryMetadataPanel" + StringPool.UNDERLINE + ddmStructure.getStructureId() %>'
 								markupView="lexicon"

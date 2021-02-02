@@ -22,9 +22,11 @@ import ClayModal, {useModal} from '@clayui/modal';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
 import ClayPanel from '@clayui/panel';
 import ClayTimePicker from '@clayui/time-picker';
+import {ClayTooltipProvider} from '@clayui/tooltip';
 import React, {useState} from 'react';
 
 import ChangeTrackingBaseScheduleView from './ChangeTrackingBaseScheduleView';
+import ChangeTrackingRenderView from './ChangeTrackingRenderView';
 
 class ChangeTrackingConflictsView extends ChangeTrackingBaseScheduleView {
 	constructor(props) {
@@ -364,7 +366,7 @@ const ConflictsTable = ({conflicts, spritemap}) => {
 
 			items.push(
 				<ClayList.QuickActionMenu.Item
-					className="lfr-portal-tooltip"
+					data-tooltip-align="top"
 					href={action.href}
 					spritemap={spritemap}
 					symbol={action.symbol}
@@ -496,7 +498,12 @@ const ConflictsTable = ({conflicts, spritemap}) => {
 						{getAlertFooter(viewConflict)}
 					</ClayAlert>
 				</ClayModal.Header>
-				<ClayModal.Body url={viewConflict.viewURL}></ClayModal.Body>
+				<div className="publications-modal-body">
+					<ChangeTrackingRenderView
+						dataURL={viewConflict.dataURL}
+						spritemap={spritemap}
+					/>
+				</div>
 			</ClayModal>
 		);
 	};
@@ -505,7 +512,9 @@ const ConflictsTable = ({conflicts, spritemap}) => {
 		<>
 			{renderViewModal()}
 
-			<ClayList showQuickActionsOnHover>{getListItems()}</ClayList>
+			<ClayTooltipProvider>
+				<ClayList showQuickActionsOnHover>{getListItems()}</ClayList>
+			</ClayTooltipProvider>
 
 			{renderPagination()}
 		</>

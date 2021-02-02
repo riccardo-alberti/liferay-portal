@@ -280,6 +280,10 @@ public class DDMFormFieldTemplateContextFactory {
 
 		List<Map<String, String>> list = new ArrayList<>();
 
+		if (ddmFormFieldOptions == null) {
+			return list;
+		}
+
 		Map<String, LocalizedValue> options = ddmFormFieldOptions.getOptions();
 
 		Map<String, String> optionsReferences =
@@ -491,6 +495,10 @@ public class DDMFormFieldTemplateContextFactory {
 	protected void setDDMFormFieldTemplateContextLocalizedValue(
 		Map<String, Object> ddmFormFieldTemplateContext, String propertyName,
 		LocalizedValue localizedValue) {
+
+		if (localizedValue == null) {
+			return;
+		}
 
 		String propertyValue = GetterUtil.getString(
 			localizedValue.getString(_locale));
@@ -719,7 +727,9 @@ public class DDMFormFieldTemplateContextFactory {
 				}
 			}
 
-			localizedValues.put(languageId, localizedValue);
+			localizedValues.put(
+				languageId,
+				GetterUtil.getObject(localizedValue, StringPool.BLANK));
 		}
 
 		ddmFormFieldTemplateContext.put("localizedValue", localizedValues);
@@ -744,6 +754,13 @@ public class DDMFormFieldTemplateContextFactory {
 		ddmFormFieldTemplateContext.put(
 			"visible",
 			MapUtil.getBoolean(changedProperties, "visible", defaultValue));
+	}
+
+	protected void setDDMFormFieldTemplateContextVisualProperty(
+		Map<String, Object> ddmFormFieldTemplateContext,
+		boolean visualProperty) {
+
+		ddmFormFieldTemplateContext.put("visualProperty", visualProperty);
 	}
 
 	protected void setDDMFormFieldTypeServicesTracker(
@@ -775,6 +792,9 @@ public class DDMFormFieldTemplateContextFactory {
 		setDDMFormFieldTemplateContextVisibilityExpression(
 			ddmFormFieldTemplateContext,
 			ddmFormField.getVisibilityExpression());
+		setDDMFormFieldTemplateContextVisualProperty(
+			ddmFormFieldTemplateContext,
+			GetterUtil.getBoolean(ddmFormField.getProperty("visualProperty")));
 	}
 
 	protected void setPropertiesChangeableByRule(

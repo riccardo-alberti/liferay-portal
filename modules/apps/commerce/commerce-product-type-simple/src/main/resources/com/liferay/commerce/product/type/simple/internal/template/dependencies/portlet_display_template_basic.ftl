@@ -42,7 +42,7 @@
 					<h4 class="sku">${HtmlUtil.escape(cpInstance.getSku())}</h4>
 
 					<div class="price">
-						<@liferay_commerce["price"]
+						<@commerce_ui["price"]
 							CPDefinitionId=cpCatalogEntry.getCPDefinitionId()
 							CPInstanceId=cpInstance.getCPInstanceId()
 						/>
@@ -94,23 +94,23 @@
 		<div class="product-detail-body">
 			<div class="nav-tabs-centered">
 				<ul class="nav nav-tabs" role="tablist">
-					<li class="active" role="presentation">
-						<a aria-controls="<@portlet.namespace />description" aria-expanded="true" data-toggle="tab" href="#<@portlet.namespace />description" role="tab">
+					<li class="nav-item" role="presentation">
+						<a aria-controls="<@portlet.namespace />description" aria-expanded="true" class="active nav-link" data-toggle="tab" href="#<@portlet.namespace />description" role="tab">
 							${languageUtil.get(resourceBundle, "description")}
 						</a>
 					</li>
 
 					<#if simpleCPTypeDisplayContext.hasCPDefinitionSpecificationOptionValues()>
-						<li role="presentation">
-							<a aria-controls="<@portlet.namespace />specification" aria-expanded="false" data-toggle="tab" href="#<@portlet.namespace />specification" role="tab">
+						<li class="nav-item" role="presentation">
+							<a aria-controls="<@portlet.namespace />specification" aria-expanded="false" class="nav-link" data-toggle="tab" href="#<@portlet.namespace />specification" role="tab">
 								${languageUtil.get(resourceBundle, "specification-options")}
 							</a>
 						</li>
 					</#if>
 
 					<#if cpAttachmentFileEntries?has_content>
-						<li role="presentation">
-							<a aria-controls="<@portlet.namespace />attachments" aria-expanded="false" data-toggle="tab" href="#<@portlet.namespace />attachments" role="tab">
+						<li class="nav-item" role="presentation">
+							<a aria-controls="<@portlet.namespace />attachments" aria-expanded="false" class="nav-link" data-toggle="tab" href="#<@portlet.namespace />attachments" role="tab">
 								${languageUtil.get(resourceBundle, "attachments")}
 							</a>
 						</li>

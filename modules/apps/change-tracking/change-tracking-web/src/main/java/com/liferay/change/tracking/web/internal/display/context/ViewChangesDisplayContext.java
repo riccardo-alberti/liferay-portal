@@ -46,6 +46,7 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserTable;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -289,6 +290,15 @@ public class ViewChangesDisplayContext {
 		).put(
 			"ctCollectionId", _ctCollection.getCtCollectionId()
 		).put(
+			"dataURL",
+			() -> {
+				ResourceURL dataURL = _renderResponse.createResourceURL();
+
+				dataURL.setResourceID("/change_tracking/get_entry_render_data");
+
+				return dataURL.toString();
+			}
+		).put(
 			"discardURL",
 			() -> {
 				RenderURL discardURL = _renderResponse.createRenderURL();
@@ -326,30 +336,6 @@ public class ViewChangesDisplayContext {
 			"namespace", _renderResponse.getNamespace()
 		).put(
 			"pathParam", ParamUtil.getString(_renderRequest, "path")
-		).put(
-			"renderCTEntryURL",
-			() -> {
-				ResourceURL renderCTEntryURL =
-					_renderResponse.createResourceURL();
-
-				renderCTEntryURL.setResourceID(
-					"/change_tracking/render_ct_entry");
-
-				renderCTEntryURL.setParameter(
-					"ctCollectionId",
-					String.valueOf(_ctCollection.getCtCollectionId()));
-
-				return renderCTEntryURL.toString();
-			}
-		).put(
-			"renderDiffURL",
-			() -> {
-				ResourceURL renderDiffURL = _renderResponse.createResourceURL();
-
-				renderDiffURL.setResourceID("/change_tracking/render_diff");
-
-				return renderDiffURL.toString();
-			}
 		).put(
 			"rootDisplayClasses",
 			() -> {
@@ -413,9 +399,10 @@ public class ViewChangesDisplayContext {
 		).put(
 			"userInfo",
 			DisplayContextUtil.getUserInfoJSONObject(
+				CTEntryTable.INSTANCE.userId.eq(UserTable.INSTANCE.userId),
+				CTEntryTable.INSTANCE, _themeDisplay, _userLocalService,
 				CTEntryTable.INSTANCE.ctCollectionId.eq(
-					_ctCollection.getCtCollectionId()),
-				_themeDisplay, _userLocalService)
+					_ctCollection.getCtCollectionId()))
 		).build();
 	}
 

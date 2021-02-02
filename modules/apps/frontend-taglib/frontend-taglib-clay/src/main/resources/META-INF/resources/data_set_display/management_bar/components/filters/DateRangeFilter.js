@@ -23,7 +23,7 @@ import {
 	formatDateObject,
 	formatDateRangeObject,
 	getDateFromDateString,
-} from '../../../utilities/dates';
+} from '../../../utils/dates';
 
 function getOdataString(value, key) {
 	if (value.from && value.to) {
@@ -48,10 +48,10 @@ function DateRangeFilter({
 	value: valueProp,
 }) {
 	const [fromValue, setFromValue] = useState(
-		valueProp && valueProp.from && formatDateObject(valueProp.from)
+		valueProp?.from && formatDateObject(valueProp.from)
 	);
 	const [toValue, setToValue] = useState(
-		valueProp && valueProp.to && formatDateObject(valueProp.to)
+		valueProp?.to && formatDateObject(valueProp.to)
 	);
 
 	let actionType = 'edit';

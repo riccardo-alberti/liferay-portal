@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -154,6 +155,14 @@ public class EditFileEntryTypeMVCActionCommand
 
 		DataDefinition dataDefinition = DataDefinition.toDTO(
 			ParamUtil.getString(actionRequest, "dataDefinition"));
+		long[] ddmStructureIds = _getLongArray(
+			actionRequest, "ddmStructuresSearchContainerPrimaryKeys");
+
+		if (ArrayUtil.isEmpty(dataDefinition.getDataDefinitionFields()) &&
+			ArrayUtil.isEmpty(ddmStructureIds)) {
+
+			throw new DataDefinitionValidationException.MustSetFields();
+		}
 
 		dataDefinition.setDefaultDataLayout(
 			DataLayout.toDTO(ParamUtil.getString(actionRequest, "dataLayout")));
@@ -176,9 +185,6 @@ public class EditFileEntryTypeMVCActionCommand
 			_dlFileEntryTypeService.addFileEntryType(
 				themeDisplay.getScopeGroupId(), dataDefinition.getId(), null,
 				nameMap, descriptionMap, serviceContext);
-
-		long[] ddmStructureIds = _getLongArray(
-			actionRequest, "ddmStructuresSearchContainerPrimaryKeys");
 
 		_dlFileEntryTypeLocalService.addDDMStructureLinks(
 			fileEntryType.getFileEntryTypeId(),
@@ -272,6 +278,15 @@ public class EditFileEntryTypeMVCActionCommand
 		DataDefinition dataDefinition = DataDefinition.toDTO(
 			ParamUtil.getString(actionRequest, "dataDefinition"));
 
+		long[] ddmStructureIds = _getLongArray(
+			actionRequest, "ddmStructuresSearchContainerPrimaryKeys");
+
+		if (ArrayUtil.isEmpty(dataDefinition.getDataDefinitionFields()) &&
+			ArrayUtil.isEmpty(ddmStructureIds)) {
+
+			throw new DataDefinitionValidationException.MustSetFields();
+		}
+
 		dataDefinition.setDefaultDataLayout(
 			DataLayout.toDTO(ParamUtil.getString(actionRequest, "dataLayout")));
 
@@ -287,9 +302,6 @@ public class EditFileEntryTypeMVCActionCommand
 
 		_dlFileEntryTypeService.updateFileEntryType(
 			fileEntryTypeId, nameMap, descriptionMap);
-
-		long[] ddmStructureIds = _getLongArray(
-			actionRequest, "ddmStructuresSearchContainerPrimaryKeys");
 
 		if (ddmStructureIds != null) {
 			_dlFileEntryTypeLocalService.updateDDMStructureLinks(

@@ -38,6 +38,7 @@ import {
 	useSelectItem,
 } from './Controls';
 import ItemActions from './ItemActions';
+import {useEditableProcessorUniqueId} from './fragment-content/EditableProcessorContext';
 
 const TOPPER_BAR_HEIGHT = 24;
 
@@ -109,6 +110,10 @@ function TopperContent({
 	const hoverItem = useHoverItem();
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
 
+	const editableProcessorUniqueId = useEditableProcessorUniqueId();
+
+	const canBeDragged = canUpdatePageStructure && !editableProcessorUniqueId;
+
 	const selectItem = useSelectItem();
 
 	const {
@@ -119,8 +124,13 @@ function TopperContent({
 		targetRef,
 	} = useDropTarget(item);
 
+	const name = getLayoutDataItemLabel(item, fragmentEntryLinks);
+
 	const {handlerRef, isDraggingSource} = useDragItem(
-		item,
+		{
+			...item,
+			name,
+		},
 		(parentItemId, position) =>
 			dispatch(
 				moveItem({
@@ -189,6 +199,7 @@ function TopperContent({
 
 				hoverItem(item.itemId);
 			}}
+			ref={canBeDragged ? handlerRef : null}
 			style={style}
 		>
 			<TopperLabel
@@ -197,11 +208,8 @@ function TopperContent({
 				itemElement={itemElement}
 			>
 				<ul className="tbar-nav">
-					{canUpdatePageStructure && (
-						<TopperListItem
-							className="page-editor__topper__drag-handler"
-							ref={handlerRef}
-						>
+					{canBeDragged && (
+						<TopperListItem className="page-editor__topper__drag-handler">
 							<ClayIcon
 								className="page-editor__topper__drag-icon page-editor__topper__icon"
 								symbol="drag"
@@ -213,8 +221,7 @@ function TopperContent({
 						className="page-editor__topper__title"
 						expand
 					>
-						{getLayoutDataItemLabel(item, fragmentEntryLinks) ||
-							Liferay.Language.get('element')}
+						{name || Liferay.Language.get('element')}
 					</TopperListItem>
 					{item.type === LAYOUT_DATA_ITEM_TYPES.fragment && (
 						<TopperListItem>

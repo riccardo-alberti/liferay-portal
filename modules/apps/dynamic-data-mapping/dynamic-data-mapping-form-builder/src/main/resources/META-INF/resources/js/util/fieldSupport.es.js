@@ -16,6 +16,7 @@ import {
 	PagesVisitor,
 	generateName,
 	getRepeatedIndex,
+	normalizeFieldName,
 } from 'dynamic-data-mapping-form-renderer';
 
 import {FIELD_TYPE_FIELDSET} from './constants.es';
@@ -38,8 +39,10 @@ export const generateInstanceId = (length) => {
 	return generateId(length);
 };
 
-export const getDefaultFieldName = (isOptionField = false) => {
-	const defaultFieldName = isOptionField
+export const getDefaultFieldName = (isOptionField = false, fieldType = '') => {
+	const defaultFieldName = fieldType?.label
+		? normalizeFieldName(fieldType.label)
+		: isOptionField
 		? Liferay.Language.get('option')
 		: Liferay.Language.get('field');
 
@@ -157,20 +160,29 @@ export const normalizeSettingsContextPages = (
 						...field.value,
 						[editingLanguageId]:
 							field.value[editingLanguageId] ??
-							field.value[defaultLanguageId],
+							field.value[field.locale],
 					},
 				};
+
+				field.value[defaultLanguageId] =
+					field.value[defaultLanguageId] ??
+					field.value[editingLanguageId];
 			}
 
 			if (field.localizable) {
 				const {localizedValue} = field;
+
+				localizedValue[defaultLanguageId] =
+					localizedValue[defaultLanguageId] ??
+					localizedValue[field.locale];
+
 				const availableLocales = Object.keys(localizedValue);
 
 				availableLocales.forEach((availableLocale) => {
 					if (
 						availableLocale !== defaultLanguageId &&
 						availableLocale !== editingLanguageId &&
-						localizedValue[availableLocale] === ''
+						!localizedValue[availableLocale]
 					) {
 						delete localizedValue[availableLocale];
 					}
@@ -181,7 +193,9 @@ export const normalizeSettingsContextPages = (
 
 			return {
 				...field,
+				defaultLanguageId,
 				instanceId: newInstanceId,
+				locale: defaultLanguageId,
 				name: generateName(field.name, {
 					instanceId: newInstanceId,
 					repeatedIndex: getRepeatedIndex(field.name),
@@ -220,7 +234,9 @@ export const createField = (props, event) => {
 			});
 		}
 		else {
-			newFieldName = fieldNameGenerator(getDefaultFieldName());
+			newFieldName = fieldNameGenerator(
+				getDefaultFieldName(false, fieldType)
+			);
 		}
 	}
 
@@ -231,8 +247,10 @@ export const createField = (props, event) => {
 		name: newFieldName,
 		settingsContext: {
 			...fieldType.settingsContext,
+			defaultLanguageId,
+			editingLanguageId,
 			pages: normalizeSettingsContextPages(
-				fieldType.settingsContext.pages,
+				[...fieldType.settingsContext.pages],
 				defaultLanguageId,
 				editingLanguageId,
 				fieldType,
@@ -353,7 +371,10 @@ export const localizeField = (field, defaultLanguageId, editingLanguageId) => {
 				...value,
 				[editingLanguageId]: [
 					...value[editingLanguageId].map((option) => {
-						if (option.edited) {
+						if (
+							typeof option.edited === 'undefined' ||
+							option.edited
+						) {
 							return option;
 						}
 

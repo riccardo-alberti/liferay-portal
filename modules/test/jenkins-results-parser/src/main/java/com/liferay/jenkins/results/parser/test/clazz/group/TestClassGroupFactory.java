@@ -16,7 +16,12 @@ package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 import com.liferay.jenkins.results.parser.Job;
+import com.liferay.jenkins.results.parser.PortalAWSJob;
+import com.liferay.jenkins.results.parser.PortalEnvironmentJob;
 import com.liferay.jenkins.results.parser.PortalTestClassJob;
+import com.liferay.jenkins.results.parser.QAWebsitesGitRepositoryJob;
+
+import java.io.File;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +34,21 @@ public class TestClassGroupFactory {
 	public static AxisTestClassGroup newAxisTestClassGroup(
 		BatchTestClassGroup batchTestClassGroup) {
 
+		return newAxisTestClassGroup(batchTestClassGroup, null);
+	}
+
+	public static AxisTestClassGroup newAxisTestClassGroup(
+		BatchTestClassGroup batchTestClassGroup, File testBaseDir) {
+
+		if (batchTestClassGroup instanceof CucumberBatchTestClassGroup) {
+			return new CucumberAxisTestClassGroup(
+				(CucumberBatchTestClassGroup)batchTestClassGroup);
+		}
+
 		if (batchTestClassGroup instanceof FunctionalBatchTestClassGroup) {
 			return new FunctionalAxisTestClassGroup(
-				(FunctionalBatchTestClassGroup)batchTestClassGroup);
+				(FunctionalBatchTestClassGroup)batchTestClassGroup,
+				testBaseDir);
 		}
 
 		if (batchTestClassGroup instanceof JUnitBatchTestClassGroup) {
@@ -56,11 +73,20 @@ public class TestClassGroupFactory {
 
 		BatchTestClassGroup batchTestClassGroup = null;
 
-		if (job instanceof PortalTestClassJob) {
+		if (job instanceof PortalEnvironmentJob) {
+			batchTestClassGroup = new EnvironmentFunctionalBatchTestClassGroup(
+				batchName, (PortalEnvironmentJob)job);
+		}
+		else if (job instanceof PortalTestClassJob) {
 			PortalTestClassJob portalTestClassJob = (PortalTestClassJob)job;
 
-			if (batchName.contains("functional-") ||
-				batchName.contains("subrepository-functional-")) {
+			if (batchName.contains("cucumber-")) {
+				batchTestClassGroup = new CucumberBatchTestClassGroup(
+					batchName, portalTestClassJob);
+			}
+			else if (batchName.startsWith("functional-") ||
+					 batchName.startsWith("modules-functional-") ||
+					 batchName.startsWith("subrepository-functional-")) {
 
 				batchTestClassGroup = new FunctionalBatchTestClassGroup(
 					batchName, portalTestClassJob);
@@ -91,6 +117,21 @@ public class TestClassGroupFactory {
 			else if (batchName.startsWith("plugins-compile-")) {
 				batchTestClassGroup = new PluginsBatchTestClassGroup(
 					batchName, portalTestClassJob);
+			}
+			else if (batchName.startsWith("plugins-functional-")) {
+				batchTestClassGroup = new PluginsFunctionalBatchTestClassGroup(
+					batchName, portalTestClassJob);
+			}
+			else if (batchName.startsWith("plugins-gulp-")) {
+				batchTestClassGroup = new PluginsGulpBatchTestClassGroup(
+					batchName, portalTestClassJob);
+			}
+			else if (batchName.startsWith("qa-websites-functional-") &&
+					 (job instanceof QAWebsitesGitRepositoryJob)) {
+
+				batchTestClassGroup =
+					new QAWebsitesFunctionalBatchTestClassGroup(
+						batchName, (QAWebsitesGitRepositoryJob)job);
 			}
 			else if (batchName.startsWith("js-test-") ||
 					 batchName.startsWith("portal-frontend-js-")) {
@@ -128,9 +169,33 @@ public class TestClassGroupFactory {
 	public static SegmentTestClassGroup newSegmentTestClassGroup(
 		BatchTestClassGroup batchTestClassGroup) {
 
+		if (batchTestClassGroup instanceof
+				EnvironmentFunctionalBatchTestClassGroup) {
+
+			return new EnvironmentFunctionalSegmentTestClassGroup(
+				(EnvironmentFunctionalBatchTestClassGroup)batchTestClassGroup);
+		}
+
+		if (batchTestClassGroup instanceof
+				QAWebsitesFunctionalBatchTestClassGroup) {
+
+			return new QAWebsitesFunctionalSegmentTestClassGroup(
+				(QAWebsitesFunctionalBatchTestClassGroup)batchTestClassGroup);
+		}
+
 		if (batchTestClassGroup instanceof FunctionalBatchTestClassGroup) {
+			FunctionalBatchTestClassGroup functionalBatchTestClassGroup =
+				(FunctionalBatchTestClassGroup)batchTestClassGroup;
+
+			Job job = batchTestClassGroup.getJob();
+
+			if (job instanceof PortalAWSJob) {
+				return new AWSFunctionalSegmentTestClassGroup(
+					functionalBatchTestClassGroup);
+			}
+
 			return new FunctionalSegmentTestClassGroup(
-				(FunctionalBatchTestClassGroup)batchTestClassGroup);
+				functionalBatchTestClassGroup);
 		}
 		else if (batchTestClassGroup instanceof JUnitBatchTestClassGroup) {
 			return new JUnitSegmentTestClassGroup(
@@ -139,6 +204,12 @@ public class TestClassGroupFactory {
 		else if (batchTestClassGroup instanceof PluginsBatchTestClassGroup) {
 			return new PluginsSegmentTestClassGroup(
 				(PluginsBatchTestClassGroup)batchTestClassGroup);
+		}
+		else if (batchTestClassGroup instanceof
+					PluginsGulpBatchTestClassGroup) {
+
+			return new PluginsGulpSegmentTestClassGroup(
+				(PluginsGulpBatchTestClassGroup)batchTestClassGroup);
 		}
 
 		return new SegmentTestClassGroup(batchTestClassGroup);

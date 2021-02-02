@@ -28,7 +28,7 @@ import {
 	containsField,
 	isDataLayoutEmpty,
 } from '../../utils/dataLayoutVisitor.es';
-import ModalWithEventPrevented from '../modal/ModalWithEventPrevented.es';
+import {errorToast} from '../../utils/toast.es';
 import TranslationManager from '../translation-manager/TranslationManager.es';
 import useCreateFieldSet from './actions/useCreateFieldSet.es';
 import usePropagateFieldSet from './actions/usePropagateFieldSet.es';
@@ -60,11 +60,25 @@ const ModalContent = ({
 		state: {dataDefinition, dataLayout},
 	} = childrenContext;
 
+	const onEditingLanguageIdChange = useCallback(
+		(editingLanguageId) => {
+			setEditingLanguageId(editingLanguageId);
+
+			dispatch({
+				payload: editingLanguageId,
+				type: UPDATE_EDITING_LANGUAGE_ID,
+			});
+		},
+		[dispatch]
+	);
+
 	const actionProps = {
 		availableLanguageIds: dataDefinition?.availableLanguageIds,
 		childrenContext,
 		defaultLanguageId,
+		editingLanguageId,
 		fieldSet,
+		onEditingLanguageIdChange,
 	};
 
 	const createFieldSet = useCreateFieldSet(actionProps);
@@ -107,10 +121,12 @@ const ModalContent = ({
 				onPropagate: () => saveFieldSet(name),
 			})
 				.then(onClose)
-				.catch(onClose);
+				.catch(({message}) => errorToast(message));
 		}
 		else {
-			createFieldSet(name).then(onClose).catch(onClose);
+			createFieldSet(name)
+				.then(onClose)
+				.catch(({message}) => errorToast(message));
 		}
 	};
 
@@ -121,18 +137,6 @@ const ModalContent = ({
 				container.style.zIndex = zIndex;
 			});
 	};
-
-	const onEditingLanguageIdChange = useCallback(
-		(editingLanguageId) => {
-			setEditingLanguageId(editingLanguageId);
-
-			dispatch({
-				payload: editingLanguageId,
-				type: UPDATE_EDITING_LANGUAGE_ID,
-			});
-		},
-		[dispatch]
-	);
 
 	useEffect(() => {
 		onEditingLanguageIdChange(defaultLanguageId);
@@ -154,17 +158,15 @@ const ModalContent = ({
 	}, [fieldSet]);
 
 	useEffect(() => {
-		if (contentType === 'app-builder') {
-			dispatch({
-				payload: {
-					config: {
-						...appConfig,
-						allowFieldSets: false,
-					},
+		dispatch({
+			payload: {
+				config: {
+					...appConfig,
+					allowFieldSets: false,
 				},
-				type: UPDATE_CONFIG,
-			});
-		}
+			},
+			type: UPDATE_CONFIG,
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [contentType, dispatch]);
 
@@ -218,6 +220,10 @@ const ModalContent = ({
 							)}
 							autoFocus
 							className="form-control-inline"
+							dir={
+								Liferay.Language.direction[editingLanguageId] ||
+								'ltr'
+							}
 							onChange={({target: {value}}) =>
 								setName({...name, [editingLanguageId]: value})
 							}
@@ -225,7 +231,11 @@ const ModalContent = ({
 								'untitled-fieldset'
 							)}
 							type="text"
-							value={name[editingLanguageId] || ''}
+							value={
+								name[editingLanguageId] ||
+								name[defaultLanguageId] ||
+								''
+							}
 						/>
 					</ClayInput.GroupItem>
 				</ClayInput.Group>
@@ -237,6 +247,7 @@ const ModalContent = ({
 						dataLayoutBuilderId={`${appProps.dataLayoutBuilderId}_2`}
 						setChildrenContext={setChildrenContext}
 						{...childrenAppProps}
+						defaultLanguageId={defaultLanguageId}
 					/>
 				</div>
 			</ClayModal.Body>
@@ -248,7 +259,8 @@ const ModalContent = ({
 						</ClayButton>
 						<ClayButton
 							disabled={
-								!name[editingLanguageId] || dataLayoutIsEmpty
+								Object.keys(name).length == 0 ||
+								dataLayoutIsEmpty
 							}
 							onClick={onSave}
 						>
@@ -261,7 +273,7 @@ const ModalContent = ({
 	);
 };
 
-const FieldSetModal = ({isVisible, onClose: onCloseFn, ...props}) => {
+export default ({isVisible, onClose: onCloseFn, ...props}) => {
 	const {observer, onClose} = useModal({
 		onClose: onCloseFn,
 	});
@@ -280,9 +292,3 @@ const FieldSetModal = ({isVisible, onClose: onCloseFn, ...props}) => {
 		</ClayModal>
 	);
 };
-
-export default (props) => (
-	<ModalWithEventPrevented>
-		<FieldSetModal {...props} />
-	</ModalWithEventPrevented>
-);

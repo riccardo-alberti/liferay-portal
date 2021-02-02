@@ -48,8 +48,10 @@ public class AccountEntrySoap implements Serializable {
 		soapModel.setParentAccountEntryId(model.getParentAccountEntryId());
 		soapModel.setDescription(model.getDescription());
 		soapModel.setDomains(model.getDomains());
+		soapModel.setEmailAddress(model.getEmailAddress());
 		soapModel.setLogoId(model.getLogoId());
 		soapModel.setName(model.getName());
+		soapModel.setTaxExemptionCode(model.getTaxExemptionCode());
 		soapModel.setTaxIdNumber(model.getTaxIdNumber());
 		soapModel.setType(model.getType());
 		soapModel.setStatus(model.getStatus());
@@ -210,6 +212,14 @@ public class AccountEntrySoap implements Serializable {
 		_domains = domains;
 	}
 
+	public String getEmailAddress() {
+		return _emailAddress;
+	}
+
+	public void setEmailAddress(String emailAddress) {
+		_emailAddress = emailAddress;
+	}
+
 	public long getLogoId() {
 		return _logoId;
 	}
@@ -224,6 +234,14 @@ public class AccountEntrySoap implements Serializable {
 
 	public void setName(String name) {
 		_name = name;
+	}
+
+	public String getTaxExemptionCode() {
+		return _taxExemptionCode;
+	}
+
+	public void setTaxExemptionCode(String taxExemptionCode) {
+		_taxExemptionCode = taxExemptionCode;
 	}
 
 	public String getTaxIdNumber() {
@@ -263,8 +281,10 @@ public class AccountEntrySoap implements Serializable {
 	private long _parentAccountEntryId;
 	private String _description;
 	private String _domains;
+	private String _emailAddress;
 	private long _logoId;
 	private String _name;
+	private String _taxExemptionCode;
 	private String _taxIdNumber;
 	private String _type;
 	private int _status;

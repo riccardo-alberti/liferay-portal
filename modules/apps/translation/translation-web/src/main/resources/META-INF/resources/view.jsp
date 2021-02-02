@@ -25,7 +25,7 @@ ViewDisplayContext viewDisplayContext = (ViewDisplayContext)request.getAttribute
 />
 
 <clay:container-fluid>
-	<aui:form action="<%= viewDisplayContext.getActionURL() %>" cssClass="container-fluid container-fluid-max-xl" name="fm">
+	<aui:form action="<%= viewDisplayContext.getActionURL() %>" name="fm">
 		<liferay-ui:search-container
 			id="searchContainer"
 			searchContainer="<%= viewDisplayContext.getSearchContainer() %>"
@@ -74,6 +74,7 @@ ViewDisplayContext viewDisplayContext = (ViewDisplayContext)request.getAttribute
 
 				<liferay-ui:search-container-column-text>
 					<clay:dropdown-actions
+						defaultEventHandler="<%= viewDisplayContext.getElementsDefaultEventHandler() %>"
 						dropdownItems="<%= viewDisplayContext.getActionDropdownItems(translationEntry) %>"
 					/>
 				</liferay-ui:search-container-column-text>
@@ -87,7 +88,12 @@ ViewDisplayContext viewDisplayContext = (ViewDisplayContext)request.getAttribute
 </clay:container-fluid>
 
 <liferay-frontend:component
-	componentId="<%= viewDisplayContext.getDefaultEventHandler() %>"
+	componentId="<%= viewDisplayContext.getManagementToolbarDefaultEventHandler() %>"
 	context="<%= viewDisplayContext.getComponentContext() %>"
 	module="js/translate/TranslationManagementToolbarDefaultEventHandler.es"
+/>
+
+<liferay-frontend:component
+	componentId="<%= viewDisplayContext.getElementsDefaultEventHandler() %>"
+	module="js/translate/ElementsDefaultEventHandler.es"
 />

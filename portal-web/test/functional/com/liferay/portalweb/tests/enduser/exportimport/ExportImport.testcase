@@ -285,7 +285,7 @@ definition {
 
 		DMDocument.addCP(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.txt",
+			dmDocumentFile = "Document_1.jpg",
 			dmDocumentTitle = "DM Document Title");
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
@@ -294,7 +294,7 @@ definition {
 
 		DMDocumentType.add(
 			dmDocumentTypeDescription = "DM Document Type Description",
-			dmDocumentTypeFieldNames = "Upload",
+			dmDocumentTypeFieldNames = "Image",
 			dmDocumentTypeName = "DM Document Type Name");
 
 		DMDocumentType.viewCP(dmDocumentTypeName = "DM Document Type Name");
@@ -305,7 +305,9 @@ definition {
 			dmDocumentDescription = "DM Document Description",
 			dmDocumentTitle = "DM Type Document Title",
 			dmDocumentTypeName = "DM Document Type Name",
-			documentsAndMediaField = "DM Document Title");
+			imageField = "DM Document Title",
+			imageFileName = "DM Document Title",
+			navTab = "Documents and Media");
 
 		JSONDocument.deleteFile(
 			dmDocumentTitle = "DM Document Title",
@@ -869,15 +871,13 @@ definition {
 	@description = "This is a use case for LPS-88331."
 	@priority = "3"
 	test ExportImportSiteWithNestedUploadField {
-		property portal.upstream = "quarantine";
-
 		JSONGroup.addGroup(groupName = "Site A");
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-a");
 
 		DMDocument.addCP(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.txt",
+			dmDocumentFile = "Document_1.jpg",
 			dmDocumentTitle = "DM Document Title");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-a");
@@ -893,8 +893,8 @@ definition {
 			fieldName = "Text");
 
 		DataEngine.addFieldNested(
-			fieldFieldLabel = "Upload",
-			fieldName = "Upload",
+			fieldFieldLabel = "Image",
+			fieldName = "Image",
 			targetFieldLabel = "Text");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
@@ -906,7 +906,7 @@ definition {
 		WebContentTemplates.addCP(
 			structureName = "WC Structure Name",
 			templateDescription = "WC Template Description",
-			templateFieldNames = "Text,Upload",
+			templateFieldNames = "Text,Image",
 			templateName = "WC Template Name");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-a");
@@ -914,12 +914,13 @@ definition {
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
 
 		WebContent.addWithStructureCP(
-			dmDocumentTitle = "DM Document Title",
+			imageFileName = "DM Document Title",
+			navTab = "Documents and Media",
 			structureName = "WC Structure Name",
 			templateName = "WC Template Name",
+			webContentImage = "DM Document Title",
 			webContentText = "Web Content Text",
-			webContentTitle = "Web Content Title",
-			webContentUpload = "DM Document Title");
+			webContentTitle = "Web Content Title");
 
 		PortletEntry.publish();
 
@@ -944,9 +945,9 @@ definition {
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-b");
 
 		WebContent.viewWithStructureCP(
+			webContentImage = "DM Document Title",
 			webContentText = "Web Content Text",
-			webContentTitle = "Web Content Title",
-			webContentUpload = "DM Document Title");
+			webContentTitle = "Web Content Title");
 
 		AssertConsoleTextNotPresent(value1 = "com.liferay.portal.kernel.repository.InvalidRepositoryIdException");
 	}
@@ -1535,7 +1536,7 @@ definition {
 
 		DMDocument.addCP(
 			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.txt",
+			dmDocumentFile = "Document_1.jpg",
 			dmDocumentTitle = "DM Document Title");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
@@ -1546,7 +1547,7 @@ definition {
 			structureDescription = "WC Structure Description",
 			structureName = "WC Structure Name");
 
-		DataEngine.addFields(fieldNameList = "Upload,Link to Page,Image");
+		DataEngine.addFields(fieldNameList = "Link to Page,Image");
 
 		WebContentStructures.saveCP(structureName = "WC Structure Name");
 
@@ -1557,7 +1558,7 @@ definition {
 		WebContentTemplates.addCP(
 			structureName = "WC Structure Name",
 			templateDescription = "WC Template Description",
-			templateFieldNames = "Upload,Link to Page,Image",
+			templateFieldNames = "Link to Page,Image",
 			templateName = "WC Template Name");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
@@ -1565,14 +1566,13 @@ definition {
 		WebContentNavigator.gotoAddWithStructureCP(structureName = "WC Structure Name");
 
 		WebContent.addWithStructureCP(
-			dmDocumentTitle = "DM Document Title",
+			imageFileName = "DM Document Title",
 			navTab = "Documents and Media",
 			structureName = "WC Structure Name",
 			templateName = "WC Template Name",
-			webContentImage = "Document_1.jpg",
+			webContentImage = "DM Document Title",
 			webContentLinkToPage = "Test Page",
-			webContentTitle = "WC WebContent Title",
-			webContentUpload = "DM Document Title");
+			webContentTitle = "WC WebContent Title");
 
 		PortletEntry.publish();
 
@@ -1580,10 +1580,6 @@ definition {
 
 		JSONDocument.deleteFile(
 			dmDocumentTitle = "DM Document Title",
-			groupName = "Site Name");
-
-		JSONDocument.deleteFile(
-			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Site Name");
 
 		JSONLayout.deletePublicLayout(
@@ -1622,7 +1618,6 @@ definition {
 	@priority = "3"
 	test ImportSiteWithMissingReferenceOfPreloadedEntry {
 		property portal.release = "false";
-		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "ExportImport#ImportSiteWithMissingReferenceOfPreloadedEntry";
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "Global");
@@ -1741,7 +1736,7 @@ definition {
 	@description = "This is a use case for LPS-97544 and LPS-90886."
 	@priority = "3"
 	test ImportStagedSiteWithCircularReference {
-		property portal.upstream = "quarantine";
+		property portal.upstream = "true";
 
 		JSONGroup.addGroup(groupName = "Site Name");
 
@@ -1799,14 +1794,11 @@ definition {
 
 		NavItem.gotoTemplates();
 
-		var templateScript = '''<p>${webContentData}</p>''';
-
 		WebContentTemplates.addCP(
 			structureName = "Structure Name B",
 			templateDescription = "Template Description B",
 			templateFieldNames = "Web Content",
-			templateName = "Template Name B",
-			templateScript = "${templateScript}");
+			templateName = "Template Name B");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
 
@@ -1864,7 +1856,9 @@ definition {
 			pageName = "Page B",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Title 1");
+		AssertTextEquals.assertPartialText(
+			locator1 = "WCD#WEB_CONTENT_TITLE",
+			value1 = "WC WebContent Title 2");
 
 		LAR.exportSiteCP(siteScopeName = "Site Name");
 

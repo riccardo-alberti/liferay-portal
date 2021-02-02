@@ -14,7 +14,8 @@
 
 package com.liferay.dispatch.web.internal.display.context;
 
-import com.liferay.dispatch.executor.DispatchTaskExecutorHelper;
+import com.liferay.dispatch.executor.DispatchTaskExecutor;
+import com.liferay.dispatch.executor.DispatchTaskExecutorRegistry;
 import com.liferay.dispatch.model.DispatchTrigger;
 import com.liferay.dispatch.service.DispatchTriggerLocalService;
 import com.liferay.dispatch.web.internal.display.context.util.DispatchRequestHelper;
@@ -23,15 +24,19 @@ import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.RowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.text.Format;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.portlet.PortletURL;
@@ -44,17 +49,37 @@ import javax.portlet.RenderRequest;
 public class DispatchTriggerDisplayContext {
 
 	public DispatchTriggerDisplayContext(
-		DispatchTaskExecutorHelper dispatchTaskExecutorHelper,
+		DispatchTaskExecutorRegistry dispatchTaskExecutorRegistry,
 		DispatchTriggerLocalService dispatchTriggerLocalService,
 		RenderRequest renderRequest) {
 
-		_dispatchTaskExecutorHelper = dispatchTaskExecutorHelper;
+		_dispatchTaskExecutorRegistry = dispatchTaskExecutorRegistry;
 		_dispatchTriggerLocalService = dispatchTriggerLocalService;
 
 		_dispatchRequestHelper = new DispatchRequestHelper(renderRequest);
 
 		_dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(
 			_dispatchRequestHelper.getLocale());
+	}
+
+	public String getDispatchTaskExecutorName(
+		String dispatchTaskExecutorType, Locale locale) {
+
+		DispatchTaskExecutor dispatchTaskExecutor =
+			_dispatchTaskExecutorRegistry.getDispatchTaskExecutor(
+				dispatchTaskExecutorType);
+
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			locale, dispatchTaskExecutor.getClass());
+
+		String name = _dispatchTaskExecutorRegistry.getDispatchTaskExecutorName(
+			dispatchTaskExecutorType);
+
+		return LanguageUtil.get(resourceBundle, name);
+	}
+
+	public Set<String> getDispatchTaskExecutorTypes() {
+		return _dispatchTaskExecutorRegistry.getDispatchTaskExecutorTypes();
 	}
 
 	public DispatchTrigger getDispatchTrigger() {
@@ -151,18 +176,9 @@ public class DispatchTriggerDisplayContext {
 		return _searchContainer;
 	}
 
-	public String getTaskExecutorName(String taskExecutorType) {
-		return _dispatchTaskExecutorHelper.getDispatchTaskExecutorName(
-			taskExecutorType);
-	}
-
-	public Set<String> getTaskExecutorTypes() {
-		return _dispatchTaskExecutorHelper.getDispatchTaskExecutorTypes();
-	}
-
 	private final Format _dateFormatDateTime;
 	private final DispatchRequestHelper _dispatchRequestHelper;
-	private final DispatchTaskExecutorHelper _dispatchTaskExecutorHelper;
+	private final DispatchTaskExecutorRegistry _dispatchTaskExecutorRegistry;
 	private final DispatchTriggerLocalService _dispatchTriggerLocalService;
 	private RowChecker _rowChecker;
 	private SearchContainer<DispatchTrigger> _searchContainer;

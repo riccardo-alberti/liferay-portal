@@ -42,6 +42,14 @@ definition {
 					navTab = "${navTab}",
 					videoShortcutTitle = "${videoShortcutTitle}");
 			}
+			else if (isSet(videoURL)) {
+				ItemSelector.addVideo(
+					extractedVideoShortcutTitle = "${extractedVideoShortcutTitle}",
+					videoShortcutDescription = "${videoShortcutDescription}",
+					videoShortcutPreview = "${videoShortcutPreview}",
+					videoShortcutTitle = "${videoShortcutTitle}",
+					videoURL = "${videoURL}");
+			}
 			else {
 				ItemSelector.addVideoFromURL(
 					navTab = "${navTab}",
@@ -216,8 +224,6 @@ definition {
 		AssertElementPresent(locator1 = "TextInput#REQUIRED_ALERT");
 
 		AssertTextPresent(value1 = "Please enter a valid title for the default language: en-US");
-
-		AssertTextPresent(value1 = "Your request failed to complete.");
 	}
 
 	macro addPGViaAP {
@@ -555,6 +561,20 @@ definition {
 				value1 = "${webContentDate}");
 		}
 
+		if (isSet(webContentGrid)) {
+			if (!(isSet(webContentGridFieldLabel))) {
+				var webContentGridFieldLabel = "Grid";
+			}
+
+			var column = ${column} + 1;
+
+			Check.checkNotVisible(
+				key_column = "${column}",
+				key_fieldFieldLabel = "${webContentGridFieldLabel}",
+				key_row = "${row}",
+				locator1 = "WCEditWebContent#GRID_OPTION");
+		}
+
 		if (isSet(webContentImage)) {
 			if (!(isSet(webContentImageFieldLabel))) {
 				var webContentImageFieldLabel = "Image";
@@ -723,23 +743,29 @@ definition {
 				locator1 = "WCEditWebContent#SELECT_BUTTON",
 				value1 = "Select");
 
-			if (isSet(depotName)) {
-				ItemSelector.selectRepositoryImage(
-					available = "${available}",
-					depotName = "${depotName}",
-					folderName = "${folderName}",
-					imageFileName = "${webContentUpload}");
+			if ("${dmNavTab}" == "Documents and Media") {
+				if (isSet(depotName)) {
+					ItemSelector.selectRepositoryImage(
+						depotName = "${depotName}",
+						folderName = "${folderName}",
+						imageFileName = "${webContentUpload}",
+						navTab = "${dmNavTab}");
+				}
+				else if (isSet(dmDocumentTitle)) {
+					ItemSelector.selectDMImage(
+						imageFileName = "${dmDocumentTitle}",
+						navTab = "${dmNavTab}");
+				}
+				else {
+					ItemSelector.uploadFile(
+						navTab = "${dmNavTab}",
+						uploadFileName = "${webContentUpload}");
+				}
 			}
-			else if (isSet(dmDocumentTitle)) {
-				SelectFrame(locator1 = "IFrame#MODAL_BODY");
-
-				AssertClick(
-					key_dmDocumentTitle = "${webContentUpload}",
-					locator1 = "WC#ICON_DOCUMENT_TITLE",
-					value1 = "${dmDocumentTitle}");
-			}
-			else {
-				ItemSelector.uploadFile(uploadFileName = "${webContentUpload}");
+			else if ("${dmNavTab}" == "User Personal Folder") {
+				ItemSelector.uploadFile(
+					navTab = "${dmNavTab}",
+					uploadFileName = "${webContentUpload}");
 			}
 		}
 
@@ -868,6 +894,20 @@ definition {
 			value1 = "${webContentTitle} is not approved.");
 	}
 
+	macro assertFieldRepeated {
+		AssertElementPresent(
+			key_fieldReference = "${fieldReference}",
+			key_index = "${index}",
+			locator1 = "WCEditWebContent#REPEATED_FIELD");
+	}
+
+	macro assertFieldRepeatedNotPresent {
+		AssertElementNotPresent(
+			key_fieldReference = "${fieldReference}",
+			key_index = "${index}",
+			locator1 = "WCEditWebContent#REPEATED_FIELD");
+	}
+
 	macro clickMarginOfContentContainer {
 		var elementHeight = selenium.getElementHeight("WCEditWebContent#CONTENT_CONTAINER");
 		var offSetY = MathUtil.product("50","${elementHeight}");
@@ -991,6 +1031,24 @@ definition {
 					value1 = "${webContentWebContent}");
 
 				SelectFrame(value1 = "relative=top");
+			}
+		}
+
+		if (isSet(embedVideo)) {
+			WaitForLiferayEvent.initializeLiferayEventLog();
+
+			Click.pauseClickAt(locator1 = "CKEditor#CONTENT_VIDEO_IMAGE");
+
+			if ("${navTab}" == "Documents and Media") {
+				ItemSelector.addVideoFromDM(
+					depotName = "${depotName}",
+					navTab = "${navTab}",
+					videoShortcutTitle = "${videoShortcutTitle}");
+			}
+			else {
+				ItemSelector.addVideoFromURL(
+					navTab = "${navTab}",
+					videoSourceURL = "${embedVideo}");
 			}
 		}
 
@@ -1606,9 +1664,17 @@ definition {
 	macro uploadVideo {
 		Click(locator1 = "WCEditWebContent#VIDEO_BUTTON");
 
-		ItemSelector.addVideoFromURL(
-			navTab = "${navTab}",
-			videoSourceURL = "${dmDocumentURL}");
+		if ("${navTab}" == "URL") {
+			ItemSelector.addVideoFromURL(
+				navTab = "${navTab}",
+				videoSourceURL = "${dmDocumentURL}");
+		}
+		else if ("${navTab}" == "Documents and Media") {
+			ItemSelector.addVideoFromDM(
+				navTab = "${navTab}",
+				videoShortcutPreview = "${videoShortcutPreview}",
+				videoShortcutTitle = "${videoShortcutTitle}");
+		}
 
 		SelectFrame.selectFrameNoLoading(
 			key_fieldLabel = "content",
@@ -2255,7 +2321,13 @@ definition {
 	}
 
 	macro viewVideoViaWCD {
-		AssertElementPresent(locator1 = "WCD#WEB_CONTENT_VIDEO");
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		AssertElementPresent(
+			key_videoShortcutTitle = "${videoShortcutTitle}",
+			locator1 = "WCD#WEB_CONTENT_VIDEO");
+
+		SelectFrame(value1 = "relative=top");
 	}
 
 	macro viewWCViewableByPermissions {
@@ -2338,7 +2410,7 @@ definition {
 
 			AssertElementPresent(
 				key_fieldFieldLabel = "${webContentImageFieldLabel}",
-				key_image = "${webContentImage}",
+				key_image = "/documents/",
 				locator1 = "WCEditWebContent#IMAGE_PICKER_PREVIEW");
 
 			if (isSet(webContentImageDescription)) {

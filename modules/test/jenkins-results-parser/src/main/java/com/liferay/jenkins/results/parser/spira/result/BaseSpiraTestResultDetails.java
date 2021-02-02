@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author Michael Hashimoto
@@ -48,6 +48,67 @@ public abstract class BaseSpiraTestResultDetails
 
 	@Override
 	public String getDetails() {
+		ParallelExecutor<Map.Entry<String, String>> parallelExecutor =
+			new ParallelExecutor<>(getCallables(), _executorService);
+
+		Map<String, String> summaries = new TreeMap<>();
+
+		for (Map.Entry<String, String> entry : parallelExecutor.execute()) {
+			summaries.put(entry.getKey(), entry.getValue());
+		}
+
+		StringBuilder sb = new StringBuilder();
+
+		for (String summary : summaries.values()) {
+			if (summary == null) {
+				continue;
+			}
+
+			sb.append(summary);
+		}
+
+		return sb.toString();
+	}
+
+	protected BaseSpiraTestResultDetails(SpiraTestResult spiraTestResult) {
+		_spiraTestResult = spiraTestResult;
+
+		_spiraBuildResult = _spiraTestResult.getSpiraBuildResult();
+	}
+
+	protected String getArtifactBaseURL() {
+		Build build = _spiraTestResult.getBuild();
+
+		if (build == null) {
+			return null;
+		}
+
+		return String.valueOf(build.getArtifactsBaseURL());
+	}
+
+	protected String getArtifactBaseURLContent() {
+		if (_artifactBaseURLContent != null) {
+			return _artifactBaseURLContent;
+		}
+
+		String artifactBaseURL = getArtifactBaseURL();
+
+		if (artifactBaseURL == null) {
+			return _artifactBaseURLContent = "";
+		}
+
+		try {
+			_artifactBaseURLContent = JenkinsResultsParserUtil.toString(
+				getArtifactBaseURL() + "/", true, 0, 0, 0);
+		}
+		catch (IOException ioException) {
+			_artifactBaseURLContent = "";
+		}
+
+		return _artifactBaseURLContent;
+	}
+
+	protected List<Callable<Map.Entry<String, String>>> getCallables() {
 		List<Callable<Map.Entry<String, String>>> callables = new ArrayList<>();
 
 		callables.add(
@@ -131,58 +192,7 @@ public abstract class BaseSpiraTestResultDetails
 
 			});
 
-		ThreadPoolExecutor threadPoolExecutor =
-			JenkinsResultsParserUtil.getNewThreadPoolExecutor(
-				callables.size(), true);
-
-		ParallelExecutor<Map.Entry<String, String>> parallelExecutor =
-			new ParallelExecutor<>(callables, threadPoolExecutor);
-
-		Map<String, String> summaries = new TreeMap<>();
-
-		for (Map.Entry<String, String> entry : parallelExecutor.execute()) {
-			summaries.put(entry.getKey(), entry.getValue());
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		for (String summary : summaries.values()) {
-			if (summary == null) {
-				continue;
-			}
-
-			sb.append(summary);
-		}
-
-		return sb.toString();
-	}
-
-	protected BaseSpiraTestResultDetails(SpiraTestResult spiraTestResult) {
-		_spiraTestResult = spiraTestResult;
-
-		_spiraBuildResult = _spiraTestResult.getSpiraBuildResult();
-	}
-
-	protected String getArtifactBaseURL() {
-		Build build = _spiraTestResult.getBuild();
-
-		return String.valueOf(build.getArtifactsBaseURL());
-	}
-
-	protected String getArtifactBaseURLContent() {
-		if (_artifactBaseURLContent != null) {
-			return _artifactBaseURLContent;
-		}
-
-		try {
-			_artifactBaseURLContent = JenkinsResultsParserUtil.toString(
-				getArtifactBaseURL() + "/", true, 0, 0, 0);
-		}
-		catch (IOException ioException) {
-			_artifactBaseURLContent = "";
-		}
-
-		return _artifactBaseURLContent;
+		return callables;
 	}
 
 	protected String getTestFailuresSummary() {
@@ -513,6 +523,11 @@ public abstract class BaseSpiraTestResultDetails
 
 		return sb.toString();
 	}
+
+	private static final Integer _THREAD_COUNT = 100;
+
+	private static final ExecutorService _executorService =
+		JenkinsResultsParserUtil.getNewThreadPoolExecutor(_THREAD_COUNT, true);
 
 	private String _artifactBaseURLContent;
 	private final SpiraBuildResult _spiraBuildResult;

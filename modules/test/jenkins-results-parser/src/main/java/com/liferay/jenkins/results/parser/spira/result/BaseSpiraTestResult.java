@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 
 import com.liferay.jenkins.results.parser.Build;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.JenkinsSlave;
 import com.liferay.jenkins.results.parser.PortalBranchInformationBuild;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
 import com.liferay.jenkins.results.parser.spira.BaseSpiraArtifact;
@@ -64,7 +65,9 @@ public abstract class BaseSpiraTestResult implements SpiraTestResult {
 			Build.BranchInformation portalBranchInformation =
 				portalBranchInformationBuild.getPortalBranchInformation();
 
-			portalSHA = portalBranchInformation.getSenderBranchSHA();
+			if (portalBranchInformation != null) {
+				portalSHA = portalBranchInformation.getSenderBranchSHA();
+			}
 		}
 
 		if (portalSHA.length() > 7) {
@@ -132,12 +135,7 @@ public abstract class BaseSpiraTestResult implements SpiraTestResult {
 		requestJSONObject.put(
 			"RunnerStackTrace", _spiraTestResultDetails.getDetails());
 		requestJSONObject.put("RunnerTestName", getTestName());
-
-		Build build = getBuild();
-
-		requestJSONObject.put(
-			"StartDate",
-			BaseSpiraArtifact.toDateString(new Date(build.getStartTime())));
+		requestJSONObject.put("StartDate", _getStartDateString());
 
 		SpiraTestCaseRun.RunnerFormat runnerFormat =
 			getSpiraTestCaseRunRunnerFormat();
@@ -151,8 +149,18 @@ public abstract class BaseSpiraTestResult implements SpiraTestResult {
 	public SpiraAutomationHost getSpiraAutomationHost() {
 		Build build = getBuild();
 
+		if (build == null) {
+			return null;
+		}
+
+		JenkinsSlave jenkinsSlave = build.getJenkinsSlave();
+
+		if (jenkinsSlave == null) {
+			return null;
+		}
+
 		return SpiraAutomationHost.createSpiraAutomationHost(
-			spiraBuildResult.getSpiraProject(), build.getJenkinsSlave());
+			spiraBuildResult.getSpiraProject(), jenkinsSlave);
 	}
 
 	@Override
@@ -166,23 +174,11 @@ public abstract class BaseSpiraTestResult implements SpiraTestResult {
 			return _spiraTestCaseObject;
 		}
 
-		StringBuilder sb = new StringBuilder();
-
 		SpiraBuildResult spiraBuildResult = getSpiraBuildResult();
-
-		SpiraTestCaseFolder spiraTestCaseFolder =
-			spiraBuildResult.getSpiraTestCaseFolder();
-
-		if (spiraTestCaseFolder != null) {
-			sb.append(spiraTestCaseFolder.getPath());
-		}
-
-		sb.append("/");
-		sb.append(BaseSpiraArtifact.fixStringForJSON(getTestName()));
 
 		_spiraTestCaseObject =
 			SpiraTestCaseObject.createSpiraTestCaseObjectByPath(
-				spiraBuildResult.getSpiraProject(), sb.toString(),
+				spiraBuildResult.getSpiraProject(), getSpiraTestCasePath(),
 				getSpiraTestCaseType(),
 				Lists.<SpiraCustomPropertyValue>newArrayList(
 					spiraBuildResult.getSpiraTestCaseProductVersion()));
@@ -260,7 +256,45 @@ public abstract class BaseSpiraTestResult implements SpiraTestResult {
 			this);
 	}
 
+	protected String getSpiraTestCasePath() {
+		StringBuilder sb = new StringBuilder();
+
+		SpiraTestCaseFolder spiraTestCaseFolder =
+			spiraBuildResult.getSpiraTestCaseFolder();
+
+		if (spiraTestCaseFolder != null) {
+			sb.append(spiraTestCaseFolder.getPath());
+		}
+
+		sb.append("/");
+		sb.append(BaseSpiraArtifact.fixStringForJSON(getTestName()));
+
+		return sb.toString();
+	}
+
 	protected final SpiraBuildResult spiraBuildResult;
+
+	private String _getStartDateString() {
+		Long startTime = null;
+
+		Build build = getBuild();
+
+		TopLevelBuild topLevelBuild = spiraBuildResult.getTopLevelBuild();
+
+		if (build != null) {
+			startTime = build.getStartTime();
+		}
+
+		if ((topLevelBuild != null) && (startTime == null)) {
+			startTime = topLevelBuild.getStartTime();
+		}
+
+		if (startTime == null) {
+			startTime = System.currentTimeMillis();
+		}
+
+		return BaseSpiraArtifact.toDateString(new Date(startTime));
+	}
 
 	private SpiraTestCaseObject _spiraTestCaseObject;
 	private final SpiraTestResultDetails _spiraTestResultDetails;

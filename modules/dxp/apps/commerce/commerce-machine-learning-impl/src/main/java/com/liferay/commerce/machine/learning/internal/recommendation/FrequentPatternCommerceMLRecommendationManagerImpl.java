@@ -32,15 +32,15 @@ import com.liferay.portal.search.query.BooleanQuery;
 import com.liferay.portal.search.query.FunctionScoreQuery;
 import com.liferay.portal.search.query.Queries;
 import com.liferay.portal.search.query.TermQuery;
+import com.liferay.portal.search.query.function.CombineFunction;
 import com.liferay.portal.search.query.function.score.ScoreFunctions;
-import com.liferay.portal.search.query.function.score.ScriptScoreFunction;
 import com.liferay.portal.search.script.Script;
 import com.liferay.portal.search.script.ScriptBuilder;
 import com.liferay.portal.search.script.ScriptType;
 import com.liferay.portal.search.script.Scripts;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -91,7 +91,7 @@ public class FrequentPatternCommerceMLRecommendationManagerImpl
 
 		int start = 0;
 
-		Map<String, Document> documentMap = new HashMap<>(
+		Map<String, Document> documentMap = new LinkedHashMap<>(
 			DEFAULT_RESULT_SIZE, 1.0F);
 
 		while (documentMap.size() < DEFAULT_RESULT_SIZE) {
@@ -105,6 +105,10 @@ public class FrequentPatternCommerceMLRecommendationManagerImpl
 			for (Document doc : hits.getDocs()) {
 				String recommendedEntryClassPK = doc.get(
 					CommerceMLRecommendationField.RECOMMENDED_ENTRY_CLASS_PK);
+
+				if (documentMap.get(recommendedEntryClassPK) != null) {
+					continue;
+				}
 
 				documentMap.put(recommendedEntryClassPK, doc);
 
@@ -164,7 +168,8 @@ public class FrequentPatternCommerceMLRecommendationManagerImpl
 
 		frequentPatternCommerceMLRecommendation.setAntecedentIds(
 			GetterUtil.getLongValues(
-				document.get(CommerceMLRecommendationField.ANTECEDENT_IDS)));
+				document.getValues(
+					CommerceMLRecommendationField.ANTECEDENT_IDS)));
 
 		frequentPatternCommerceMLRecommendation.setAntecedentIdsLength(
 			GetterUtil.getLong(
@@ -231,23 +236,19 @@ public class FrequentPatternCommerceMLRecommendationManagerImpl
 		searchSearchRequest.setIndexNames(
 			_commerceMLIndexer.getIndexName(companyId));
 
-		searchSearchRequest.setSize(DEFAULT_FETCH_SIZE);
-
-		BooleanQuery excludeRecommendationsBooleanQuery =
-			_getExcludeRecommendations(cpDefinitionIds);
-
-		BooleanQuery booleanQuery = _getConstantScoreQuery(cpDefinitionIds);
-
-		ScriptScoreFunction scriptScoreFunction = _scoreFunctions.script(
-			_getScript(cpDefinitionIds));
-
 		FunctionScoreQuery functionScoreQuery = _queries.functionScore(
-			excludeRecommendationsBooleanQuery);
+			_getConstantScoreQuery(cpDefinitionIds));
 
 		functionScoreQuery.addFilterQueryScoreFunctionHolder(
-			booleanQuery, scriptScoreFunction);
+			_getExcludeRecommendations(cpDefinitionIds),
+			_scoreFunctions.script(_getScript(cpDefinitionIds)));
+		functionScoreQuery.setCombineFunction(CombineFunction.REPLACE);
+		functionScoreQuery.setScoreMode(FunctionScoreQuery.ScoreMode.SUM);
+		functionScoreQuery.setMinScore(1.1F);
 
 		searchSearchRequest.setQuery(functionScoreQuery);
+
+		searchSearchRequest.setSize(DEFAULT_FETCH_SIZE);
 
 		return searchSearchRequest;
 	}

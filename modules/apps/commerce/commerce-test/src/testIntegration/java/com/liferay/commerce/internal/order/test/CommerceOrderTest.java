@@ -863,7 +863,7 @@ public class CommerceOrderTest {
 		Settings settings = _settingsFactory.getSettings(
 			new GroupServiceSettingsLocator(
 				_commerceChannel.getGroupId(),
-				CommerceConstants.ORDER_FIELDS_SERVICE_NAME));
+				CommerceConstants.SERVICE_NAME_ORDER_FIELDS));
 
 		ModifiableSettings modifiableSettings =
 			settings.getModifiableSettings();
@@ -958,7 +958,7 @@ public class CommerceOrderTest {
 			null, 1, null, _serviceContext);
 
 		_resourcePermissionLocalService.addResourcePermission(
-			_serviceContext.getCompanyId(), "90", 1,
+			_serviceContext.getCompanyId(), "com.liferay.commerce.account", 1,
 			String.valueOf(role.getCompanyId()), role.getRoleId(),
 			"MANAGE_AVAILABLE_ACCOUNTS");
 

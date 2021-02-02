@@ -171,7 +171,9 @@ describe('EditApp', () => {
 
 		expect(productMenu.checked).toBe(false);
 
-		fireEvent.click(productMenu);
+		await act(async () => {
+			await fireEvent.click(productMenu);
+		});
 
 		expect(productMenu.checked).toBe(true);
 

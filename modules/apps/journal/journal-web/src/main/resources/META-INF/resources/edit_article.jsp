@@ -250,6 +250,7 @@ JournalEditArticleDisplayContext journalEditArticleDisplayContext = new JournalE
 
 				<liferay-frontend:component
 					componentId='<%= liferayPortletResponse.getNamespace() + "dataEngineLayoutRendererLanguageProxy" %>'
+					context="<%= journalEditArticleDisplayContext.getDataEngineLayoutRendererComponentContext() %>"
 					module="js/dataEngineLayoutRendererLanguageProxy.es"
 					servletContext="<%= application %>"
 				/>

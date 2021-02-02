@@ -61,8 +61,8 @@ public class DispatchFileRepositoryImpl implements DispatchFileRepository {
 		DispatchTrigger dispatchTrigger =
 			_dispatchTriggerLocalService.getDispatchTrigger(dispatchTriggerId);
 
-		DispatchFileValidator dispatchFileValidator = _getFileValidator(
-			dispatchTrigger.getTaskExecutorType());
+		DispatchFileValidator dispatchFileValidator = _getDispatchFileValidator(
+			dispatchTrigger.getDispatchTaskExecutorType());
 
 		dispatchFileValidator.validateExtension(fileName);
 		dispatchFileValidator.validateSize(size);
@@ -146,12 +146,14 @@ public class DispatchFileRepositoryImpl implements DispatchFileRepository {
 			String.valueOf(dispatchTriggerId), contentType, false);
 	}
 
-	private DispatchFileValidator _getFileValidator(String taskExecutorType) {
+	private DispatchFileValidator _getDispatchFileValidator(
+		String dispatchTaskExecutorType) {
+
 		if (_dispatchFileValidatorServiceTrackerMap.containsKey(
-				taskExecutorType)) {
+				dispatchTaskExecutorType)) {
 
 			return _dispatchFileValidatorServiceTrackerMap.getService(
-				taskExecutorType);
+				dispatchTaskExecutorType);
 		}
 
 		return _dispatchFileValidatorServiceTrackerMap.getService("default");

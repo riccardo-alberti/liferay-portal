@@ -12,4 +12,9 @@
 			display: none;
 		}
 	}
+
+	&__toggle .toggle-switch-label {
+		font-size: 0.875rem;
+		margin-left: 8px;
+	}
 }

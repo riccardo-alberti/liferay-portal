@@ -46,7 +46,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -425,69 +425,105 @@ public class AxisBuild extends BaseBuild {
 	}
 
 	public TestClassResult getTestClassResult(String testClassName) {
-		synchronized (_testClassResults) {
-			if (_testClassResults.containsKey(testClassName)) {
-				return _testClassResults.get(testClassName);
-			}
-
-			if (!isCompleted()) {
-				return null;
-			}
-
-			for (TestClassResult testClassResult : getTestClassResults()) {
-				_testClassResults.put(
-					testClassResult.getClassName(), testClassResult);
-			}
-
-			return _testClassResults.get(testClassName);
+		if (!isCompleted()) {
+			return null;
 		}
+
+		if (_testClassResultsPopulated && !_testClassResults.isEmpty()) {
+			TestClassResult targetTestClassResult = _testClassResults.get(
+				testClassName);
+
+			if (targetTestClassResult != null) {
+				return targetTestClassResult;
+			}
+		}
+
+		synchronized (_testClassResults) {
+			if (!_testClassResultsPopulated) {
+				for (TestClassResult testClassResult : getTestClassResults()) {
+					_testClassResults.put(
+						testClassResult.getClassName(), testClassResult);
+				}
+
+				_testClassResultsPopulated = true;
+			}
+		}
+
+		return _testClassResults.get(testClassName);
 	}
 
 	public TestResult getTestResult(String testName) {
-		synchronized (_testResults) {
-			if (_testResults.containsKey(testName)) {
-				return _testResults.get(testName);
-			}
+		TestResult targetTestResult = _testResults.get(testName);
 
-			for (TestResult testResult : getTestResults(null)) {
-				if (testName.equals(testResult.getTestName())) {
-					return testResult;
-				}
-			}
-
-			return null;
+		if (targetTestResult != null) {
+			return targetTestResult;
 		}
+
+		for (TestResult testResult : getTestResults(null)) {
+			if (testName.equals(testResult.getTestName())) {
+				return testResult;
+			}
+		}
+
+		return null;
 	}
 
 	@Override
 	public List<TestResult> getTestResults(String testStatus) {
+		if (!isCompleted()) {
+			return Collections.emptyList();
+		}
+
+		if (_testResultsPopulated && !_testResults.isEmpty()) {
+			List<TestResult> availableTestResults = new ArrayList<>(
+				_testResults.values());
+
+			if (!availableTestResults.isEmpty()) {
+				List<TestResult> testResults = new ArrayList<>();
+
+				for (TestResult testResult : availableTestResults) {
+					if ((testStatus == null) ||
+						testStatus.equals(testResult.getStatus())) {
+
+						testResults.add(testResult);
+					}
+				}
+
+				return testResults;
+			}
+		}
+
+		JSONObject testReportJSONObject = null;
+
+		String result = getResult();
+
+		if (result.equals("SUCCESS") || result.equals("UNSTABLE")) {
+			testReportJSONObject = getTestReportJSONObject(true);
+		}
+
+		if (testReportJSONObject == null) {
+			System.out.println(
+				"Unable to get test results for: " + getBuildURL());
+
+			return Collections.emptyList();
+		}
+
 		synchronized (_testResults) {
-			if (!isCompleted()) {
-				return Collections.emptyList();
-			}
+			for (TestResult testResult :
+					getTestResults(
+						this, testReportJSONObject.getJSONArray("suites"))) {
 
-			if (!_testResults.isEmpty()) {
-				return new ArrayList<>(_testResults.values());
-			}
-
-			JSONObject testReportJSONObject = getTestReportJSONObject(true);
-
-			if (testReportJSONObject == null) {
-				System.out.println(
-					"Unable to get test results for: " + getBuildURL());
-
-				return Collections.emptyList();
-			}
-
-			List<TestResult> testResults = getTestResults(
-				this, testReportJSONObject.getJSONArray("suites"), testStatus);
-
-			for (TestResult testResult : testResults) {
 				_testResults.put(testResult.getTestName(), testResult);
 			}
 
-			return testResults;
+			_testResultsPopulated = true;
 		}
+
+		if (_testResults.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		return getTestResults(testStatus);
 	}
 
 	@Override
@@ -702,8 +738,10 @@ public class AxisBuild extends BaseBuild {
 		"AXIS_VARIABLE=(?<axisNumber>[^,]+),.*");
 
 	private final Map<String, TestClassResult> _testClassResults =
-		Collections.synchronizedMap(new TreeMap<String, TestClassResult>());
+		new ConcurrentHashMap<>();
+	private boolean _testClassResultsPopulated;
 	private final Map<String, TestResult> _testResults =
-		Collections.synchronizedMap(new TreeMap<String, TestResult>());
+		new ConcurrentHashMap<>();
+	private boolean _testResultsPopulated;
 
 }

@@ -985,6 +985,23 @@ definition {
 			Navigator.openURL();
 		}
 
+		if (isSet(enableXuggler)) {
+			ServerAdministration.openServerAdmin(baseURL = "http://localhost:${remotePort}");
+
+			ServerAdministration.configureExternalServices(installXuggler = "true");
+
+			Clustering.shutdownSpecificServer(nodePort = "${remotePort}");
+
+			Clustering.startSpecificServer(
+				deleteLiferayHome = "true",
+				keepCachedAppServerData = "true",
+				nodePort = "${remotePort}");
+
+			ServerAdministration.openServerAdmin(baseURL = "http://localhost:${remotePort}");
+
+			ServerAdministration.configureExternalServices(enableXuggler = "true");
+		}
+
 		var siteID = "${siteID}";
 
 		ApplicationsMenu.gotoPortlet(
@@ -1161,6 +1178,8 @@ definition {
 			locator1 = "StagingPublishToLive#SWITCH_TO_ADVANCED_PUBLICATION",
 			value1 = "Switch to Advanced Publish Process");
 
+		ScrollWebElementIntoView(locator1 = "Staging#STAGING_PUBLICATION_PERMISSION");
+
 		Click(locator1 = "Radio#CHOOSE_CONTENT_DATE_RANGE_CHANGE");
 
 		var key_contentDateRange = "DateRange";
@@ -1173,9 +1192,15 @@ definition {
 			locator1 = "Select#DATE_RANGE_END_DATE",
 			value1 = "${dateRangeEndDate}");
 
-		Click(locator1 = "Link#REFRESH_COUNTS");
+		Click.mouseDownMouseUp(locator1 = "Link#REFRESH_COUNTS");
 
-		Pause(locator1 = "5000");
+		takeScreenshot();
+
+		Pause(locator1 = "3000");
+
+		ScrollWebElementIntoView(locator1 = "Staging#STAGING_PUBLICATION_PERMISSION");
+
+		takeScreenshot();
 	}
 
 	macro setStartDateTomorrow {

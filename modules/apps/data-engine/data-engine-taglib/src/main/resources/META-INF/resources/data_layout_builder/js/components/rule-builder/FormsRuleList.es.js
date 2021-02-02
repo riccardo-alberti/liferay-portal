@@ -20,7 +20,7 @@ import ClayIcon from '@clayui/icon';
 import ClayLabel from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import ClayList from '@clayui/list';
-import {RulesSupport} from 'dynamic-data-mapping-form-builder';
+import RulesSupport from 'dynamic-data-mapping-form-builder/js/components/RuleBuilder/RulesSupport.es';
 import React, {useMemo} from 'react';
 
 import * as Lang from '../../utils/lang.es';
@@ -103,7 +103,7 @@ const Operand = ({field, left, type, value}) => {
 					(option) => value === option.value
 				)?.label;
 			case 'field':
-				return field.label;
+				return field?.label;
 			case 'list':
 				return value;
 			case 'json':
@@ -186,7 +186,10 @@ const ActionCalculate = ({expression, fields, target}) => (
 		<b>
 			{Lang.subComp(Liferay.Language.get('calculate-field-x-as-x'), [
 				<ClayLabelCustom displayType="secondary" key={expression} large>
-					{expression}
+					{RulesSupport.replaceFieldNameByFieldLabel(
+						expression,
+						fields
+					) ?? expression}
 				</ClayLabelCustom>,
 				<ClayLabelCustom displayType="secondary" key={target} large>
 					{fields.find(({value}) => value === target)?.label ??
@@ -268,6 +271,49 @@ const transformConditions = ({operator, operands: [left, right]}, fields) => {
 	};
 };
 
+const ConditionWithLogicalOperator = ({
+	condition,
+	hasLogicalOperator,
+	logicalOperator,
+}) => (
+	<>
+		<Condition {...condition} />
+		{hasLogicalOperator && (
+			<LogicalOperator
+				logicalOperator={LOGICAL_OPERATOR[logicalOperator]}
+			/>
+		)}
+	</>
+);
+
+const ActionWithLogicalOperator = ({
+	action,
+	dataProvider,
+	fields,
+	hasLogicalOperator,
+	pages,
+	...otherProps
+}) => {
+	const Action = ACTIONS[action];
+
+	return (
+		<>
+			<Action
+				action={action}
+				dataProvider={dataProvider}
+				fields={fields}
+				pages={pages}
+				{...otherProps}
+			/>
+			{hasLogicalOperator && (
+				<LogicalOperator logicalOperator={Liferay.Language.get('and')}>
+					{` , `}
+				</LogicalOperator>
+			)}
+		</>
+	);
+};
+
 const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 	const {actions} = rule;
 
@@ -304,47 +350,25 @@ const ListItem = ({dataProvider, fields, onDelete, onEdit, pages, rule}) => {
 						{Liferay.Language.get('if')}
 					</b>
 					{conditions.map((condition, index) => (
-						<>
-							<Condition key={index} {...condition} />
-							{conditions.length - 1 > index && (
-								<LogicalOperator
-									key={'lo' + index}
-									logicalOperator={
-										LOGICAL_OPERATOR[
-											rule['logical-operator']
-										]
-									}
-								/>
-							)}
-						</>
+						<ConditionWithLogicalOperator
+							condition={condition}
+							hasLogicalOperator={conditions.length - 1 > index}
+							key={index}
+							logicalOperator={rule['logical-operator']}
+						/>
 					))}
 					<br />
-					{actions.map(({action, ...otherProps}, index) => {
-						const Action = ACTIONS[action];
-
-						return (
-							<>
-								<Action
-									action={action}
-									dataProvider={dataProvider}
-									fields={fields}
-									key={index}
-									pages={pages}
-									{...otherProps}
-								/>
-								{actions.length - 1 > index && (
-									<LogicalOperator
-										key={'lo' + index}
-										logicalOperator={Liferay.Language.get(
-											'and'
-										)}
-									>
-										{` , `}
-									</LogicalOperator>
-								)}
-							</>
-						);
-					})}
+					{actions.map(({action, ...otherProps}, index) => (
+						<ActionWithLogicalOperator
+							action={action}
+							dataProvider={dataProvider}
+							fields={fields}
+							hasLogicalOperator={actions.length - 1 > index}
+							key={index}
+							pages={pages}
+							{...otherProps}
+						/>
+					))}
 				</div>
 			</ClayLayout.ContentCol>
 			<ClayLayout.ContentCol>

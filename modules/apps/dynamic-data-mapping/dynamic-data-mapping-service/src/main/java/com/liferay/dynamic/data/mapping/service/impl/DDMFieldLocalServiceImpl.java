@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -185,7 +186,15 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 
 		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
 
-		DDMField rootDDMField = ddmFields.get(0);
+		Stream<DDMField> stream = ddmFields.stream();
+
+		DDMField rootDDMField = stream.filter(
+			ddmField -> com.liferay.portal.kernel.util.StringUtil.equals(
+				ddmField.getFieldName(), StringPool.BLANK)
+		).findFirst(
+		).orElse(
+			ddmFields.get(0)
+		);
 
 		DDMFieldInfo rootDDMFieldInfo = ddmFieldInfoMap.remove(
 			rootDDMField.getFieldId());
@@ -378,6 +387,32 @@ public class DDMFieldLocalServiceImpl extends DDMFieldLocalServiceBaseImpl {
 		int priority = 0;
 
 		Map<String, Long> instanceToFieldIdMap = new HashMap<>();
+
+		List<Map.Entry<DDMField, DDMFieldInfo>> childrenDDMFields =
+			new ArrayList<>();
+		List<Map.Entry<DDMField, DDMFieldInfo>> parentsDDMFields =
+			new ArrayList<>();
+
+		for (Map.Entry<DDMField, DDMFieldInfo> entry :
+				ddmFormUpdateContext._ddmFieldEntries) {
+
+			DDMFieldInfo ddmFieldInfo = entry.getValue();
+
+			if ((ddmFieldInfo == null) ||
+				(ddmFieldInfo._parentInstanceId == null)) {
+
+				parentsDDMFields.add(entry);
+			}
+			else {
+				childrenDDMFields.add(entry);
+			}
+		}
+
+		ddmFormUpdateContext._ddmFieldEntries.clear();
+
+		ddmFormUpdateContext._ddmFieldEntries.addAll(parentsDDMFields);
+
+		ddmFormUpdateContext._ddmFieldEntries.addAll(childrenDDMFields);
 
 		for (Map.Entry<DDMField, DDMFieldInfo> entry :
 				ddmFormUpdateContext._ddmFieldEntries) {

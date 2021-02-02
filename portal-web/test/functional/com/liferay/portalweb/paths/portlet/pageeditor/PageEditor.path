@@ -286,13 +286,28 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EXPERIENCE_DUPLICATE_BUTTON</td>
+	<td>//div[contains(@class,'toolbar-experience')]//button[contains(@title,'Duplicate Experience')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXPERIENCE_EDIT_BUTTON</td>
 	<td>//div[contains(@class,'toolbar-experience')]//button[contains(@title,'Edit Experience')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>EXPERIENCE_SEGMENT_ANYONE</td>
+	<td>//select[@id='_com_liferay_layout_content_page_editor_web_internal_portlet_ContentPageEditorPortlet_segmentsExperienceSegment']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXPERIENCE_SELECT_ITEM</td>
 	<td>//div[contains(@class,'toolbar-experience')]//ul//*[text()='${key_experienceName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EXPERIENCE_SELECT_SEGMENT</td>
+	<td>//select[@id='_com_liferay_layout_content_page_editor_web_internal_portlet_ContentPageEditorPortlet_segmentsExperienceSegment']/option[.='${key_segmentName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -463,7 +478,7 @@
 </tr>
 <tr>
 	<td>FRAGMENT_SIDEBAR_TAB_BUTTON</td>
-	<td>//div[contains(@class,'page-editor__sidebar__buttons')]//*[contains(@title,'${key_tabName}')]</td>
+	<td>//div[contains(@class,'page-editor__sidebar__buttons')]//*[@*='${key_tabName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -542,7 +557,7 @@
 </tr>
 <tr>
 	<td>GRID_COLUMN_NESTED_ELEMENT</td>
-	<td>xpath=(//div[contains(@class,'page-editor__topper__bar') and contains(.,'Grid')]//following-sibling::div[contains(@class,'page-editor__topper__content')])[${key_position}]//div[contains(@class,'page-editor__col')][${key_columnNumber}]${key_elementHeader}</td>
+	<td>xpath=(//div[contains(@class,'layout-content')]//div[contains(@class,'row')][not(contains(@class,'alert'))])[${key_position}]/div[contains(@class,'col')][${key_columnNumber}]${key_elementHeader}</td>
 	<td></td>
 </tr>
 <tr>
@@ -691,6 +706,11 @@
 <tr>
 	<td>MANAGEMENT_BAR</td>
 	<td>//div[contains(@class,'management-bar')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PREVIEW</td>
+	<td>//div[contains(@class,'management-bar')]//button[@*='Preview']</td>
 	<td></td>
 </tr>
 <tr>

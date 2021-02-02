@@ -83,7 +83,9 @@ public class CommerceDiscountQualifiersDisplayContext
 			httpServletRequest, CommerceAccount.class.getName(),
 			PortletProvider.Action.EDIT);
 
-		portletURL.setParameter("mvcRenderCommandName", "editCommerceAccount");
+		portletURL.setParameter(
+			"mvcRenderCommandName",
+			"/commerce_account_admin/edit_commerce_account");
 		portletURL.setParameter(
 			"redirect", commercePricingRequestHelper.getCurrentURL());
 		portletURL.setParameter("commerceAccountId", "{account.id}");
@@ -157,7 +159,8 @@ public class CommerceDiscountQualifiersDisplayContext
 			httpServletRequest, CommerceChannel.class.getName(),
 			PortletProvider.Action.MANAGE);
 
-		portletURL.setParameter("mvcRenderCommandName", "editCommerceChannel");
+		portletURL.setParameter(
+			"mvcRenderCommandName", "/commerce_channels/edit_commerce_channel");
 		portletURL.setParameter(
 			"redirect", commercePricingRequestHelper.getCurrentURL());
 		portletURL.setParameter("commerceChannelId", "{channel.id}");

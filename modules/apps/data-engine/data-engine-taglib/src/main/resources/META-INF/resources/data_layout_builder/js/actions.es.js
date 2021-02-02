@@ -24,13 +24,16 @@ export const EDIT_CUSTOM_OBJECT_FIELD = 'EDIT_CUSTOM_OBJECT_FIELD';
 export const EVALUATION_ERROR = 'EVALUATION_ERROR';
 export const SET_FORM_RENDERER_CUSTOM_FIELDS =
 	'SET_FORM_RENDERER_CUSTOM_FIELDS';
+export const SWITCH_SIDEBAR_PANEL = 'SWITCH_SIDEBAR_PANEL';
 export const UPDATE_APP_PROPS = 'UPDATE_APP_PROPS';
 export const UPDATE_CONFIG = 'UPDATE_CONFIG';
 export const UPDATE_FIELDSETS = 'UPDATE_FIELDSETS';
 export const UPDATE_FOCUSED_CUSTOM_OBJECT_FIELD =
 	'UPDATE_FOCUSED_CUSTOM_OBJECT_FIELD';
 export const UPDATE_DATA_DEFINITION = 'UPDATE_DATA_DEFINITION';
+export const UPDATE_DATA_DEFINITION_FIELDS = 'UPDATE_DATA_DEFINITION_FIELDS';
 export const UPDATE_DATA_LAYOUT = 'UPDATE_DATA_LAYOUT';
+export const UPDATE_DATA_LAYOUT_FIELDS = 'UPDATE_DATA_LAYOUT_FIELDS';
 export const UPDATE_DATA_LAYOUT_NAME = 'UPDATE_DATA_LAYOUT_NAME';
 export const UPDATE_DATA_LAYOUT_RULE = 'UPDATE_DATA_LAYOUT_RULE';
 export const UPDATE_EDITING_DATA_DEFINITION_ID =
@@ -105,6 +108,7 @@ export const dropLayoutBuilderField = ({
 export const dropFieldSet = ({
 	availableLanguageIds = [],
 	dataLayoutBuilder,
+	defaultLanguageId,
 	fieldName,
 	fieldSet,
 	indexes,
@@ -116,6 +120,10 @@ export const dropFieldSet = ({
 		fieldSet.defaultDataLayout ||
 		dataLayoutBuilder.getDefaultDataLayout(fieldSet)
 	).dataLayoutPages;
+
+	if (!availableLanguageIds.includes(defaultLanguageId)) {
+		availableLanguageIds = [...availableLanguageIds, defaultLanguageId];
+	}
 
 	return {
 		...otherProps,

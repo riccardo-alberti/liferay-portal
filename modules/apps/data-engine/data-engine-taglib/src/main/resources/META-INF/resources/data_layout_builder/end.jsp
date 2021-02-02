@@ -38,7 +38,7 @@
 		DataDefinitionValidationException.MustSetOptionsForField msoff = (DataDefinitionValidationException.MustSetOptionsForField)errorException;
 		%>
 
-		<liferay-ui:message arguments="<%= HtmlUtil.escape(msoff.getFieldName()) %>" key="at-least-one-option-should-be-set-for-field-x" translateArguments="<%= false %>" />
+		<liferay-ui:message arguments="<%= HtmlUtil.escape(msoff.getFieldLabel()) %>" key="at-least-one-option-should-be-set-for-field-x" translateArguments="<%= false %>" />
 	</liferay-ui:error>
 
 	<liferay-ui:error exception="<%= DataDefinitionValidationException.MustSetValidCharactersForFieldName.class %>">
@@ -75,6 +75,8 @@
 			).put(
 				"contentType", contentType
 			).put(
+				"contentTypeConfig", contentTypeConfigJSONObject
+			).put(
 				"context", dataLayoutJSONObject
 			).put(
 				"dataDefinitionId", dataDefinitionId
@@ -84,6 +86,8 @@
 				"dataLayoutBuilderId", componentId
 			).put(
 				"dataLayoutId", dataLayoutId
+			).put(
+				"defaultLanguageId", defaultLanguageId
 			).put(
 				"fieldSetContentType", fieldSetContentType
 			).put(

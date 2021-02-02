@@ -58,7 +58,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -187,14 +186,22 @@ public class JournalEditArticleDisplayContext {
 	}
 
 	public Map<String, Object> getComponentContext() {
-		String defaultArticleLanguageId = getDefaultArticleLanguageId();
-
 		return HashMapBuilder.<String, Object>put(
-			"availableLocales", Arrays.asList(defaultArticleLanguageId)
+			"articleId", getArticleId()
+		).put(
+			"availableLocales", _getAvailableLanguageIds()
+		).put(
+			"classNameId", String.valueOf(getClassNameId())
 		).put(
 			"contentTitle", "titleMapAsXML"
 		).put(
-			"defaultLanguageId", defaultArticleLanguageId
+			"defaultLanguageId", getDefaultArticleLanguageId()
+		).build();
+	}
+
+	public Map<String, Object> getDataEngineLayoutRendererComponentContext() {
+		return HashMapBuilder.<String, Object>put(
+			"currentLanguageId", getSelectedLanguageId()
 		).build();
 	}
 
@@ -654,6 +661,14 @@ public class JournalEditArticleDisplayContext {
 		}
 
 		return false;
+	}
+
+	private String[] _getAvailableLanguageIds() {
+		if (_article == null) {
+			return new String[] {getDefaultArticleLanguageId()};
+		}
+
+		return _article.getAvailableLanguageIds();
 	}
 
 	private DDMFormValuesFactory _getDDMFormValuesFactory() {

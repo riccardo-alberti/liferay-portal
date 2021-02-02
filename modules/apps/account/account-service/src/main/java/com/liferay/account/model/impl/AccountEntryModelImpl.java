@@ -79,8 +79,9 @@ public class AccountEntryModelImpl
 		{"defaultBillingAddressId", Types.BIGINT},
 		{"defaultShippingAddressId", Types.BIGINT},
 		{"parentAccountEntryId", Types.BIGINT}, {"description", Types.VARCHAR},
-		{"domains", Types.VARCHAR}, {"logoId", Types.BIGINT},
-		{"name", Types.VARCHAR}, {"taxIdNumber", Types.VARCHAR},
+		{"domains", Types.VARCHAR}, {"emailAddress", Types.VARCHAR},
+		{"logoId", Types.BIGINT}, {"name", Types.VARCHAR},
+		{"taxExemptionCode", Types.VARCHAR}, {"taxIdNumber", Types.VARCHAR},
 		{"type_", Types.VARCHAR}, {"status", Types.INTEGER}
 	};
 
@@ -101,15 +102,17 @@ public class AccountEntryModelImpl
 		TABLE_COLUMNS_MAP.put("parentAccountEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("description", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("domains", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("emailAddress", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("logoId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("taxExemptionCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("taxIdNumber", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("type_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("status", Types.INTEGER);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AccountEntry (mvccVersion LONG default 0 not null,externalReferenceCode VARCHAR(75) null,accountEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,defaultBillingAddressId LONG,defaultShippingAddressId LONG,parentAccountEntryId LONG,description STRING null,domains STRING null,logoId LONG,name VARCHAR(100) null,taxIdNumber VARCHAR(75) null,type_ VARCHAR(75) null,status INTEGER)";
+		"create table AccountEntry (mvccVersion LONG default 0 not null,externalReferenceCode VARCHAR(75) null,accountEntryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,defaultBillingAddressId LONG,defaultShippingAddressId LONG,parentAccountEntryId LONG,description STRING null,domains STRING null,emailAddress VARCHAR(254) null,logoId LONG,name VARCHAR(100) null,taxExemptionCode VARCHAR(75) null,taxIdNumber VARCHAR(75) null,type_ VARCHAR(75) null,status INTEGER)";
 
 	public static final String TABLE_SQL_DROP = "drop table AccountEntry";
 
@@ -193,8 +196,10 @@ public class AccountEntryModelImpl
 		model.setParentAccountEntryId(soapModel.getParentAccountEntryId());
 		model.setDescription(soapModel.getDescription());
 		model.setDomains(soapModel.getDomains());
+		model.setEmailAddress(soapModel.getEmailAddress());
 		model.setLogoId(soapModel.getLogoId());
 		model.setName(soapModel.getName());
+		model.setTaxExemptionCode(soapModel.getTaxExemptionCode());
 		model.setTaxIdNumber(soapModel.getTaxIdNumber());
 		model.setType(soapModel.getType());
 		model.setStatus(soapModel.getStatus());
@@ -414,12 +419,23 @@ public class AccountEntryModelImpl
 		attributeSetterBiConsumers.put(
 			"domains",
 			(BiConsumer<AccountEntry, String>)AccountEntry::setDomains);
+		attributeGetterFunctions.put(
+			"emailAddress", AccountEntry::getEmailAddress);
+		attributeSetterBiConsumers.put(
+			"emailAddress",
+			(BiConsumer<AccountEntry, String>)AccountEntry::setEmailAddress);
 		attributeGetterFunctions.put("logoId", AccountEntry::getLogoId);
 		attributeSetterBiConsumers.put(
 			"logoId", (BiConsumer<AccountEntry, Long>)AccountEntry::setLogoId);
 		attributeGetterFunctions.put("name", AccountEntry::getName);
 		attributeSetterBiConsumers.put(
 			"name", (BiConsumer<AccountEntry, String>)AccountEntry::setName);
+		attributeGetterFunctions.put(
+			"taxExemptionCode", AccountEntry::getTaxExemptionCode);
+		attributeSetterBiConsumers.put(
+			"taxExemptionCode",
+			(BiConsumer<AccountEntry, String>)
+				AccountEntry::setTaxExemptionCode);
 		attributeGetterFunctions.put(
 			"taxIdNumber", AccountEntry::getTaxIdNumber);
 		attributeSetterBiConsumers.put(
@@ -697,6 +713,26 @@ public class AccountEntryModelImpl
 
 	@JSON
 	@Override
+	public String getEmailAddress() {
+		if (_emailAddress == null) {
+			return "";
+		}
+		else {
+			return _emailAddress;
+		}
+	}
+
+	@Override
+	public void setEmailAddress(String emailAddress) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_emailAddress = emailAddress;
+	}
+
+	@JSON
+	@Override
 	public long getLogoId() {
 		return _logoId;
 	}
@@ -728,6 +764,26 @@ public class AccountEntryModelImpl
 		}
 
 		_name = name;
+	}
+
+	@JSON
+	@Override
+	public String getTaxExemptionCode() {
+		if (_taxExemptionCode == null) {
+			return "";
+		}
+		else {
+			return _taxExemptionCode;
+		}
+	}
+
+	@Override
+	public void setTaxExemptionCode(String taxExemptionCode) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_taxExemptionCode = taxExemptionCode;
 	}
 
 	@JSON
@@ -864,8 +920,10 @@ public class AccountEntryModelImpl
 		accountEntryImpl.setParentAccountEntryId(getParentAccountEntryId());
 		accountEntryImpl.setDescription(getDescription());
 		accountEntryImpl.setDomains(getDomains());
+		accountEntryImpl.setEmailAddress(getEmailAddress());
 		accountEntryImpl.setLogoId(getLogoId());
 		accountEntryImpl.setName(getName());
+		accountEntryImpl.setTaxExemptionCode(getTaxExemptionCode());
 		accountEntryImpl.setTaxIdNumber(getTaxIdNumber());
 		accountEntryImpl.setType(getType());
 		accountEntryImpl.setStatus(getStatus());
@@ -1017,6 +1075,14 @@ public class AccountEntryModelImpl
 			accountEntryCacheModel.domains = null;
 		}
 
+		accountEntryCacheModel.emailAddress = getEmailAddress();
+
+		String emailAddress = accountEntryCacheModel.emailAddress;
+
+		if ((emailAddress != null) && (emailAddress.length() == 0)) {
+			accountEntryCacheModel.emailAddress = null;
+		}
+
 		accountEntryCacheModel.logoId = getLogoId();
 
 		accountEntryCacheModel.name = getName();
@@ -1025,6 +1091,14 @@ public class AccountEntryModelImpl
 
 		if ((name != null) && (name.length() == 0)) {
 			accountEntryCacheModel.name = null;
+		}
+
+		accountEntryCacheModel.taxExemptionCode = getTaxExemptionCode();
+
+		String taxExemptionCode = accountEntryCacheModel.taxExemptionCode;
+
+		if ((taxExemptionCode != null) && (taxExemptionCode.length() == 0)) {
+			accountEntryCacheModel.taxExemptionCode = null;
 		}
 
 		accountEntryCacheModel.taxIdNumber = getTaxIdNumber();
@@ -1132,8 +1206,10 @@ public class AccountEntryModelImpl
 	private long _parentAccountEntryId;
 	private String _description;
 	private String _domains;
+	private String _emailAddress;
 	private long _logoId;
 	private String _name;
+	private String _taxExemptionCode;
 	private String _taxIdNumber;
 	private String _type;
 	private int _status;
@@ -1184,8 +1260,10 @@ public class AccountEntryModelImpl
 			"parentAccountEntryId", _parentAccountEntryId);
 		_columnOriginalValues.put("description", _description);
 		_columnOriginalValues.put("domains", _domains);
+		_columnOriginalValues.put("emailAddress", _emailAddress);
 		_columnOriginalValues.put("logoId", _logoId);
 		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("taxExemptionCode", _taxExemptionCode);
 		_columnOriginalValues.put("taxIdNumber", _taxIdNumber);
 		_columnOriginalValues.put("type_", _type);
 		_columnOriginalValues.put("status", _status);
@@ -1238,15 +1316,19 @@ public class AccountEntryModelImpl
 
 		columnBitmasks.put("domains", 4096L);
 
-		columnBitmasks.put("logoId", 8192L);
+		columnBitmasks.put("emailAddress", 8192L);
 
-		columnBitmasks.put("name", 16384L);
+		columnBitmasks.put("logoId", 16384L);
 
-		columnBitmasks.put("taxIdNumber", 32768L);
+		columnBitmasks.put("name", 32768L);
 
-		columnBitmasks.put("type_", 65536L);
+		columnBitmasks.put("taxExemptionCode", 65536L);
 
-		columnBitmasks.put("status", 131072L);
+		columnBitmasks.put("taxIdNumber", 131072L);
+
+		columnBitmasks.put("type_", 262144L);
+
+		columnBitmasks.put("status", 524288L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

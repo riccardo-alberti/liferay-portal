@@ -178,12 +178,15 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 
 						<clay:container-fluid
 							cssClass="ddm-form-builder-app ddm-form-builder-app-not-ready"
-							id='<%= ddmFormDisplayContext.getContainerId() + "container" %>'
+							id="<%= ddmFormDisplayContext.getContainerId() %>"
 						>
-							<%= ddmFormDisplayContext.getDDMFormHTML() %>
-
-							<aui:input name="empty" type="hidden" value="" />
+							<react:component
+								module="admin/js/index.es"
+								props="<%= ddmFormDisplayContext.getDDMFormContext() %>"
+							/>
 						</clay:container-fluid>
+
+						<aui:input name="empty" type="hidden" value="" />
 					</aui:form>
 				</div>
 
@@ -277,7 +280,7 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 
 					function <portlet:namespace />enableForm() {
 						var container = document.querySelector(
-							'#<%= ddmFormDisplayContext.getContainerId() %>container'
+							'#<%= ddmFormDisplayContext.getContainerId() %>'
 						);
 
 						container.classList.remove('ddm-form-builder-app-not-ready');

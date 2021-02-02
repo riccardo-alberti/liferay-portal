@@ -20,6 +20,7 @@ import com.liferay.jenkins.results.parser.NotificationUtil;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +38,8 @@ public class SpiraTestCaseResultsUtil {
 			branchName, testSuite);
 
 		String subject = JenkinsResultsParserUtil.combine(
-			"Inconsistent Upstream Test Suite Test Report (", branchName,
-			") - ", testSuite);
+			"Upstream Test Suite Test Failure Report (", branchName, ") - ",
+			testSuite);
 
 		NotificationUtil.sendSlackNotification(message, channel, subject);
 	}
@@ -73,6 +74,8 @@ public class SpiraTestCaseResultsUtil {
 						branchName, comparisonUpstreamSuite)));
 		}
 
+		int failedTestCount = 0;
+
 		Map<Integer, SpiraTestCaseRun> spiraTestCaseRuns =
 			_getSpiraTestCaseRunMapFromList(
 				_getLatestUpstreamSpiraTestCaseRuns(branchName, testSuite));
@@ -80,16 +83,18 @@ public class SpiraTestCaseResultsUtil {
 		for (Map.Entry<Integer, SpiraTestCaseRun> entry :
 				spiraTestCaseRuns.entrySet()) {
 
-			boolean inconsistent = false;
+			SpiraTestCaseRun spiraTestCaseRun = entry.getValue();
+
+			String testCaseName = spiraTestCaseRun.getName();
+
+			if (_excludeTestNames.contains(testCaseName)) {
+				continue;
+			}
 
 			StringBuilder spiraTestCaseRunMessageStringBuilder =
 				new StringBuilder();
 
-			SpiraTestCaseRun spiraTestCaseRun = entry.getValue();
-
-			spiraTestCaseRunMessageStringBuilder.append(
-				spiraTestCaseRun.getName());
-
+			spiraTestCaseRunMessageStringBuilder.append(testCaseName);
 			spiraTestCaseRunMessageStringBuilder.append("\n");
 			spiraTestCaseRunMessageStringBuilder.append(testSuite);
 			spiraTestCaseRunMessageStringBuilder.append("\n<");
@@ -99,6 +104,12 @@ public class SpiraTestCaseResultsUtil {
 
 			int executionStatusId = (int)spiraTestCaseRun.getProperty(
 				"ExecutionStatusId");
+
+			boolean testFailedAtLeastOnce = false;
+
+			if (executionStatusId == SpiraTestCaseRun.Status.FAILED.getID()) {
+				testFailedAtLeastOnce = true;
+			}
 
 			spiraTestCaseRunMessageStringBuilder.append(
 				SpiraTestCaseRun.Status.getStatusName(executionStatusId));
@@ -114,13 +125,9 @@ public class SpiraTestCaseResultsUtil {
 					comparisonEntry.getValue();
 
 				if (!comparisonSpiraTestCaseRuns.containsKey(testCaseID)) {
-					spiraTestCaseRunMessageStringBuilder.append(
-						comparisonEntry.getKey());
-					spiraTestCaseRunMessageStringBuilder.append("\nN/A\n");
+					testFailedAtLeastOnce = false;
 
-					inconsistent = true;
-
-					continue;
+					break;
 				}
 
 				spiraTestCaseRunMessageStringBuilder.append(
@@ -139,8 +146,10 @@ public class SpiraTestCaseResultsUtil {
 					(int)comparisonSpiraTestCaseRun.getProperty(
 						"ExecutionStatusId");
 
-				if (comparisonExecutionStatusId != executionStatusId) {
-					inconsistent = true;
+				if (comparisonExecutionStatusId ==
+						SpiraTestCaseRun.Status.FAILED.getID()) {
+
+					testFailedAtLeastOnce = true;
 				}
 
 				spiraTestCaseRunMessageStringBuilder.append(
@@ -149,16 +158,18 @@ public class SpiraTestCaseResultsUtil {
 				spiraTestCaseRunMessageStringBuilder.append(">\n");
 			}
 
-			if (inconsistent) {
+			if (testFailedAtLeastOnce) {
 				upstreamComparisonMessageStringBuilder.append(
 					spiraTestCaseRunMessageStringBuilder.toString());
 				upstreamComparisonMessageStringBuilder.append("\n");
+
+				failedTestCount++;
 			}
 		}
 
-		if (upstreamComparisonMessageStringBuilder.length() == 0) {
+		if (failedTestCount == 0) {
 			upstreamComparisonMessageStringBuilder.append(
-				"There are no inconsistent test results in the latest ");
+				"There are no failed tests to be reported in the latest ");
 			upstreamComparisonMessageStringBuilder.append(branchName);
 			upstreamComparisonMessageStringBuilder.append(
 				" upstream test run for the test suite '");
@@ -173,9 +184,13 @@ public class SpiraTestCaseResultsUtil {
 					comparisonUpstreamSuite);
 				upstreamComparisonMessageStringBuilder.append("\n");
 			}
+
+			return upstreamComparisonMessageStringBuilder.toString();
 		}
 
-		return upstreamComparisonMessageStringBuilder.toString();
+		return JenkinsResultsParserUtil.combine(
+			"There are ", String.valueOf(failedTestCount), " failed tests.\n",
+			upstreamComparisonMessageStringBuilder.toString());
 	}
 
 	private static List<SpiraTestCaseRun> _getLatestUpstreamSpiraTestCaseRuns(
@@ -226,6 +241,8 @@ public class SpiraTestCaseResultsUtil {
 	}
 
 	private static final Properties _buildProperties;
+	private static final List<String> _excludeTestNames = Arrays.asList(
+		"top-level-job");
 
 	static {
 		try {

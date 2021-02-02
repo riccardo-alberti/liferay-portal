@@ -47,7 +47,6 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 	>
 		<liferay-ui:search-container-row
 			className="Object"
-			cssClass="entry"
 			modelVar="entry"
 		>
 
@@ -66,7 +65,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 						<c:when test="<%= itemDescriptor.isCompact() %>">
 
 							<%
-							row.setCssClass("card-page-item card-page-item-directory entry-display-style " + row.getCssClass());
+							row.setCssClass("card-page-item card-page-item-directory entry " + row.getCssClass());
 							%>
 
 							<liferay-ui:search-container-column-text>
@@ -78,7 +77,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 						<c:otherwise>
 
 							<%
-							row.setCssClass("card-page-item card-page-item-asset entry-display-style " + row.getCssClass());
+							row.setCssClass("card-page-item card-page-item-asset entry " + row.getCssClass());
 							%>
 
 							<liferay-ui:search-container-column-text>
@@ -110,6 +109,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 
 					<liferay-ui:search-container-column-text
 						colspan="<%= 2 %>"
+						cssClass="entry"
 					>
 						<c:if test="<%= Objects.nonNull(itemDescriptor.getModifiedDate()) %>">
 
@@ -144,10 +144,13 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 				</c:when>
 				<c:otherwise>
 					<liferay-ui:search-container-column-text
-						cssClass="table-cell-expand table-cell-minw-200 table-title"
+						cssClass="table-cell-expand table-cell-minw-200"
 						name="title"
-						value="<%= itemDescriptor.getTitle(locale) %>"
-					/>
+					>
+						<a class="entry" title="<%= itemDescriptor.getTitle(locale) %>">
+							<%= itemDescriptor.getTitle(locale) %>
+						</a>
+					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
 						cssClass="table-cell-expand-smaller table-cell-minw-150"
@@ -238,10 +241,24 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 						});
 					}
 
-					var newSelectedCard = event.delegateTarget.closest('.form-check-card');
+					var target = event.delegateTarget;
+
+					var newSelectedCard = target.closest('.form-check-card');
 
 					if (newSelectedCard) {
 						newSelectedCard.classList.add('active');
+					}
+
+					var domElement = target.closest('li');
+
+					if (domElement == null) {
+						domElement = target.closest('tr');
+					}
+
+					var itemValue = '';
+
+					if (domElement != null) {
+						itemValue = domElement.dataset.value;
 					}
 
 					Liferay.Util.getOpener().Liferay.fire(
@@ -250,7 +267,7 @@ SearchContainer<Object> searchContainer = itemSelectorViewDescriptorRendererDisp
 							data: {
 								returnType:
 									'<%= itemSelectorViewDescriptorRendererDisplayContext.getReturnType() %>',
-								value: event.delegateTarget.dataset.value,
+								value: itemValue,
 							},
 						}
 					);

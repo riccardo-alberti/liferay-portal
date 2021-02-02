@@ -148,9 +148,13 @@ public class AccountEntryPersistenceTest {
 
 		newAccountEntry.setDomains(RandomTestUtil.randomString());
 
+		newAccountEntry.setEmailAddress(RandomTestUtil.randomString());
+
 		newAccountEntry.setLogoId(RandomTestUtil.nextLong());
 
 		newAccountEntry.setName(RandomTestUtil.randomString());
+
+		newAccountEntry.setTaxExemptionCode(RandomTestUtil.randomString());
 
 		newAccountEntry.setTaxIdNumber(RandomTestUtil.randomString());
 
@@ -200,9 +204,15 @@ public class AccountEntryPersistenceTest {
 		Assert.assertEquals(
 			existingAccountEntry.getDomains(), newAccountEntry.getDomains());
 		Assert.assertEquals(
+			existingAccountEntry.getEmailAddress(),
+			newAccountEntry.getEmailAddress());
+		Assert.assertEquals(
 			existingAccountEntry.getLogoId(), newAccountEntry.getLogoId());
 		Assert.assertEquals(
 			existingAccountEntry.getName(), newAccountEntry.getName());
+		Assert.assertEquals(
+			existingAccountEntry.getTaxExemptionCode(),
+			newAccountEntry.getTaxExemptionCode());
 		Assert.assertEquals(
 			existingAccountEntry.getTaxIdNumber(),
 			newAccountEntry.getTaxIdNumber());
@@ -266,7 +276,8 @@ public class AccountEntryPersistenceTest {
 			"userName", true, "createDate", true, "modifiedDate", true,
 			"defaultBillingAddressId", true, "defaultShippingAddressId", true,
 			"parentAccountEntryId", true, "description", true, "domains", true,
-			"logoId", true, "name", true, "taxIdNumber", true, "type", true,
+			"emailAddress", true, "logoId", true, "name", true,
+			"taxExemptionCode", true, "taxIdNumber", true, "type", true,
 			"status", true);
 	}
 
@@ -575,9 +586,13 @@ public class AccountEntryPersistenceTest {
 
 		accountEntry.setDomains(RandomTestUtil.randomString());
 
+		accountEntry.setEmailAddress(RandomTestUtil.randomString());
+
 		accountEntry.setLogoId(RandomTestUtil.nextLong());
 
 		accountEntry.setName(RandomTestUtil.randomString());
+
+		accountEntry.setTaxExemptionCode(RandomTestUtil.randomString());
 
 		accountEntry.setTaxIdNumber(RandomTestUtil.randomString());
 

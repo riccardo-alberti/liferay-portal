@@ -143,7 +143,8 @@ public abstract class BaseAxisSpiraTestResultValues
 		}
 
 		if (propertyNameOpts.isEmpty()) {
-			return null;
+			return JenkinsResultsParserUtil.getProperty(
+				portalTestProperties, batchPropertyName);
 		}
 
 		String batchPropertyNameOpt = "";
@@ -188,6 +189,15 @@ public abstract class BaseAxisSpiraTestResultValues
 
 				@Override
 				public List<SpiraCustomPropertyValue> call() throws Exception {
+					return Collections.singletonList(getErrorMessageValue());
+				}
+
+			});
+		callables.add(
+			new Callable<List<SpiraCustomPropertyValue>>() {
+
+				@Override
+				public List<SpiraCustomPropertyValue> call() throws Exception {
 					return Collections.singletonList(_getTestTypeValue());
 				}
 
@@ -205,10 +215,35 @@ public abstract class BaseAxisSpiraTestResultValues
 		return callables;
 	}
 
+	protected SpiraCustomPropertyValue getErrorMessageValue() {
+		SpiraBuildResult spiraBuildResult = getSpiraBuildResult();
+
+		SpiraCustomProperty spiraCustomProperty =
+			SpiraCustomProperty.createSpiraCustomProperty(
+				spiraBuildResult.getSpiraProject(), SpiraTestCaseRun.class,
+				"Error Message", SpiraCustomProperty.Type.TEXT, true);
+
+		AxisBuild axisBuild = _axisSpiraTestResult.getAxisBuild();
+
+		if (axisBuild == null) {
+			return SpiraCustomPropertyValue.createSpiraCustomPropertyValue(
+				spiraCustomProperty, "The batch build failed to run.");
+		}
+
+		String status = axisBuild.getResult();
+
+		if (!status.equals("SUCCESS")) {
+			return SpiraCustomPropertyValue.createSpiraCustomPropertyValue(
+				spiraCustomProperty, "The batch build failed.");
+		}
+
+		return null;
+	}
+
 	private SpiraCustomPropertyValue _getBatchNameValue() {
 		String batchName = _axisSpiraTestResult.getBatchName();
 
-		if ((batchName == null) || !batchName.isEmpty()) {
+		if ((batchName == null) || batchName.isEmpty()) {
 			return null;
 		}
 

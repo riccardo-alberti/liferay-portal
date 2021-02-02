@@ -60,6 +60,10 @@ public abstract class BaseAxisSpiraTestResult
 
 		AxisBuild axisBuild = getAxisBuild();
 
+		if (axisBuild == null) {
+			return commonFailedTestResults;
+		}
+
 		String result = axisBuild.getResult();
 
 		if (!result.equals("SUCCESS") && !result.equals("UNSTABLE")) {
@@ -129,6 +133,25 @@ public abstract class BaseAxisSpiraTestResult
 
 		if (packageName.equals("com.liferay.poshi.runner") &&
 			testName.equals("initializationError")) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isSpiraPropertyUpdateEnabled() {
+		SpiraBuildResult spiraBuildResult = getSpiraBuildResult();
+
+		TopLevelBuild topLevelBuild = spiraBuildResult.getTopLevelBuild();
+
+		String spiraPropertyUpdate = JenkinsResultsParserUtil.getProperty(
+			spiraBuildResult.getPortalTestProperties(),
+			"test.batch.spira.property.update", topLevelBuild.getJobName(),
+			topLevelBuild.getTestSuiteName());
+
+		if ((spiraPropertyUpdate != null) &&
+			spiraPropertyUpdate.equals("true")) {
 
 			return true;
 		}

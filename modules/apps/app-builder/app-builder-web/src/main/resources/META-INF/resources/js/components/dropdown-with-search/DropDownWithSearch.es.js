@@ -121,7 +121,7 @@ const EmptyState = ({children, className, label}) => {
 };
 
 const Items = ({
-	children,
+	children: ItemContent,
 	emptyResultMessage,
 	items = [],
 	propertyKey = 'name',
@@ -149,11 +149,19 @@ const Items = ({
 			{itemList.length > 0
 				? itemList.map((item, index) => (
 						<ClayDropDown.Item
-							disabled={item.disabled}
+							disabled={
+								item.disabled ||
+								(item.missingRequiredFields?.missing &&
+									item.missingRequiredFields?.nativeField)
+							}
 							key={index}
 							onClick={(event) => onClick(event, item)}
 						>
-							{children ? children(item) : item.name}
+							{ItemContent ? (
+								<ItemContent {...item} />
+							) : (
+								item.name
+							)}
 						</ClayDropDown.Item>
 				  ))
 				: items.length > 0 && (

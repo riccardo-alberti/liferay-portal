@@ -16,6 +16,7 @@ package com.liferay.asset.publisher.web.internal.messaging;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.persistence.AssetEntryQuery;
+import com.liferay.asset.kernel.util.NotifiedAssetEntryThreadLocal;
 import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
 import com.liferay.asset.publisher.web.internal.configuration.AssetPublisherWebConfiguration;
@@ -25,6 +26,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
@@ -62,6 +64,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletPreferences;
@@ -128,6 +132,13 @@ public class AssetEntriesCheckerHelper {
 			return;
 		}
 
+		Stream<AssetEntry> stream = assetEntries.stream();
+
+		assetEntries = stream.distinct(
+		).collect(
+			Collectors.toList()
+		);
+
 		long[] notifiedAssetEntryIds = GetterUtil.getLongValues(
 			portletPreferences.getValues("notifiedAssetEntryIds", null));
 
@@ -156,6 +167,8 @@ public class AssetEntriesCheckerHelper {
 
 		_notifySubscribers(subscriptions, portletPreferences, newAssetEntries);
 
+		NotifiedAssetEntryThreadLocal.setNotifiedAssetEntryIdsModified(true);
+
 		try {
 			portletPreferences.setValues(
 				"notifiedAssetEntryIds",
@@ -167,6 +180,10 @@ public class AssetEntriesCheckerHelper {
 		}
 		catch (IOException | PortletException exception) {
 			throw new PortalException(exception);
+		}
+		finally {
+			NotifiedAssetEntryThreadLocal.setNotifiedAssetEntryIdsModified(
+				false);
 		}
 	}
 
@@ -217,9 +234,16 @@ public class AssetEntriesCheckerHelper {
 			_assetPublisherHelper.getAssetEntryQuery(
 				portletPreferences, layout.getGroupId(), layout, null, null);
 
-		assetEntryQuery.setEnd(
-			assetPublisherWebConfiguration.dynamicSubscriptionLimit());
-		assetEntryQuery.setStart(0);
+		int end = assetPublisherWebConfiguration.dynamicSubscriptionLimit();
+		int start = 0;
+
+		if (end == 0) {
+			end = QueryUtil.ALL_POS;
+			start = QueryUtil.ALL_POS;
+		}
+
+		assetEntryQuery.setEnd(end);
+		assetEntryQuery.setStart(start);
 
 		try {
 			SearchContext searchContext = SearchContextFactory.getInstance(
@@ -230,8 +254,7 @@ public class AssetEntriesCheckerHelper {
 
 			BaseModelSearchResult<AssetEntry> baseModelSearchResult =
 				_assetHelper.searchAssetEntries(
-					searchContext, assetEntryQuery, 0,
-					assetPublisherWebConfiguration.dynamicSubscriptionLimit());
+					searchContext, assetEntryQuery, start, end);
 
 			return baseModelSearchResult.getBaseModels();
 		}

@@ -12,8 +12,10 @@ create table AccountEntry (
 	parentAccountEntryId LONG,
 	description STRING null,
 	domains STRING null,
+	emailAddress VARCHAR(254) null,
 	logoId LONG,
 	name VARCHAR(100) null,
+	taxExemptionCode VARCHAR(75) null,
 	taxIdNumber VARCHAR(75) null,
 	type_ VARCHAR(75) null,
 	status INTEGER

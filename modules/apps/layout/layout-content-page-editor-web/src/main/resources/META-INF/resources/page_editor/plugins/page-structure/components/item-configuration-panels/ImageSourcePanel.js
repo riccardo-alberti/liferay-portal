@@ -18,6 +18,7 @@ import React, {useState} from 'react';
 import {BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../app/config/constants/backgroundImageFragmentEntryProcessor';
 import {EDITABLE_FRAGMENT_ENTRY_PROCESSOR} from '../../../../app/config/constants/editableFragmentEntryProcessor';
 import {EDITABLE_TYPES} from '../../../../app/config/constants/editableTypes';
+import {FILE_ENTRY_CLASS_NAME} from '../../../../app/config/constants/fileEntryClassName';
 import {VIEWPORT_SIZES} from '../../../../app/config/constants/viewportSizes';
 import {config} from '../../../../app/config/index';
 import selectEditableValueContent from '../../../../app/selectors/selectEditableValueContent';
@@ -47,17 +48,21 @@ const SOURCE_OPTIONS = {
 };
 
 export default function ImageSourcePanel({item}) {
+	const dispatch = useDispatch();
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
+	const languageId = useSelector(selectLanguageId);
+	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
 	const sourceSelectionInputId = useId();
 
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
 
+	const editableValues =
+		fragmentEntryLinks[item.fragmentEntryLinkId].editableValues;
+
 	const editableValue =
-		fragmentEntryLinks[item.fragmentEntryLinkId].editableValues[
-			item.editableValueNamespace
-		][item.editableId];
+		editableValues[item.editableValueNamespace][item.editableId];
 
 	const [source, setSource] = useState(() =>
 		isMapped(editableValue)
@@ -65,11 +70,30 @@ export default function ImageSourcePanel({item}) {
 			: SOURCE_OPTIONS.direct.value
 	);
 
+	const handleSourceChanged = (event) => {
+		setSource(event.target.value);
+
+		if (Object.keys(editableValue).length) {
+			dispatch(
+				updateEditableValuesThunk({
+					editableValues: setIn(
+						editableValues,
+						[item.editableValueNamespace, item.editableId],
+						{}
+					),
+					fragmentEntryLinkId: item.fragmentEntryLinkId,
+					languageId,
+					segmentsExperienceId,
+				})
+			);
+		}
+	};
+
 	let ConfigurationPanel = DirectImagePanel;
 
 	if (source === SOURCE_OPTIONS.mapping.value) {
 		if (selectedViewportSize === VIEWPORT_SIZES.desktop) {
-			ConfigurationPanel = MappingPanel;
+			ConfigurationPanel = MappingImagePanel;
 		}
 		else {
 			ConfigurationPanel = null;
@@ -88,7 +112,7 @@ export default function ImageSourcePanel({item}) {
 						<ClaySelectWithOption
 							className="form-control form-control-sm mb-3"
 							id={sourceSelectionInputId}
-							onChange={(event) => setSource(event.target.value)}
+							onChange={handleSourceChanged}
 							options={Object.values(SOURCE_OPTIONS)}
 							value={source}
 						/>
@@ -109,7 +133,6 @@ function DirectImagePanel({item}) {
 	const {editableId, fragmentEntryLinkId, type} = item;
 
 	const dispatch = useDispatch();
-	const editables = useSelector((state) => state.editables);
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
 	const languageId = useSelector(selectLanguageId);
 	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
@@ -127,7 +150,6 @@ function DirectImagePanel({item}) {
 
 	const editableValue = editableValues[processorKey][editableId];
 	const editableConfig = editableValue.config || {};
-	const editableElement = editables?.[item.parentId]?.[item.itemId]?.element;
 
 	const editableContent = selectEditableValueContent(
 		{fragmentEntryLinks, languageId},
@@ -152,9 +174,6 @@ function DirectImagePanel({item}) {
 			  editableConfig.alt[config.defaultLanguageId] ||
 			  ''
 			: editableConfig.alt || '';
-
-	const imageSizeId =
-		editableConfig.imageConfiguration?.[selectedViewportSize];
 
 	const handleImageChanged = (nextImage) => {
 		const nextEditableValue = {
@@ -225,6 +244,87 @@ function DirectImagePanel({item}) {
 		);
 	};
 
+	return (
+		<>
+			<ImageSelector
+				imageTitle={imageTitle}
+				label={Liferay.Language.get('image')}
+				onClearButtonPressed={() => {
+					handleImageChanged({
+						fileEntryId: '',
+						title: '',
+						url: '',
+					});
+				}}
+				onImageSelected={handleImageChanged}
+			/>
+
+			<ImagePanelSizeSelector item={item} />
+
+			{selectedViewportSize === VIEWPORT_SIZES.desktop &&
+				type === EDITABLE_TYPES.image && (
+					<ImageSelectorDescription
+						imageDescription={imageDescription}
+						onImageDescriptionChanged={
+							handleImageDescriptionChanged
+						}
+					/>
+				)}
+		</>
+	);
+}
+
+DirectImagePanel.propTypes = {
+	item: getEditableItemPropTypes().isRequired,
+};
+
+function MappingImagePanel({item}) {
+	return (
+		<>
+			<MappingPanel item={item} />
+			<ImagePanelSizeSelector item={item} />
+		</>
+	);
+}
+
+MappingImagePanel.propTypes = {
+	item: getEditableItemPropTypes().isRequired,
+};
+
+function ImagePanelSizeSelector({item}) {
+	const {editableId, fragmentEntryLinkId, type} = item;
+
+	const dispatch = useDispatch();
+	const editables = useSelector((state) => state.editables);
+	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
+	const languageId = useSelector(selectLanguageId);
+	const segmentsExperienceId = useSelector(selectSegmentsExperienceId);
+	const selectedViewportSize = useSelector(
+		(state) => state.selectedViewportSize
+	);
+
+	const processorKey =
+		type === EDITABLE_TYPES.backgroundImage
+			? BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR
+			: EDITABLE_FRAGMENT_ENTRY_PROCESSOR;
+
+	const editableValues =
+		fragmentEntryLinks[fragmentEntryLinkId].editableValues;
+
+	const editableValue = editableValues[processorKey][editableId];
+	const editableConfig = editableValue.config || {};
+	const editableElement = editables?.[item.parentId]?.[item.itemId]?.element;
+
+	const editableContent = selectEditableValueContent(
+		{fragmentEntryLinks, languageId},
+		fragmentEntryLinkId,
+		editableId,
+		processorKey
+	);
+
+	const imageSizeId =
+		editableConfig.imageConfiguration?.[selectedViewportSize];
+
 	const handleImageSizeChanged = (imageSizeId) => {
 		dispatch(
 			updateEditableValuesThunk({
@@ -246,46 +346,26 @@ function DirectImagePanel({item}) {
 	};
 
 	return (
-		<>
-			<ImageSelector
-				imageTitle={imageTitle}
-				label={Liferay.Language.get('image')}
-				onClearButtonPressed={() => {
-					handleImageChanged({
-						fileEntryId: '',
-						title: '',
-						url: '',
-					});
-				}}
-				onImageSelected={handleImageChanged}
+		config.adaptiveMediaEnabled &&
+		(editableContent?.fileEntryId ||
+			(editableContent?.className === FILE_ENTRY_CLASS_NAME &&
+				editableContent?.classPK)) && (
+			<ImageSelectorSize
+				editableElement={editableElement}
+				fileEntryId={
+					editableContent.fileEntryId || editableContent.classPK
+				}
+				imageSizeId={imageSizeId}
+				onImageSizeIdChanged={
+					item.type === EDITABLE_TYPES.image
+						? handleImageSizeChanged
+						: null
+				}
 			/>
-
-			{config.adaptiveMediaEnabled && editableContent?.fileEntryId && (
-				<ImageSelectorSize
-					editableElement={editableElement}
-					fileEntryId={editableContent.fileEntryId}
-					imageSizeId={imageSizeId}
-					onImageSizeIdChanged={
-						type === EDITABLE_TYPES.image
-							? handleImageSizeChanged
-							: null
-					}
-				/>
-			)}
-
-			{selectedViewportSize === VIEWPORT_SIZES.desktop &&
-				type === EDITABLE_TYPES.image && (
-					<ImageSelectorDescription
-						imageDescription={imageDescription}
-						onImageDescriptionChanged={
-							handleImageDescriptionChanged
-						}
-					/>
-				)}
-		</>
+		)
 	);
 }
 
-DirectImagePanel.propTypes = {
+ImagePanelSizeSelector.propTypes = {
 	item: getEditableItemPropTypes().isRequired,
 };

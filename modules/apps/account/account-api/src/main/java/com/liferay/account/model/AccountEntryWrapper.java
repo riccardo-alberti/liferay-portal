@@ -56,8 +56,10 @@ public class AccountEntryWrapper
 		attributes.put("parentAccountEntryId", getParentAccountEntryId());
 		attributes.put("description", getDescription());
 		attributes.put("domains", getDomains());
+		attributes.put("emailAddress", getEmailAddress());
 		attributes.put("logoId", getLogoId());
 		attributes.put("name", getName());
+		attributes.put("taxExemptionCode", getTaxExemptionCode());
 		attributes.put("taxIdNumber", getTaxIdNumber());
 		attributes.put("type", getType());
 		attributes.put("status", getStatus());
@@ -149,6 +151,12 @@ public class AccountEntryWrapper
 			setDomains(domains);
 		}
 
+		String emailAddress = (String)attributes.get("emailAddress");
+
+		if (emailAddress != null) {
+			setEmailAddress(emailAddress);
+		}
+
 		Long logoId = (Long)attributes.get("logoId");
 
 		if (logoId != null) {
@@ -159,6 +167,12 @@ public class AccountEntryWrapper
 
 		if (name != null) {
 			setName(name);
+		}
+
+		String taxExemptionCode = (String)attributes.get("taxExemptionCode");
+
+		if (taxExemptionCode != null) {
+			setTaxExemptionCode(taxExemptionCode);
 		}
 
 		String taxIdNumber = (String)attributes.get("taxIdNumber");
@@ -271,6 +285,16 @@ public class AccountEntryWrapper
 	}
 
 	/**
+	 * Returns the email address of this account entry.
+	 *
+	 * @return the email address of this account entry
+	 */
+	@Override
+	public String getEmailAddress() {
+		return model.getEmailAddress();
+	}
+
+	/**
 	 * Returns the external reference code of this account entry.
 	 *
 	 * @return the external reference code of this account entry
@@ -348,6 +372,16 @@ public class AccountEntryWrapper
 	@Override
 	public int getStatus() {
 		return model.getStatus();
+	}
+
+	/**
+	 * Returns the tax exemption code of this account entry.
+	 *
+	 * @return the tax exemption code of this account entry
+	 */
+	@Override
+	public String getTaxExemptionCode() {
+		return model.getTaxExemptionCode();
 	}
 
 	/**
@@ -476,6 +510,16 @@ public class AccountEntryWrapper
 	}
 
 	/**
+	 * Sets the email address of this account entry.
+	 *
+	 * @param emailAddress the email address of this account entry
+	 */
+	@Override
+	public void setEmailAddress(String emailAddress) {
+		model.setEmailAddress(emailAddress);
+	}
+
+	/**
 	 * Sets the external reference code of this account entry.
 	 *
 	 * @param externalReferenceCode the external reference code of this account entry
@@ -553,6 +597,16 @@ public class AccountEntryWrapper
 	@Override
 	public void setStatus(int status) {
 		model.setStatus(status);
+	}
+
+	/**
+	 * Sets the tax exemption code of this account entry.
+	 *
+	 * @param taxExemptionCode the tax exemption code of this account entry
+	 */
+	@Override
+	public void setTaxExemptionCode(String taxExemptionCode) {
+		model.setTaxExemptionCode(taxExemptionCode);
 	}
 
 	/**

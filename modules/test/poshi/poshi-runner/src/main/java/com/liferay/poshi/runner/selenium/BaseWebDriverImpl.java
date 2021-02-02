@@ -153,6 +153,15 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void acceptAlert() {
+		Alert alert = getAlert();
+
+		alert.accept();
+
+		setAlert(null);
+	}
+
+	@Override
 	public void addSelection(String locator, String optionLocator) {
 		Select select = new Select(getWebElement(locator));
 
@@ -218,13 +227,28 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public void assertAlert(String pattern) throws Exception {
-		TestCase.assertEquals(pattern, getAlert());
+		TestCase.assertEquals(pattern, getAlertText());
 	}
 
 	@Override
 	public void assertAlertNotPresent() throws Exception {
 		if (isAlertPresent()) {
 			throw new Exception("Alert is present");
+		}
+	}
+
+	@Override
+	public void assertAlertText(String pattern) throws Exception {
+		Alert alert = getAlert();
+
+		String alertText = alert.getText();
+
+		if (!pattern.equals(alertText)) {
+			String message = StringUtil.combine(
+				"Expected text \"", pattern, "\" does not match actual text \"",
+				alertText, "\"");
+
+			throw new Exception(message);
 		}
 	}
 
@@ -480,7 +504,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public void assertNotAlert(String pattern) {
-		TestCase.assertTrue(Objects.equals(pattern, getAlert()));
+		TestCase.assertTrue(Objects.equals(pattern, getAlertText()));
 	}
 
 	@Override
@@ -838,6 +862,15 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void dismissAlert() {
+		Alert alert = getAlert();
+
+		alert.dismiss();
+
+		setAlert(null);
+	}
+
+	@Override
 	public void doubleClick(String locator) {
 		WebElement webElement = getWebElement(locator);
 
@@ -1012,17 +1045,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	@Override
 	public void get(String url) {
 		_webDriver.get(url);
-	}
-
-	@Override
-	public String getAlert() {
-		switchTo();
-
-		WebDriverWait webDriverWait = new WebDriverWait(this, 1);
-
-		Alert alert = webDriverWait.until(ExpectedConditions.alertIsPresent());
-
-		return alert.getText();
 	}
 
 	@Override
@@ -3052,6 +3074,13 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void typeAlert(String value) {
+		Alert alert = getAlert();
+
+		alert.sendKeys(value);
+	}
+
+	@Override
 	public void typeAlloyEditor(String locator, String value) {
 		WebElement webElement = getWebElement(locator);
 
@@ -3618,6 +3647,28 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		sb.append("', true, false);element.dispatchEvent(event);");
 
 		javascriptExecutor.executeScript(sb.toString(), webElement);
+	}
+
+	protected Alert getAlert() {
+		if (_alert == null) {
+			switchTo();
+
+			WebDriverWait webDriverWait = new WebDriverWait(this, 1);
+
+			_alert = webDriverWait.until(ExpectedConditions.alertIsPresent());
+		}
+
+		return _alert;
+	}
+
+	protected String getAlertText() {
+		switchTo();
+
+		WebDriverWait webDriverWait = new WebDriverWait(this, 1);
+
+		Alert alert = webDriverWait.until(ExpectedConditions.alertIsPresent());
+
+		return alert.getText();
 	}
 
 	protected By getBy(String locator) {
@@ -4594,6 +4645,10 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		select.selectByIndex(index);
 	}
 
+	protected void setAlert(Alert alert) {
+		_alert = alert;
+	}
+
 	protected void setDefaultWindowHandle(String defaultWindowHandle) {
 		_defaultWindowHandle = defaultWindowHandle;
 	}
@@ -4737,6 +4792,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		_TEST_DEPENDENCIES_DIR_NAME = testDependenciesDirName;
 	}
 
+	private Alert _alert;
 	private String _clipBoard = "";
 	private String _defaultWindowHandle;
 	private Stack<WebElement> _frameWebElements = new Stack<>();

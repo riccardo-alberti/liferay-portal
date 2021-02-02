@@ -32,7 +32,7 @@ import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOpt
 import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOptionRel;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionRelService;
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionService;
-import com.liferay.commerce.shipping.engine.fixed.web.internal.servlet.taglib.ui.CommerceShippingMethodFixedOptionSettingsScreenNavigationEntry;
+import com.liferay.commerce.shipping.engine.fixed.web.internal.frontend.taglib.servlet.taglib.CommerceShippingMethodFixedOptionSettingsScreenNavigationCategory;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.petra.string.StringPool;
@@ -94,7 +94,9 @@ public class CommerceShippingFixedOptionRelsDisplayContext
 				PortletRequest.RENDER_PHASE);
 
 		editCommerceChannelPortletURL.setParameter(
-			"mvcRenderCommandName", "editCommerceShippingFixedOptionRel");
+			"mvcRenderCommandName",
+			"/commerce_shipping_methods" +
+				"/edit_commerce_shipping_fixed_option_rel");
 		editCommerceChannelPortletURL.setParameter(
 			"commerceShippingMethodId",
 			String.valueOf(getCommerceShippingMethodId()));
@@ -231,8 +233,7 @@ public class CommerceShippingFixedOptionRelsDisplayContext
 
 	@Override
 	public String getScreenNavigationCategoryKey() {
-		return CommerceShippingMethodFixedOptionSettingsScreenNavigationEntry.
-			CATEGORY_KEY;
+		return CommerceShippingMethodFixedOptionSettingsScreenNavigationCategory.CATEGORY_KEY;
 	}
 
 	public boolean isVisible() throws PortalException {

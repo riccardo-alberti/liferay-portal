@@ -93,7 +93,12 @@ definition {
 		}
 
 		if (isSet(documentsAndMediaField)) {
-			var key_fieldFieldLabel = "Upload";
+			if (isSet(fieldFieldLabel)) {
+				var key_fieldFieldLabel = "${fieldFieldLabel}";
+			}
+			else {
+				var key_fieldFieldLabel = "Upload";
+			}
 
 			AssertClick(
 				locator1 = "WCEditWebContent#SELECT_BUTTON",
@@ -101,14 +106,57 @@ definition {
 
 			SelectFrame(locator1 = "IFrame#MODAL_BODY");
 
+			if ("${navTab}" == "Documents and Media") {
+				AssertClick(
+					key_navTab = "${navTab}",
+					locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+					value1 = "${navTab}");
+			}
 			AssertClick.assertPartialTextClickAt(
 				key_dmDocumentTitle = "${documentsAndMediaField}",
 				locator1 = "WC#ICON_DOCUMENT_TITLE",
 				value1 = "${documentsAndMediaField}");
 		}
 
+		if (isSet(imageField)) {
+			if (isSet(fieldFieldLabel)) {
+				var key_fieldFieldLabel = "${fieldFieldLabel}";
+			}
+			else {
+				var key_fieldFieldLabel = "Image";
+			}
+
+			AssertClick(
+				locator1 = "WCEditWebContent#SELECT_BUTTON",
+				value1 = "Select");
+
+			if ("${navTab}" == "Documents and Media") {
+				if (isSet(imageFileName)) {
+					ItemSelector.selectDMImage(
+						imageFileName = "${imageField}",
+						navTab = "${navTab}");
+				}
+				else {
+					ItemSelector.uploadFile(
+						navTab = "${navTab}",
+						uploadFileName = "${imageField}");
+				}
+			}
+
+			if (isSet(imageDescription)) {
+				Type(
+					locator1 = "TextInput#IMAGE_DESCRIPTION",
+					value1 = "${imageDescription}");
+			}
+		}
+
 		if (isSet(textField)) {
-			var key_fieldLabel = "Text";
+			if (isSet(fieldFieldLabel)) {
+				var key_fieldLabel = "${fieldFieldLabel}";
+			}
+			else {
+				var key_fieldLabel = "Text";
+			}
 
 			Type(
 				locator1 = "TextInput#GENERIC_TEXT_INPUT",
@@ -129,6 +177,38 @@ definition {
 			AssertTextEquals(
 				locator1 = "Message#ERROR_FORM_VALIDATION",
 				value1 = "${validationError}");
+		}
+		else if (isSet(validateFileNameRestriction)) {
+			Button.clickPublish();
+
+			Alert.viewRequestFailedToComplete();
+
+			AssertTextEquals.assertPartialText(
+				key_alertMessage = "Please enter a file with a valid file name.",
+				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+				value1 = "Please enter a file with a valid file name.");
+
+			AssertTextEquals.assertPartialText(
+				key_alertMessage = "Please select the file again.",
+				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+				value1 = "Please select the file again.");
+		}
+		else if (isSet(emptyFileNameRestriction)) {
+			Button.clickPublish();
+
+			Alert.viewRequestFailedToComplete();
+
+			AssertTextEquals.assertPartialText(
+				key_alertMessage = "The file name cannot be empty or without extension.",
+				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+				value1 = "The file name cannot be empty or without extension.");
+
+			AssertTextEquals.assertPartialText(
+				key_alertMessage = "Please select the file again.",
+				locator1 = "Message#ERROR_ENTER_A_VALID_VALUE",
+				value1 = "Please select the file again.");
+
+			AssertElementNotPresent(locator1 = "TextInput#FILE_PRESENT");
 		}
 		else {
 			PortletEntry.publish();
@@ -573,7 +653,7 @@ definition {
 		var key_metadataData = "${metadataData}";
 		var key_metadataLabel = "${metadataLabel}";
 
-		if (IsElementNotPresent(locator1 = "//a[normalize-space(text())='Automatically Extracted Metadata']")) {
+		if (IsElementNotPresent(locator1 = "//span[normalize-space(text())='Automatically Extracted Metadata']")) {
 			Refresh();
 
 			DMDocument.expandInfo();
@@ -891,6 +971,10 @@ definition {
 			PortletEntry.inputText(
 				fieldLabel = "File Name",
 				text = "${dmDocumentFileNameEdit}");
+
+			AssertTextEquals(
+				locator1 = "Message#WARNING_FEEDBACK",
+				value1 = "Warning: Changing the filename will affect existing links to this document.");
 		}
 	}
 
@@ -1028,6 +1112,42 @@ definition {
 		}
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro editDMShortcutCP {
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${dmDocumentTitle}");
+
+		Click(locator1 = "DocumentsAndMediaAddShortcut#SELECT_DOCUMENT_BUTTON");
+
+		var key_siteName = "${siteName}";
+
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		AssertClick(
+			key_breadcrumbName = "Sites and Libraries",
+			locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+			value1 = "Sites and Libraries");
+
+		if (isSet(siteName)) {
+			LexiconCard.clickCardTitleLink(card = "${siteName}");
+		}
+
+		if (isSet(depotName)) {
+			AssertClick(
+				key_groupTab = "Asset Library",
+				locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+				value1 = "Asset Library");
+
+			LexiconCard.clickCard(card = "${depotName}");
+		}
+
+		LexiconCard.clickCard(card = "${dmNewDocumentTitle}");
+
+		SelectFrameTop(value1 = "relative=top");
+
+		PortletEntry.save();
 	}
 
 	macro editDocument {
@@ -1835,14 +1955,14 @@ definition {
 
 		AssertElementPresent(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_GET_URL_OR_WEBDAV_URL");
 
-		Panel.expandPanel(panel = "Automatically Extracted Metadata");
+		Panel.expandUnstyledPanel(panel = "Automatically Extracted Metadata");
 	}
 
 	macro viewDocumentMetadataCP {
 		var key_metadataData = "${metadataData}";
 		var key_metadataLabel = "${metadataLabel}";
 
-		if (IsElementNotPresent(locator1 = "//a[normalize-space(text())='Automatically Extracted Metadata']")) {
+		if (IsElementNotPresent(locator1 = "//span[normalize-space(text())='Automatically Extracted Metadata']")) {
 			Refresh();
 
 			DMDocument.expandInfo();
@@ -1958,6 +2078,12 @@ definition {
 				value1 = "${booleanValue}");
 		}
 
+		if (isSet(imageName)) {
+			AssertElementPresent(
+				key_imageName = "${imageName}",
+				locator1 = "DocumentsAndMediaDocument#METADATA_PANEL_IMAGE");
+		}
+
 		if (isSet(selectOption)) {
 			var key_selectOption = "${selectOption}";
 
@@ -1983,6 +2109,17 @@ definition {
 				key_fieldFieldLabel = "${textFieldLabel}",
 				locator1 = "DocumentsAndMediaDocument#METADATA_PANEL_TEXT_INPUT",
 				value1 = "${textContent}");
+		}
+
+		if (isSet(uploadFile)) {
+			if (!(isSet(uploadFieldLabel))) {
+				var uploadFieldLabel = "Upload";
+			}
+
+			AssertTextEquals(
+				key_fieldFieldLabel = "${uploadFieldLabel}",
+				locator1 = "DocumentsAndMediaDocument#METADATA_PANEL_UPLOAD",
+				value1 = "${uploadFile}");
 		}
 
 		if (isSet(numericValue)) {
@@ -2164,6 +2301,10 @@ definition {
 				value1 = "${dmDocumentType}");
 		}
 
+		if (isSet(titleWithForbiddenCharacters)) {
+			var key_dmDocumentTitle = "${escapedDocumentTitle}";
+		}
+
 		AssertClick(
 			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE",
 			value1 = "${dmDocumentTitle}");
@@ -2190,7 +2331,9 @@ definition {
 		}
 
 		if ("${dmDocumentFileType}" == "Image") {
-			AssertElementPresent(locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW");
+			AssertElementPresent(
+				key_dmDocumentFileName = "${dmDocumentTitle}",
+				locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW");
 		}
 
 		if (isSet(tagNameList)) {
@@ -2217,6 +2360,24 @@ definition {
 			AssertTextEquals(
 				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_FILE_NAME",
 				value1 = "${dmDocumentFileName}");
+		}
+
+		if (isSet(dmDocumentType)) {
+			AssertTextEquals(
+				key_dmDocumentType = "${dmDocumentType}",
+				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_DOCUMENT_TYPE",
+				value1 = "${dmDocumentType}");
+		}
+
+		if (isSet(dmDocumentExtension)) {
+			AssertTextEquals(
+				key_dmDocumentExtension = "${dmDocumentExtension}",
+				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_EXTENSION",
+				value1 = "${dmDocumentExtension}");
+		}
+
+		if ("${dmDocumentFileTypeInfo}" == "Image") {
+			AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_THUMBNAIL");
 		}
 	}
 

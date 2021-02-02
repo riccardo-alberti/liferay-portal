@@ -49,6 +49,7 @@ const customObjectItems = {
 		{
 			availableLanguageIds: ['en_US', 'pt_BR'],
 			contentType: 'app-builder',
+			dataDefinitionFields: [{name: 'Text1', required: false}],
 			dataDefinitionKey: '37496',
 			dateCreated: '2020-06-05T13:43:16Z',
 			dateModified: '2020-06-05T13:44:08Z',
@@ -60,6 +61,8 @@ const customObjectItems = {
 		},
 	],
 };
+
+const nativeObjectItems = {items: []};
 
 const formViewItems = {
 	items: [
@@ -236,17 +239,21 @@ const mockGetItem = jest
 	.fn()
 	.mockResolvedValueOnce(roleItems)
 	.mockResolvedValueOnce(customObjectItems)
+	.mockResolvedValueOnce(nativeObjectItems)
 	.mockResolvedValueOnce(customObjectItems)
+	.mockResolvedValueOnce(nativeObjectItems)
 	.mockResolvedValueOnce(formViewItems)
 	.mockResolvedValueOnce(tableViewItems)
 	.mockResolvedValueOnce(roleItems)
 	.mockResolvedValueOnce(customObjectItems)
+	.mockResolvedValueOnce(nativeObjectItems)
 	.mockResolvedValueOnce(app)
 	.mockResolvedValueOnce(workflow)
 	.mockResolvedValueOnce(customObjectItems.items[0])
 	.mockResolvedValueOnce(formViewItems)
 	.mockResolvedValueOnce(tableViewItems)
 	.mockResolvedValueOnce(customObjectItems)
+	.mockResolvedValueOnce(nativeObjectItems)
 	.mockResolvedValueOnce(formViewItems)
 	.mockResolvedValueOnce(tableViewItems)
 	.mockResolvedValueOnce(formViewItems);

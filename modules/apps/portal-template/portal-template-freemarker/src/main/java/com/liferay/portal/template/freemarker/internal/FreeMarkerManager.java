@@ -61,6 +61,7 @@ import freemarker.ext.servlet.ServletContextHashModel;
 
 import freemarker.template.Configuration;
 import freemarker.template.ObjectWrapper;
+import freemarker.template.SimpleNumber;
 import freemarker.template.TemplateHashModel;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
@@ -108,6 +109,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
@@ -287,26 +289,19 @@ public class FreeMarkerManager extends BaseTemplateManager {
 				Configuration.class, "cache");
 
 			PortalCache<TemplateResource, TemplateCache.MaybeMissingTemplate>
-				portalCache = null;
-
-			if (_freeMarkerTemplateResourceCache.isEnabled()) {
 				portalCache =
-					(PortalCache
-						<TemplateResource, TemplateCache.MaybeMissingTemplate>)
-							_singleVMPool.getPortalCache(
-								StringBundler.concat(
-									TemplateResource.class.getName(),
-									StringPool.POUND,
-									TemplateConstants.LANG_TYPE_FTL));
-
-				_freeMarkerTemplateResourceCache.setSecondLevelPortalCache(
-					portalCache);
-			}
+					_freeMarkerTemplateResourceCache.
+						getSecondLevelPortalCache();
 
 			TemplateCache templateCache = new LiferayTemplateCache(
 				_configuration, templateResourceLoader, portalCache);
 
 			field.set(_configuration, templateCache);
+
+			_configuration.setSharedVariable(
+				"loop-count-threshold",
+				new SimpleNumber(
+					_freeMarkerEngineConfiguration.loopCountThreshold()));
 		}
 		catch (Exception exception) {
 			throw new TemplateException(
@@ -390,29 +385,7 @@ public class FreeMarkerManager extends BaseTemplateManager {
 
 		WriterFactoryUtil.setWriterFactory(new UnsyncStringWriterFactory());
 
-		if (_freeMarkerEngineConfiguration.asyncRenderTimeout() > 0) {
-			_serviceRegistration = bundleContext.registerService(
-				PortalExecutorConfig.class,
-				new PortalExecutorConfig(
-					FreeMarkerManager.class.getName(), 1,
-					_freeMarkerEngineConfiguration.
-						asyncRenderThreadPoolMaxSize(),
-					60, TimeUnit.SECONDS,
-					_freeMarkerEngineConfiguration.
-						asyncRenderThreadPoolMaxQueueSize(),
-					new NamedThreadFactory(
-						FreeMarkerManager.class.getName(), Thread.NORM_PRIORITY,
-						null),
-					new ThreadPoolExecutor.AbortPolicy(),
-					new ThreadPoolHandlerAdapter()),
-				null);
-
-			_noticeableExecutorService =
-				_portalExecutorManager.getPortalExecutor(
-					FreeMarkerManager.class.getName());
-
-			_timeoutTemplateCounters = new ConcurrentHashMap<>();
-		}
+		_initAsyncRender(bundleContext);
 	}
 
 	protected void addTaglibSupport(
@@ -545,6 +518,29 @@ public class FreeMarkerManager extends BaseTemplateManager {
 		return false;
 	}
 
+	@Modified
+	protected void modified(ComponentContext componentContext) {
+		if (_freeMarkerEngineConfiguration.asyncRenderTimeout() > 0) {
+			_noticeableExecutorService.shutdownNow();
+
+			_noticeableExecutorService = null;
+
+			_serviceRegistration.unregister();
+
+			_serviceRegistration = null;
+
+			_timeoutTemplateCounters.clear();
+
+			_timeoutTemplateCounters = null;
+		}
+
+		_freeMarkerEngineConfiguration = ConfigurableUtil.createConfigurable(
+			FreeMarkerEngineConfiguration.class,
+			componentContext.getProperties());
+
+		_initAsyncRender(componentContext.getBundleContext());
+	}
+
 	protected void render(
 			String templateId, Writer writer, boolean restricted,
 			Callable<Void> callable)
@@ -657,6 +653,30 @@ public class FreeMarkerManager extends BaseTemplateManager {
 		return sb.toString();
 	}
 
+	private void _initAsyncRender(BundleContext bundleContext) {
+		if (_freeMarkerEngineConfiguration.asyncRenderTimeout() <= 0) {
+			return;
+		}
+
+		_noticeableExecutorService = _portalExecutorManager.getPortalExecutor(
+			FreeMarkerManager.class.getName());
+		_serviceRegistration = bundleContext.registerService(
+			PortalExecutorConfig.class,
+			new PortalExecutorConfig(
+				FreeMarkerManager.class.getName(), 1,
+				_freeMarkerEngineConfiguration.asyncRenderThreadPoolMaxSize(),
+				60, TimeUnit.SECONDS,
+				_freeMarkerEngineConfiguration.
+					asyncRenderThreadPoolMaxQueueSize(),
+				new NamedThreadFactory(
+					FreeMarkerManager.class.getName(), Thread.NORM_PRIORITY,
+					null),
+				new ThreadPoolExecutor.AbortPolicy(),
+				new ThreadPoolHandlerAdapter()),
+			null);
+		_timeoutTemplateCounters = new ConcurrentHashMap<>();
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		FreeMarkerManager.class);
 
@@ -673,28 +693,30 @@ public class FreeMarkerManager extends BaseTemplateManager {
 	// Set initial to -2 because -1 has significance to bundle trackers
 
 	private volatile int _bundleTrackingCount = -2;
-	private Configuration _configuration;
-	private BeansWrapper _defaultBeanWrapper;
+	private volatile Configuration _configuration;
+	private volatile BeansWrapper _defaultBeanWrapper;
 	private volatile FreeMarkerBundleClassloader _freeMarkerBundleClassloader;
-	private FreeMarkerEngineConfiguration _freeMarkerEngineConfiguration;
+	private volatile FreeMarkerEngineConfiguration
+		_freeMarkerEngineConfiguration;
 
 	@Reference
 	private FreeMarkerTemplateResourceCache _freeMarkerTemplateResourceCache;
 
-	private NoticeableExecutorService _noticeableExecutorService;
+	private volatile NoticeableExecutorService _noticeableExecutorService;
 
 	@Reference
 	private PortalExecutorManager _portalExecutorManager;
 
-	private BeansWrapper _restrictedBeanWrapper;
-	private ServiceRegistration<PortalExecutorConfig> _serviceRegistration;
+	private volatile BeansWrapper _restrictedBeanWrapper;
+	private volatile ServiceRegistration<PortalExecutorConfig>
+		_serviceRegistration;
 	private SingleVMPool _singleVMPool;
 	private final Map<String, String> _taglibMappings =
 		new ConcurrentHashMap<>();
 	private TemplateClassResolver _templateClassResolver;
 	private final Map<String, TemplateModel> _templateModels =
 		new ConcurrentHashMap<>();
-	private Map<String, AtomicInteger> _timeoutTemplateCounters;
+	private volatile Map<String, AtomicInteger> _timeoutTemplateCounters;
 
 	private static class ThreadLocalUtil {
 
@@ -875,6 +897,10 @@ public class FreeMarkerManager extends BaseTemplateManager {
 				return url.openStream();
 			}
 			catch (IOException ioException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(ioException, ioException);
+				}
+
 				return null;
 			}
 		}

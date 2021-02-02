@@ -137,19 +137,15 @@ public class AccountGroupLocalServiceTest {
 
 	@Test
 	public void testSearchAccountGroups() throws Exception {
-		List<AccountGroup> expectedAccountGroups =
-			_accountGroupLocalService.getAccountGroups(
-				TestPropsValues.getCompanyId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS,
-				OrderByComparatorFactoryUtil.create(
-					"AccountGroup", "name", true));
+		List<AccountGroup> expectedAccountGroups = Arrays.asList(
+			_addAccountGroup(), _addAccountGroup());
 
 		BaseModelSearchResult<AccountGroup> baseModelSearchResult =
 			_accountGroupLocalService.searchAccountGroups(
 				TestPropsValues.getCompanyId(), null, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS,
 				OrderByComparatorFactoryUtil.create(
-					"AccountGroup", "name", true));
+					"AccountGroup", "createDate", true));
 
 		Assert.assertEquals(
 			expectedAccountGroups.size(), baseModelSearchResult.getLength());
@@ -165,7 +161,7 @@ public class AccountGroupLocalServiceTest {
 
 		for (int i = 0; i < 5; i++) {
 			expectedAccountGroups.add(
-				_addAccountGroup(keywords + i, RandomTestUtil.randomString()));
+				_addAccountGroup(RandomTestUtil.randomString(), keywords + i));
 		}
 
 		BaseModelSearchResult<AccountGroup> baseModelSearchResult =
@@ -186,11 +182,11 @@ public class AccountGroupLocalServiceTest {
 		String keywords = RandomTestUtil.randomString();
 
 		List<AccountGroup> expectedAccountGroups = Arrays.asList(
-			_addAccountGroup(RandomTestUtil.randomString(), keywords),
-			_addAccountGroup(RandomTestUtil.randomString(), keywords),
-			_addAccountGroup(RandomTestUtil.randomString(), keywords),
-			_addAccountGroup(RandomTestUtil.randomString(), keywords),
-			_addAccountGroup(RandomTestUtil.randomString(), keywords));
+			_addAccountGroup(keywords, RandomTestUtil.randomString()),
+			_addAccountGroup(keywords, RandomTestUtil.randomString()),
+			_addAccountGroup(keywords, RandomTestUtil.randomString()),
+			_addAccountGroup(keywords, RandomTestUtil.randomString()),
+			_addAccountGroup(keywords, RandomTestUtil.randomString()));
 
 		Comparator<AccountGroup> comparator =
 			(accountGroup1, accountGroup2) -> {
@@ -231,11 +227,11 @@ public class AccountGroupLocalServiceTest {
 			RandomTestUtil.randomString());
 	}
 
-	private AccountGroup _addAccountGroup(String name, String description)
+	private AccountGroup _addAccountGroup(String description, String name)
 		throws Exception {
 
 		return AccountGroupTestUtil.addAccountGroup(
-			_accountGroupLocalService, name, description);
+			_accountGroupLocalService, description, name);
 	}
 
 	private void _testDeleteAccountGroup(

@@ -2655,7 +2655,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "3",
+			fieldPositionNumber = "4",
 			fieldType = "Single Selection");
 
 		var fieldSingleSelectionField = FormFields.getFieldName();
@@ -2674,7 +2674,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "4",
+			fieldPositionNumber = "5",
 			fieldType = "Date");
 
 		var fieldDateField = FormFields.getFieldName();
@@ -2684,7 +2684,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "5",
+			fieldPositionNumber = "6",
 			fieldType = "Multiple Selection");
 
 		var fieldMultipleSelectionField = FormFields.getFieldName();
@@ -3348,6 +3348,14 @@ definition {
 
 		Form.closeSidebar();
 
+		Form.gotoAddField(
+			fieldPositionNumber = "13",
+			fieldType = "Color");
+
+		var colorFieldName = FormFields.getFieldName();
+
+		Form.closeSidebar();
+
 		Form.save();
 
 		ProductMenu.gotoPortlet(
@@ -3431,6 +3439,10 @@ definition {
 			navTab = "Documents and Media",
 			uploadFileName = "Document_1.jpg");
 
+		FormFields.editColor(
+			colorSwatchItem = "2BA676",
+			fieldLabel = "Color");
+
 		FormPortlet.submitSuccessfully();
 
 		Navigator.openURL();
@@ -3501,6 +3513,11 @@ definition {
 		FormFields.viewTextField(
 			fieldLabel = "Value",
 			fieldName = "${fieldNumericField}");
+
+		FormsAdmin.viewColorEntry(
+			fieldLabel = "Color",
+			fieldName = "${colorFieldName}",
+			fieldValue = "2BA676");
 	}
 
 	@priority = "5"
@@ -4525,6 +4542,13 @@ definition {
 		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
 			key_fieldName = "${uploadFieldName}",
 			locator1 = "FormFields#UPLOAD_FIELD",
+			value1 = "Document_1.mp4");
+
+		FormPortlet.viewValidationErrorMessage(validationErrorMessage = "Please enter a file with a valid extension (doc, docx, jpeg, jpg, pdf, png, ppt, pptx, tiff, txt, xls, xlsx).");
+
+		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
+			key_fieldName = "${uploadFieldName}",
+			locator1 = "FormFields#UPLOAD_FIELD",
 			value1 = "Document -_.jpg");
 
 		FormPortlet.submitSuccessfully();
@@ -4545,6 +4569,105 @@ definition {
 			fieldLabel = "Upload Field",
 			fieldName = "${uploadFieldName}",
 			uploadFileName = "Document -_.jpg");
+	}
+
+	@description = "This is a use case for LPS-125462."
+	@priority = "5"
+	test SubmitFormWithUploadFieldAsNewUser {
+		property portal.acceptance = "false";
+		property portal.upstream = "true";
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoAddForm();
+
+		Form.editName();
+
+		Form.editDescription();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Upload");
+
+		var uploadFieldName = FormFields.getFieldName();
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishCopyURLLink();
+
+		var publishedFormPublicURL = Form.getPublishedFormPublicURL(
+			publishedFormPublicURL = "${publishedFormPublicURL}"
+		);
+
+		Navigator.openURL();
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		User.editUserSiteCP(
+			siteName = "${siteName}",
+			userScreenName = "usersn");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		Navigator.openSpecificURL(url = "${publishedFormPublicURL}");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewUploadField(
+			fieldLabel = "Upload",
+			fieldName = "${uploadFieldName}");
+
+		ItemSelector.gotoItemSelectorViaSelectButton();
+
+		ItemSelector.uploadFile(
+			navTab = "Documents and Media",
+			uploadFileName = "Document_1.jpg");
+
+		FormPortlet.submitSuccessfully();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "test@liferay.com",
+			userLoginFullName = "Test Test");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.deactivateCP(userFirstName = "userfn");
+
+		User.deleteCP();
 	}
 
 	@description = "This is a use case for LPS-73322."
@@ -4634,6 +4757,120 @@ definition {
 			fieldLabel = "Date Field",
 			fieldName = "${fieldDateField}",
 			fieldValue = "01/01/2016");
+	}
+
+	@description = "This is a use case for LPS-125499."
+	@priority = "2"
+	test UploadFileWithInvalidSizeAsGuestUser {
+		property portal.acceptance = "false";
+		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "Forms#UploadFileWithInvalidSizeAsGuestUser";
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			portlet = "Forms");
+
+		FormsAdminNavigator.gotoAddForm();
+
+		Form.editName();
+
+		Form.editDescription();
+
+		Form.gotoAddField(
+			fieldPositionNumber = "1",
+			fieldType = "Upload");
+
+		var uploadFieldName = FormFields.getFieldName();
+
+		FormFields.enableSwitcher(fieldName = "Allow Guest Users to Send Files");
+
+		Form.publishForm();
+
+		FormsAdminNavigator.gotoPublishCopyURLLink();
+
+		var publishedFormPublicURL = Form.getPublishedFormPublicURL(
+			publishedFormPublicURL = "${publishedFormPublicURL}"
+		);
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Infrastructure",
+			configurationName = "Upload Servlet Request",
+			configurationScope = "System Scope");
+
+		FormFields.editText(
+			fieldName = "maxSize",
+			fieldValue = "10485760");
+
+		SystemSettings.saveConfiguration();
+
+		SystemSettings.exitEditConfiguration();
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Forms",
+			configurationName = "Forms",
+			configurationScope = "Site Scope");
+
+		FormFields.editText(
+			fieldName = "guestUploadMaximumFileSize",
+			fieldValue = "1");
+
+		SystemSettings.saveConfiguration();
+
+		User.logoutPG();
+
+		Navigator.openSpecificURL(url = "${publishedFormPublicURL}");
+
+		FormPortlet.waitFormRenderer(text = "Submit");
+
+		FormFields.viewUploadFieldAsGuest(
+			fieldLabel = "Upload",
+			fieldName = "${uploadFieldName}");
+
+		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
+			key_fieldName = "${uploadFieldName}",
+			locator1 = "FormFields#UPLOAD_FIELD",
+			value1 = "Document_1.mp4");
+
+		FormPortlet.viewValidationErrorMessage(validationErrorMessage = "Please enter a file with a valid file size no larger than 10.0MB.");
+
+		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
+			key_fieldName = "${uploadFieldName}",
+			locator1 = "FormFields#UPLOAD_FIELD",
+			value1 = "large_file.pdf");
+
+		FormPortlet.viewValidationErrorMessage(validationErrorMessage = "Please enter a file with a valid file size no larger than 1 MB.");
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "test@liferay.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "System Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Infrastructure",
+			configurationName = "Upload Servlet Request",
+			configurationScope = "System Scope");
+
+		SystemSettings.resetConfiguration();
+
+		SystemSettings.exitEditConfiguration();
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Forms",
+			configurationName = "Forms",
+			configurationScope = "Site Scope");
+
+		SystemSettings.resetConfiguration();
 	}
 
 	@description = "This is a use case for LPS-68182."

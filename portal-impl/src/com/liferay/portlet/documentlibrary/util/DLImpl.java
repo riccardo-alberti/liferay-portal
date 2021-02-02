@@ -461,7 +461,8 @@ public class DLImpl implements DL {
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Documents and Media search index is stale and " +
-							"contains file entry " + fileEntryId);
+							"contains file entry " + fileEntryId,
+						exception);
 				}
 			}
 		}
@@ -1192,6 +1193,10 @@ public class DLImpl implements DL {
 				groupId, folderId, getTitleWithExtension(title, extension));
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
+
 			return false;
 		}
 
@@ -1206,6 +1211,10 @@ public class DLImpl implements DL {
 				groupId, folderId, uniqueFileTitle);
 		}
 		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception, exception);
+			}
+
 			return false;
 		}
 

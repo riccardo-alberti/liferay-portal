@@ -21,6 +21,7 @@ import {ImageSelectorSize} from '../../../common/components/ImageSelectorSize';
 import MappingSelector from '../../../common/components/MappingSelector';
 import {ConfigurationFieldPropTypes} from '../../../prop-types/index';
 import {EDITABLE_TYPES} from '../../config/constants/editableTypes';
+import {FILE_ENTRY_CLASS_NAME} from '../../config/constants/fileEntryClassName';
 import {VIEWPORT_SIZES} from '../../config/constants/viewportSizes';
 import {config} from '../../config/index';
 import {useSelector} from '../../store/index';
@@ -97,11 +98,22 @@ export const ImageSelectorField = ({field, onValueSelect, value = {}}) => {
 					)}
 				</>
 			) : (
-				<MappingSelector
-					fieldType={EDITABLE_TYPES.backgroundImage}
-					mappedItem={value}
-					onMappingSelect={handleImageChanged}
-				/>
+				<>
+					<MappingSelector
+						fieldType={EDITABLE_TYPES.backgroundImage}
+						mappedItem={value}
+						onMappingSelect={handleImageChanged}
+					/>
+
+					{config.adaptiveMediaEnabled &&
+						value?.className === FILE_ENTRY_CLASS_NAME &&
+						value?.classPK && (
+							<ImageSelectorSize
+								fileEntryId={value.classPK}
+								imageSizeId="auto"
+							/>
+						)}
+				</>
 			)}
 		</>
 	);

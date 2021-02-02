@@ -44,7 +44,7 @@ import org.osgi.service.component.annotations.Reference;
 	enabled = false, immediate = true,
 	property = {
 		"javax.portlet.name=" + CommercePortletKeys.COMMERCE_COUNTRY,
-		"mvc.command.name=editCommerceRegion"
+		"mvc.command.name=/commerce_country/edit_commerce_region"
 	},
 	service = MVCActionCommand.class
 )
@@ -105,7 +105,8 @@ public class EditCommerceRegionMVCActionCommand extends BaseMVCActionCommand {
 				SessionErrors.add(actionRequest, exception.getClass());
 
 				actionResponse.setRenderParameter(
-					"mvcRenderCommandName", "editCommerceCountry");
+					"mvcRenderCommandName",
+					"/commerce_country/edit_commerce_country");
 			}
 			else {
 				throw exception;

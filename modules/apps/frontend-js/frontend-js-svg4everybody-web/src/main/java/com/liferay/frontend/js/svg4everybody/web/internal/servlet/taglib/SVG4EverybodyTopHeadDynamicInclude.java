@@ -59,12 +59,25 @@ public class SVG4EverybodyTopHeadDynamicInclude extends BaseDynamicInclude {
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to gather property from configuration",
+					"Unable to verify if CDN dynamic resources are enabled",
 					portalException);
 			}
 		}
 
-		if (!cdnDynamicResourcesEnabled) {
+		boolean cdnHostEnabled = false;
+
+		try {
+			String cdnHost = _portal.getCDNHost(httpServletRequest);
+
+			cdnHostEnabled = !cdnHost.isEmpty();
+		}
+		catch (PortalException portalException) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to get CDN host", portalException);
+			}
+		}
+
+		if (cdnHostEnabled) {
 			PrintWriter printWriter = httpServletResponse.getWriter();
 
 			AbsolutePortalURLBuilder absolutePortalURLBuilder =

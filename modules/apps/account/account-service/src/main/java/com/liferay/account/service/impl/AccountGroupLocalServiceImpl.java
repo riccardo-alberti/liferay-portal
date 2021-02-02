@@ -46,7 +46,7 @@ public class AccountGroupLocalServiceImpl
 
 	@Override
 	public AccountGroup addAccountGroup(
-			long userId, String name, String description)
+			long userId, String description, String name)
 		throws PortalException {
 
 		long accountGroupId = counterLocalService.increment();
@@ -133,7 +133,7 @@ public class AccountGroupLocalServiceImpl
 
 	@Override
 	public AccountGroup updateAccountGroup(
-			long accountGroupId, String name, String description)
+			long accountGroupId, String description, String name)
 		throws PortalException {
 
 		AccountGroup accountGroup = accountGroupPersistence.fetchByPrimaryKey(
@@ -152,17 +152,19 @@ public class AccountGroupLocalServiceImpl
 		DynamicQuery dynamicQuery = accountGroupLocalService.dynamicQuery();
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("companyId", companyId));
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq("defaultAccountGroup", false));
 
 		if (Validator.isNotNull(keywords)) {
 			Disjunction disjunction = RestrictionsFactoryUtil.disjunction();
 
 			disjunction.add(
 				RestrictionsFactoryUtil.ilike(
-					"name", StringUtil.quote(keywords, StringPool.PERCENT)));
-			disjunction.add(
-				RestrictionsFactoryUtil.ilike(
 					"description",
 					StringUtil.quote(keywords, StringPool.PERCENT)));
+			disjunction.add(
+				RestrictionsFactoryUtil.ilike(
+					"name", StringUtil.quote(keywords, StringPool.PERCENT)));
 
 			dynamicQuery.add(disjunction);
 		}

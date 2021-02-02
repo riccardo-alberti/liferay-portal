@@ -14,9 +14,11 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.SegmentTestClassGroup;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -47,6 +49,20 @@ public abstract class PortalAcceptanceTestSuiteJob
 	}
 
 	@Override
+	public List<AxisTestClassGroup> getDependentAxisTestClassGroups() {
+		List<AxisTestClassGroup> axisTestClassGroups = new ArrayList<>();
+
+		for (BatchTestClassGroup batchTestClassGroup :
+				getDependentBatchTestClassGroups()) {
+
+			axisTestClassGroups.addAll(
+				batchTestClassGroup.getAxisTestClassGroups());
+		}
+
+		return axisTestClassGroups;
+	}
+
+	@Override
 	public Set<String> getDependentBatchNames() {
 		return getFilteredBatchNames(getRawDependentBatchNames());
 	}
@@ -64,6 +80,29 @@ public abstract class PortalAcceptanceTestSuiteJob
 	@Override
 	public List<SegmentTestClassGroup> getDependentSegmentTestClassGroups() {
 		return getSegmentTestClassGroups(getRawDependentBatchNames());
+	}
+
+	@Override
+	public DistType getDistType() {
+		String distType = JenkinsResultsParserUtil.getProperty(
+			getJobProperties(), "dist.type[" + _testSuiteName + "]");
+
+		if ((distType == null) && _testSuiteName.equals("default")) {
+			distType = JenkinsResultsParserUtil.getProperty(
+				getJobProperties(), "dist.type");
+		}
+
+		if (distType == null) {
+			return DistType.CI;
+		}
+
+		for (DistType distTypeValue : DistType.values()) {
+			if (distType.equals(distTypeValue.toString())) {
+				return distTypeValue;
+			}
+		}
+
+		return DistType.CI;
 	}
 
 	@Override

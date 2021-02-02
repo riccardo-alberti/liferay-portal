@@ -16,7 +16,9 @@ package com.liferay.headless.delivery.internal.dto.v1_0.util;
 
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.util.DLURLHelper;
+import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
@@ -26,8 +28,10 @@ import com.liferay.headless.delivery.dto.v1_0.ContentFieldValue;
 import com.liferay.headless.delivery.dto.v1_0.Geo;
 import com.liferay.headless.delivery.dto.v1_0.StructuredContent;
 import com.liferay.headless.delivery.dto.v1_0.StructuredContentLink;
+import com.liferay.journal.article.dynamic.data.mapping.form.field.type.constants.JournalArticleDDMFormFieldTypeConstants;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleService;
+import com.liferay.layout.dynamic.data.mapping.form.field.type.constants.LayoutDDMFormFieldTypeConstants;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -50,11 +54,14 @@ import java.text.ParseException;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.UriInfo;
@@ -149,7 +156,9 @@ public class ContentFieldUtil {
 			Optional<UriInfo> uriInfoOptional =
 				dtoConverterContext.getUriInfoOptional();
 
-			if (Objects.equals(DDMFormFieldType.DATE, ddmFormField.getType())) {
+			if (Objects.equals(DDMFormFieldType.DATE, ddmFormField.getType()) ||
+				Objects.equals("date", ddmFormField.getType())) {
+
 				return new ContentFieldValue() {
 					{
 						data = _toDateString(locale, valueString);
@@ -158,7 +167,10 @@ public class ContentFieldUtil {
 			}
 			else if (Objects.equals(
 						DDMFormFieldType.DOCUMENT_LIBRARY,
-						ddmFormField.getType())) {
+						ddmFormField.getType()) ||
+					 Objects.equals(
+						 ddmFormField.getType(),
+						 DDMFormFieldTypeConstants.DOCUMENT_LIBRARY)) {
 
 				FileEntry fileEntry = _getFileEntry(dlAppService, valueString);
 
@@ -175,9 +187,26 @@ public class ContentFieldUtil {
 					}
 				};
 			}
+			else if (Objects.equals(
+						DDMFormFieldTypeConstants.GEOLOCATION,
+						ddmFormField.getType())) {
 
-			if (Objects.equals(
-					DDMFormFieldType.GEOLOCATION, ddmFormField.getType())) {
+				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+					valueString);
+
+				return new ContentFieldValue() {
+					{
+						geo = new Geo() {
+							{
+								latitude = jsonObject.getDouble("lat");
+								longitude = jsonObject.getDouble("lng");
+							}
+						};
+					}
+				};
+			}
+			else if (Objects.equals(
+						DDMFormFieldType.GEOLOCATION, ddmFormField.getType())) {
 
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					valueString);
@@ -193,9 +222,11 @@ public class ContentFieldUtil {
 					}
 				};
 			}
-
-			if (Objects.equals(
-					DDMFormFieldType.IMAGE, ddmFormField.getType())) {
+			else if (Objects.equals(
+						DDMFormFieldType.IMAGE, ddmFormField.getType()) ||
+					 Objects.equals(
+						 DDMFormFieldTypeConstants.IMAGE,
+						 ddmFormField.getType())) {
 
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					valueString);
@@ -228,9 +259,13 @@ public class ContentFieldUtil {
 					}
 				};
 			}
-
-			if (Objects.equals(
-					DDMFormFieldType.JOURNAL_ARTICLE, ddmFormField.getType())) {
+			else if (Objects.equals(
+						DDMFormFieldType.JOURNAL_ARTICLE,
+						ddmFormField.getType()) ||
+					 Objects.equals(
+						 ddmFormField.getType(),
+						 JournalArticleDDMFormFieldTypeConstants.
+							 JOURNAL_ARTICLE)) {
 
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					valueString);
@@ -259,9 +294,12 @@ public class ContentFieldUtil {
 					}
 				};
 			}
-
-			if (Objects.equals(
-					DDMFormFieldType.LINK_TO_PAGE, ddmFormField.getType())) {
+			else if (Objects.equals(
+						DDMFormFieldType.LINK_TO_PAGE,
+						ddmFormField.getType()) ||
+					 Objects.equals(
+						 LayoutDDMFormFieldTypeConstants.LINK_TO_LAYOUT,
+						 ddmFormField.getType())) {
 
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
 					valueString);
@@ -281,6 +319,62 @@ public class ContentFieldUtil {
 				return new ContentFieldValue() {
 					{
 						link = layoutByUuidAndGroupId.getFriendlyURL();
+					}
+				};
+			}
+			else if (Objects.equals(
+						DDMFormFieldTypeConstants.SELECT,
+						ddmFormField.getType()) ||
+					 Objects.equals(
+						 ddmFormField.getType(),
+						 DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE)) {
+
+				List<String> list = JSONUtil.toStringList(
+					JSONFactoryUtil.createJSONArray(valueString));
+
+				DDMFormFieldOptions ddmFormFieldOptions =
+					ddmFormField.getDDMFormFieldOptions();
+
+				Stream<String> stream = list.stream();
+
+				List<String> values = stream.map(
+					ddmFormFieldOptions::getOptionLabels
+				).map(
+					localizedValue -> localizedValue.getString(locale)
+				).collect(
+					Collectors.toList()
+				);
+
+				return new ContentFieldValue() {
+					{
+						setData(
+							() -> {
+								if (!ddmFormField.isMultiple() &&
+									(values.size() == 1)) {
+
+									return values.get(0);
+								}
+
+								return String.valueOf(
+									JSONFactoryUtil.createJSONArray(values));
+							});
+					}
+				};
+			}
+			else if (Objects.equals(
+						DDMFormFieldTypeConstants.RADIO,
+						ddmFormField.getType())) {
+
+				DDMFormFieldOptions ddmFormFieldOptions =
+					ddmFormField.getDDMFormFieldOptions();
+
+				LocalizedValue selectedOptionLabelLocalizedValue =
+					ddmFormFieldOptions.getOptionLabels(valueString);
+
+				return new ContentFieldValue() {
+					{
+						data = selectedOptionLabelLocalizedValue.getString(
+							locale);
 					}
 				};
 			}

@@ -16,7 +16,7 @@ package com.liferay.dispatch.internal.messaging;
 
 import com.liferay.dispatch.constants.DispatchConstants;
 import com.liferay.dispatch.executor.DispatchTaskExecutor;
-import com.liferay.dispatch.executor.DispatchTaskExecutorHelper;
+import com.liferay.dispatch.executor.DispatchTaskExecutorRegistry;
 import com.liferay.dispatch.executor.DispatchTaskStatus;
 import com.liferay.dispatch.model.DispatchLog;
 import com.liferay.dispatch.model.DispatchTrigger;
@@ -56,12 +56,9 @@ public class DispatchMessageListener extends BaseMessageListener {
 		if (!dispatchTrigger.isOverlapAllowed()) {
 			DispatchLog dispatchLog =
 				_dispatchLogLocalService.fetchLatestDispatchLog(
-					dispatchTriggerId);
+					dispatchTriggerId, DispatchTaskStatus.IN_PROGRESS);
 
-			if ((dispatchLog != null) &&
-				(DispatchTaskStatus.valueOf(dispatchLog.getStatus()) ==
-					DispatchTaskStatus.IN_PROGRESS)) {
-
+			if (dispatchLog != null) {
 				_dispatchLogLocalService.addDispatchLog(
 					dispatchTrigger.getUserId(),
 					dispatchTrigger.getDispatchTriggerId(), null, null, null,
@@ -72,8 +69,8 @@ public class DispatchMessageListener extends BaseMessageListener {
 		}
 
 		DispatchTaskExecutor dispatchTaskExecutor =
-			_dispatchTaskExecutorHelper.getDispatchTaskExecutor(
-				dispatchTrigger.getTaskExecutorType());
+			_dispatchTaskExecutorRegistry.getDispatchTaskExecutor(
+				dispatchTrigger.getDispatchTaskExecutorType());
 
 		dispatchTaskExecutor.execute(dispatchTriggerId);
 	}
@@ -82,7 +79,7 @@ public class DispatchMessageListener extends BaseMessageListener {
 	private DispatchLogLocalService _dispatchLogLocalService;
 
 	@Reference
-	private DispatchTaskExecutorHelper _dispatchTaskExecutorHelper;
+	private DispatchTaskExecutorRegistry _dispatchTaskExecutorRegistry;
 
 	@Reference
 	private DispatchTriggerLocalService _dispatchTriggerLocalService;

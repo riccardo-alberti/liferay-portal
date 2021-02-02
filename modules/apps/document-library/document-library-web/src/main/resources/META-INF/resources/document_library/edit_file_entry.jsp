@@ -190,8 +190,6 @@ renderResponse.setTitle(headerTitle);
 		<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_PUBLISH) %>" />
 
 		<div class="lfr-form-content">
-			<liferay-ui:error exception="<%= RequiredFileException.class %>" message="please-select-the-file-again" />
-
 			<liferay-ui:error exception="<%= AntivirusScannerException.class %>">
 
 				<%
@@ -199,6 +197,10 @@ renderResponse.setTitle(headerTitle);
 				%>
 
 				<liferay-ui:message key="<%= ase.getMessageKey() %>" />
+			</liferay-ui:error>
+
+			<liferay-ui:error exception="<%= DLStorageQuotaExceededException.class %>">
+				<liferay-ui:message arguments="<%= LanguageUtil.formatStorageSize(PropsValues.DATA_LIMIT_MAX_DL_STORAGE_SIZE, locale) %>" key="you-have-exceeded-the-x-storage-quota-for-this-instance" />
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= DuplicateFileEntryException.class %>" message="please-enter-a-unique-document-name" />
@@ -219,6 +221,7 @@ renderResponse.setTitle(headerTitle);
 			<liferay-ui:error exception="<%= FileNameException.class %>" message="please-enter-a-file-with-a-valid-file-name" />
 			<liferay-ui:error exception="<%= FileNameExtensionException.class %>" message="the-file-name-cannot-be-empty-or-without-extension" />
 			<liferay-ui:error exception="<%= NoSuchFolderException.class %>" message="please-enter-a-valid-folder" />
+			<liferay-ui:error exception="<%= RequiredFileException.class %>" message="please-select-the-file-again" />
 
 			<liferay-ui:error exception="<%= SourceFileNameException.class %>">
 				<liferay-ui:message key="the-source-file-does-not-have-the-same-extension-as-the-original-file" />
@@ -317,7 +320,24 @@ renderResponse.setTitle(headerTitle);
 
 					<aui:input label="title" name="title" />
 
-					<aui:input label="file-name" name="fileName" required="<%= (fileVersion != null) && Validator.isNotNull(fileVersion.getExtension()) %>" type='<%= dlEditFileEntryDisplayContext.isFileNameVisible() ? "text" : "hidden" %>' />
+					<div>
+						<aui:input label="file-name" name="fileName" type='<%= dlEditFileEntryDisplayContext.isFileNameVisible() ? "text" : "hidden" %>' />
+
+						<c:if test="<%= fileVersion != null %>">
+							<react:component
+								module="document_library/js/FileNameInput.es"
+								props='<%=
+									HashMapBuilder.<String, Object>put(
+										"initialValue", fileVersion.getFileName()
+									).put(
+										"required", Validator.isNotNull(fileVersion.getExtension())
+									).put(
+										"visible", dlEditFileEntryDisplayContext.isFileNameVisible()
+									).build()
+								%>'
+							/>
+						</c:if>
+					</div>
 
 					<c:if test="<%= (folder == null) || folder.isSupportsMetadata() %>">
 						<aui:input name="description" />
@@ -601,18 +621,18 @@ renderResponse.setTitle(headerTitle);
 			<%= HtmlUtil.escape(uploadProgressId) %>.startProgress();
 		}
 
-		var data = {
+		Liferay.Util.setFormValues(form, {
 			<%= Constants.CMD %>:
 				'<%= (fileEntry == null) ? Constants.ADD : Constants.UPDATE %>',
-		};
+		});
 
 		if (draft) {
-			data.workflowAction = '<%= WorkflowConstants.ACTION_SAVE_DRAFT %>';
+			Liferay.Util.setFormValues(form, {
+				workflowAction: '<%= WorkflowConstants.ACTION_SAVE_DRAFT %>',
+			});
 		}
 
-		Liferay.Util.postForm(form, {
-			data: data,
-		});
+		submitForm(form);
 	}
 
 	function <portlet:namespace />showVersionDetailsDialog() {
@@ -653,7 +673,6 @@ renderResponse.setTitle(headerTitle);
 		var formComponent = Liferay.Form.get('<portlet:namespace />fm');
 
 		formComponent.formValidator.validateField('<portlet:namespace />title');
-		formComponent.formValidator.validateField('<portlet:namespace />fileName');
 	}
 </script>
 

@@ -24,96 +24,6 @@ definition {
 		}
 	}
 
-	@priority = "5"
-	test AddStructures {
-		property portal.acceptance = "true";
-		property testray.component.names = "Training,Web Content Administration";
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.addCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 1");
-
-		DataEngine.addFields(fieldNameList = "Date,Image,Upload");
-
-		WebContentStructures.saveCP(structureName = "WC Structure Name 1");
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.addCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 2");
-
-		DataEngine.addFields(fieldNameList = "Grid,Link to Page");
-
-		WebContentStructures.saveCP(structureName = "WC Structure Name 2");
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.addCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 3");
-
-		DataEngine.addFields(fieldNameList = "Numeric,Single Selection,Select from List,Separator,Text,Rich Text");
-
-		WebContentStructures.saveCP(structureName = "WC Structure Name 3");
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.viewCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 1");
-
-		LexiconEntry.gotoEntry(rowEntry = "WC Structure Name 1");
-
-		for (var structureFieldName : list "Date,Image,Upload") {
-			DataEngine.viewField(
-				fieldFieldLabel = "${structureFieldName}",
-				fieldName = "${structureFieldName}");
-		}
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.viewCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 2");
-
-		LexiconEntry.gotoEntry(rowEntry = "WC Structure Name 2");
-
-		for (var structureFieldName : list "Grid,Link to Page") {
-			DataEngine.viewField(
-				fieldFieldLabel = "${structureFieldName}",
-				fieldName = "${structureFieldName}");
-		}
-
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-		NavItem.gotoStructures();
-
-		WebContentStructures.viewCP(
-			structureDescription = "WC Structure Description",
-			structureName = "WC Structure Name 3");
-
-		LexiconEntry.gotoEntry(rowEntry = "WC Structure Name 3");
-
-		for (var structureFieldName : list "Numeric,Single Selection,Select from List,Separator,Text,Rich Text") {
-			DataEngine.viewField(
-				fieldFieldLabel = "${structureFieldName}",
-				fieldName = "${structureFieldName}");
-		}
-	}
-
 	@description = "This is a use case for LPS-77387."
 	@priority = "4"
 	test AddStructureViaLocaleURL {
@@ -154,6 +64,90 @@ definition {
 		AssertElementNotPresent(
 			key_ddlDataDefinitionName = "WC Structure Name",
 			locator1 = "DDMSelectStructure#DDM_STRUCTURE_TABLE_NAME_2");
+	}
+
+	@description = "This is a use case for LPS-126248. Edit field reference of field options in structure editor."
+	@priority = "4"
+	test EditFieldReferenceOfFieldOption {
+		task ("Add a web content structure with a Select from List field") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			NavItem.gotoStructures();
+
+			WebContentStructures.addCP(structureName = "WC Structure Name");
+
+			DataEngine.addField(
+				fieldFieldLabel = "Select from List",
+				fieldName = "Select from List");
+		}
+
+		task ("Add two field options for Select from List") {
+			var index = "1";
+
+			for (var optionValue : list "Option 1,Option 2") {
+				DataEngine.addFieldOption(
+					fieldFieldLabel = "Select from List",
+					index = "${index}",
+					optionValue = "${optionValue}");
+
+				var index = ${index} + 1;
+			}
+		}
+
+		task ("Edit field reference of field options") {
+			var index = "1";
+
+			for (var fieldReferenceOfFieldOption : list "Value1,Value2") {
+				DataEngine.editFieldReferenceOfFieldOption(
+					fieldFieldLabel = "Select from List",
+					fieldReferenceOfFieldOption = "${fieldReferenceOfFieldOption}",
+					index = "${index}");
+
+				var index = ${index} + 1;
+			}
+		}
+
+		task ("Assert the field reference of field options") {
+			Click(
+				key_fieldFieldLabel = "Select from List",
+				locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER");
+
+			Navigator.gotoNavTab(navTab = "Basic");
+
+			var index = "1";
+
+			for (var fieldReferenceOfFieldOption : list "Value1,Value2") {
+				AssertTextEquals(
+					index = "${index}",
+					locator1 = "Sidebar#OPTION_WITHOUT_LABEL_FIELD_REFERENCE_INPUT",
+					value1 = "${fieldReferenceOfFieldOption}");
+
+				var index = ${index} + 1;
+			}
+
+			WebContentStructures.saveCP(structureName = "WC Structure Name");
+		}
+
+		task ("Assert the field reference of field options saved") {
+			WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
+
+			Click(
+				key_fieldFieldLabel = "Select from List",
+				locator1 = "DDMEditStructure#FORM_FIELD_CONTAINER");
+
+			Navigator.gotoNavTab(navTab = "Basic");
+
+			var index = "1";
+
+			for (var fieldReferenceOfFieldOption : list "Value1,Value2") {
+				AssertTextEquals(
+					index = "${index}",
+					locator1 = "Sidebar#OPTION_WITHOUT_LABEL_FIELD_REFERENCE_INPUT",
+					value1 = "${fieldReferenceOfFieldOption}");
+
+				var index = ${index} + 1;
+			}
+		}
 	}
 
 	@priority = "4"
@@ -597,6 +591,61 @@ definition {
 		WebContentStructures.viewTableEntryCP(
 			structureDescription = "Basic Web Content",
 			structureName = "Basic Web Content");
+	}
+
+	@description = "This is a test for LPS-125933. Create, read, update and delete a Structure with all possible fields."
+	@priority = "5"
+	test ViewAndEditAsWellAsDeleteStructureWithAllFields {
+		property portal.acceptance = "true";
+		property testray.component.names = "Training,Web Content Administration";
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		DataEngine.addFields(fieldNameList = "Text,Select from List,Single Selection,Multiple Selection,Grid,Date,Numeric,Image,Rich Text,Upload,Color,Web Content,Geolocation,Link to Page,Separator");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
+
+		for (var fieldFieldLabel : list "Text,Select from List,Single Selection,Multiple Selection,Grid,Date,Numeric,Image,Rich Text,Upload,Color,Web Content,Geolocation,Link to Page,Separator") {
+			DataEngine.viewField(
+				fieldFieldLabel = "${fieldFieldLabel}",
+				fieldName = "${fieldFieldLabel}");
+		}
+
+		task ("Edit structure name") {
+			WebContentStructures.addName(structureName = "WC Structure Name Edit");
+		}
+
+		task ("Edit field labels") {
+			for (var fieldFieldLabel : list "Text,Select from List,Single Selection,Multiple Selection,Grid,Date,Numeric,Image,Rich Text,Upload,Color,Web Content,Geolocation,Link to Page,Separator") {
+				DataEngine.editFieldLabel(
+					fieldFieldLabel = "${fieldFieldLabel}",
+					fieldFieldLabelEdit = "${fieldFieldLabel} Edit");
+			}
+
+			WebContentStructures.saveCP(structureName = "WC Structure Name Edit");
+		}
+
+		task ("Assert the structure is renamed") {
+			WebContentStructures.viewCP(
+				structureDescription = "WC Structure Description",
+				structureName = "WC Structure Name Edit");
+		}
+
+		task ("Delete the structure") {
+			WebContentStructures.deleteCP(structureName = "WC Structure Name Edit");
+		}
+
+		task ("Assert the structure is deleted") {
+			LexiconTable.viewTableEntryNotPresent(tableEntry = "WC Structure Name Edit");
+		}
 	}
 
 	@priority = "4"

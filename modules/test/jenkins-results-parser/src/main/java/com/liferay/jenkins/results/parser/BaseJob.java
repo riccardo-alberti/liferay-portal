@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -98,6 +99,11 @@ public abstract class BaseJob implements Job {
 	}
 
 	@Override
+	public DistType getDistType() {
+		return DistType.CI;
+	}
+
+	@Override
 	public Set<String> getDistTypesExcludingTomcat() {
 		Set<String> distTypesExcludingTomcat = new TreeSet<>(getDistTypes());
 
@@ -155,9 +161,10 @@ public abstract class BaseJob implements Job {
 			Properties batchProperties = new Properties();
 
 			batchProperties.setProperty(
+				"test.batch.job.name", batchTestClassGroup.getBatchJobName());
+			batchProperties.setProperty(
 				"test.batch.maximum.slaves.per.host",
 				String.valueOf(batchTestClassGroup.getMaximumSlavesPerHost()));
-
 			batchProperties.setProperty(
 				"test.batch.minimum.slave.ram",
 				String.valueOf(batchTestClassGroup.getMinimumSlaveRAM()));
@@ -166,14 +173,14 @@ public abstract class BaseJob implements Job {
 				FunctionalBatchTestClassGroup functionalBatchTestClassGroup =
 					(FunctionalBatchTestClassGroup)batchTestClassGroup;
 
-				String relevantTestBatchRunPropertyQuery =
+				String testBatchRunPropertyQuery =
 					functionalBatchTestClassGroup.
-						getRelevantTestBatchRunPropertyQuery();
+						getTestBatchRunPropertyQuery();
 
-				if (relevantTestBatchRunPropertyQuery != null) {
+				if (testBatchRunPropertyQuery != null) {
 					batchProperties.setProperty(
 						"test.batch.run.property.query",
-						relevantTestBatchRunPropertyQuery);
+						testBatchRunPropertyQuery);
 				}
 			}
 			else {
@@ -192,17 +199,17 @@ public abstract class BaseJob implements Job {
 					batchTestClassGroup.getSegmentTestClassGroup(i);
 
 				segmentProperties.setProperty(
+					"test.batch.job.name",
+					segmentTestClassGroup.getBatchJobName());
+				segmentProperties.setProperty(
 					"test.batch.maximum.slaves.per.host",
 					String.valueOf(
 						segmentTestClassGroup.getMaximumSlavesPerHost()));
-
 				segmentProperties.setProperty(
 					"test.batch.minimum.slave.ram",
 					String.valueOf(segmentTestClassGroup.getMinimumSlaveRAM()));
-
 				segmentProperties.setProperty(
 					"test.batch.name", segmentTestClassGroup.getBatchName());
-
 				segmentProperties.setProperty(
 					"test.batch.size",
 					String.valueOf(segmentTestClassGroup.getAxisCount()));
@@ -295,13 +302,17 @@ public abstract class BaseJob implements Job {
 	protected List<BatchTestClassGroup> getBatchTestClassGroups(
 		Set<String> rawBatchNames) {
 
-		if (_batchTestClassGroups != null) {
-			return _batchTestClassGroups;
-		}
-
 		if ((rawBatchNames == null) || rawBatchNames.isEmpty()) {
 			return new ArrayList<>();
 		}
+
+		long start = System.currentTimeMillis();
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Started creating ", String.valueOf(rawBatchNames.size()),
+				" batch test class groups at ",
+				JenkinsResultsParserUtil.toDateString(new Date(start))));
 
 		List<Callable<BatchTestClassGroup>> callables = new ArrayList<>();
 
@@ -334,6 +345,15 @@ public abstract class BaseJob implements Job {
 					}
 
 					private BatchTestClassGroup _call() throws Exception {
+						long start = System.currentTimeMillis();
+
+						System.out.println(
+							JenkinsResultsParserUtil.combine(
+								"[", batchName, "] Started batch test class ",
+								"group at ",
+								JenkinsResultsParserUtil.toDateString(
+									new Date(start))));
+
 						BatchTestClassGroup batchTestClassGroup =
 							TestClassGroupFactory.newBatchTestClassGroup(
 								batchName, job);
@@ -341,6 +361,16 @@ public abstract class BaseJob implements Job {
 						if (batchTestClassGroup.getAxisCount() <= 0) {
 							return null;
 						}
+
+						System.out.println(
+							JenkinsResultsParserUtil.combine(
+								"[", batchName, "] Completed batch test class ",
+								"group in ",
+								JenkinsResultsParserUtil.toDurationString(
+									System.currentTimeMillis() - start),
+								" at ",
+								JenkinsResultsParserUtil.toDateString(
+									new Date())));
 
 						return batchTestClassGroup;
 					}
@@ -351,18 +381,24 @@ public abstract class BaseJob implements Job {
 				});
 		}
 
-		ThreadPoolExecutor threadPoolExecutor =
-			JenkinsResultsParserUtil.getNewThreadPoolExecutor(
-				callables.size(), true);
-
 		ParallelExecutor<BatchTestClassGroup> parallelExecutor =
-			new ParallelExecutor<>(callables, threadPoolExecutor);
+			new ParallelExecutor<>(callables, _executorService);
 
-		_batchTestClassGroups = parallelExecutor.execute();
+		List<BatchTestClassGroup> batchTestClassGroups =
+			parallelExecutor.execute();
 
-		_batchTestClassGroups.removeAll(Collections.singleton(null));
+		batchTestClassGroups.removeAll(Collections.singleton(null));
 
-		return _batchTestClassGroups;
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Completed creating ",
+				String.valueOf(batchTestClassGroups.size()),
+				" batch test class groups in ",
+				JenkinsResultsParserUtil.toDurationString(
+					System.currentTimeMillis() - start),
+				" at ", JenkinsResultsParserUtil.toDateString(new Date())));
+
+		return batchTestClassGroups;
 	}
 
 	protected Set<String> getFilteredBatchNames(Set<String> rawBatchNames) {
@@ -469,7 +505,11 @@ public abstract class BaseJob implements Job {
 
 	protected final List<File> jobPropertiesFiles = new ArrayList<>();
 
-	private List<BatchTestClassGroup> _batchTestClassGroups;
+	private static final Integer _THREAD_COUNT = 20;
+
+	private static final ExecutorService _executorService =
+		JenkinsResultsParserUtil.getNewThreadPoolExecutor(_THREAD_COUNT, true);
+
 	private final BuildProfile _buildProfile;
 	private final String _jobName;
 	private final Properties _jobProperties = new Properties();

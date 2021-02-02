@@ -50,7 +50,7 @@ if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
 
 <portlet:actionURL name="/dispatch/edit_dispatch_trigger" var="editDispatchTriggerActionURL" />
 
-<aui:form action="<%= editDispatchTriggerActionURL %>" cssClass="container-fluid container-fluid-max-xl" method="post" name="fm">
+<aui:form action="<%= editDispatchTriggerActionURL %>" cssClass="container-fluid container-fluid-max-xl container-form-lg" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="schedule" />
 	<aui:input name="dispatchTriggerId" type="hidden" value="<%= String.valueOf(dispatchTrigger.getDispatchTriggerId()) %>" />
@@ -65,7 +65,7 @@ if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
 
 					<c:choose>
 						<c:when test="<%= ClusterExecutorUtil.isEnabled() %>">
-							<aui:select label="task-execution-cluster-mode" name="taskClusterMode">
+							<aui:select label="task-execution-cluster-mode" name="dispatchTaskClusterMode">
 
 								<%
 								for (DispatchTaskClusterMode dispatchTaskClusterMode : DispatchTaskClusterMode.values()) {
@@ -74,7 +74,7 @@ if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
 									}
 								%>
 
-									<aui:option label="<%= dispatchTaskClusterMode.getLabel() %>" selected="<%= dispatchTrigger.getTaskClusterMode() == dispatchTaskClusterMode.getMode() %>" value="<%= dispatchTaskClusterMode.getMode() %>" />
+									<aui:option label="<%= dispatchTaskClusterMode.getLabel() %>" selected="<%= dispatchTrigger.getDispatchTaskClusterMode() == dispatchTaskClusterMode.getMode() %>" value="<%= dispatchTaskClusterMode.getMode() %>" />
 
 								<%
 								}
@@ -83,7 +83,7 @@ if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
 							</aui:select>
 						</c:when>
 						<c:otherwise>
-							<aui:select disabled="<%= true %>" helpMessage="this-option-is-enabled-only-in-a-clustered-environment" label="task-execution-cluster-mode" name="taskClusterMode">
+							<aui:select disabled="<%= true %>" helpMessage="this-option-is-enabled-only-in-a-clustered-environment" label="task-execution-cluster-mode" name="dispatchTaskClusterMode">
 								<aui:option label="<%= DispatchTaskClusterMode.NOT_APPLICABLE.getLabel() %>" />
 							</aui:select>
 						</c:otherwise>
@@ -152,11 +152,11 @@ if ((dispatchTrigger != null) && (dispatchTrigger.getEndDate() != null)) {
 					</aui:field-wrapper>
 				</aui:fieldset>
 
-				<aui:button-row>
-					<aui:button cssClass="btn-lg" type="submit" value="save" />
+				<div class="sheet-footer">
+					<aui:button type="submit" value="save" />
 
-					<aui:button cssClass="btn-lg" href="<%= backURL %>" type="cancel" />
-				</aui:button-row>
+					<aui:button href="<%= backURL %>" type="cancel" />
+				</div>
 			</div>
 		</aui:fieldset>
 	</aui:fieldset-group>

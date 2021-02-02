@@ -16,6 +16,8 @@ package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.test.clazz.group.FunctionalBatchTestClassGroup.FunctionalTestClass;
 
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -62,6 +64,10 @@ public class FunctionalAxisTestClassGroup extends AxisTestClassGroup {
 		return functionalTestClass.getPoshiProperties();
 	}
 
+	public File getTestBaseDir() {
+		return _testBaseDir;
+	}
+
 	public List<String> getTestClassMethodNames() {
 		List<String> testClassMethodNames = new ArrayList<>();
 
@@ -76,9 +82,14 @@ public class FunctionalAxisTestClassGroup extends AxisTestClassGroup {
 	}
 
 	protected FunctionalAxisTestClassGroup(
-		FunctionalBatchTestClassGroup functionalBatchTestClassGroup) {
+		FunctionalBatchTestClassGroup functionalBatchTestClassGroup,
+		File testBaseDir) {
 
 		super(functionalBatchTestClassGroup);
+
+		_testBaseDir = testBaseDir;
 	}
+
+	private final File _testBaseDir;
 
 }

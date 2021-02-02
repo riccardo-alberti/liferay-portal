@@ -28,11 +28,30 @@ create table DSLQueryStatusEntry (
 	statusDate DATE null
 );
 
+create table ERCCompanyEntry (
+	externalReferenceCode VARCHAR(75) null,
+	ercCompanyEntryId LONG not null primary key,
+	companyId LONG
+);
+
+create table ERCGroupEntry (
+	externalReferenceCode VARCHAR(75) null,
+	ercGroupEntryId LONG not null primary key,
+	groupId LONG,
+	companyId LONG
+);
+
 create table EagerBlobEntry (
 	uuid_ VARCHAR(75) null,
 	eagerBlobEntryId LONG not null primary key,
 	groupId LONG,
 	blob_ BLOB
+);
+
+create table FinderWhereClauseEntry (
+	finderWhereClauseEntryId LONG not null primary key,
+	name VARCHAR(75) null,
+	nickname VARCHAR(75) null
 );
 
 create table LVEntries_BigDecimalEntries (

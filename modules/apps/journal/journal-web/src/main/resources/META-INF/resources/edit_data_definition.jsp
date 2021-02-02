@@ -50,7 +50,11 @@ else {
 editDDMStructureURL.setParameter("mvcPath", "/edit_data_definition.jsp");
 %>
 
-<aui:form action="<%= editDDMStructureURL.toString() %>" cssClass="edit-article-form" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "saveDDMStructure();" %>'>
+<liferay-util:html-top>
+	<link href="<%= PortalUtil.getStaticResourceURL(request, PortalUtil.getPathModule() + "/journal-web/css/ddm_form.css") %>" rel="stylesheet" />
+</liferay-util:html-top>
+
+<aui:form action="<%= editDDMStructureURL.toString() %>" cssClass="edit-article-form" enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 	<aui:input name="dataDefinition" type="hidden" />
@@ -81,33 +85,37 @@ editDDMStructureURL.setParameter("mvcPath", "/edit_data_definition.jsp");
 		<clay:container-fluid
 			cssClass="container-view"
 		>
-			<c:if test="<%= (ddmStructure != null) && (DDMStorageLinkLocalServiceUtil.getStructureStorageLinksCount(journalEditDDMStructuresDisplayContext.getDDMStructureId()) > 0) %>">
-				<div class="alert alert-warning">
-					<liferay-ui:message key="there-are-content-references-to-this-structure.-you-may-lose-data-if-a-field-name-is-renamed-or-removed" />
-				</div>
-			</c:if>
+			<div class="contextual-sidebar-mr">
+				<c:if test="<%= (ddmStructure != null) && (DDMStorageLinkLocalServiceUtil.getStructureStorageLinksCount(journalEditDDMStructuresDisplayContext.getDDMStructureId()) > 0) %>">
+					<div class="alert alert-warning">
+						<liferay-ui:message key="there-are-content-references-to-this-structure.-you-may-lose-data-if-a-field-name-is-renamed-or-removed" />
+					</div>
+				</c:if>
 
-			<c:if test="<%= (journalEditDDMStructuresDisplayContext.getDDMStructureId() > 0) && (DDMTemplateLocalServiceUtil.getTemplatesCount(null, PortalUtil.getClassNameId(DDMStructure.class), journalEditDDMStructuresDisplayContext.getDDMStructureId()) > 0) %>">
-				<div class="alert alert-info">
-					<liferay-ui:message key="there-are-template-references-to-this-structure.-please-update-them-if-a-field-name-is-renamed-or-removed" />
-				</div>
-			</c:if>
+				<c:if test="<%= (journalEditDDMStructuresDisplayContext.getDDMStructureId() > 0) && (DDMTemplateLocalServiceUtil.getTemplatesCount(null, PortalUtil.getClassNameId(DDMStructure.class), journalEditDDMStructuresDisplayContext.getDDMStructureId()) > 0) %>">
+					<div class="alert alert-info">
+						<liferay-ui:message key="there-are-template-references-to-this-structure.-please-update-them-if-a-field-name-is-renamed-or-removed" />
+					</div>
+				</c:if>
 
-			<c:if test="<%= (ddmStructure != null) && (groupId != scopeGroupId) %>">
-				<div class="alert alert-warning">
-					<liferay-ui:message key="this-structure-does-not-belong-to-this-site.-you-may-affect-other-sites-if-you-edit-this-structure" />
-				</div>
-			</c:if>
+				<c:if test="<%= (ddmStructure != null) && (groupId != scopeGroupId) %>">
+					<div class="alert alert-warning">
+						<liferay-ui:message key="this-structure-does-not-belong-to-this-site.-you-may-affect-other-sites-if-you-edit-this-structure" />
+					</div>
+				</c:if>
 
-			<liferay-data-engine:data-layout-builder
-				additionalPanels="<%= journalEditDDMStructuresDisplayContext.getAdditionalPanels(npmResolvedPackageName) %>"
-				componentId='<%= liferayPortletResponse.getNamespace() + "dataLayoutBuilder" %>'
-				contentType="journal"
-				dataDefinitionId="<%= ddmStructureId %>"
-				groupId="<%= groupId %>"
-				namespace="<%= liferayPortletResponse.getNamespace() %>"
-				singlePage="<%= true %>"
-			/>
+				<div class="contextual-sidebar-mr-n">
+					<liferay-data-engine:data-layout-builder
+						additionalPanels="<%= journalEditDDMStructuresDisplayContext.getAdditionalPanels(npmResolvedPackageName) %>"
+						componentId='<%= liferayPortletResponse.getNamespace() + "dataLayoutBuilder" %>'
+						contentType="journal"
+						dataDefinitionId="<%= ddmStructureId %>"
+						groupId="<%= groupId %>"
+						namespace="<%= liferayPortletResponse.getNamespace() %>"
+						singlePage="<%= true %>"
+					/>
+				</div>
+			</div>
 		</clay:container-fluid>
 	</div>
 </aui:form>
@@ -119,7 +127,7 @@ editDDMStructureURL.setParameter("mvcPath", "/edit_data_definition.jsp");
 	servletContext="<%= application %>"
 />
 
-<aui:script>
+<aui:script sandbox="<%= true %>">
 	function <portlet:namespace />getInputLocalizedValues(field) {
 		var inputLocalized = Liferay.component('<portlet:namespace />' + field);
 		var localizedValues = {};
@@ -140,10 +148,33 @@ editDDMStructureURL.setParameter("mvcPath", "/edit_data_definition.jsp");
 	function <portlet:namespace />saveDDMStructure() {
 		Liferay.componentReady('<portlet:namespace />dataLayoutBuilder').then(
 			function (dataLayoutBuilder) {
+				const nameInput = document.getElementById(
+					'<portlet:namespace />name'
+				);
+
+				var name = <portlet:namespace />getInputLocalizedValues('name');
+
+				if (
+					!nameInput.value ||
+					!name[
+						'<%= journalEditDDMStructuresDisplayContext.getDefaultLanguageId() %>'
+					]
+				) {
+					Liferay.Util.openToast({
+						message:
+							'<liferay-ui:message arguments="<%= LocaleUtil.toW3cLanguageId(journalEditDDMStructuresDisplayContext.getDefaultLanguageId()) %>" key="please-enter-a-valid-title-for-the-default-language-x" />',
+						title: '<liferay-ui:message key="error" />',
+						type: 'danger',
+					});
+
+					nameInput.focus();
+
+					return;
+				}
+
 				var description = <portlet:namespace />getInputLocalizedValues(
 					'description'
 				);
-				var name = <portlet:namespace />getInputLocalizedValues('name');
 
 				var formData = dataLayoutBuilder.getFormData();
 
@@ -165,5 +196,18 @@ editDDMStructureURL.setParameter("mvcPath", "/edit_data_definition.jsp");
 				});
 			}
 		);
+	}
+
+	const form = document.getElementById('<portlet:namespace />fm');
+
+	if (form) {
+		form.addEventListener('submit', <portlet:namespace />saveDDMStructure);
+
+		Liferay.once('destroyPortlet', function () {
+			form.removeEventListener(
+				'submit',
+				<portlet:namespace />saveDDMStructure
+			);
+		});
 	}
 </aui:script>

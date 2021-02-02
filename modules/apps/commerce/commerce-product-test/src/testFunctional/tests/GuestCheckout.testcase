@@ -1002,7 +1002,8 @@ definition {
 	}
 
 	test GuestCheckoutEnabledWithoutAuthenticationPage {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "GuestCheckout#GuestCheckoutEnabledWithoutAuthenticationPage";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
@@ -1115,7 +1116,9 @@ definition {
 
 		Button.click(button = "Continue as a Guest");
 
-		AssertElementNotPresent(locator1 = "CommerceAccelerators#CHECKOUT_CHECK_SHIPPING_ADDRESS_LABEL");
+		AssertElementNotPresent(
+			key_label = "Shipping Address",
+			locator1 = "CommerceAccelerators#CHECKOUT_MULTI_STEP_INDICATOR_LABEL");
 
 		CommerceCheckout.initializersCheckout(
 			guestEmail = "buyer@liferay.com",
@@ -1127,8 +1130,7 @@ definition {
 			paymentMethod = "Money Order",
 			productName = "U-Joint",
 			productQuantity = "1",
-			productUnitPrice = "24",
-			shippingMethod = "Standard");
+			productUnitPrice = "24");
 	}
 
 	test GuestCheckoutWithShippableProduct {

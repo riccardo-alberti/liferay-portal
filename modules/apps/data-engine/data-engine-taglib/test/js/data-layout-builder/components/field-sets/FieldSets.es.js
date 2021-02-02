@@ -74,6 +74,17 @@ export const FieldSetWrapper = ({
 describe('FieldSets', () => {
 	beforeEach(() => {
 		dataLayoutBuilderProps = getDataLayoutBuilderProps();
+
+		dataLayoutBuilderProps = {
+			...dataLayoutBuilderProps,
+			props: {
+				...dataLayoutBuilderProps.props,
+				contentTypeConfig: {
+					allowInvalidAvailableLocalesForProperty: false,
+				},
+			},
+		};
+
 		ddmFormSpy = jest
 			.spyOn(DDMForm, 'default')
 			.mockImplementation((props) => {
@@ -106,6 +117,12 @@ describe('FieldSets', () => {
 
 		window.Liferay = {
 			...window.Liferay,
+			Language: {
+				...window.Liferay.Language,
+				direction: {
+					pt_BR: 'ltr',
+				},
+			},
 			Loader: {
 				require: () => jest.fn(),
 			},

@@ -21,18 +21,26 @@ import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.service.AddressLocalService;
 import com.liferay.portal.kernel.service.CountryLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.RegionService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -77,13 +85,15 @@ public class CountryLocalServiceTest {
 	}
 
 	@Test
-	public void testDeleteCountryDeleteAddress() throws Exception {
+	public void testDeleteCountry() throws Exception {
 		Country country = _addCountry(
 			RandomTestUtil.randomBoolean(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomDouble(), RandomTestUtil.randomBoolean(),
 			RandomTestUtil.randomBoolean(), RandomTestUtil.randomBoolean());
 
 		User user = TestPropsValues.getUser();
+
+		// Address
 
 		Address address = _addressLocalService.addAddress(
 			null, user.getUserId(), null, user.getContactId(),
@@ -95,20 +105,7 @@ public class CountryLocalServiceTest {
 
 		Assert.assertEquals(country.getCountryId(), address.getCountryId());
 
-		_countryLocalService.deleteCountry(country);
-
-		Assert.assertNull(
-			_addressLocalService.fetchAddress(address.getAddressId()));
-		Assert.assertNull(
-			_countryLocalService.fetchCountry(country.getCountryId()));
-	}
-
-	@Test
-	public void testDeleteCountryUpdateOrganization() throws Exception {
-		Country country = _addCountry(
-			RandomTestUtil.randomBoolean(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomDouble(), RandomTestUtil.randomBoolean(),
-			RandomTestUtil.randomBoolean(), RandomTestUtil.randomBoolean());
+		// Organization
 
 		Organization organization = OrganizationTestUtil.addOrganization();
 
@@ -130,6 +127,13 @@ public class CountryLocalServiceTest {
 		Assert.assertNull(
 			_countryLocalService.fetchCountry(country.getCountryId()));
 
+		// Assert address is deleted
+
+		Assert.assertNull(
+			_addressLocalService.fetchAddress(address.getAddressId()));
+
+		// Assert organization is updated
+
 		organization = _organizationLocalService.getOrganization(
 			organization.getOrganizationId());
 
@@ -142,6 +146,79 @@ public class CountryLocalServiceTest {
 					OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, null,
 					null, null, country.getCountryId(), null, QueryUtil.ALL_POS,
 					QueryUtil.ALL_POS)));
+	}
+
+	@Test
+	public void testSearchCountries() throws Exception {
+		Country country = _addCountry(
+			"a1", "a11", true, RandomTestUtil.randomString());
+
+		String keywords = RandomTestUtil.randomString();
+
+		List<Country> expectedCountries = Arrays.asList(
+			_addCountry("a2", "a22", true, keywords),
+			_addCountry(
+				"a3", "a33", true, keywords + RandomTestUtil.randomString()));
+
+		_addCountry("a4", "a44", false, RandomTestUtil.randomString());
+
+		BaseModelSearchResult<Country> baseModelSearchResult =
+			_countryLocalService.searchCountries(
+				country.getCompanyId(), true, keywords, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS,
+				OrderByComparatorFactoryUtil.create("Country", "name", true));
+
+		Assert.assertEquals(
+			expectedCountries.size(), baseModelSearchResult.getLength());
+		Assert.assertEquals(
+			expectedCountries, baseModelSearchResult.getBaseModels());
+
+		String localizedCountryName = RandomTestUtil.randomString();
+
+		_countryLocalService.updateCountryLocalization(
+			country, "de_DE", localizedCountryName);
+
+		baseModelSearchResult = _countryLocalService.searchCountries(
+			country.getCompanyId(), true, localizedCountryName,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		Assert.assertEquals(1, baseModelSearchResult.getLength());
+
+		List<Country> countries = baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(country, countries.get(0));
+	}
+
+	@Test
+	public void testSearchCountriesPagination() throws Exception {
+		String keywords = RandomTestUtil.randomString();
+
+		List<Country> expectedCountries = Arrays.asList(
+			_addCountry(
+				"a1", "a11", true, keywords + RandomTestUtil.randomString()),
+			_addCountry(
+				"a2", "a22", true, keywords + RandomTestUtil.randomString()),
+			_addCountry(
+				"a3", "a33", true, keywords + RandomTestUtil.randomString()),
+			_addCountry(
+				"a4", "a44", true, keywords + RandomTestUtil.randomString()),
+			_addCountry(
+				"a5", "a55", true, keywords + RandomTestUtil.randomString()));
+
+		_addCountry(
+			"a6", "a66", false, keywords + RandomTestUtil.randomString());
+
+		Comparator<Country> comparator = Comparator.comparing(
+			Country::getName, String.CASE_INSENSITIVE_ORDER);
+
+		_assertSearchCountriesPaginationSort(
+			ListUtil.sort(expectedCountries, comparator), keywords,
+			OrderByComparatorFactoryUtil.create("Country", "name", true),
+			ServiceContextTestUtil.getServiceContext());
+		_assertSearchCountriesPaginationSort(
+			ListUtil.sort(expectedCountries, comparator.reversed()), keywords,
+			OrderByComparatorFactoryUtil.create("Country", "name", false),
+			ServiceContextTestUtil.getServiceContext());
 	}
 
 	@Test
@@ -181,6 +258,43 @@ public class CountryLocalServiceTest {
 			RandomTestUtil.randomString(), number, position, shippingAllowed,
 			subjectToVAT, zipRequired,
 			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private Country _addCountry(
+			String a2, String a3, boolean active, String name)
+		throws Exception {
+
+		return _countryLocalService.addCountry(
+			a2, a3, active, RandomTestUtil.randomBoolean(),
+			RandomTestUtil.randomString(), name, RandomTestUtil.randomString(),
+			RandomTestUtil.randomDouble(), RandomTestUtil.randomBoolean(),
+			RandomTestUtil.randomBoolean(), RandomTestUtil.randomBoolean(),
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private void _assertSearchCountriesPaginationSort(
+			List<Country> expectedCountries, String keywords,
+			OrderByComparator<Country> orderByComparator,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		int end = 3;
+		int start = 1;
+
+		BaseModelSearchResult<Country> baseModelSearchResult =
+			_countryLocalService.searchCountries(
+				serviceContext.getCompanyId(), true, keywords, start, end,
+				orderByComparator);
+
+		List<Country> actualCountries = baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(
+			actualCountries.toString(), end - start, actualCountries.size());
+
+		for (int i = 0; i < (end - start); i++) {
+			Assert.assertEquals(
+				expectedCountries.get(start + i), actualCountries.get(i));
+		}
 	}
 
 	@Inject

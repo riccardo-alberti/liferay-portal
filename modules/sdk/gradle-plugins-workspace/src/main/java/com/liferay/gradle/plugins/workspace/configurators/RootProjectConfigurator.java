@@ -42,6 +42,7 @@ import com.liferay.gradle.util.Validator;
 import com.liferay.gradle.util.copy.StripPathSegmentsAction;
 
 import de.undercouch.gradle.tasks.download.Download;
+import de.undercouch.gradle.tasks.download.Verify;
 
 import groovy.lang.Closure;
 
@@ -157,6 +158,8 @@ public class RootProjectConfigurator implements Plugin<Project> {
 	public static final String STOP_DOCKER_CONTAINER_TASK_NAME =
 		"stopDockerContainer";
 
+	public static final String VERIFY_BUNDLE_TASK_NAME = "verifyBundle";
+
 	/**
 	 * @deprecated As of 1.4.0, replaced by {@link
 	 *             #RootProjectConfigurator(Settings)}
@@ -208,6 +211,9 @@ public class RootProjectConfigurator implements Plugin<Project> {
 		Download downloadBundleTask = _addTaskDownloadBundle(
 			project, workspaceExtension);
 
+		Verify verifyBundleTask = _addTaskVerifyBundle(
+			project, downloadBundleTask, workspaceExtension);
+
 		Copy distBundleTask = _addTaskDistBundle(
 			project, downloadBundleTask, workspaceExtension,
 			providedModulesConfiguration);
@@ -228,7 +234,7 @@ public class RootProjectConfigurator implements Plugin<Project> {
 			workspaceExtension);
 
 		_addTaskInitBundle(
-			project, downloadBundleTask, workspaceExtension,
+			project, downloadBundleTask, verifyBundleTask, workspaceExtension,
 			bundleSupportConfiguration, providedModulesConfiguration);
 
 		_addDockerTasks(
@@ -931,7 +937,7 @@ public class RootProjectConfigurator implements Plugin<Project> {
 	}
 
 	private InitBundleTask _addTaskInitBundle(
-		Project project, Download downloadBundleTask,
+		Project project, Download downloadBundleTask, Verify verifyBundleTask,
 		final WorkspaceExtension workspaceExtension,
 		Configuration configurationBundleSupport,
 		Configuration configurationOsgiModules) {
@@ -939,7 +945,7 @@ public class RootProjectConfigurator implements Plugin<Project> {
 		InitBundleTask initBundleTask = GradleUtil.addTask(
 			project, INIT_BUNDLE_TASK_NAME, InitBundleTask.class);
 
-		initBundleTask.dependsOn(downloadBundleTask);
+		initBundleTask.dependsOn(downloadBundleTask, verifyBundleTask);
 
 		initBundleTask.setClasspath(configurationBundleSupport);
 		initBundleTask.setConfigEnvironment(
@@ -1139,6 +1145,43 @@ public class RootProjectConfigurator implements Plugin<Project> {
 		return dockerStopContainer;
 	}
 
+	private Verify _addTaskVerifyBundle(
+		Project project, Download downloadBundleTask,
+		WorkspaceExtension workspaceExtension) {
+
+		Verify verifyBundleTask = GradleUtil.addTask(
+			project, VERIFY_BUNDLE_TASK_NAME, Verify.class);
+
+		verifyBundleTask.algorithm("MD5");
+		verifyBundleTask.dependsOn(downloadBundleTask);
+		verifyBundleTask.setDescription(
+			"Verifies the Liferay bundle zip file.");
+
+		project.afterEvaluate(
+			new Action<Project>() {
+
+				@Override
+				public void execute(Project p) {
+					String checksum = workspaceExtension.getBundleChecksumMD5();
+
+					if (checksum == null) {
+						verifyBundleTask.setEnabled(false);
+					}
+
+					verifyBundleTask.checksum(checksum);
+
+					TaskOutputs taskOutputs = downloadBundleTask.getOutputs();
+
+					FileCollection fileCollection = taskOutputs.getFiles();
+
+					verifyBundleTask.src(fileCollection.getSingleFile());
+				}
+
+			});
+
+		return verifyBundleTask;
+	}
+
 	private void _configureNpmProject(Project project) {
 		project.subprojects(
 			new Action<Project>() {
@@ -1332,24 +1375,33 @@ public class RootProjectConfigurator implements Plugin<Project> {
 	private void _configureWorkspaceExtension(
 		Project project, WorkspaceExtension workspaceExtension) {
 
-		workspaceExtension.setDockerContainerId(project.getName() + "-liferay");
+		String dockerContainerId = workspaceExtension.getDockerContainerId();
 
-		Object version = project.getVersion();
-
-		if (Objects.equals(version, "unspecified")) {
-			String dockerImageLiferay =
-				workspaceExtension.getDockerImageLiferay();
-
-			int index = dockerImageLiferay.indexOf(":");
-
-			version = dockerImageLiferay.substring(index + 1);
-		}
-		else {
-			version = project.getVersion();
+		if (dockerContainerId == null) {
+			workspaceExtension.setDockerContainerId(
+				project.getName() + "-liferay");
 		}
 
-		workspaceExtension.setDockerImageId(
-			String.format("%s-liferay:%s", project.getName(), version));
+		String dockerImageId = workspaceExtension.getDockerImageId();
+
+		if (dockerImageId == null) {
+			Object version = project.getVersion();
+
+			if (Objects.equals(version, "unspecified")) {
+				String dockerImageLiferay =
+					workspaceExtension.getDockerImageLiferay();
+
+				int index = dockerImageLiferay.indexOf(":");
+
+				version = dockerImageLiferay.substring(index + 1);
+			}
+			else {
+				version = project.getVersion();
+			}
+
+			workspaceExtension.setDockerImageId(
+				String.format("%s-liferay:%s", project.getName(), version));
+		}
 	}
 
 	private void _createTouchFile(File dir) throws IOException {

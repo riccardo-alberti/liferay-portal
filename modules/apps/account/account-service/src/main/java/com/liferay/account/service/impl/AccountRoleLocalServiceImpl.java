@@ -94,6 +94,16 @@ public class AccountRoleLocalServiceImpl
 	}
 
 	@Override
+	public void associateUser(
+			long accountEntryId, long[] accountRoleIds, long userId)
+		throws PortalException {
+
+		for (long accountRoleId : accountRoleIds) {
+			associateUser(accountEntryId, accountRoleId, userId);
+		}
+	}
+
+	@Override
 	public AccountRole deleteAccountRole(AccountRole accountRole)
 		throws PortalException {
 
@@ -166,6 +176,21 @@ public class AccountRoleLocalServiceImpl
 		long[] accountEntryIds) {
 
 		return accountRolePersistence.findByAccountEntryId(accountEntryIds);
+	}
+
+	@Override
+	public boolean hasUserAccountRole(
+			long accountEntryId, long accountRoleId, long userId)
+		throws PortalException {
+
+		AccountEntry accountEntry = accountEntryPersistence.findByPrimaryKey(
+			accountEntryId);
+
+		AccountRole accountRole = getAccountRole(accountRoleId);
+
+		return userGroupRoleLocalService.hasUserGroupRole(
+			userId, accountEntry.getAccountEntryGroupId(),
+			accountRole.getRoleId());
 	}
 
 	@Override

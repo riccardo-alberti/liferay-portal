@@ -34,6 +34,7 @@ const parseProps = ({
 	...props
 }) => ({
 	...props,
+	context: {...props.context, defaultLanguageId: props.defaultLanguageId},
 	dataDefinitionId: Number(dataDefinitionId),
 	dataLayoutId: Number(dataLayoutId),
 	fieldTypesModules: fieldTypesModules.split(','),
@@ -93,6 +94,17 @@ const AppContent = ({
 							sidebarOpen,
 							sidebarPanelId,
 						})}
+						currentPanelId={state.sidebarPanelId}
+						onChange={({sidebarOpen, sidebarPanelId}) =>
+							dispatch({
+								payload: {
+									sidebarOpen,
+									sidebarPanelId,
+								},
+								type: 'SWITCH_SIDEBAR_PANEL',
+							})
+						}
+						open={state.sidebarOpen}
 						panels={panels}
 						sidebarPanels={sidebarPanels}
 						variant={sidebarVariant}

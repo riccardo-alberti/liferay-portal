@@ -24,8 +24,10 @@
 		<column name="parentAccountEntryId" type="long" />
 		<column name="description" type="String" />
 		<column name="domains" type="String" />
+		<column name="emailAddress" type="String" />
 		<column name="logoId" type="long" />
 		<column name="name" type="String" />
+		<column name="taxExemptionCode" type="String" />
 		<column name="taxIdNumber" type="String" />
 		<column name="type" type="String" />
 		<column name="status" type="int" />
@@ -219,8 +221,10 @@
 	</entity>
 	<exceptions>
 		<exception>AccountEntryDomains</exception>
+		<exception>AccountEntryEmailAddress</exception>
 		<exception>AccountEntryName</exception>
 		<exception>AccountEntryType</exception>
+		<exception>AccountEntryUserRelEmailAddress</exception>
 		<exception>DefaultAccountGroup</exception>
 		<exception>DuplicateAccountEntryId</exception>
 		<exception>DuplicateAccountEntryOrganizationRel</exception>

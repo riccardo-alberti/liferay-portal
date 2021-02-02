@@ -658,6 +658,15 @@ public interface PropsKeys {
 	public static final String CUSTOM_SQL_FUNCTION_ISNULL =
 		"custom.sql.function.isnull";
 
+	public static final String DATA_LIMIT_MAX_DL_STORAGE_SIZE =
+		"data.limit.max.dl.storage.size";
+
+	public static final String DATA_LIMIT_MAX_MAIL_MESSAGE_COUNT =
+		"data.limit.max.mail.message.count";
+
+	public static final String DATA_LIMIT_MAX_MAIL_MESSAGE_PERIOD =
+		"data.limit.max.mail.message.period";
+
 	public static final String DATA_LIMIT_MAX_ORGANIZATION_COUNT =
 		"data.limit.max.organization.count";
 
@@ -2700,6 +2709,9 @@ public interface PropsKeys {
 
 	public static final String RESOURCE_ACTIONS_READ_PORTLET_RESOURCES =
 		"resource.actions.read.portlet.resources";
+
+	public static final String RESOURCE_ACTIONS_STRICT_MODE_ENABLED =
+		"resource.actions.strict.mode.enabled";
 
 	public static final String RESOURCE_REPOSITORIES_ROOT =
 		"resource.repositories.root";

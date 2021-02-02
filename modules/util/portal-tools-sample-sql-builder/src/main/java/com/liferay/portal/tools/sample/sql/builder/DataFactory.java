@@ -230,6 +230,17 @@ import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
 import com.liferay.portal.model.impl.RoleModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
+import com.liferay.portal.search.web.constants.SearchBarPortletKeys;
+import com.liferay.portal.search.web.internal.category.facet.constants.CategoryFacetPortletKeys;
+import com.liferay.portal.search.web.internal.folder.facet.constants.FolderFacetPortletKeys;
+import com.liferay.portal.search.web.internal.modified.facet.constants.ModifiedFacetPortletKeys;
+import com.liferay.portal.search.web.internal.search.options.constants.SearchOptionsPortletKeys;
+import com.liferay.portal.search.web.internal.search.results.constants.SearchResultsPortletKeys;
+import com.liferay.portal.search.web.internal.site.facet.constants.SiteFacetPortletKeys;
+import com.liferay.portal.search.web.internal.suggestions.constants.SuggestionsPortletKeys;
+import com.liferay.portal.search.web.internal.tag.facet.constants.TagFacetPortletKeys;
+import com.liferay.portal.search.web.internal.type.facet.constants.TypeFacetPortletKeys;
+import com.liferay.portal.search.web.internal.user.facet.constants.UserFacetPortletKeys;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.PortletPreferencesFactoryImpl;
@@ -245,6 +256,12 @@ import com.liferay.portlet.documentlibrary.model.impl.DLFileVersionModelImpl;
 import com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl;
 import com.liferay.portlet.documentlibrary.social.DLActivityKeys;
 import com.liferay.portlet.social.model.impl.SocialActivityModelImpl;
+import com.liferay.segments.constants.SegmentsEntryConstants;
+import com.liferay.segments.criteria.Criteria;
+import com.liferay.segments.criteria.CriteriaSerializer;
+import com.liferay.segments.model.SegmentsEntry;
+import com.liferay.segments.model.SegmentsEntryModel;
+import com.liferay.segments.model.impl.SegmentsEntryImpl;
 import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.social.kernel.model.SocialActivityModel;
@@ -2134,7 +2151,7 @@ public class DataFactory {
 			ddmFieldModel.setFieldName(
 				nextDDLCustomFieldName(ddlRecordModel.getGroupId(), i - 1));
 			ddmFieldModel.setFieldType("string");
-			ddmFieldModel.setInstanceId(StringUtil.randomId());
+			ddmFieldModel.setInstanceId(StringUtil.randomString());
 			ddmFieldModel.setLocalizable(true);
 			ddmFieldModel.setPriority(i);
 
@@ -2431,7 +2448,7 @@ public class DataFactory {
 		// PK fields
 
 		defaultDLFileEntryTypeModel.setFileEntryTypeId(
-			_defaultDLFileEntryTypeId);
+			_DEFAULT_DL_FILE_ENTRY_TYPE_ID);
 
 		// Audit fields
 
@@ -2739,6 +2756,60 @@ public class DataFactory {
 			GroupConstants.GLOBAL, false);
 	}
 
+	public List<LayoutModel> newGroupLayoutModels(long groupId) {
+		List<LayoutModel> layoutModels = new ArrayList<>();
+
+		layoutModels.add(
+			newLayoutModel(
+				groupId, "welcome", LoginPortletKeys.LOGIN + ",",
+				HelloWorldPortletKeys.HELLO_WORLD + ","));
+		layoutModels.add(
+			newLayoutModel(groupId, "blogs", "", BlogsPortletKeys.BLOGS + ","));
+		layoutModels.add(
+			newLayoutModel(
+				groupId, "commerce_product", "",
+				CPPortletKeys.CP_CONTENT_WEB + ","));
+		layoutModels.add(
+			newLayoutModel(
+				groupId, "document_library", "",
+				DLPortletKeys.DOCUMENT_LIBRARY + ","));
+		layoutModels.add(
+			newLayoutModel(
+				groupId, "forums", "", MBPortletKeys.MESSAGE_BOARDS + ","));
+		layoutModels.add(
+			newLayoutModel(groupId, "wiki", "", WikiPortletKeys.WIKI + ","));
+
+		if (BenchmarksPropsValues.SEARCH_BAR_ENABLED) {
+			layoutModels.add(
+				newLayoutModel(
+					groupId, "search", true, "1_2_columns_i",
+					new String[] {
+						StringBundler.concat(
+							SearchBarPortletKeys.SEARCH_BAR, StringPool.COMMA,
+							SuggestionsPortletKeys.SUGGESTIONS,
+							StringPool.COMMA),
+						StringBundler.concat(
+							SiteFacetPortletKeys.SITE_FACET, StringPool.COMMA,
+							TypeFacetPortletKeys.TYPE_FACET, StringPool.COMMA,
+							TagFacetPortletKeys.TAG_FACET, StringPool.COMMA,
+							CategoryFacetPortletKeys.CATEGORY_FACET,
+							StringPool.COMMA,
+							FolderFacetPortletKeys.FOLDER_FACET,
+							StringPool.COMMA, UserFacetPortletKeys.USER_FACET,
+							StringPool.COMMA,
+							ModifiedFacetPortletKeys.MODIFIED_FACET,
+							StringPool.COMMA),
+						StringBundler.concat(
+							SearchResultsPortletKeys.SEARCH_RESULTS,
+							StringPool.COMMA,
+							SearchOptionsPortletKeys.SEARCH_OPTIONS,
+							StringPool.COMMA)
+					}));
+		}
+
+		return layoutModels;
+	}
+
 	public GroupModel newGroupModel(UserModel userModel) {
 		return newGroupModel(
 			_counter.get(), getClassNameId(User.class), userModel.getUserId(),
@@ -3028,59 +3099,8 @@ public class DataFactory {
 	public LayoutModel newLayoutModel(
 		long groupId, String name, String column1, String column2) {
 
-		SimpleCounter simpleCounter = _layoutCounters.get(groupId);
-
-		if (simpleCounter == null) {
-			simpleCounter = new SimpleCounter();
-
-			_layoutCounters.put(groupId, simpleCounter);
-		}
-
-		LayoutModel layoutModel = new LayoutModelImpl();
-
-		// UUID
-
-		layoutModel.setUuid(SequentialUUID.generate());
-
-		// PK fields
-
-		layoutModel.setPlid(_counter.get());
-
-		// Group instance
-
-		layoutModel.setGroupId(groupId);
-
-		// Audit fields
-
-		layoutModel.setCompanyId(_companyId);
-		layoutModel.setUserId(_sampleUserId);
-		layoutModel.setUserName(_SAMPLE_USER_NAME);
-		layoutModel.setCreateDate(new Date());
-		layoutModel.setModifiedDate(new Date());
-
-		// Other fields
-
-		layoutModel.setLayoutId(simpleCounter.get());
-		layoutModel.setName(
-			"<?xml version=\"1.0\"?><root><name>" + name + "</name></root>");
-		layoutModel.setType(LayoutConstants.TYPE_PORTLET);
-
-		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
-			true);
-
-		typeSettingsUnicodeProperties.setProperty(
-			LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID, "2_columns_ii");
-		typeSettingsUnicodeProperties.setProperty("column-1", column1);
-		typeSettingsUnicodeProperties.setProperty("column-2", column2);
-
-		layoutModel.setTypeSettings(
-			StringUtil.replace(
-				typeSettingsUnicodeProperties.toString(), '\n', "\\n"));
-
-		layoutModel.setFriendlyURL(StringPool.FORWARD_SLASH + name);
-		layoutModel.setLastPublishDate(new Date());
-
-		return layoutModel;
+		return newLayoutModel(
+			groupId, name, false, "2_columns_ii", column1, column2);
 	}
 
 	public LayoutPageTemplateStructureModel newLayoutPageTemplateStructureModel(
@@ -3554,32 +3574,6 @@ public class DataFactory {
 		return portletPreferenceValueModel;
 	}
 
-	public List<LayoutModel> newPublicLayoutModels(long groupId) {
-		List<LayoutModel> layoutModels = new ArrayList<>();
-
-		layoutModels.add(
-			newLayoutModel(
-				groupId, "welcome", LoginPortletKeys.LOGIN + ",",
-				HelloWorldPortletKeys.HELLO_WORLD + ","));
-		layoutModels.add(
-			newLayoutModel(groupId, "blogs", "", BlogsPortletKeys.BLOGS + ","));
-		layoutModels.add(
-			newLayoutModel(
-				groupId, "commerce_product", "",
-				CPPortletKeys.CP_CONTENT_WEB + ","));
-		layoutModels.add(
-			newLayoutModel(
-				groupId, "document_library", "",
-				DLPortletKeys.DOCUMENT_LIBRARY + ","));
-		layoutModels.add(
-			newLayoutModel(
-				groupId, "forums", "", MBPortletKeys.MESSAGE_BOARDS + ","));
-		layoutModels.add(
-			newLayoutModel(groupId, "wiki", "", WikiPortletKeys.WIKI + ","));
-
-		return layoutModels;
-	}
-
 	public List<ReleaseModel> newReleaseModels() throws IOException {
 		List<ReleaseModel> releases = new ArrayList<>();
 
@@ -3768,6 +3762,16 @@ public class DataFactory {
 	}
 
 	public List<ResourcePermissionModel> newResourcePermissionModels(
+		SegmentsEntryModel segmentsEntryModel) {
+
+		return Collections.singletonList(
+			newResourcePermissionModel(
+				SegmentsEntry.class.getName(),
+				String.valueOf(segmentsEntryModel.getSegmentsEntryId()),
+				_guestRoleModel.getRoleId(), _sampleUserId));
+	}
+
+	public List<ResourcePermissionModel> newResourcePermissionModels(
 		String name, long primKey) {
 
 		return newResourcePermissionModels(
@@ -3803,6 +3807,19 @@ public class DataFactory {
 		return newUserModel(
 			_sampleUserId, _SAMPLE_USER_NAME, _SAMPLE_USER_NAME,
 			_SAMPLE_USER_NAME, false);
+	}
+
+	public List<SegmentsEntry> newSegmentsEntries(long groupId) {
+		List<SegmentsEntry> segmentsEntries = new ArrayList<>(
+			BenchmarksPropsValues.MAX_SEGMENTS_ENTRY_COUNT);
+
+		for (int i = 0; i < BenchmarksPropsValues.MAX_SEGMENTS_ENTRY_COUNT;
+			 i++) {
+
+			segmentsEntries.add(newSegmentsEntry(groupId, i));
+		}
+
+		return segmentsEntries;
 	}
 
 	public SocialActivityModel newSocialActivityModel(
@@ -4573,7 +4590,7 @@ public class DataFactory {
 		dlFolderModel.setParentFolderId(parentFolderId);
 		dlFolderModel.setName("Test Folder " + index);
 		dlFolderModel.setLastPostDate(nextFutureDate());
-		dlFolderModel.setDefaultFileEntryTypeId(_defaultDLFileEntryTypeId);
+		dlFolderModel.setDefaultFileEntryTypeId(_DEFAULT_DL_FILE_ENTRY_TYPE_ID);
 		dlFolderModel.setLastPublishDate(nextFutureDate());
 		dlFolderModel.setStatusDate(nextFutureDate());
 
@@ -4617,6 +4634,76 @@ public class DataFactory {
 		groupModel.setActive(true);
 
 		return groupModel;
+	}
+
+	protected LayoutModel newLayoutModel(
+		long groupId, String name, boolean privateLayout,
+		String layoutTemplateId, String... columns) {
+
+		SimpleCounter simpleCounter = _layoutCounters.get(groupId);
+
+		if (simpleCounter == null) {
+			simpleCounter = new SimpleCounter();
+
+			_layoutCounters.put(groupId, simpleCounter);
+		}
+
+		LayoutModel layoutModel = new LayoutModelImpl();
+
+		// UUID
+
+		layoutModel.setUuid(SequentialUUID.generate());
+
+		// PK fields
+
+		layoutModel.setPlid(_counter.get());
+
+		// Group instance
+
+		layoutModel.setGroupId(groupId);
+
+		// Audit fields
+
+		layoutModel.setCompanyId(_companyId);
+		layoutModel.setUserId(_sampleUserId);
+		layoutModel.setUserName(_SAMPLE_USER_NAME);
+		layoutModel.setCreateDate(new Date());
+		layoutModel.setModifiedDate(new Date());
+
+		// Other fields
+
+		layoutModel.setLayoutId(simpleCounter.get());
+		layoutModel.setName(
+			"<?xml version=\"1.0\"?><root><name>" + name + "</name></root>");
+		layoutModel.setType(LayoutConstants.TYPE_PORTLET);
+
+		UnicodeProperties typeSettingsUnicodeProperties = new UnicodeProperties(
+			true);
+
+		typeSettingsUnicodeProperties.setProperty(
+			LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID, layoutTemplateId);
+
+		for (int i = 0; i < columns.length; i++) {
+			if (!columns[i].equals("")) {
+				typeSettingsUnicodeProperties.setProperty(
+					"column-" + (i + 1), columns[i]);
+			}
+		}
+
+		if (privateLayout) {
+			typeSettingsUnicodeProperties.setProperty(
+				"privateLayout", String.valueOf(privateLayout));
+		}
+
+		layoutModel.setTypeSettings(
+			StringUtil.replace(
+				typeSettingsUnicodeProperties.toString(), '\n', "\\n"));
+
+		layoutModel.setFriendlyURL(StringPool.FORWARD_SLASH + name);
+
+		layoutModel.setLastPublishDate(new Date());
+
+		return layoutModel;
 	}
 
 	protected LayoutSetModel newLayoutSetModel(
@@ -4869,6 +4956,65 @@ public class DataFactory {
 		roleModel.setType(type);
 
 		return roleModel;
+	}
+
+	protected SegmentsEntry newSegmentsEntry(long groupId, int index) {
+		SegmentsEntry segmentsEntry = new SegmentsEntryImpl();
+
+		// UUID
+
+		segmentsEntry.setUuid(SequentialUUID.generate());
+
+		// PK fields
+
+		segmentsEntry.setSegmentsEntryId(_counter.get());
+
+		// Group instance
+
+		segmentsEntry.setGroupId(groupId);
+
+		// Audit fields
+
+		segmentsEntry.setCompanyId(_companyId);
+		segmentsEntry.setUserId(_sampleUserId);
+		segmentsEntry.setUserName(_SAMPLE_USER_NAME);
+		segmentsEntry.setCreateDate(new Date());
+		segmentsEntry.setModifiedDate(new Date());
+
+		// Other fields
+
+		segmentsEntry.setSegmentsEntryKey(_counter.getString());
+
+		StringBundler sb = new StringBundler(5);
+
+		sb.append("<?xml version=\"1.0\"?><root available-locales=\"en_US\" ");
+		sb.append("default-locale=\"en_US\"><Name language-id=\"en_US\">");
+		sb.append("SampleSegment");
+		sb.append(index);
+		sb.append("</Name></root>");
+
+		segmentsEntry.setName(sb.toString());
+
+		segmentsEntry.setActive(true);
+
+		Criteria criteria = new Criteria();
+
+		String filterString = StringBundler.concat(
+			"(firstName eq ''", _SAMPLE_USER_NAME, index, "'')");
+
+		criteria.addCriterion(
+			"user", Criteria.Type.MODEL, filterString,
+			Criteria.Conjunction.AND);
+
+		criteria.addFilter(
+			Criteria.Type.MODEL, filterString, Criteria.Conjunction.AND);
+
+		segmentsEntry.setCriteria(CriteriaSerializer.serialize(criteria));
+
+		segmentsEntry.setSource(SegmentsEntryConstants.SOURCE_DEFAULT);
+		segmentsEntry.setType(User.class.getName());
+
+		return segmentsEntry;
 	}
 
 	protected SocialActivityModel newSocialActivityModel(
@@ -5182,6 +5328,9 @@ public class DataFactory {
 
 	private static final long _CURRENT_TIME = System.currentTimeMillis();
 
+	private static final long _DEFAULT_DL_FILE_ENTRY_TYPE_ID =
+		DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;
+
 	private static final String _DEPENDENCIES_DIR =
 		"com/liferay/portal/tools/sample/sql/builder/dependencies/data/";
 
@@ -5217,8 +5366,6 @@ public class DataFactory {
 	private AssetVocabularyModel _defaultAssetVocabularyModel;
 	private final long _defaultDLDDMStructureId;
 	private final long _defaultDLDDMStructureVersionId;
-	private long _defaultDLFileEntryTypeId =
-		DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT;
 	private String _defaultJournalArticleId;
 	private final long _defaultJournalDDMStructureId;
 	private final long _defaultJournalDDMStructureVersionId;

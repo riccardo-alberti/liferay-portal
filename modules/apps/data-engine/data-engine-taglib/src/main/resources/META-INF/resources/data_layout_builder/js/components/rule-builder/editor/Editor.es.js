@@ -15,7 +15,7 @@
 import './Editor.scss';
 
 import {ClayModalProvider} from '@clayui/modal';
-import {RulesSupport} from 'dynamic-data-mapping-form-builder';
+import RulesSupport from 'dynamic-data-mapping-form-builder/js/components/RuleBuilder/RulesSupport.es';
 import {
 	PageProvider as FieldProvider,
 	useFieldTypesResource,
@@ -465,8 +465,8 @@ export function Editor({
 		};
 
 		onValidator(
-			RulesSupport.fieldNameBelongsToAction(actions, '', fields) ||
-				RulesSupport.fieldNameBelongsToCondition(newRule.conditions, '')
+			RulesSupport.isActionsValid(actions) &&
+				RulesSupport.isConditionsValid(newRule.conditions)
 		);
 		onChange(newRule);
 

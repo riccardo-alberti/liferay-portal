@@ -10,7 +10,7 @@
 <tbody>
 <tr>
 	<td>AUDIT_GRAPH_CATEGORY_CHECKBOX</td>
-	<td>//*[contains(@class, 'inline-item-after') and contains(text(),'Stage 1')]</td>
+	<td>//*[contains(@class, 'inline-item-after') and contains(text(),'${auditGraphCheckboxName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,7 +64,7 @@
 </tr>
 <tr>
 	<td>CATEGORY_NAME_ELEMENT</td>
-	<td>//*[contains(@class, 'text-truncate') and contains(text(),'Category Name')]</td>
+	<td>//*[contains(@class, 'text-truncate') and contains(text(),'${categoryName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -98,8 +98,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>FIRST_CHECKBOX_TAGS</td>
-	<td>//*[contains(@title,'Select') and contains(@value,'tag1')]</td>
+	<td>FILTER_TEXT</td>
+	<td>//*[contains(@class, 'label-section')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -163,23 +163,28 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SECOND_CHECKBOX_TAGS</td>
-	<td>//*[contains(@title,'Select') and contains(@value,'tag2')]</td>
+	<td>SEARCH_SUBTYPE_FIELD</td>
+	<td>//*[contains(@class,'form-control input-group-inset input-group-inset-after') and contains(@name,'ItemSelector')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_AUTHOR_BUTTON</td>
-	<td>//button[contains(@class, 'btn btn-primary') and contains(text(),'Select')]</td>
+	<td>SEARCH_TAG_FIELD</td>
+	<td>//*[contains(@class,'form-control input-group-inset input-group-inset-after') and contains(@name,'AssetTagsSelector')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_CATEGORY_BUTTON</td>
-	<td>//button[contains(@id, 'addButton')]</td>
+	<td>CHECKBOX_TAGS</td>
+	<td>//*[contains(@title,'Select') and contains(@value,'${tagName}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_TAGS_BUTTON</td>
-	<td>//*[contains(@class,'btn btn-primary') and contains(text(),'Select')]</td>
+	<td>SUBTYPE_ELEMENT_CHECKBOX</td>
+	<td>//*[contains(@type, 'checkbox') and contains(@title,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SWAP_VOCABULARIES_BUTTON</td>
+	<td>//*[contains(@class,'btn-sm btn-outline-secondary') and contains(@type,'submit')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -189,7 +194,7 @@
 </tr>
 <tr>
 	<td>X_AXIS_VOCABULARY_NAME</td>
-	<td>//button[contains(@class, 'recharts-layer recharts-cartesian-axis-tick') and contains(text(),'${xAxisCategoryName}')]</td>
+	<td>//*[contains(@class, 'recharts-layer recharts-cartesian-axis-tick')]//*[contains(text(), '${xAxisCategoryName}')]</td>
 	<td></td>
 </tr>
 </tbody>

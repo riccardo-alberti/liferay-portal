@@ -1289,6 +1289,25 @@
 			<description name="Finds usage of legacy properties in `portal.properties` or `system.properties`." />
 		</check>
 	</source-processor>
+	<source-processor name="PythonSourceProcessor">
+		<check name="PythonClassesAndMethodsOrderCheck">
+			<category name="Styling" />
+			<description name="Checks the order of classes and methods." />
+		</check>
+		<check name="PythonImportsCheck">
+			<category name="Styling" />
+			<description name="Sorts and groups imports in `.py` files." />
+		</check>
+		<check name="PythonStylingCheck">
+			<category name="Styling" />
+			<description name="Applies rules to enforce consisteny in code style." />
+			<property name="maxLineLength" value="80" />
+		</check>
+		<check name="PythonWhitespaceCheck">
+			<category name="Styling" />
+			<description name="Finds missing and unnecessary whitespace." />
+		</check>
+	</source-processor>
 	<source-processor name="SHSourceProcessor">
 		<check name="WhitespaceCheck">
 			<category name="Styling" />

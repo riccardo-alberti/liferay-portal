@@ -15,6 +15,7 @@
 package com.liferay.jenkins.results.parser.test.clazz.group;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.Job;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,8 +50,17 @@ public class SegmentTestClassGroup extends BaseTestClassGroup {
 		return segmentTestClassGroups.indexOf(this);
 	}
 
+	public String getBatchJobName() {
+		return _parentBatchTestClassGroup.getBatchJobName();
+	}
+
 	public String getBatchName() {
 		return _parentBatchTestClassGroup.getBatchName();
+	}
+
+	@Override
+	public Job getJob() {
+		return _parentBatchTestClassGroup.getJob();
 	}
 
 	public Integer getMaximumSlavesPerHost() {
@@ -71,7 +81,18 @@ public class SegmentTestClassGroup extends BaseTestClassGroup {
 	}
 
 	public String getTestCasePropertiesContent() {
-		return null;
+		return "";
+	}
+
+	@Override
+	public List<TestClassGroup.TestClass> getTestClasses() {
+		List<TestClassGroup.TestClass> testClasses = new ArrayList<>();
+
+		for (AxisTestClassGroup axisTestClassGroup : getAxisTestClassGroups()) {
+			testClasses.addAll(axisTestClassGroup.getTestClasses());
+		}
+
+		return testClasses;
 	}
 
 	protected SegmentTestClassGroup(

@@ -16,10 +16,12 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Country;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.security.access.control.AccessControlled;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.service.base.CountryServiceBaseImpl;
 import com.liferay.portal.util.PortalInstances;
@@ -39,12 +41,8 @@ public class CountryServiceImpl extends CountryServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			throw new PrincipalException.MustBeOmniadmin(
-				getPermissionChecker());
-		}
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.MANAGE_COUNTRIES);
 
 		return countryLocalService.addCountry(
 			a2, a3, active, billingAllowed, idd, name, number, position,
@@ -75,12 +73,8 @@ public class CountryServiceImpl extends CountryServiceBaseImpl {
 
 	@Override
 	public void deleteCountry(long countryId) throws PortalException {
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			throw new PrincipalException.MustBeOmniadmin(
-				getPermissionChecker());
-		}
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.MANAGE_COUNTRIES);
 
 		countryLocalService.deleteCountry(countryId);
 	}
@@ -238,15 +232,21 @@ public class CountryServiceImpl extends CountryServiceBaseImpl {
 	}
 
 	@Override
+	public BaseModelSearchResult<Country> searchCountries(
+			long companyId, Boolean active, String keywords, int start, int end,
+			OrderByComparator<Country> orderByComparator)
+		throws PortalException {
+
+		return countryLocalService.searchCountries(
+			companyId, active, keywords, start, end, orderByComparator);
+	}
+
+	@Override
 	public Country updateActive(long countryId, boolean active)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			throw new PrincipalException.MustBeOmniadmin(
-				getPermissionChecker());
-		}
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.MANAGE_COUNTRIES);
 
 		return countryLocalService.updateActive(countryId, active);
 	}
@@ -258,12 +258,8 @@ public class CountryServiceImpl extends CountryServiceBaseImpl {
 			double position, boolean shippingAllowed, boolean subjectToVAT)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			throw new PrincipalException.MustBeOmniadmin(
-				getPermissionChecker());
-		}
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.MANAGE_COUNTRIES);
 
 		return countryLocalService.updateCountry(
 			countryId, a2, a3, active, billingAllowed, idd, name, number,
@@ -275,12 +271,8 @@ public class CountryServiceImpl extends CountryServiceBaseImpl {
 			long countryId, boolean groupFilterEnabled)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			throw new PrincipalException.MustBeOmniadmin(
-				getPermissionChecker());
-		}
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.MANAGE_COUNTRIES);
 
 		return countryLocalService.updateGroupFilterEnabled(
 			countryId, groupFilterEnabled);

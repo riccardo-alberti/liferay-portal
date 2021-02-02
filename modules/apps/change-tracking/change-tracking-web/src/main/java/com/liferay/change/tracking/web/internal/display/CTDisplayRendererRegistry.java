@@ -21,7 +21,6 @@ import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
-import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.lang.SafeClosable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -41,13 +40,11 @@ import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.util.Date;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -115,7 +112,7 @@ public class CTDisplayRendererRegistry {
 				modelClassNameId);
 
 		if (ctDisplayRenderer == null) {
-			ctDisplayRenderer = _getDefaultRenderer();
+			ctDisplayRenderer = getDefaultRenderer();
 		}
 
 		return ctDisplayRenderer;
@@ -148,6 +145,11 @@ public class CTDisplayRendererRegistry {
 		}
 
 		return CTSQLModeThreadLocal.CTSQLMode.DEFAULT;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends BaseModel<T>> CTDisplayRenderer<T> getDefaultRenderer() {
+		return (CTDisplayRenderer<T>)_defaultCTDisplayRenderer;
 	}
 
 	public <T extends BaseModel<T>> String getEditURL(
@@ -320,83 +322,6 @@ public class CTDisplayRendererRegistry {
 		return ctDisplayRenderer.isHideable(model);
 	}
 
-	public <T extends BaseModel<T>> void renderCTEntry(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long ctCollectionId,
-			CTEntry ctEntry, String type)
-		throws Exception {
-
-		CTSQLModeThreadLocal.CTSQLMode ctSQLMode = getCTSQLMode(
-			ctCollectionId, ctEntry);
-
-		T model = fetchCTModel(
-			ctCollectionId, ctSQLMode, ctEntry.getModelClassNameId(),
-			ctEntry.getModelClassPK());
-
-		if (model == null) {
-			return;
-		}
-
-		renderCTEntry(
-			httpServletRequest, httpServletResponse, ctCollectionId, ctSQLMode,
-			ctEntry.getCtEntryId(), model, ctEntry.getModelClassNameId(), type);
-	}
-
-	public <T extends BaseModel<T>> void renderCTEntry(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long ctCollectionId,
-			CTSQLModeThreadLocal.CTSQLMode ctSQLMode, long ctEntryId, T model,
-			long modelClassNameId, String type)
-		throws Exception {
-
-		CTDisplayRenderer<T> ctDisplayRenderer =
-			(CTDisplayRenderer<T>)_ctDisplayServiceTrackerMap.getService(
-				modelClassNameId);
-
-		if (ctDisplayRenderer == null) {
-			ctDisplayRenderer = _getDefaultRenderer();
-
-			ctDisplayRenderer.render(
-				new DisplayContextImpl<>(
-					httpServletRequest, httpServletResponse, model, ctEntryId,
-					type));
-
-			return;
-		}
-
-		try (SafeClosable safeClosable1 =
-				CTCollectionThreadLocal.setCTCollectionId(ctCollectionId);
-			SafeClosable safeClosable2 = CTSQLModeThreadLocal.setCTSQLMode(
-				ctSQLMode);
-			UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter()) {
-
-			PipingServletResponse pipingServletResponse =
-				new PipingServletResponse(
-					httpServletResponse, unsyncStringWriter);
-
-			ctDisplayRenderer.render(
-				new DisplayContextImpl<>(
-					httpServletRequest, pipingServletResponse, model, ctEntryId,
-					type));
-
-			StringBundler sb = unsyncStringWriter.getStringBundler();
-
-			sb.writeTo(httpServletResponse.getWriter());
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
-			}
-
-			ctDisplayRenderer = _getDefaultRenderer();
-
-			ctDisplayRenderer.render(
-				new DisplayContextImpl<>(
-					httpServletRequest, httpServletResponse, model, ctEntryId,
-					type));
-		}
-	}
-
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_ctDisplayServiceTrackerMap =
@@ -437,13 +362,6 @@ public class CTDisplayRendererRegistry {
 	protected void deactivate() {
 		_ctDisplayServiceTrackerMap.close();
 		_ctServiceServiceTrackerMap.close();
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T extends BaseModel<T>> CTDisplayRenderer<T>
-		_getDefaultRenderer() {
-
-		return (CTDisplayRenderer<T>)_defaultCTDisplayRenderer;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

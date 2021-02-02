@@ -902,7 +902,7 @@ public class JenkinsResultsParserUtil {
 					new StringReader(
 						toString(
 							getLocalURL(url), false, 0, null, null, 0,
-							_MILLIS_TIMEOUT_DEFAULT, null)));
+							_MILLIS_TIMEOUT_DEFAULT, null, true)));
 			}
 
 			_buildProperties.clear();
@@ -960,6 +960,24 @@ public class JenkinsResultsParserUtil {
 			SpiraRelease.getJobNameByID(
 				Integer.parseInt(matcher.group("spiraReleaseID"))));
 
+		sb.append("/");
+		sb.append(matcher.group("buildNumber"));
+
+		return sb.toString();
+	}
+
+	public static String getBuildURLByJenkinsReportURL(
+		String jenkinsReportURL) {
+
+		Matcher matcher = _jenkinsReportURLPattern.matcher(jenkinsReportURL);
+
+		matcher.find();
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(matcher.group("masterURL"));
+		sb.append("job/");
+		sb.append(matcher.group("jobName"));
 		sb.append("/");
 		sb.append(matcher.group("buildNumber"));
 
@@ -2046,6 +2064,30 @@ public class JenkinsResultsParserUtil {
 		return sb.toString();
 	}
 
+	public static Long getRemoteCurrentTimeSeconds(String hostname) {
+		if (isNullOrEmpty(hostname)) {
+			return null;
+		}
+
+		String command = combine("ssh ", hostname, " date +%s");
+
+		try {
+			Process process = executeBashCommands(
+				false, new File("."), 3000, command);
+
+			if (process.exitValue() != 0) {
+				return null;
+			}
+
+			String output = readInputStream(process.getInputStream());
+
+			return Long.parseLong(output.replaceAll("(?s)(\\d+).*", "$1"));
+		}
+		catch (IOException | TimeoutException exception) {
+			return null;
+		}
+	}
+
 	public static String getRemoteURL(String localURL) {
 		if (localURL.startsWith("file")) {
 			localURL = fixFileName(localURL);
@@ -2327,6 +2369,20 @@ public class JenkinsResultsParserUtil {
 		return true;
 	}
 
+	public static boolean isNullOrEmpty(String string) {
+		if (string == null) {
+			return true;
+		}
+
+		String trimmedString = string.trim();
+
+		if (trimmedString.isEmpty()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static boolean isReachable(String hostname) {
 		try {
 			InetAddress inetAddress = InetAddress.getByName(hostname);
@@ -2573,6 +2629,14 @@ public class JenkinsResultsParserUtil {
 	public static void saveToCacheFile(String key, String text) {
 		File cacheFile = _getCacheFile(key);
 
+		if (isNullOrEmpty(text)) {
+			if (cacheFile.exists()) {
+				cacheFile.delete();
+			}
+
+			return;
+		}
+
 		try {
 			write(cacheFile, text);
 
@@ -2626,8 +2690,9 @@ public class JenkinsResultsParserUtil {
 
 	public static BufferedReader toBufferedReader(
 			String url, boolean checkCache, int maxRetries,
-			HttpRequestMethod method, String postContent, int retryPeriod,
-			int timeout, HTTPAuthorization httpAuthorizationHeader)
+			HttpRequestMethod httpRequestMethod, String postContent,
+			int retryPeriod, int timeout,
+			HTTPAuthorization httpAuthorizationHeader)
 		throws IOException {
 
 		if (!isCINode() && url.startsWith("file:") &&
@@ -2650,12 +2715,12 @@ public class JenkinsResultsParserUtil {
 			timeout = 5000;
 		}
 
-		if (method == null) {
+		if (httpRequestMethod == null) {
 			if (postContent != null) {
-				method = HttpRequestMethod.POST;
+				httpRequestMethod = HttpRequestMethod.POST;
 			}
 			else {
-				method = HttpRequestMethod.GET;
+				httpRequestMethod = HttpRequestMethod.GET;
 			}
 		}
 
@@ -2722,14 +2787,15 @@ public class JenkinsResultsParserUtil {
 					HttpURLConnection httpURLConnection =
 						(HttpURLConnection)urlConnection;
 
-					if (method == HttpRequestMethod.PATCH) {
+					if (httpRequestMethod == HttpRequestMethod.PATCH) {
 						httpURLConnection.setRequestMethod("POST");
 
 						httpURLConnection.setRequestProperty(
 							"X-HTTP-Method-Override", "PATCH");
 					}
 					else {
-						httpURLConnection.setRequestMethod(method.name());
+						httpURLConnection.setRequestMethod(
+							httpRequestMethod.name());
 					}
 
 					if (url.startsWith("https://api.github.com") &&
@@ -2770,7 +2836,7 @@ public class JenkinsResultsParserUtil {
 					}
 
 					if (postContent != null) {
-						if (method == null) {
+						if (httpRequestMethod == null) {
 							httpURLConnection.setRequestMethod("POST");
 						}
 
@@ -2828,7 +2894,7 @@ public class JenkinsResultsParserUtil {
 						url.replaceAll(
 							"http://(test-\\d+-\\d+)(/.*)",
 							"https://$1.liferay.com$2"),
-						checkCache, maxRetries, method, postContent,
+						checkCache, maxRetries, httpRequestMethod, postContent,
 						retryPeriod, timeout, httpAuthorizationHeader);
 				}
 
@@ -2866,6 +2932,11 @@ public class JenkinsResultsParserUtil {
 		}
 
 		return byteCount + " B";
+	}
+
+	public static String toDateString(Date date) {
+		return toDateString(
+			date, "MMM dd, yyyy h:mm:ss a z", "America/Los_Angeles");
 	}
 
 	public static String toDateString(Date date, String timeZoneName) {
@@ -2965,7 +3036,7 @@ public class JenkinsResultsParserUtil {
 
 		String response = toString(
 			url, checkCache, maxRetries, null, postContent, retryPeriod,
-			timeout, httpAuthorization);
+			timeout, httpAuthorization, true);
 
 		if ((response == null) ||
 			response.endsWith("was truncated due to its size.")) {
@@ -3009,12 +3080,23 @@ public class JenkinsResultsParserUtil {
 	}
 
 	public static JSONObject toJSONObject(
-			String url, boolean checkCache, HttpRequestMethod method)
+			String url, boolean checkCache, HttpRequestMethod httpRequestMethod)
 		throws IOException {
 
 		return toJSONObject(
-			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, method, null,
+			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod, null,
 			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+	}
+
+	public static JSONObject toJSONObject(
+			String url, boolean checkCache, HttpRequestMethod httpRequestMethod,
+			String postContent)
+		throws IOException {
+
+		return toJSONObject(
+			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod,
+			postContent, _SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT,
+			null);
 	}
 
 	public static JSONObject toJSONObject(
@@ -3028,13 +3110,13 @@ public class JenkinsResultsParserUtil {
 
 	public static JSONObject toJSONObject(
 			String url, boolean checkCache, int maxRetries,
-			HttpRequestMethod method, String postContent, int retryPeriod,
-			int timeout, HTTPAuthorization httpAuthorization)
+			HttpRequestMethod httpRequestMethod, String postContent,
+			int retryPeriod, int timeout, HTTPAuthorization httpAuthorization)
 		throws IOException {
 
 		String response = toString(
-			url, checkCache, maxRetries, null, postContent, retryPeriod,
-			timeout, httpAuthorization);
+			url, checkCache, maxRetries, httpRequestMethod, postContent,
+			retryPeriod, timeout, httpAuthorization, true);
 
 		if ((response == null) ||
 			response.endsWith("was truncated due to its size.")) {
@@ -3113,7 +3195,8 @@ public class JenkinsResultsParserUtil {
 	public static String toString(String url) throws IOException {
 		return toString(
 			url, true, _RETRIES_SIZE_MAX_DEFAULT, null, null,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			false);
 	}
 
 	public static String toString(String url, boolean checkCache)
@@ -3121,26 +3204,39 @@ public class JenkinsResultsParserUtil {
 
 		return toString(
 			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, null, null,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			false);
 	}
 
 	public static String toString(
-			String url, boolean checkCache, HttpRequestMethod method)
+			String url, boolean checkCache, boolean requireResponse)
 		throws IOException {
 
 		return toString(
-			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, method, null,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, null, null,
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			requireResponse);
 	}
 
 	public static String toString(
-			String url, boolean checkCache, HttpRequestMethod method,
+			String url, boolean checkCache, HttpRequestMethod httpRequestMethod)
+		throws IOException {
+
+		return toString(
+			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod, null,
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			false);
+	}
+
+	public static String toString(
+			String url, boolean checkCache, HttpRequestMethod httpRequestMethod,
 			String postContent)
 		throws IOException {
 
 		return toString(
-			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, method, postContent,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod,
+			postContent, _SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT,
+			null, false);
 	}
 
 	public static String toString(String url, boolean checkCache, int timeout)
@@ -3148,46 +3244,58 @@ public class JenkinsResultsParserUtil {
 
 		return toString(
 			url, checkCache, _RETRIES_SIZE_MAX_DEFAULT, null, null,
-			_SECONDS_RETRY_PERIOD_DEFAULT, timeout, null);
+			_SECONDS_RETRY_PERIOD_DEFAULT, timeout, null, false);
 	}
 
 	public static String toString(
 			String url, boolean checkCache, int maxRetries,
-			HttpRequestMethod method, String postContent, int retryPeriod,
-			int timeout, HTTPAuthorization httpAuthorizationHeader)
+			HttpRequestMethod httpRequestMethod, String postContent,
+			int retryPeriod, int timeout,
+			HTTPAuthorization httpAuthorizationHeader, boolean expectResponse)
 		throws IOException {
 
-		try (BufferedReader bufferedReader = toBufferedReader(
-				url, checkCache, maxRetries, method, postContent, retryPeriod,
-				timeout, httpAuthorizationHeader)) {
+		for (int i = 0; i < 2; i++) {
+			try (BufferedReader bufferedReader = toBufferedReader(
+					url, checkCache, maxRetries, httpRequestMethod, postContent,
+					retryPeriod, timeout, httpAuthorizationHeader)) {
 
-			StringBuilder sb = new StringBuilder();
+				StringBuilder sb = new StringBuilder();
 
-			String line = bufferedReader.readLine();
+				String line = bufferedReader.readLine();
 
-			while (line != null) {
-				sb.append(line);
-				sb.append("\n");
+				while (line != null) {
+					sb.append(line);
+					sb.append("\n");
 
-				line = bufferedReader.readLine();
+					line = bufferedReader.readLine();
+				}
+
+				int bytes = sb.length();
+
+				if (expectResponse && (bytes == 0) && (i < 1)) {
+					System.out.println(
+						"Could not find response, retrying request");
+
+					continue;
+				}
+
+				String content = sb.toString();
+
+				if (checkCache && !url.startsWith("file:") &&
+					(bytes < (3 * 1024 * 1024))) {
+
+					url = fixURL(url);
+
+					String key = url.replace("//", "/");
+
+					saveToCacheFile(_PREFIX_TO_STRING_CACHE + key, content);
+				}
+
+				return content;
 			}
-
-			int bytes = sb.length();
-
-			String content = sb.toString();
-
-			if (checkCache && !url.startsWith("file:") &&
-				(bytes < (3 * 1024 * 1024))) {
-
-				url = fixURL(url);
-
-				String key = url.replace("//", "/");
-
-				saveToCacheFile(_PREFIX_TO_STRING_CACHE + key, content);
-			}
-
-			return content;
 		}
+
+		return "";
 	}
 
 	public static String toString(
@@ -3197,7 +3305,17 @@ public class JenkinsResultsParserUtil {
 
 		return toString(
 			url, checkCache, maxRetries, null, null, retryPeriodSeconds,
-			timeout, null);
+			timeout, null, false);
+	}
+
+	public static String toString(
+			String url, boolean checkCache, int maxRetries,
+			int retryPeriodSeconds, int timeout, boolean expectResponse)
+		throws IOException {
+
+		return toString(
+			url, checkCache, maxRetries, null, null, retryPeriodSeconds,
+			timeout, null, expectResponse);
 	}
 
 	public static String toString(
@@ -3207,24 +3325,27 @@ public class JenkinsResultsParserUtil {
 
 		return toString(
 			url, checkCache, maxRetries, null, postContent, retryPeriod,
-			timeout, null);
-	}
-
-	public static String toString(String url, HttpRequestMethod method)
-		throws IOException {
-
-		return toString(
-			url, true, _RETRIES_SIZE_MAX_DEFAULT, method, null,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			timeout, null, false);
 	}
 
 	public static String toString(
-			String url, HttpRequestMethod method, String postContent)
+			String url, HttpRequestMethod httpRequestMethod)
 		throws IOException {
 
 		return toString(
-			url, false, _RETRIES_SIZE_MAX_DEFAULT, method, postContent,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			url, true, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod, null,
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			false);
+	}
+
+	public static String toString(
+			String url, HttpRequestMethod httpRequestMethod, String postContent)
+		throws IOException {
+
+		return toString(
+			url, false, _RETRIES_SIZE_MAX_DEFAULT, httpRequestMethod,
+			postContent, _SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT,
+			null, false);
 	}
 
 	public static String toString(String url, String postContent)
@@ -3232,7 +3353,8 @@ public class JenkinsResultsParserUtil {
 
 		return toString(
 			url, false, _RETRIES_SIZE_MAX_DEFAULT, null, postContent,
-			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null);
+			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT, null,
+			false);
 	}
 
 	public static String toString(
@@ -3242,7 +3364,7 @@ public class JenkinsResultsParserUtil {
 		return toString(
 			url, false, _RETRIES_SIZE_MAX_DEFAULT, null, postContent,
 			_SECONDS_RETRY_PERIOD_DEFAULT, _MILLIS_TIMEOUT_DEFAULT,
-			httpAuthorization);
+			httpAuthorization, false);
 	}
 
 	public static void updateBuildDescription(
@@ -4015,6 +4137,10 @@ public class JenkinsResultsParserUtil {
 	private static final Pattern _jenkinsMasterPattern = Pattern.compile(
 		"(?<cohortName>test-\\d+)-\\d+");
 	private static Hashtable<?, ?> _jenkinsProperties;
+	private static final Pattern _jenkinsReportURLPattern = Pattern.compile(
+		"(?<masterURL>http(?:|s)://test-\\d+-\\d+.*(\\.liferay\\.com)?)" +
+			"userContent/+jobs/+(?<jobName>[^/]+)/builds/" +
+				"(?<buildNumber>\\d+)/+jenkins-report\\.html");
 	private static final Pattern _jenkinsSlavesPropertyNamePattern =
 		Pattern.compile("master.slaves\\((.+)\\)");
 	private static final Pattern _localURLAuthorityPattern1 = Pattern.compile(

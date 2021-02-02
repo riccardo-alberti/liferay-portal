@@ -14,11 +14,12 @@
 
 import {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
+import classNames from 'classnames';
 import React, {useState} from 'react';
 
 const {Item, ItemList} = ClayDropDown;
 
-export default ({actions, disabled}) => {
+export default ({actions, className, disabled}) => {
 	const [active, setActive] = useState(false);
 
 	const DropdownButton = (
@@ -48,7 +49,7 @@ export default ({actions, disabled}) => {
 		<ClayDropDown
 			active={active}
 			alignmentPosition={Align.RightCenter}
-			className="dropdown-action"
+			className={classNames('dropdown-action', className)}
 			onActiveChange={(item) => setActive(item)}
 			trigger={DropdownButton}
 		>

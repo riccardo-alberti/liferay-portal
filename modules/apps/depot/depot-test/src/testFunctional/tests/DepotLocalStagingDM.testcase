@@ -54,9 +54,9 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
-			Site.tearDownCP();
+			JSONDepot.deleteDepot(depotName = "Test Depot Name");
 
-			Depot.tearDownCP();
+			Site.tearDownCP();
 
 			User.logoutPG();
 		}
@@ -94,8 +94,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.jpg");
+			key_assetTitle = "Document_2.jpg",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		Staging.gotoPublishToLive();
 
@@ -106,8 +106,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.jpg");
+			key_assetTitle = "Document_2.jpg",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
 
@@ -130,6 +130,8 @@ definition {
 		AssertTextNotPresent(
 			locator1 = "AP#ASSET_ABSTRACT_TITLE",
 			value1 = "Document_2.jpg");
+
+		Navigator.openSiteURL(siteName = "Site Name");
 
 		Navigator.gotoStagedView();
 	}
@@ -362,8 +364,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.doc");
+			key_assetTitle = "Document_2.doc",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		Staging.gotoPublishToLive();
 
@@ -374,8 +376,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.doc");
+			key_assetTitle = "Document_2.doc",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
 
@@ -393,8 +395,10 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_3.doc");
+			key_assetTitle = "Document_3.doc",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
+
+		Navigator.openSiteURL(siteName = "Site Name");
 
 		Navigator.gotoStagedView();
 
@@ -407,8 +411,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_3.doc");
+			key_assetTitle = "Document_3.doc",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 	}
 
 	@description = "This ensures that an edited internal video in depot can be republished on a connected staging site with enabling Xuggler."
@@ -507,6 +511,8 @@ definition {
 		AssertVisible(
 			key_thumbnailName = "Document_2.mp4",
 			locator1 = "AP#ASSET_ABSTRACT_DETAIL_EXTERNAL_VIDEO_THUMBNAIL");
+
+		Navigator.openSiteURL(siteName = "Site Name");
 
 		Navigator.gotoStagedView();
 
@@ -757,6 +763,8 @@ definition {
 			assetType = "Basic Document",
 			depotName = "Test Depot Name");
 
+		Navigator.openSiteURL(siteName = "Site Name");
+
 		Navigator.gotoStagedView();
 
 		Staging.gotoPublishToLive();
@@ -768,8 +776,8 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.jpg");
+			key_assetTitle = "Document_2.jpg",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 	}
 
 	@description = "This ensures that the latest version of an image in a depot can be published in local staging site."
@@ -837,9 +845,7 @@ definition {
 			locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEW_VERSION_NUMBER",
 			value1 = "1.2");
 
-		Navigator.gotoStagedSitePage(
-			pageName = "Test Page",
-			siteName = "Site Name");
+		Navigator.openSiteURL(siteName = "Site Name");
 
 		Navigator.gotoStagedView();
 
@@ -852,13 +858,58 @@ definition {
 			siteName = "Site Name");
 
 		AssertVisible(
-			locator1 = "AP#ASSET_ABSTRACT_DETAIL_CONTENT",
-			value1 = "Document_2.jpg");
+			key_assetTitle = "Document_2.jpg",
+			locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 		AssertTextEquals.assertPartialText(
 			key_assetTitle = "Document_2.jpg",
 			locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
 			value1 = "This is an edit DM Document Description");
+	}
+
+	@description = "This ensures that the thumbnail of a video shortcut in depot can be published through AP when enabling local staging."
+	@priority = "3"
+	test PublishVideoShortcutThumbnail {
+		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
+
+		VideoShortcut.addCP(
+			videoShortcutTitle = "Test YouTube Video Name",
+			videoURL = "https://www.youtube.com/watch?v=2ewB-7_VMGU");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive();
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Asset Publisher");
+
+		AssetPublisherPortlet.configureManualAssetSelectionPG(
+			assetTitle = "Test YouTube Video Name",
+			assetType = "External Video Shortcut",
+			depotName = "Test Depot Name");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		AssertVisible(
+			key_thumbnailName = "https://i.ytimg.com",
+			locator1 = "AP#ASSET_ABSTRACT_DETAIL_EXTERNAL_VIDEO_THUMBNAIL");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		AssertVisible(
+			key_thumbnailName = "https://i.ytimg.com",
+			locator1 = "AP#ASSET_ABSTRACT_DETAIL_EXTERNAL_VIDEO_THUMBNAIL");
 	}
 
 	@description = "This ensures that the blog small image from a depot can be removed and republished when enabling local staging."

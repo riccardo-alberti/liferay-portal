@@ -103,7 +103,7 @@ public class SelectAssetCategoryTreeNodeDisplayContext {
 					getAssetCategoryTreeNodeId());
 
 			if (assetCategory != null) {
-				return assetCategory.getName();
+				return assetCategory.getTitle(_themeDisplay.getLocale());
 			}
 		}
 		else if (assetCategoryTreeNodeType.equals(
@@ -114,7 +114,7 @@ public class SelectAssetCategoryTreeNodeDisplayContext {
 					getAssetCategoryTreeNodeId());
 
 			if (assetVocabulary != null) {
-				return assetVocabulary.getName();
+				return assetVocabulary.getTitle(_themeDisplay.getLocale());
 			}
 		}
 
@@ -198,14 +198,20 @@ public class SelectAssetCategoryTreeNodeDisplayContext {
 		else if (assetCategoryTreeNodeType.equals(
 					AssetCategoryTreeNodeConstants.TYPE_ASSET_VOCABULARY)) {
 
-			int count =
-				AssetCategoryServiceUtil.getVocabularyRootCategoriesCount(
-					_themeDisplay.getScopeGroupId(),
+			AssetVocabulary assetVocabulary =
+				AssetVocabularyServiceUtil.fetchVocabulary(
 					getAssetCategoryTreeNodeId());
 
-			return AssetCategoryServiceUtil.getVocabularyRootCategories(
-				_themeDisplay.getScopeGroupId(), getAssetCategoryTreeNodeId(),
-				0, count, null);
+			if (assetVocabulary != null) {
+				int count =
+					AssetCategoryServiceUtil.getVocabularyRootCategoriesCount(
+						assetVocabulary.getGroupId(),
+						getAssetCategoryTreeNodeId());
+
+				return AssetCategoryServiceUtil.getVocabularyRootCategories(
+					assetVocabulary.getGroupId(), getAssetCategoryTreeNodeId(),
+					0, count, null);
+			}
 		}
 
 		return new ArrayList<>();

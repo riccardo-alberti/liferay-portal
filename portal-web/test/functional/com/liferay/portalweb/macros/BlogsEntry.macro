@@ -50,11 +50,22 @@ definition {
 				ItemSelector.addVideoFromDM(
 					depotName = "${depotName}",
 					navTab = "${navTab}",
+					videoShortcutPreview = "${videoShortcutPreview}",
 					videoShortcutTitle = "${videoShortcutTitle}");
 
-				Pause(locator1 = "5000");
+				if (isSet(viewInternalVideoPreview)) {
+					Pause(locator1 = "5000");
 
-				DMDocument.viewInternalVideoPreview(videoName = "${videoName}");
+					DMDocument.viewInternalVideoPreview(videoName = "${videoName}");
+				}
+			}
+			else if (isSet(videoURL)) {
+				ItemSelector.addVideo(
+					extractedVideoShortcutTitle = "${extractedVideoShortcutTitle}",
+					videoShortcutDescription = "${videoShortcutDescription}",
+					videoShortcutPreview = "${videoShortcutPreview}",
+					videoShortcutTitle = "${videoShortcutTitle}",
+					videoURL = "${videoURL}");
 			}
 			else {
 				ItemSelector.addVideoFromURL(
@@ -841,9 +852,24 @@ definition {
 		}
 
 		if (isSet(embedVideo)) {
-			AssertElementPresent(
-				key_service = "youtube",
-				locator1 = "BlogsEntry#CONTENT_VIDEO");
+			if ("${embedVideo}" == "twitch") {
+				AssertElementPresent(
+					key_service = "twitch",
+					locator1 = "BlogsEntry#CONTENT_VIDEO");
+			}
+			else if ("${embedVideo}" == "vimeo") {
+				AssertVisible(
+					key_service = "vimeo",
+					locator1 = "BlogsEntry#CONTENT_VIDEO");
+			}
+			else if ("${internalVideo}" == "true") {
+				DMDocument.viewInternalVideoPreview(videoName = "${videoName}");
+			}
+			else {
+				AssertElementPresent(
+					key_service = "youtube",
+					locator1 = "BlogsEntry#CONTENT_VIDEO");
+			}
 		}
 
 		if (isSet(entryContent)) {
@@ -869,7 +895,7 @@ definition {
 				locator1 = "BlogsEntry#CONTENT_LINK",
 				value1 = "${entryContent}");
 
-			AssertLocation(value1 = "${entryExternalURL}/");
+			AssertLocation.assertPartialLocation(value1 = "${entryExternalURL}");
 		}
 
 		if (isSet(entryInlineImage)) {
@@ -1134,7 +1160,11 @@ definition {
 		}
 
 		else {
-			AssertElementPresent(locator1 = "Comments#COMMENT_FIELD");
+			SelectFrame.selectFrameNoLoading(locator1 = "CKEditor#BODY_FIELD_IFRAME");
+
+			AssertElementPresent(locator1 = "CKEditor#BODY");
+
+			SelectFrame(value1 = "relative=top");
 		}
 
 		var key_entryTitle = "${entryTitle}";

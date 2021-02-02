@@ -53,7 +53,7 @@ AssetListManagementToolbarDisplayContext assetListManagementToolbarDisplayContex
 					<%
 					String editURL = StringPool.BLANK;
 
-					if (AssetListEntryPermission.contains(permissionChecker, assetListEntry, ActionKeys.UPDATE)) {
+					if (AssetListEntryPermission.contains(permissionChecker, assetListEntry, ActionKeys.UPDATE) || AssetListEntryPermission.contains(permissionChecker, assetListEntry, ActionKeys.VIEW)) {
 						PortletURL editAssetListEntryURL = liferayPortletResponse.createRenderURL();
 
 						editAssetListEntryURL.setParameter("mvcPath", "/edit_asset_list_entry.jsp");
@@ -97,11 +97,11 @@ AssetListManagementToolbarDisplayContext assetListManagementToolbarDisplayContex
 								AssetRendererFactory<?> assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(assetListEntry.getAssetEntryType());
 
 								if ((assetRendererFactory != null) && assetRendererFactory.isSupportsClassTypes()) {
-									ClassTypeReader classTypeReader = assetRendererFactory.getClassTypeReader();
+									ClassType classType = assetListDisplayContext.getClassType(assetRendererFactory.getClassTypeReader(), classTypeId);
 
-									ClassType classType = classTypeReader.getClassType(classTypeId, locale);
-
-									assetEntryTypeLabel = assetEntryTypeLabel + " - " + classType.getName();
+									if (classType != null) {
+										assetEntryTypeLabel = assetEntryTypeLabel + " - " + classType.getName();
+									}
 								}
 							}
 							%>

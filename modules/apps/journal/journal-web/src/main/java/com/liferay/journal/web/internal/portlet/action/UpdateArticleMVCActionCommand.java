@@ -37,6 +37,7 @@ import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
@@ -135,6 +136,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 		String articleId = ParamUtil.getString(
 			uploadPortletRequest, "articleId");
 		double version = ParamUtil.getDouble(uploadPortletRequest, "version");
+
 		Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "titleMapAsXML");
 
@@ -192,7 +194,10 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 					layoutUuid = latestArticle.getLayoutUuid();
 				}
 			}
-			else if (targetLayout == null) {
+			else if ((displayPageType ==
+						AssetDisplayPageConstants.TYPE_DEFAULT) ||
+					 (targetLayout == null)) {
+
 				layoutUuid = null;
 			}
 		}
@@ -581,6 +586,9 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private JournalHelper _journalHelper;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private LayoutClassedModelUsageLocalService

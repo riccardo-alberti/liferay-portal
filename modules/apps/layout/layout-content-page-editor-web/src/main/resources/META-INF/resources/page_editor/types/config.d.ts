@@ -97,6 +97,7 @@ export interface Config {
 	discardDraftURL: string;
 	draft: boolean;
 	duplicateItemURL: string;
+	duplicateSegmentsExperienceURL: string;
 	editFragmentEntryLinkCommentURL: string;
 	editFragmentEntryLinkURL: string;
 	editSegmentsEntryURL: string;
@@ -168,6 +169,7 @@ export interface Config {
 
 	singleSegmentsExperienceMode: boolean;
 	siteNavigationMenuItemSelectorURL: string;
+	styleBookEnabled: boolean;
 	stylebookEntryId: string;
 	styleBooks: Array<{
 		imagePreviewURL: string;

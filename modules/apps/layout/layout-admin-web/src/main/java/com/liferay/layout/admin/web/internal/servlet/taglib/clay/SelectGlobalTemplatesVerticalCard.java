@@ -44,7 +44,7 @@ public class SelectGlobalTemplatesVerticalCard implements VerticalCard {
 	@Override
 	public String getCssClass() {
 		return "add-layout-action-option card-interactive " +
-			"card-interactive-primary card-type-template template-card";
+			"card-interactive-primary";
 	}
 
 	@Override
@@ -85,6 +85,9 @@ public class SelectGlobalTemplatesVerticalCard implements VerticalCard {
 		}
 		catch (Exception exception) {
 		}
+
+		data.put("role", "button");
+		data.put("tabIndex", "0");
 
 		return data;
 	}
