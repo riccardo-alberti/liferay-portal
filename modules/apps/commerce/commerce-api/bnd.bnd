@@ -8,6 +8,8 @@ Export-Package:\
 	com.liferay.commerce.context,\
 	com.liferay.commerce.country,\
 	com.liferay.commerce.discount,\
+	com.liferay.commerce.engine,\
+	com.liferay.commerce.engine.task,\
 	com.liferay.commerce.exception,\
 	com.liferay.commerce.health.status,\
 	com.liferay.commerce.helper,\
