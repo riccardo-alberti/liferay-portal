@@ -51,7 +51,6 @@ import com.liferay.commerce.model.CommerceShippingMethod;
 import com.liferay.commerce.model.CommerceShippingOption;
 import com.liferay.commerce.price.CommerceOrderPrice;
 import com.liferay.commerce.price.CommerceOrderPriceCalculation;
-import com.liferay.commerce.price.CommerceOrderPriceCalculationFactory;
 import com.liferay.commerce.product.util.JsonHelper;
 import com.liferay.commerce.search.facet.NegatableMultiValueFacet;
 import com.liferay.commerce.service.base.CommerceOrderLocalServiceBaseImpl;
@@ -901,12 +900,8 @@ public class CommerceOrderLocalServiceImpl
 				commerceOrderItem.getCommerceOrderItemId(), commerceContext);
 		}
 
-		CommerceOrderPriceCalculation commerceOrderPriceCalculation =
-			_commerceOrderPriceCalculationFactory.
-				getCommerceOrderPriceCalculation();
-
 		CommerceOrderPrice commerceOrderPrice =
-			commerceOrderPriceCalculation.getCommerceOrderPrice(
+			_commerceOrderPriceCalculation.getCommerceOrderPrice(
 				commerceOrder, false, commerceContext);
 
 		CommerceMoney subtotalCommerceMoney = commerceOrderPrice.getSubtotal();
@@ -1210,12 +1205,8 @@ public class CommerceOrderLocalServiceImpl
 		commerceOrder.setShippingWithTaxAmount(shippingWithTaxAmount);
 
 		if (commerceContext != null) {
-			CommerceOrderPriceCalculation commerceOrderPriceCalculation =
-				_commerceOrderPriceCalculationFactory.
-					getCommerceOrderPriceCalculation();
-
 			CommerceOrderPrice commerceOrderPrice =
-				commerceOrderPriceCalculation.getCommerceOrderPrice(
+				_commerceOrderPriceCalculation.getCommerceOrderPrice(
 					commerceOrder, false, commerceContext);
 
 			CommerceDiscountValue shippingDiscountValue =
@@ -1290,12 +1281,8 @@ public class CommerceOrderLocalServiceImpl
 		commerceOrder.setShippingAmount(shippingAmount);
 
 		if (commerceContext != null) {
-			CommerceOrderPriceCalculation commerceOrderPriceCalculation =
-				_commerceOrderPriceCalculationFactory.
-					getCommerceOrderPriceCalculation();
-
 			CommerceOrderPrice commerceOrderPrice =
-				commerceOrderPriceCalculation.getCommerceOrderPrice(
+				_commerceOrderPriceCalculation.getCommerceOrderPrice(
 					commerceOrder, false, commerceContext);
 
 			CommerceDiscountValue shippingDiscountValue =
@@ -2376,9 +2363,8 @@ public class CommerceOrderLocalServiceImpl
 	@ServiceReference(type = CommerceOrderConfiguration.class)
 	private CommerceOrderConfiguration _commerceOrderConfiguration;
 
-	@ServiceReference(type = CommerceOrderPriceCalculationFactory.class)
-	private CommerceOrderPriceCalculationFactory
-		_commerceOrderPriceCalculationFactory;
+	@ServiceReference(type = CommerceOrderPriceCalculation.class)
+	private CommerceOrderPriceCalculation _commerceOrderPriceCalculation;
 
 	@ServiceReference(type = CommerceShippingEngineRegistry.class)
 	private CommerceShippingEngineRegistry _commerceShippingEngineRegistry;
