@@ -18,12 +18,14 @@ import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.discount.CommerceDiscountValue;
 import com.liferay.commerce.model.CommerceOrder;
 
+import java.io.Serializable;
+
 import java.math.BigDecimal;
 
 /**
  * @author Riccardo Alberti
  */
-public class OrderPriceCommerceEngineTaskContext {
+public class OrderPriceCommerceEngineTaskContext implements Serializable {
 
 	public CommerceContext getCommerceContext() {
 		return _commerceContext;
@@ -121,12 +123,20 @@ public class OrderPriceCommerceEngineTaskContext {
 		return _totalWithTaxAmount;
 	}
 
+	public boolean isConditionValid() {
+		return _conditionValid;
+	}
+
 	public void setCommerceContext(CommerceContext commerceContext) {
 		_commerceContext = commerceContext;
 	}
 
 	public void setCommerceOrder(CommerceOrder commerceOrder) {
 		_commerceOrder = commerceOrder;
+	}
+
+	public void setConditionValid(boolean conditionValid) {
+		_conditionValid = conditionValid;
 	}
 
 	public void setShippingAmount(BigDecimal shippingAmount) {
@@ -240,6 +250,7 @@ public class OrderPriceCommerceEngineTaskContext {
 
 	private CommerceContext _commerceContext;
 	private CommerceOrder _commerceOrder;
+	private boolean _conditionValid;
 	private BigDecimal _shippingAmount;
 	private CommerceDiscountValue _shippingCommerceDiscountValue;
 	private CommerceDiscountValue _shippingCommerceDiscountValueWithTaxAmount;

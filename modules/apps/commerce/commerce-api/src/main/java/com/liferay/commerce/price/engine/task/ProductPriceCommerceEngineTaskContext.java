@@ -18,6 +18,8 @@ import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.discount.CommerceDiscountValue;
 import com.liferay.commerce.product.option.CommerceOptionValue;
 
+import java.io.Serializable;
+
 import java.math.BigDecimal;
 
 import java.util.List;
@@ -25,7 +27,7 @@ import java.util.List;
 /**
  * @author Riccardo Alberti
  */
-public class ProductPriceCommerceEngineTaskContext {
+public class ProductPriceCommerceEngineTaskContext implements Serializable {
 
 	public CommerceContext getCommerceContext() {
 		return _commerceContext;
@@ -95,6 +97,10 @@ public class ProductPriceCommerceEngineTaskContext {
 		return _unitPriceWithTaxAmount;
 	}
 
+	public boolean isConditionValid() {
+		return _conditionValid;
+	}
+
 	public void setCommerceContext(CommerceContext commerceContext) {
 		_commerceContext = commerceContext;
 	}
@@ -124,6 +130,10 @@ public class ProductPriceCommerceEngineTaskContext {
 
 	public void setCommercePromoPriceListId(long commercePromoPriceListId) {
 		_commercePromoPriceListId = commercePromoPriceListId;
+	}
+
+	public void setConditionValid(boolean conditionValid) {
+		_conditionValid = conditionValid;
 	}
 
 	public void setCpInstanceId(long cpInstanceId) {
@@ -178,6 +188,7 @@ public class ProductPriceCommerceEngineTaskContext {
 	private List<CommerceOptionValue> _commerceOptionValues;
 	private long _commercePriceListId;
 	private long _commercePromoPriceListId;
+	private boolean _conditionValid;
 	private long _cpInstanceId;
 	private long _finalCommercePriceListId;
 	private BigDecimal _finalPrice;

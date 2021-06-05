@@ -26,6 +26,7 @@ import com.liferay.commerce.discount.test.util.CommerceDiscountTestUtil;
 import com.liferay.commerce.price.CommerceProductPrice;
 import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.price.CommerceProductPriceRequest;
+import com.liferay.commerce.price.engine.task.ProductPriceCommerceEngineTaskContext;
 import com.liferay.commerce.price.list.constants.CommercePriceListConstants;
 import com.liferay.commerce.price.list.model.CommercePriceEntry;
 import com.liferay.commerce.price.list.model.CommercePriceList;
@@ -51,6 +52,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.resource.StringResourceRetriever;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -60,6 +62,9 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.rules.engine.Fact;
+import com.liferay.portal.rules.engine.RulesEngine;
+import com.liferay.portal.rules.engine.RulesResourceRetriever;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -68,6 +73,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -122,6 +128,27 @@ public class CommerceProductPriceCalculationV2Test {
 		_commercePriceListLocalService.deleteCommercePriceLists(
 			_company.getCompanyId());
 	}
+
+	@Test
+	public void testExecuteCommerceEngine() throws Exception {
+		ProductPriceCommerceEngineTaskContext productPriceCommerceEngineTaskContext = new ProductPriceCommerceEngineTaskContext();
+
+		productPriceCommerceEngineTaskContext.setQuantity(1);
+
+		String rule = "package com.liferay.commerce.price.engine.task; dialect \"mvel\" rule \"Activate Promotion\" when context : ProductPriceCommerceEngineTaskContext(quantity == 1) then modify(context) {result = false}; end";
+
+		RulesResourceRetriever rulesResourceRetriever =
+			new RulesResourceRetriever(new StringResourceRetriever(rule));
+
+		_rulesEngine.execute(
+			rulesResourceRetriever,
+			Arrays.asList(new Fact<ProductPriceCommerceEngineTaskContext>("context", productPriceCommerceEngineTaskContext)));
+
+		Assert.assertTrue(productPriceCommerceEngineTaskContext.getResult());
+	}
+
+	@Inject
+	private RulesEngine _rulesEngine;
 
 	@Test
 	public void testCalculatePriceDynamicOptionSKU() throws Exception {
