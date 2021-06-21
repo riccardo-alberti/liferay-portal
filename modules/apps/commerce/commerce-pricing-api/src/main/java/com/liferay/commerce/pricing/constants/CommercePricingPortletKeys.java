@@ -36,4 +36,12 @@ public class CommercePricingPortletKeys {
 		"com_liferay_commerce_pricing_web_internal_portlet_" +
 			"CommercePromotionPortlet";
 
+	public static final String PRICE_COMMERCE_ENGINE_TASK =
+		"com_liferay_commerce_pricing_web_internal_portlet_" +
+			"PriceCommerceEngineTaskPortlet";
+
+	public static final String PRICE_COMMERCE_ENGINE_TASKS =
+		"com_liferay_commerce_pricing_web_internal_portlet_" +
+			"PriceCommerceEngineTasksPortlet";
+
 }
