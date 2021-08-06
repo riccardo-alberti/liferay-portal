@@ -62,19 +62,11 @@ boolean hasPermission = commerceOrderTypeQualifiersDisplayContext.hasPermission(
 	</c:if>
 </aui:form>
 
-<aui:script>
-	Liferay.provide(
-		window,
-		'<portlet:namespace />chooseChannelQualifiers',
-		(value) => {
-			var portletURL = new Liferay.PortletURL.createURL(
-				'<%= currentURLObj %>'
-			);
-
-			portletURL.setParameter('channelQualifiers', value);
-
-			window.location.replace(portletURL.toString());
-		},
-		['liferay-portlet-url']
-	);
-</aui:script>
+<liferay-frontend:component
+	context="<%=
+		HashMapBuilder.<String, Object>put(
+			"currentURL", currentURL
+		).build()
+	%>"
+	module="js/qualifiers"
+/>
