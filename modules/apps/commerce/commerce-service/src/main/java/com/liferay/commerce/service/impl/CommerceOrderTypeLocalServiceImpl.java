@@ -269,8 +269,7 @@ public class CommerceOrderTypeLocalServiceImpl
 
 		commerceOrderType.setExternalReferenceCode(externalReferenceCode);
 
-		return commerceOrderTypeLocalService.updateCommerceOrderType(
-			commerceOrderType);
+		return commerceOrderTypePersistence.update(commerceOrderType);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
