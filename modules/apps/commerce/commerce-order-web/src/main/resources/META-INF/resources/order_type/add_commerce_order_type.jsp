@@ -36,11 +36,13 @@ String defaultLanguageId = LocaleUtil.toLanguageId(locale);
 	</aui:form>
 
 	<liferay-frontend:component
-		context="<%= HashMapBuilder.<String, Object>put(
-			"defaultLanguageId", defaultLanguageId
-		).put(
-			"editCommerceOrderTypePortletURL", editCommerceOrderTypePortletURL.toString()
-		).build() %>"
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"defaultLanguageId", defaultLanguageId
+			).put(
+				"editCommerceOrderTypePortletURL", editCommerceOrderTypePortletURL.toString()
+			).build()
+		%>'
 		module="js/add_commerce_order_type"
 	/>
 </commerce-ui:modal-content>

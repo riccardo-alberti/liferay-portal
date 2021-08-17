@@ -63,10 +63,10 @@ boolean hasPermission = commerceOrderTypeQualifiersDisplayContext.hasPermission(
 </aui:form>
 
 <liferay-frontend:component
-	context="<%=
+	context='<%=
 		HashMapBuilder.<String, Object>put(
 			"currentURL", currentURL
 		).build()
-	%>"
+	%>'
 	module="js/qualifiers"
 />

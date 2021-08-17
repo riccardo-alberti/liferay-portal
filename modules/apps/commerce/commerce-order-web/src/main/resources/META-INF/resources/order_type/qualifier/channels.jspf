@@ -18,19 +18,19 @@
 	<div id="item-finder-root-channel"></div>
 
 	<liferay-frontend:component
-		context="<%=
-		HashMapBuilder.<String, Object>put(
-			"commerceOrderTypeId", commerceOrderTypeId
-		).put(
-			"datasetId", CommerceOrderDataSetConstants.COMMERCE_DATA_SET_KEY_ORDER_TYPE_QUALIFIER_CHANNELS
-		).put(
-			"orderTypeExternalReferenceCode", HtmlUtil.escapeJS(commerceOrderType.getExternalReferenceCode())
-		).put(
-			"rootPortletId", portletDisplay.getRootPortletId()
-		).put(
-			"spritemap", themeDisplay.getPathThemeImages() + "/lexicon/icons.svg"
-		).build()
-	%>"
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"commerceOrderTypeId", commerceOrderTypeId
+			).put(
+				"datasetId", CommerceOrderDataSetConstants.COMMERCE_DATA_SET_KEY_ORDER_TYPE_QUALIFIER_CHANNELS
+			).put(
+				"orderTypeExternalReferenceCode", HtmlUtil.escapeJS(commerceOrderType.getExternalReferenceCode())
+			).put(
+				"rootPortletId", portletDisplay.getRootPortletId()
+			).put(
+				"spritemap", themeDisplay.getPathThemeImages() + "/lexicon/icons.svg"
+			).build()
+		%>'
 		module="js/channels"
 	/>
 

@@ -54,10 +54,10 @@ else {
 />
 
 <liferay-frontend:component
-	context="<%=
+	context='<%=
 		HashMapBuilder.<String, Object>put(
 			"workflowAction", WorkflowConstants.ACTION_PUBLISH
 		).build()
-	%>"
+	%>'
 	module="js/edit_commerce_order_type"
 />
