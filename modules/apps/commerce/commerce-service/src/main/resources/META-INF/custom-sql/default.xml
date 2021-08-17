@@ -137,6 +137,36 @@
 				(CommerceOrder.status <> ?)
 		]]>
 	</sql>
+	<sql id="com.liferay.commerce.service.persistence.CommerceOrderTypeRelFinder.countByC_C_N">
+		<![CDATA[
+			SELECT
+				COUNT(DISTINCT CommerceOrderTypeRel.commerceOrderTypeRelId) AS COUNT_VALUE
+			FROM
+				CommerceOrderTypeRel
+			JOIN
+				CommerceOrderType ON
+					CommerceOrderTypeRel.commerceOrderTypeId = CommerceOrderType.commerceOrderTypeId
+			WHERE
+				(CommerceOrderTypeRel.classNameId = ?) AND
+				(CommerceOrderTypeRel.classPK = ?) AND
+				(LOWER(CommerceOrderType.name) LIKE ? [$AND_OR_NULL_CHECK$])
+		]]>
+	</sql>
+	<sql id="com.liferay.commerce.service.persistence.CommerceOrderTypeRelFinder.findByC_C_N">
+		<![CDATA[
+			SELECT
+				DISTINCT CommerceOrderTypeRel.*
+			FROM
+				CommerceOrderTypeRel
+			JOIN
+				CommerceOrderType ON
+					CommerceOrderTypeRel.commerceOrderTypeId = CommerceOrderType.commerceOrderTypeId
+			WHERE
+				(CommerceOrderTypeRel.classNameId = ?) AND
+				(CommerceOrderTypeRel.classPK = ?) AND
+				(LOWER(CommerceOrderType.name) LIKE ? [$AND_OR_NULL_CHECK$])
+		]]>
+	</sql>
 	<sql id="com.liferay.commerce.service.persistence.CommerceShipmentFinder.countByCommerceOrderId">
 		<![CDATA[
 			SELECT
