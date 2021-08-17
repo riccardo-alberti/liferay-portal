@@ -22,6 +22,7 @@ import com.liferay.commerce.price.list.service.CommercePriceListService;
 import com.liferay.commerce.pricing.web.internal.display.context.CommercePriceListQualifiersDisplayContext;
 import com.liferay.commerce.pricing.web.internal.servlet.taglib.ui.constants.CommercePriceListScreenNavigationConstants;
 import com.liferay.commerce.product.service.CommerceCatalogService;
+import com.liferay.commerce.service.CommerceOrderTypeRelService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
@@ -122,7 +123,7 @@ public class CommercePriceListQualifiersScreenNavigationCategory
 			CommercePriceListQualifiersDisplayContext
 				commercePriceListQualifiersDisplayContext =
 					new CommercePriceListQualifiersDisplayContext(
-						_commerceCatalogService,
+						_commerceCatalogService, _commerceOrderTypeRelService,
 						_commercePriceListAccountRelService,
 						_commercePriceListChannelRelService,
 						_commercePriceListCommerceAccountGroupRelService,
@@ -147,6 +148,9 @@ public class CommercePriceListQualifiersScreenNavigationCategory
 
 	@Reference
 	private CommerceCatalogService _commerceCatalogService;
+
+	@Reference
+	private CommerceOrderTypeRelService _commerceOrderTypeRelService;
 
 	@Reference
 	private CommercePriceListAccountRelService

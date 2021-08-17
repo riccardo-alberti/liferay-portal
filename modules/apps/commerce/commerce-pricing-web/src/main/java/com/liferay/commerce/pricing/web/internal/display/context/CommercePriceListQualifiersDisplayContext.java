@@ -22,6 +22,7 @@ import com.liferay.commerce.price.list.service.CommercePriceListCommerceAccountG
 import com.liferay.commerce.price.list.service.CommercePriceListService;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceCatalogService;
+import com.liferay.commerce.service.CommerceOrderTypeRelService;
 import com.liferay.frontend.taglib.clay.data.set.servlet.taglib.util.ClayDataSetActionDropdownItem;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -43,6 +44,7 @@ public class CommercePriceListQualifiersDisplayContext
 
 	public CommercePriceListQualifiersDisplayContext(
 		CommerceCatalogService commerceCatalogService,
+		CommerceOrderTypeRelService commerceOrderTypeRelService,
 		CommercePriceListAccountRelService commercePriceListAccountRelService,
 		CommercePriceListChannelRelService commercePriceListChannelRelService,
 		CommercePriceListCommerceAccountGroupRelService
@@ -56,6 +58,7 @@ public class CommercePriceListQualifiersDisplayContext
 			commerceCatalogService, commercePriceListModelResourcePermission,
 			commercePriceListService, httpServletRequest);
 
+		_commerceOrderTypeRelService = commerceOrderTypeRelService;
 		_commercePriceListAccountRelService =
 			commercePriceListAccountRelService;
 		_commercePriceListChannelRelService =
@@ -94,6 +97,18 @@ public class CommercePriceListQualifiersDisplayContext
 
 		if (commercePriceListChannelRelsCount > 0) {
 			return "channels";
+		}
+
+		return "all";
+	}
+
+	public String getActiveOrderTypeEligibility() throws PortalException {
+		int commercePriceListChannelRelsCount =
+			_commerceOrderTypeRelService.getCommerceOrderTypeRelsCount(
+				CommercePriceList.class.getName(), getCommercePriceListId());
+
+		if (commercePriceListChannelRelsCount > 0) {
+			return "orderTypes";
 		}
 
 		return "all";
@@ -166,6 +181,24 @@ public class CommercePriceListQualifiersDisplayContext
 				"/price-list-channels?nestedFields=channel";
 	}
 
+	public List<ClayDataSetActionDropdownItem>
+			getPriceListOrderTypeClayDataSetActionDropdownItems()
+		throws PortalException {
+
+		return ListUtil.fromArray(
+			new ClayDataSetActionDropdownItem(
+				null, "trash", "delete",
+				LanguageUtil.get(httpServletRequest, "delete"), "delete",
+				"delete", "headless"));
+	}
+
+	public String getPriceListOrderTypesApiURL() throws PortalException {
+		return "/o/headless-commerce-admin-pricing/v2.0/price-lists/" +
+			getCommercePriceListId() +
+				"/price-list-order-types?nestedFields=orderType";
+	}
+
+	private final CommerceOrderTypeRelService _commerceOrderTypeRelService;
 	private final CommercePriceListAccountRelService
 		_commercePriceListAccountRelService;
 	private final CommercePriceListChannelRelService
