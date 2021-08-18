@@ -143,6 +143,13 @@ public class CommercePriceListOrderTypeRelWrapper
 		return model.getCommerceOrderTypeId();
 	}
 
+	@Override
+	public CommercePriceList getCommercePriceList()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getCommercePriceList();
+	}
+
 	/**
 	 * Returns the commerce price list ID of this commerce price list order type rel.
 	 *

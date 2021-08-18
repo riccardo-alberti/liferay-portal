@@ -64,4 +64,7 @@ public interface CommercePriceListOrderTypeRel
 
 			};
 
+	public CommercePriceList getCommercePriceList()
+		throws com.liferay.portal.kernel.exception.PortalException;
+
 }
