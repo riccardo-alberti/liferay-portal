@@ -29,7 +29,7 @@ String defaultLanguageId = LocaleUtil.toLanguageId(locale);
 <commerce-ui:modal-content
 	title='<%= LanguageUtil.get(request, "add-order-type") %>'
 >
-	<aui:form method="post" name="fm" useNamespace="<%= false %>">
+	<aui:form method="post" name="fm">
 		<aui:input bean="<%= commerceOrderTypeDisplayContext.getCommerceOrderType() %>" label="name" model="<%= CommerceOrderType.class %>" name="name" required="<%= true %>" />
 
 		<aui:input name="description" type="textarea" />

@@ -12,7 +12,7 @@
  * details.
  */
 
-export default ({namespace, workflowAction}) => {
+export default function ({namespace, workflowAction}) {
 	document
 		.getElementById(`${namespace}publishButton`)
 		.addEventListener('click', (event) => {
@@ -34,4 +34,4 @@ export default ({namespace, workflowAction}) => {
 
 			submitForm(form);
 		});
-};
+}

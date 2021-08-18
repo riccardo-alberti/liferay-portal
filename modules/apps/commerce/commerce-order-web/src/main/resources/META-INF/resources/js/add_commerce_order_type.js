@@ -12,24 +12,30 @@
  * details.
  */
 
-import {AdminOrderAPI} from 'commerce-frontend-js/ServiceProvider/index';
+import ServiceProvider from 'commerce-frontend-js/ServiceProvider/index';
+
+// import {AdminOrderAPI} from 'commerce-frontend-js/ServiceProvider/index';
+
 import {CLOSE_MODAL} from 'commerce-frontend-js/utilities/eventsDefinitions';
 import {createPortletURL} from 'frontend-js-web';
 
-export default ({
+export default function ({
 	defaultLanguageId,
 	editCommerceOrderTypePortletURL,
 	namespace,
-}) => {
-	const CommerceOrderTypeResource = AdminOrderAPI('v1');
+}) {
+	const CommerceOrderTypeResource = ServiceProvider.AdminOrderAPI('v1');
+
+	// const CommerceOrderTypeResource = AdminOrderAPI('v1');
 
 	const form = document.getElementById(`${namespace}fm`);
 
 	form.addEventListener('submit', (event) => {
 		event.preventDefault();
 
-		const description = form.querySelector('#description').value;
-		const name = form.querySelector('#name').value;
+		const description = form.querySelector(`#${namespace}description`)
+			.value;
+		const name = form.querySelector(`#${namespace}name`).value;
 
 		const orderTypeData = {
 			description: {[defaultLanguageId]: description},
@@ -51,7 +57,7 @@ export default ({
 				window.parent.Liferay.fire(CLOSE_MODAL, {
 					redirectURL: redirectURL.toString(),
 					successNotification: {
-						message: Liferay.language.get(
+						message: Liferay.Language.get(
 							'your-request-completed-successfully'
 						),
 						showSuccessNotification: true,
@@ -60,4 +66,4 @@ export default ({
 			}
 		);
 	});
-};
+}
