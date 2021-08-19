@@ -133,6 +133,13 @@ public class CommerceDiscountOrderTypeRelWrapper
 		}
 	}
 
+	@Override
+	public CommerceDiscount getCommerceDiscount()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return model.getCommerceDiscount();
+	}
+
 	/**
 	 * Returns the commerce discount ID of this commerce discount order type rel.
 	 *
