@@ -978,6 +978,22 @@ public abstract class BaseOrderResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("orderType", additionalAssertFieldName)) {
+				if (order.getOrderType() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("orderTypeId", additionalAssertFieldName)) {
+				if (order.getOrderTypeId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("paymentMethod", additionalAssertFieldName)) {
 				if (order.getPaymentMethod() == null) {
 					valid = false;
@@ -2015,6 +2031,26 @@ public abstract class BaseOrderResourceTestCase {
 				if (!Objects.deepEquals(
 						order1.getOrderStatusInfo(),
 						order2.getOrderStatusInfo())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("orderType", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						order1.getOrderType(), order2.getOrderType())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("orderTypeId", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						order1.getOrderTypeId(), order2.getOrderTypeId())) {
 
 					return false;
 				}
@@ -3262,6 +3298,16 @@ public abstract class BaseOrderResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("orderType")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("orderTypeId")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("paymentMethod")) {
 			sb.append("'");
 			sb.append(String.valueOf(order.getPaymentMethod()));
@@ -3790,6 +3836,7 @@ public abstract class BaseOrderResourceTestCase {
 				modifiedDate = RandomTestUtil.nextDate();
 				orderDate = RandomTestUtil.nextDate();
 				orderStatus = RandomTestUtil.randomInt();
+				orderTypeId = RandomTestUtil.randomLong();
 				paymentMethod = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				paymentStatus = RandomTestUtil.randomInt();

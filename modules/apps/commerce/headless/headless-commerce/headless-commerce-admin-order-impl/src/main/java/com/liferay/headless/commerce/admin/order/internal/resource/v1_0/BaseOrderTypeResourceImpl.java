@@ -327,6 +327,48 @@ public abstract class BaseOrderTypeResourceImpl
 		return new OrderType();
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-commerce-admin-order/v1.0/orders/by-externalReferenceCode/{externalReferenceCode}/order-type'  -u 'test@liferay.com:test'
+	 */
+	@GET
+	@Override
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "externalReferenceCode")
+		}
+	)
+	@Path("/orders/by-externalReferenceCode/{externalReferenceCode}/order-type")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "OrderType")})
+	public OrderType getOrderByExternalReferenceCodeOrderType(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("externalReferenceCode")
+			String externalReferenceCode)
+		throws Exception {
+
+		return new OrderType();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-commerce-admin-order/v1.0/orders/{id}/order-type'  -u 'test@liferay.com:test'
+	 */
+	@GET
+	@Override
+	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "id")})
+	@Path("/orders/{id}/order-type")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "OrderType")})
+	public OrderType getOrderIdOrderType(
+			@NotNull @Parameter(hidden = true) @PathParam("id") Long id)
+		throws Exception {
+
+		return new OrderType();
+	}
+
 	@Override
 	@SuppressWarnings("PMD.UnusedLocalVariable")
 	public void create(

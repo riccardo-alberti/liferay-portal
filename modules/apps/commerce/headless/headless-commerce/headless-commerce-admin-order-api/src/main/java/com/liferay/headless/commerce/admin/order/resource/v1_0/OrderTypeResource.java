@@ -85,6 +85,12 @@ public interface OrderTypeResource {
 	public OrderType patchOrderType(Long id, OrderType orderType)
 		throws Exception;
 
+	public OrderType getOrderByExternalReferenceCodeOrderType(
+			String externalReferenceCode)
+		throws Exception;
+
+	public OrderType getOrderIdOrderType(Long id) throws Exception;
+
 	public default void setContextAcceptLanguage(
 		AcceptLanguage contextAcceptLanguage) {
 	}

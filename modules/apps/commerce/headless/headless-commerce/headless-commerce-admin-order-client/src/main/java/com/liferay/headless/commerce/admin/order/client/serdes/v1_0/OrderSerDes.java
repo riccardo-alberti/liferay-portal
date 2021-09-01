@@ -334,6 +334,26 @@ public class OrderSerDes {
 			sb.append(String.valueOf(order.getOrderStatusInfo()));
 		}
 
+		if (order.getOrderType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderType\": ");
+
+			sb.append(String.valueOf(order.getOrderType()));
+		}
+
+		if (order.getOrderTypeId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderTypeId\": ");
+
+			sb.append(order.getOrderTypeId());
+		}
+
 		if (order.getPaymentMethod() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1301,6 +1321,20 @@ public class OrderSerDes {
 				"orderStatusInfo", String.valueOf(order.getOrderStatusInfo()));
 		}
 
+		if (order.getOrderType() == null) {
+			map.put("orderType", null);
+		}
+		else {
+			map.put("orderType", String.valueOf(order.getOrderType()));
+		}
+
+		if (order.getOrderTypeId() == null) {
+			map.put("orderTypeId", null);
+		}
+		else {
+			map.put("orderTypeId", String.valueOf(order.getOrderTypeId()));
+		}
+
 		if (order.getPaymentMethod() == null) {
 			map.put("paymentMethod", null);
 		}
@@ -2072,6 +2106,18 @@ public class OrderSerDes {
 				if (jsonParserFieldValue != null) {
 					order.setOrderStatusInfo(
 						StatusSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "orderType")) {
+				if (jsonParserFieldValue != null) {
+					order.setOrderType(
+						OrderTypeSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "orderTypeId")) {
+				if (jsonParserFieldValue != null) {
+					order.setOrderTypeId(
+						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "paymentMethod")) {

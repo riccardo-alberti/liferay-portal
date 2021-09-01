@@ -702,6 +702,64 @@ public class Order implements Serializable {
 	protected Status orderStatusInfo;
 
 	@Schema
+	@Valid
+	public OrderType getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(OrderType orderType) {
+		this.orderType = orderType;
+	}
+
+	@JsonIgnore
+	public void setOrderType(
+		UnsafeSupplier<OrderType, Exception> orderTypeUnsafeSupplier) {
+
+		try {
+			orderType = orderTypeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected OrderType orderType;
+
+	@DecimalMin("0")
+	@Schema
+	public Long getOrderTypeId() {
+		return orderTypeId;
+	}
+
+	public void setOrderTypeId(Long orderTypeId) {
+		this.orderTypeId = orderTypeId;
+	}
+
+	@JsonIgnore
+	public void setOrderTypeId(
+		UnsafeSupplier<Long, Exception> orderTypeIdUnsafeSupplier) {
+
+		try {
+			orderTypeId = orderTypeIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Long orderTypeId;
+
+	@Schema
 	public String getPaymentMethod() {
 		return paymentMethod;
 	}
@@ -3172,6 +3230,26 @@ public class Order implements Serializable {
 			sb.append("\"orderStatusInfo\": ");
 
 			sb.append(String.valueOf(orderStatusInfo));
+		}
+
+		if (orderType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderType\": ");
+
+			sb.append(String.valueOf(orderType));
+		}
+
+		if (orderTypeId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderTypeId\": ");
+
+			sb.append(orderTypeId);
 		}
 
 		if (paymentMethod != null) {

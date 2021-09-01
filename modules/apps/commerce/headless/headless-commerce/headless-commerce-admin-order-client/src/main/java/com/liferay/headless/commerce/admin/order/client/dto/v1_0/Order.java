@@ -508,6 +508,48 @@ public class Order implements Cloneable, Serializable {
 
 	protected Status orderStatusInfo;
 
+	public OrderType getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(OrderType orderType) {
+		this.orderType = orderType;
+	}
+
+	public void setOrderType(
+		UnsafeSupplier<OrderType, Exception> orderTypeUnsafeSupplier) {
+
+		try {
+			orderType = orderTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected OrderType orderType;
+
+	public Long getOrderTypeId() {
+		return orderTypeId;
+	}
+
+	public void setOrderTypeId(Long orderTypeId) {
+		this.orderTypeId = orderTypeId;
+	}
+
+	public void setOrderTypeId(
+		UnsafeSupplier<Long, Exception> orderTypeIdUnsafeSupplier) {
+
+		try {
+			orderTypeId = orderTypeIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long orderTypeId;
+
 	public String getPaymentMethod() {
 		return paymentMethod;
 	}
