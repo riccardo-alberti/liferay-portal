@@ -65,6 +65,22 @@ public class CommerceOrderRuleEntryServiceUtil {
 			commerceOrderRuleEntryId);
 	}
 
+	public static CommerceOrderRuleEntry fetchByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		return getService().fetchByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	public static CommerceOrderRuleEntry fetchCommerceOrderRuleEntry(
+			long commerceOrderRuleEntryId)
+		throws PortalException {
+
+		return getService().fetchCommerceOrderRuleEntry(
+			commerceOrderRuleEntryId);
+	}
+
 	public static List<CommerceOrderRuleEntry> getCommerceOrderRuleEntries(
 			long companyId, boolean active, int start, int end)
 		throws PortalException {
@@ -87,6 +103,13 @@ public class CommerceOrderRuleEntryServiceUtil {
 
 		return getService().getCommerceOrderRuleEntries(
 			companyId, type, start, end);
+	}
+
+	public static CommerceOrderRuleEntry getCommerceOrderRuleEntry(
+			long commerceOrderEntryId)
+		throws PortalException {
+
+		return getService().getCommerceOrderRuleEntry(commerceOrderEntryId);
 	}
 
 	/**

@@ -67,6 +67,16 @@ public interface CommerceOrderRuleEntryService extends BaseService {
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceOrderRuleEntry fetchByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceOrderRuleEntry fetchCommerceOrderRuleEntry(
+			long commerceOrderRuleEntryId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceOrderRuleEntry> getCommerceOrderRuleEntries(
 			long companyId, boolean active, int start, int end)
 		throws PortalException;
@@ -79,6 +89,11 @@ public interface CommerceOrderRuleEntryService extends BaseService {
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceOrderRuleEntry> getCommerceOrderRuleEntries(
 			long companyId, String type, int start, int end)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceOrderRuleEntry getCommerceOrderRuleEntry(
+			long commerceOrderEntryId)
 		throws PortalException;
 
 	/**
