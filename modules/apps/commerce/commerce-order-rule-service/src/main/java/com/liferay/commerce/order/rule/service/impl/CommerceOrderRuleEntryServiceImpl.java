@@ -86,6 +86,43 @@ public class CommerceOrderRuleEntryServiceImpl
 	}
 
 	@Override
+	public CommerceOrderRuleEntry fetchByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		CommerceOrderRuleEntry commerceOrderRuleEntry =
+			commerceOrderRuleEntryLocalService.
+				fetchCommerceOrderRuleEntryByExternalReferenceCode(
+					companyId, externalReferenceCode);
+
+		if (commerceOrderRuleEntry != null) {
+			_commerceOrderRuleEntryModelResourcePermission.check(
+				getPermissionChecker(), commerceOrderRuleEntry,
+				ActionKeys.VIEW);
+		}
+
+		return commerceOrderRuleEntry;
+	}
+
+	@Override
+	public CommerceOrderRuleEntry fetchCommerceOrderRuleEntry(
+			long commerceOrderRuleEntryId)
+		throws PortalException {
+
+		CommerceOrderRuleEntry commerceOrderRuleEntry =
+			commerceOrderRuleEntryLocalService.fetchCommerceOrderRuleEntry(
+				commerceOrderRuleEntryId);
+
+		if (commerceOrderRuleEntry != null) {
+			_commerceOrderRuleEntryModelResourcePermission.check(
+				getPermissionChecker(), commerceOrderRuleEntry,
+				ActionKeys.VIEW);
+		}
+
+		return commerceOrderRuleEntry;
+	}
+
+	@Override
 	public List<CommerceOrderRuleEntry> getCommerceOrderRuleEntries(
 			long companyId, boolean active, int start, int end)
 		throws PortalException {
@@ -134,6 +171,18 @@ public class CommerceOrderRuleEntryServiceImpl
 
 		return commerceOrderRuleEntryLocalService.getCommerceOrderRuleEntries(
 			companyId, type, start, end);
+	}
+
+	@Override
+	public CommerceOrderRuleEntry getCommerceOrderRuleEntry(
+			long commerceOrderEntryId)
+		throws PortalException {
+
+		_commerceOrderRuleEntryModelResourcePermission.check(
+			getPermissionChecker(), commerceOrderEntryId, ActionKeys.VIEW);
+
+		return commerceOrderRuleEntryLocalService.getCommerceOrderRuleEntry(
+			commerceOrderEntryId);
 	}
 
 	@Override
