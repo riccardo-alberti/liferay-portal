@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.3.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.3.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_3_0.xsd"
+>
+	<name>Sample Workflowr</name>
+	<version>2</version>
+	<state>
+		<name>created</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						36,
+						51
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>connector68541</name>
+				<target>state63561</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>approved</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						648,
+						50
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>approve</name>
+				<script>
+					<![CDATA[
+						import com.liferay.fulfilment.constants.FulfilmentConstants
+						import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+
+						WorkflowStatusManagerUtil.updateStatus(FulfilmentConstants.STATUS_COMPLETED, workflowContext);
+					]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+	<state>
+		<name>state63561</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						129,
+						111.00001525878906
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>state</name>
+				<script>
+					<![CDATA[workflowContext.put("test",1);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>connector82901</name>
+				<target>state77673</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>state77673</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						214,
+						297.0000228881836
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>log</name>
+				<description>
+					{
+						"value1": "test",
+					 	"value2": "test",
+					 	"value3": "${prop}"
+					}
+				</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.LogFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>connector85540</name>
+				<target>approved</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+</workflow-definition>

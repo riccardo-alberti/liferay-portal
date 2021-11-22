@@ -1,0 +1,9 @@
+apiDir: "../headless-fulfilment-admin-api/src/main/java"
+apiPackagePath: "com.liferay.headless.fulfilment.admin"
+application:
+    baseURI: "/headless-fulfilment-admin"
+    className: "HeadlessFulfilmentAdminApplication"
+    name: "Liferay.Headless.Fulfilment.Admin"
+author: "Riccardo Alberti"
+clientDir: "../headless-fulfilment-admin-client/src/main/java"
+testDir: "../headless-fulfilment-admin-test/src/testIntegration/java"

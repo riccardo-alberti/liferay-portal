@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.liferay.fulfilment.model.FulfilmentRequest">
+		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
+		<field name="fulfilmentRequestId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="endDate" type="Date" />
+		<field name="originalFulfilmentRequest" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="inputParameters" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="outputParameters" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="replyTo" type="String" />
+		<field name="startDate" type="Date" />
+		<field name="type" type="String" />
+		<field name="workflowDefinitionLinkId" type="long" />
+		<field name="status" type="int" />
+		<field name="statusByUserId" type="long" />
+		<field name="statusByUserName" type="String" />
+		<field name="statusDate" type="Date" />
+	</model>
+	<model name="com.liferay.fulfilment.model.FulfilmentTask">
+		<field name="mvccVersion" type="long" />
+		<field name="fulfilmentTaskId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="correlationId" type="long" />
+		<field name="endDate" type="Date" />
+		<field name="fulfilmentRequestId" type="long" />
+		<field name="index" type="long" />
+		<field name="inputParameters" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="outputParameters" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+		<field name="startDate" type="Date" />
+		<field name="type" type="String" />
+		<field name="status" type="int" />
+		<field name="statusByUserId" type="long" />
+		<field name="statusByUserName" type="String" />
+		<field name="statusDate" type="Date" />
+	</model>
+</model-hints>

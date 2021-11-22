@@ -1,0 +1,7 @@
+Bundle-Name: Liferay Headless Fulfilment Admin API
+Bundle-SymbolicName: com.liferay.headless.fulfilment.admin.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.headless.fulfilment.admin.dto.v1_0,\
+	com.liferay.headless.fulfilment.admin.resource.v1_0,\
+	com.liferay.headless.fulfilment.admin.util

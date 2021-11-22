@@ -1,0 +1,17 @@
+Bundle-Name: Liferay Fulfilment API
+Bundle-SymbolicName: com.liferay.fulfilment.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.fulfilment.action.executor,\
+	com.liferay.fulfilment.configuration,\
+	com.liferay.fulfilment.constants,\
+	com.liferay.fulfilment.exception,\
+	com.liferay.fulfilment.fact,\
+	com.liferay.fulfilment.manager,\
+	com.liferay.fulfilment.messaging,\
+	com.liferay.fulfilment.model,\
+	com.liferay.fulfilment.permission,\
+	com.liferay.fulfilment.service,\
+	com.liferay.fulfilment.service.persistence,\
+	com.liferay.fulfilment.util,\
+	com.liferay.fulfilment.workflow.helper

@@ -1,0 +1,25 @@
+package com.liferay.fulfilment.test;
+
+import com.liferay.fulfilment.fact.FulfilmentRequestFact
+import java.util.Objects
+
+dialect "mvel"
+
+rule "Fulfilment Request Rule"
+no-loop
+when
+	request : FulfilmentRequestFact();
+then
+	if (Objects.equals(request.getType(), "test")) {
+		request.setWorkflowDefinitionName("##workflowDefinitionName##");
+	}
+
+	if (Objects.equals(request.getType(), "no-match")) {
+    		request.setWorkflowDefinitionName("not matching workflow");
+    	}
+
+	if (Objects.equals(request.getType(), "wrong-version")) {
+    	request.setWorkflowDefinitionName("##workflowDefinitionName##");
+		request.setWorkflowDefinitionVersion(99);
+    }
+end

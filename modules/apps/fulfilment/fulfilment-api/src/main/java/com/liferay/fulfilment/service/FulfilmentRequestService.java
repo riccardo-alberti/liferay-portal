@@ -1,0 +1,93 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+package com.liferay.fulfilment.service;
+
+import com.liferay.fulfilment.model.FulfilmentRequest;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
+import com.liferay.portal.kernel.security.access.control.AccessControlled;
+import com.liferay.portal.kernel.service.BaseService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.transaction.Isolation;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.Transactional;
+
+import org.osgi.annotation.versioning.ProviderType;
+
+/**
+ * Provides the remote service interface for FulfilmentRequest. Methods of this
+ * service are expected to have security checks based on the propagated JAAS
+ * credentials because this service can be accessed remotely.
+ *
+ * @author Riccardo Alberti
+ * @see FulfilmentRequestServiceUtil
+ * @generated
+ */
+@AccessControlled
+@JSONWebService
+@ProviderType
+@Transactional(
+	isolation = Isolation.PORTAL,
+	rollbackFor = {PortalException.class, SystemException.class}
+)
+public interface FulfilmentRequestService extends BaseService {
+
+	/*
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.fulfilment.service.impl.FulfilmentRequestServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the fulfilment request remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link FulfilmentRequestServiceUtil} if injection and service tracking are not available.
+	 */
+	public FulfilmentRequest addFulfilmentRequest(
+			String externalReferenceCode, String originalFulfilmentRequest,
+			String inputParameters, String replyTo, String type,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public FulfilmentRequest deleteFulfilmentRequest(long fulfilmentRequestId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public FulfilmentRequest fetchByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public FulfilmentRequest fetchFulfilmentRequest(long fulfilmentRequestId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public FulfilmentRequest getFulfilmentRequest(long fulfilmentRequestId)
+		throws PortalException;
+
+	/**
+	 * Returns the OSGi service identifier.
+	 *
+	 * @return the OSGi service identifier
+	 */
+	public String getOSGiServiceIdentifier();
+
+	public FulfilmentRequest startWorkflowInstance(
+			long userId, FulfilmentRequest fulfilmentRequest,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public FulfilmentRequest updateFulfilmentRequest(
+			long fulfilmentRequestId, String originalFulfilmentRequest,
+			String inputParameters, String replyTo, String type,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+}

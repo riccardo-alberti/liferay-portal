@@ -1,0 +1,10 @@
+Bundle-Name: Liferay Fulfilment Admin Web
+Bundle-SymbolicName: com.liferay.fulfilment.admin.web
+Bundle-Version: 1.0.0
+Liferay-JS-Submodules-Bridge: fulfilment-admin-web
+Provide-Capability:\
+	liferay.resource.bundle;\
+		resource.bundle.aggregate:String="(bundle.symbolic.name=com.liferay.fulfilment.lang)";\
+		resource.bundle.base.name="content.Language"
+Web-ContextPath: /fulfilment-admin-web
+-dsannotations-options: inherit

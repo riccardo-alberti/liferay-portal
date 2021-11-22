@@ -1,0 +1,4 @@
+Bundle-Name: Liferay Fulfilment Action Executor Implementation
+Bundle-SymbolicName: com.liferay.fulfilment.action.executor.impl
+Bundle-Version: 1.0.0
+-dsannotations-options: inherit

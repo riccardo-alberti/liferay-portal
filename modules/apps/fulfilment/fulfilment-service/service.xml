@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+
+<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.fulfilment">
+	<author>Riccardo Alberti</author>
+	<namespace>Fulfilment</namespace>
+	<entity external-reference-code="true" local-service="true" name="FulfilmentRequest" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="fulfilmentRequestId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="endDate" type="Date" />
+		<column name="originalFulfilmentRequest" type="String" />
+		<column name="inputParameters" type="String" />
+		<column name="outputParameters" type="String" />
+		<column name="replyTo" type="String" />
+		<column name="startDate" type="Date" />
+		<column name="type" type="String" />
+		<column name="workflowDefinitionLinkId" type="long" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="fulfilmentRequestId" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="FulfilmentTask" remote-service="true">
+
+		<!-- PK fields -->
+
+		<column name="fulfilmentTaskId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="correlationId" type="long" />
+		<column name="endDate" type="Date" />
+		<column name="fulfilmentRequestId" type="long" />
+		<column name="index" type="long" />
+		<column name="inputParameters" type="String" />
+		<column name="outputParameters" type="String" />
+		<column name="startDate" type="Date" />
+		<column name="type" type="String" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="asc">
+			<order-column name="fulfilmentTaskId" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CorrelationId" return-type="FulfilmentTask">
+			<finder-column name="correlationId" />
+		</finder>
+		<finder name="FulfilmentRequestId" return-type="Collection">
+			<finder-column name="fulfilmentRequestId" />
+		</finder>
+	</entity>
+</service-builder>
