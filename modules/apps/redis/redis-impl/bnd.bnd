@@ -1,0 +1,9 @@
+Bundle-Name: Liferay Redis Service
+Bundle-SymbolicName: com.liferay.redis.service
+Bundle-Version: 1.0.0
+Import-Package:\
+	!net.sf.cglib.proxy.*,\
+	\
+	!redis.clients.jedis.*,\
+	\
+	*
