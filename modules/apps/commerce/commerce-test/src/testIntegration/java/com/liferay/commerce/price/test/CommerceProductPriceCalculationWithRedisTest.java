@@ -26,15 +26,15 @@ import com.liferay.commerce.discount.validator.helper.CommerceDiscountValidatorH
 import com.liferay.commerce.internal.price.util.CalculatePrice;
 import com.liferay.commerce.price.CommerceProductPrice;
 import com.liferay.commerce.price.CommerceProductPriceCalculation;
-import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
+import com.liferay.commerce.price.CommerceProductPriceRequest;
 import com.liferay.commerce.pricing.constants.CommercePricingConstants;
-import com.liferay.commerce.pricing.service.CommercePriceModifierLocalService;
-import com.liferay.commerce.pricing.service.CommercePriceModifierRelLocalService;
+import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
+import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
-import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.test.util.context.TestCommerceContext;
 import com.liferay.fulfilment.manager.FulfilmentManagerUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -48,9 +48,11 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.redis.RedisConnection;
 
-import java.math.BigDecimal;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.frutilla.FrutillaRule;
 
@@ -91,8 +93,7 @@ public class CommerceProductPriceCalculationWithRedisTest {
 	}
 
 	@Test
-	public void testCalculatePrice() throws Exception {
-		CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(42818);
+	public void testCalculatePriceHitDifferentManyTimes() throws Exception {
 		CommerceContext commerceContext = new TestCommerceContext(
 			_commerceCurrency, null, _user, _group, _commerceAccount, null);
 
@@ -100,22 +101,135 @@ public class CommerceProductPriceCalculationWithRedisTest {
 			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
 			new HashMap<>(), null, "pricing");
 
-		CommerceProductPrice commerceProductPrice1 =
-			CalculatePrice.getCommerceProductPrice(
-				cpInstance.getCPInstanceId(), 1, commerceContext,
-				_commerceDiscountApplicationStrategy,
-				_commerceDiscountValidatorHelper, _commerceDiscountLocalService,
-				_redisConnection);
+		List<CPDefinition> cpDefinitions =
+			_cpDefinitionLocalService.getCPDefinitions(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
-		Assert.assertTrue(true);
+		PrintWriter printWriter = new PrintWriter(new FileWriter("/tmp/testCalculatePriceHitDifferentManyTimes.log"));
+
+		for (int i = 0; i < 1000; i++) {
+			for (CPDefinition cpDefinition : cpDefinitions) {
+				List<CPInstance> cpDefinitionInstances =
+					_cpInstanceLocalService.getCPDefinitionInstances(
+						cpDefinition.getCPDefinitionId());
+
+				long offlineAlgorithmTimestamp = System.nanoTime();
+
+				for (CPInstance cpInstance : cpDefinitionInstances) {
+					CommerceProductPrice commerceProductPrice =
+						CalculatePrice.getCommerceProductPrice(
+							cpInstance.getCPInstanceId(), 1, commerceContext,
+							_commerceDiscountApplicationStrategy,
+							_commerceDiscountValidatorHelper,
+							_commerceDiscountLocalService, _redisConnection);
+				}
+
+				offlineAlgorithmTimestamp =
+					System.nanoTime() - offlineAlgorithmTimestamp;
+
+				long onlineAlgorithmTimestamp = System.nanoTime();
+
+				for (CPInstance cpInstance : cpDefinitionInstances) {
+					CommerceProductPriceRequest commerceProductPriceRequest =
+						new CommerceProductPriceRequest();
+
+					commerceProductPriceRequest.setCpInstanceId(
+						cpInstance.getCPInstanceId());
+					commerceProductPriceRequest.setQuantity(1);
+					commerceProductPriceRequest.setSecure(true);
+					commerceProductPriceRequest.setCommerceContext(
+						commerceContext);
+
+					CommerceProductPrice commerceProductPrice =
+						_commerceProductPriceCalculation.
+							getCommerceProductPrice(
+								commerceProductPriceRequest);
+				}
+
+				onlineAlgorithmTimestamp =
+					System.nanoTime() - onlineAlgorithmTimestamp;
+
+				printWriter.println(
+					onlineAlgorithmTimestamp + "," +
+						offlineAlgorithmTimestamp + "," +
+							(100 * (double) offlineAlgorithmTimestamp /
+							 (double) onlineAlgorithmTimestamp));
+			}
+		}
+
+		printWriter.close();
+	}
+
+	@Test
+	public void testCalculatePriceHitSameManyTimes() throws Exception {
+		CommerceContext commerceContext = new TestCommerceContext(
+			_commerceCurrency, null, _user, _group, _commerceAccount, null);
+
+		PrintWriter printWriter = new PrintWriter(new FileWriter("/tmp/testCalculatePriceHitSameManyTimes.log"));
+
+		FulfilmentManagerUtil.syncExecuteWorkflow(
+			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			new HashMap<>(), null, "pricing");
+
+		List<CPDefinition> cpDefinitions =
+			_cpDefinitionLocalService.getCPDefinitions(
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (CPDefinition cpDefinition : cpDefinitions) {
+			List<CPInstance> cpDefinitionInstances =
+				_cpInstanceLocalService.getCPDefinitionInstances(
+					cpDefinition.getCPDefinitionId());
+
+			long offlineAlgorithmTimestamp = System.nanoTime();
+
+			for (CPInstance cpInstance : cpDefinitionInstances) {
+				for (int i = 0; i < 1000; i++) {
+					CommerceProductPrice commerceProductPrice =
+						CalculatePrice.getCommerceProductPrice(
+							cpInstance.getCPInstanceId(), 1, commerceContext,
+							_commerceDiscountApplicationStrategy,
+							_commerceDiscountValidatorHelper,
+							_commerceDiscountLocalService, _redisConnection);
+				}
+			}
+
+			offlineAlgorithmTimestamp =
+				System.nanoTime() - offlineAlgorithmTimestamp;
+
+			long onlineAlgorithmTimestamp = System.nanoTime();
+
+			for (CPInstance cpInstance : cpDefinitionInstances) {
+				CommerceProductPriceRequest commerceProductPriceRequest =
+					new CommerceProductPriceRequest();
+
+				commerceProductPriceRequest.setCpInstanceId(
+					cpInstance.getCPInstanceId());
+				commerceProductPriceRequest.setQuantity(1);
+				commerceProductPriceRequest.setSecure(true);
+				commerceProductPriceRequest.setCommerceContext(commerceContext);
+
+				for (int i = 0; i < 1000; i++) {
+					CommerceProductPrice commerceProductPrice =
+						_commerceProductPriceCalculation.
+							getCommerceProductPrice(
+								commerceProductPriceRequest);
+				}
+			}
+
+			onlineAlgorithmTimestamp =
+				System.nanoTime() - onlineAlgorithmTimestamp;
+
+			printWriter.println(
+				onlineAlgorithmTimestamp + "," +
+					offlineAlgorithmTimestamp + "," +
+						(100 * (double) offlineAlgorithmTimestamp / (double) onlineAlgorithmTimestamp));
+		}
+
+		printWriter.close();
 	}
 
 	@Rule
 	public FrutillaRule frutillaRule = new FrutillaRule();
-
-	private static final BigDecimal _HUNDRED = BigDecimal.valueOf(100);
-
-	private static final BigDecimal _ONE = BigDecimal.ONE;
 
 	private static User _user;
 
@@ -123,9 +237,6 @@ public class CommerceProductPriceCalculationWithRedisTest {
 
 	@Inject
 	private CommerceAccountLocalService _commerceAccountLocalService;
-
-	@Inject
-	private CommerceCatalogLocalService _commerceCatalogLocalService;
 
 	private CommerceCurrency _commerceCurrency;
 
@@ -142,18 +253,10 @@ public class CommerceProductPriceCalculationWithRedisTest {
 	private CommerceDiscountValidatorHelper _commerceDiscountValidatorHelper;
 
 	@Inject
-	private CommercePriceListLocalService _commercePriceListLocalService;
-
-	@Inject
-	private CommercePriceModifierLocalService
-		_commercePriceModifierLocalService;
-
-	@Inject
-	private CommercePriceModifierRelLocalService
-		_commercePriceModifierRelLocalService;
-
-	@Inject
 	private CommerceProductPriceCalculation _commerceProductPriceCalculation;
+
+	@Inject
+	private CPDefinitionLocalService _cpDefinitionLocalService;
 
 	@Inject
 	private CPInstanceLocalService _cpInstanceLocalService;
