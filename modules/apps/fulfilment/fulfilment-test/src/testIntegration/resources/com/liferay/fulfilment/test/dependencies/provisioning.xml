@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+		xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<name>Provisioning</name>
+	<version>7</version>
+	<condition>
+		<name>status</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						504,
+						53.99998474121094
+					]
+				}
+			]]>
+		</metadata>
+		<script>
+			<![CDATA[
+			import com.liferay.fulfilment.constants.FulfilmentConstants;
+
+			int status = (Integer)workflowContext.get(FulfilmentConstants.ACTION_EXECUTOR_STATUS);
+			if (status == -1) {
+			    returnValue = "failure";
+			}
+			else {
+			    returnValue = "success";
+			}
+			]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>success</name>
+				<target>fork</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>failure</name>
+				<target>PNI</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<fork>
+		<name>fork</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						372,
+						230.00001525878906
+					]
+				}
+			]]>
+		</metadata>
+		<transitions>
+			<transition>
+				<name>zte</name>
+				<target>activateZte</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>long</name>
+				<target>longTask</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</fork>
+	<join>
+		<name>join</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						353,
+						498.98216247558594
+					]
+				}
+			]]>
+		</metadata>
+		<transitions>
+			<transition>
+				<name>end</name>
+				<target>EndNode</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</join>
+	<state>
+		<name>StartNode</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						28,
+						63.99998474121094
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>start</name>
+				<target>PNI</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>EndNode</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						15,
+						508.97325134277344
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Approve</name>
+				<description>Approve</description>
+				<script>
+					<![CDATA[com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil.updateStatus(com.liferay.portal.kernel.workflow.WorkflowConstants.getLabelStatus("approved"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+	<state>
+		<name>PNI</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						202,
+						66.99998474121094
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>PNI</name>
+				<description>{ "command": "pni" }</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.PNIFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>check</name>
+				<target>status</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>activateZte</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						643,
+						239.00001525878906
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>activateZte</name>
+				<description>{ "command": "activateZte" }</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.ZTEFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>zte</name>
+				<target>updateZte</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>updateZte</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						642,
+						366.99998474121094
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>updateZte</name>
+				<description>{ "command": "updateZte" }</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.ZTEFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>zte</name>
+				<target>saveZte</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>saveZte</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						645,
+						508.97325134277344
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>saveZte</name>
+				<description>{ "command": "saveZte" }</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.ZTEFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>join</name>
+				<target>join</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>longTask</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						211,
+						312.00001525878906
+					]
+				}
+			]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>longRunningTask</name>
+				<description>{ "command": "longRunningTask" }</description>
+				<script>
+					<![CDATA[com.liferay.fulfilment.action.executor.internal.LongRunningFulfilmentActionExecutor]]>
+				</script>
+				<script-language>java</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>long</name>
+				<target>join</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+</workflow-definition>
