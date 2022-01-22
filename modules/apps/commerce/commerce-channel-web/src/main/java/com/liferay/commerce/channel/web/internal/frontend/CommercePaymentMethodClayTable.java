@@ -123,6 +123,35 @@ public class CommercePaymentMethodClayTable
 
 							return paymentMethod.getKey();
 						}
+					).setParameter(
+						"sourceClassName",
+						CommercePaymentMethodGroupRel.class.getName()
+					).setParameter(
+						"sourceClassPK",
+						() -> {
+							PaymentMethod paymentMethod = (PaymentMethod)model;
+
+							long commerceChannelId = ParamUtil.getLong(
+								httpServletRequest, "commerceChannelId");
+
+							CommerceChannel commerceChannel =
+								_commerceChannelService.getCommerceChannel(
+									commerceChannelId);
+
+							CommercePaymentMethodGroupRel
+								commercePaymentMethodGroupRel =
+									_commercePaymentMethodGroupRelService.
+										fetchCommercePaymentMethodGroupRel(
+											commerceChannel.getGroupId(),
+											paymentMethod.getKey());
+
+							if (commercePaymentMethodGroupRel == null) {
+								return 0;
+							}
+
+							return commercePaymentMethodGroupRel.
+								getCommercePaymentMethodGroupRelId();
+						}
 					).setWindowState(
 						LiferayWindowState.POP_UP
 					).buildPortletURL());

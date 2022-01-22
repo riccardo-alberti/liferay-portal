@@ -1,0 +1,1 @@
+create unique index IX_5B366235 on CommerceQualificationRel (sourceClassNameId, sourceClassPK, targetClassNameId, targetClassPK);
