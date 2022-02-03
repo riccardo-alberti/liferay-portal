@@ -183,9 +183,10 @@ definition {
 
 		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title 2");
 
-		WebContent.viewPGViaWCD(
-			linkName = "Link to Page",
-			linkToPage = "true");
+		WebContentDisplayPortlet.viewContent(
+			displayText = "Link to Page",
+			pageName = "Second Test Page",
+			webContentTitle = "WC WebContent Title 2");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Staging Test Page",
@@ -559,7 +560,9 @@ definition {
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name-staging");
 
@@ -651,7 +654,9 @@ definition {
 			pageName = "Page Name 2",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
 
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
 
@@ -682,15 +687,18 @@ definition {
 			siteName = "Site Name");
 
 		AssertTextEquals(
+			index = "1",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Faculty Meet-and-Greet Brunch Events All faculty are invited to a Meet-and-Greet Brunch at Allen Café 11:00 A.M. Saturday, June 13. This brunch is intended to introduce new faculty members and promote inter-departmental unity. Brunch will be catered by the Provincetown chapter of the NECI.");
 
 		AssertTextEquals(
-			locator1 = "WCD#WEB_CONTENT_CONTENT_2",
+			index = "2",
+			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "New Faculty and Staff Orientation Events Attention all new faculty and staff: Orientation will be held Monday, June 8 at 8:00 A.M. New faculty should meet in Rm. 221 and new staff should meet in Rm. 139 of Adams Hall. A full schedule of orientation will be emailed to you in the coming weeks.");
 
 		AssertTextEquals(
-			locator1 = "WCD#WEB_CONTENT_CONTENT_3",
+			index = "3",
+			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Vaccinations and Physical Check-Ups Health Any members of faculty or staff planning to leave Earth are required to have up-to-date vaccinations. Please check with the Health Center on your status. In addition, each and every Earth departure requires a physical check-up. The Health Center is happy to give both vaccinations and physical check-ups free of charge.");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
@@ -733,17 +741,13 @@ definition {
 
 		Portlet.viewNoSpecificPG(portletName = "Web Content Display");
 
-		Content.addPG(
-			assetTitle = "Enrollment Features",
-			pageName = "Home");
+		WidgetPages.addRecentContent(assetTitle = "Enrollment Features");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Home",
 			siteName = "Site Name");
 
-		Content.addPG(
-			assetTitle = "The SPACE Family",
-			pageName = "Home");
+		WidgetPages.addRecentContent(assetTitle = "The SPACE Family");
 
 		Portlet.configureApplicationDecorator(
 			decorator = "Barebone",
@@ -767,12 +771,14 @@ definition {
 
 		Portlet.viewApplicationDecorator(decorator = "Barebone");
 
-		AssertTextPresent(
+		AssertTextEquals(
+			index = "2",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "You're a part of the S.P.A.C.E. family");
 
-		AssertTextPresent(
-			locator1 = "WCD#WEB_CONTENT_CONTENT_2",
+		AssertTextEquals.assertPartialText(
+			index = "1",
+			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Faculty Meet-and-Greet Brunch");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
@@ -897,7 +903,7 @@ definition {
 
 		Click(
 			key_append = "",
-			key_URL = "/Document_1.jpg",
+			key_url = "/Document_1.jpg",
 			locator1 = "Fragment#FRAGMENT_LINK");
 
 		AssertElementPresent(locator1 = "//img[contains(@src,'Document_1.jpg')]");
@@ -1012,14 +1018,14 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = '''disclaimer-f%25c3%25bcr-fonds''',
+			friendlyURL = '''disclaimer-f%25c3%25bcr-fonds''',
 			webContentContent = "Web Content Content1",
 			webContentTitle = "Web Content Title1");
 
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = '''disclaimer-f%C3%BCr-fonds''',
+			friendlyURL = '''disclaimer-f%C3%BCr-fonds''',
 			webContentContent = "Web Content Content2",
 			webContentTitle = "Web Content Title2");
 
@@ -1069,7 +1075,7 @@ definition {
 
 		WebContentFeeds.addCP(
 			feedTitle = "Web Content Feed",
-			pageFriendlyUrl = "/web/site-name-staging/staging-test-page",
+			pageFriendlyURL = "/web/site-name-staging/staging-test-page",
 			structureName = "Basic Web Content");
 
 		WebContentFeeds.viewTableEntryCP(feedName = "Web Content Feed");
@@ -1106,9 +1112,9 @@ definition {
 
 		WebContentNavigator.gotoEditFeed(feedName = "Web Content Feed");
 
-		var webContentFeedUrl = selenium.getAttribute("//a[contains(@href,'rss') and contains(.,'Preview')]@href");
-		var stagingFeedId = StringUtil.extractLast("${webContentFeedUrl}", "/");
-		var entryExternalURL = StringUtil.replace("${webContentFeedUrl}", "http://", "");
+		var webContentFeedURL = selenium.getAttribute("//a[contains(@href,'rss') and contains(.,'Preview')]@href");
+		var stagingFeedId = StringUtil.extractLast("${webContentFeedURL}", "/");
+		var entryExternalURL = StringUtil.replace("${webContentFeedURL}", "http://", "");
 
 		echo("## * Staging FeedId: ${stagingFeedId}");
 
@@ -1119,7 +1125,7 @@ definition {
 		PortletEntry.inputTitle(title = "Web Content Title");
 
 		CKEditor.addEntryExternalURL(
-			displayText = "${webContentFeedUrl}",
+			displayText = "${webContentFeedURL}",
 			entryExternalURL = "${entryExternalURL}",
 			fieldLabel = "content");
 
@@ -1145,8 +1151,8 @@ definition {
 			pageName = "Second Page",
 			siteName = "Site Name");
 
-		var webContentFeedUrl = selenium.getAttribute("//div[contains(@class,'journal-content-article')]//a[contains(@href,'rss')]@href");
-		var liveFeedId = StringUtil.extractLast("${webContentFeedUrl}", "/");
+		var webContentFeedURL = selenium.getAttribute("//div[contains(@class,'journal-content-article')]//a[contains(@href,'rss')]@href");
+		var liveFeedId = StringUtil.extractLast("${webContentFeedURL}", "/");
 
 		echo("## * Live FeedId: ${liveFeedId}");
 
@@ -1617,7 +1623,9 @@ definition {
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
@@ -1643,7 +1651,9 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 	}
 
 	@description = "This is a use case for LPS-98473."
@@ -2003,7 +2013,9 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContentDisplayPortlet.viewImageFieldViaWCD();
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_2.jpeg",
+			webContentTitle = "WebContent Title");
 
 		Staging.gotoPublishToLive();
 
@@ -2013,7 +2025,9 @@ definition {
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
-		WebContentDisplayPortlet.viewImageFieldViaWCD();
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_2.jpeg",
+			webContentTitle = "WebContent Title");
 	}
 
 	@description = "This is a use case for LPS-96664."

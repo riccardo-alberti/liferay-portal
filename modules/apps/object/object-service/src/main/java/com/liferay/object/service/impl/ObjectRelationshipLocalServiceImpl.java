@@ -333,6 +333,7 @@ public class ObjectRelationshipLocalServiceImpl
 
 		objectField.setDBTableName(dbTableName);
 
+		objectField.setDBType("Long");
 		objectField.setIndexed(true);
 		objectField.setIndexedAsKeyword(false);
 		objectField.setIndexedLanguageId(null);
@@ -341,7 +342,6 @@ public class ObjectRelationshipLocalServiceImpl
 		objectField.setName(dbColumnName);
 		objectField.setRelationshipType(type);
 		objectField.setRequired(false);
-		objectField.setType("Long");
 
 		objectField = _objectFieldLocalService.updateObjectField(objectField);
 
@@ -427,10 +427,12 @@ public class ObjectRelationshipLocalServiceImpl
 			reverseObjectRelationship.setDBTableName(
 				objectRelationship.getDBTableName());
 
-			objectRelationshipPersistence.update(reverseObjectRelationship);
+			objectRelationshipLocalService.updateObjectRelationship(
+				reverseObjectRelationship);
 		}
 
-		return objectRelationshipPersistence.update(objectRelationship);
+		return objectRelationshipLocalService.updateObjectRelationship(
+			objectRelationship);
 	}
 
 	private void _validate(
@@ -473,9 +475,9 @@ public class ObjectRelationshipLocalServiceImpl
 		if (!Objects.equals(
 				type, ObjectRelationshipConstants.TYPE_MANY_TO_MANY) &&
 			!Objects.equals(
-				type, ObjectRelationshipConstants.TYPE_ONE_TO_MANY)/* &&
+				type, ObjectRelationshipConstants.TYPE_ONE_TO_MANY) &&
 			!Objects.equals(
-				type, ObjectRelationshipConstants.TYPE_ONE_TO_ONE)*/) {
+				type, ObjectRelationshipConstants.TYPE_ONE_TO_ONE)) {
 
 			throw new ObjectRelationshipTypeException("Invalid type " + type);
 		}

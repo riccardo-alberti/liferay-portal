@@ -16,8 +16,10 @@ package com.liferay.headless.admin.user.internal.dto.v1_0.converter;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.UserGroup;
-import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.UserGroupService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
@@ -43,6 +45,26 @@ public class UserGroupResourceDTOConverter
 	}
 
 	@Override
+	public UserGroup getObject(String externalReferenceCode) throws Exception {
+		UserGroup userGroup =
+			_userGroupService.fetchUserGroupByExternalReferenceCode(
+				CompanyThreadLocal.getCompanyId(), externalReferenceCode);
+
+		if (userGroup == null) {
+			userGroup = _userGroupService.getUserGroup(
+				GetterUtil.getLong(externalReferenceCode));
+		}
+
+		return userGroup;
+	}
+
+	public long getUserGroupId(String externalReferenceCode) throws Exception {
+		UserGroup userGroup = getObject(externalReferenceCode);
+
+		return userGroup.getUserGroupId();
+	}
+
+	@Override
 	public com.liferay.headless.admin.user.dto.v1_0.UserGroup toDTO(
 			DTOConverterContext dtoConverterContext, UserGroup userGroup)
 		throws PortalException {
@@ -55,6 +77,7 @@ public class UserGroupResourceDTOConverter
 			{
 				actions = dtoConverterContext.getActions();
 				description = userGroup.getDescription();
+				externalReferenceCode = userGroup.getExternalReferenceCode();
 				id = userGroup.getUserGroupId();
 				name = userGroup.getName();
 				usersCount = _userLocalService.getUserGroupUsersCount(
@@ -65,7 +88,7 @@ public class UserGroupResourceDTOConverter
 	}
 
 	@Reference
-	private UserGroupLocalService _userGroupLocalService;
+	private UserGroupService _userGroupService;
 
 	@Reference
 	private UserLocalService _userLocalService;

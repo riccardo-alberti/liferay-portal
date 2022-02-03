@@ -59,7 +59,8 @@ public class ImportTranslationPortletConfigurationIcon
 	@Override
 	public String getMessage(PortletRequest portletRequest) {
 		return LanguageUtil.get(
-			getResourceBundle(getLocale(portletRequest)), "import-translation");
+			getResourceBundle(getLocale(portletRequest)),
+			"import-translations");
 	}
 
 	@Override
@@ -94,7 +95,7 @@ public class ImportTranslationPortletConfigurationIcon
 
 	@Override
 	public boolean isShow(PortletRequest portletRequest) {
-		return _ffBulkTranslationConfiguration.enabled();
+		return _ffBulkTranslationConfiguration.bulkTranslationEnabled();
 	}
 
 	@Activate

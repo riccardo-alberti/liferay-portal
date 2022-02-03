@@ -152,7 +152,7 @@ definition {
 			siteURLKey = "guest");
 
 		BlogsEntry.viewEntryPG(
-			entryContentHTML = "Blogs Entry Content",
+			entryContentHtml = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 	}
 

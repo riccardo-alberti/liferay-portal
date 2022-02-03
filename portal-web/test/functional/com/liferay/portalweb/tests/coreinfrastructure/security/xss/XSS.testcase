@@ -31,23 +31,23 @@ definition {
 		property test.name.skip.portal.instance = "XSSUsecase#ViewURLValidate";
 
 		task ("Access malicious url and assert script was not validated") {
-			var maliciousURL1 = '''
+			var maliciousUrl1 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E
 				''';
 
-			var maliciousURL2 = '''
+			var maliciousUrl2 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E&_2_backURL=%22%3E%3Cscript%3Ealert%28%27xss%27%29;%3C/script%3E
 				''';
 
-			var maliciousURL3 = '''
+			var maliciousUrl3 = '''
 					http://localhost:8080/group/control_panel/manage?p_p_id=132&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_132_struts_action=%2Fplugins_admin%2Fedit_plugin&_132_pluginId=116&_132_pluginType=portlet&_132_title=Activities&_132_moduleId=%3Cscript%3Ealert(%22xss%22);%3C/script%3E&_2_backURL=alert%28%27xss%27%29
 				''';
 
-			var maliciousURL4 = '''
+			var maliciousUrl4 = '''
 					http://localhost:8080/html/portal/progress_poller.jsp?ProgressId=a%3D1%3Balert(document.cookie)%3B%2F%2F
 				''';
 
-			Navigator.openSpecificURL(url = "${maliciousURL1}");
+			Navigator.openSpecificURL(url = "${maliciousUrl1}");
 
 			AssertAlertNotPresent();
 
@@ -55,7 +55,7 @@ definition {
 
 			UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
 
-			for (var maliciousURL : list "${maliciousURL2},${maliciousURL3},${maliciousURL4}") {
+			for (var maliciousURL : list "${maliciousUrl2},${maliciousUrl3},${maliciousUrl4}") {
 				Navigator.openSpecificURL(url = "${maliciousURL}");
 
 				AssertAlertNotPresent();
@@ -69,28 +69,28 @@ definition {
 		task ("Visit malicious urls and request error message") {
 			var portalURL = PropsUtil.get("portal.url");
 
-			var maliciousURL1 = '''
+			var maliciousUrl1 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=&lt;/script&gt;&lt;script&gt;alert(document.domain)&lt;/script>
 				''';
 
-			var maliciousURL2 = '''
+			var maliciousUrl2 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=&lt;/script&gt;&lt;script&gt;alert(document.domain)&lt;/script&gt;
 				''';
 
-			var maliciousURL3 = '''
+			var maliciousUrl3 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=%3C/script%3E%3Cscript%3Ealert(document.domain)%3C/script%3E
 				''';
 
-			var maliciousURL4 = '''
+			var maliciousUrl4 = '''
 					${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=</script><script>alert(document.domain)</script>
 				''';
 
-			var maliciousURL5 = '''
+			var maliciousUrl5 = '''
 					${portalURL}/web/guest/search?p_p_id=113&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_113_tabs1=background-styles
 				''';
-			var malicioursURLsList = "${maliciousURL1},${maliciousURL2},${maliciousURL3},${maliciousURL4}";
+			var malicioursUrLsList = "${maliciousUrl1},${maliciousUrl2},${maliciousUrl3},${maliciousUrl4}";
 
-			for (var maliciousURL : list "${malicioursURLsList}") {
+			for (var maliciousURL : list "${malicioursUrLsList}") {
 				Navigator.openSpecificURL(url = "${maliciousURL}");
 
 				AssertTextEquals(
@@ -104,7 +104,7 @@ definition {
 				AssertElementPresent(locator1 = "Home#URL_ERROR_MESSAGE");
 			}
 
-			Navigator.openSpecificURL(url = "${maliciousURL5}");
+			Navigator.openSpecificURL(url = "${maliciousUrl5}");
 
 			AssertTextEquals(
 				locator1 = "Message#INFO",
@@ -198,6 +198,8 @@ definition {
 	@description = "This is a use case for LPS-90727. Assert no XSS vulnerability when modifying a specific URL from the control panel"
 	@priority = "5"
 	test NoXSSVulnerabilityInControlPanel {
+		property portal.acceptance = "true";
+
 		task ("Go to Account Settings and save p_p_auth param from the URL") {
 			var portalURL = PropsUtil.get("portal.url");
 
@@ -290,7 +292,7 @@ definition {
 		task ("Edit google analytics Id successfully") {
 			Site.openSiteSettingsAdmin(siteURLKey = "guest");
 
-			Site.editGoogleAnalyticsIDCP(googleAnalyticsID = '''']);alert(/googleAnalyticsId/);//''');
+			Site.editGoogleAnalyticsIDCP(googleAnalyticsId = '''']);alert(/googleAnalyticsId/);//''');
 
 			Navigator.openURL();
 
@@ -307,7 +309,7 @@ definition {
 				configurationName = "Servers",
 				configurationScope = "Virtual Instance Scope");
 
-			PortalSettings.addLDAPServer(LDAPServerName = '''<script>alert(123);</script>''');
+			PortalSettings.addLDAPServer(ldapServerName = '''<script>alert(123);</script>''');
 
 			AssertAlertNotPresent();
 		}
@@ -538,6 +540,8 @@ definition {
 	@description = "This is a use case for LRQA-30154. View search results"
 	@priority = "5"
 	test NoXSSVulnerabilityInSearchResults {
+		property portal.acceptance = "true";
+
 		var siteName = '''<script>alert(123);</script>''';
 
 		task ("Add blank CP") {

@@ -69,7 +69,7 @@ definition {
 			pageName = "Staging Test Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "de-DE",
+			friendlyURLLocalizedList = "de-DE",
 			localizedFriendlyURLList = "/german",
 			localizedNameList = "German Staging Test Page");
 

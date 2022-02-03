@@ -14,13 +14,13 @@
  * details.
  */
 
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
 import {act} from 'react-dom/test-utils';
 
-import FileUrlCopyButton from '../../../src/main/resources/META-INF/resources/js/components/FileUrlCopyButton';
+import FileUrlCopyButton from '../../../src/main/resources/META-INF/resources/js/components/SidebarPanelInfoView/FileUrlCopyButton';
 
 const demoFileUrl = 'http://localhost:8080/documents/my-demo-url.txt';
 
@@ -37,7 +37,6 @@ describe('FileUrlCopyButton', () => {
 		jest.useRealTimers();
 
 		jest.restoreAllMocks();
-		cleanup();
 	});
 
 	it('matches the snapshot', () => {

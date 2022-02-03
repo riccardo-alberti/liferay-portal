@@ -258,13 +258,13 @@ definition {
 
 		if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "Field Translated")) {
 			Translations.viewTargetFields(
-				webContentSourceHTML = "This is the content of the rich text field in English",
+				webContentSourceHtml = "This is the content of the rich text field in English",
 				webContentTitle = "これは英語のリッチテキストフィールドのタイトルです");
 
 			Translations.translateSpecificFieldWithGoogle(fieldName = "Rich Text");
 
 			Translations.viewTargetFields(
-				webContentSourceHTML = "これは英語のリッチ テキスト フィールドの内容です",
+				webContentSourceHtml = "これは英語のリッチ テキスト フィールドの内容です",
 				webContentTitle = "これは英語のリッチテキストフィールドのタイトルです");
 
 			PortletEntry.publish();
@@ -277,7 +277,7 @@ definition {
 				webContentTitle = "This is the title of the rich text field in English");
 
 			Translations.viewTargetFields(
-				webContentSourceHTML = "これは英語のリッチ テキスト フィールドの内容です",
+				webContentSourceHtml = "これは英語のリッチ テキスト フィールドの内容です",
 				webContentTitle = "これは英語のリッチテキストフィールドのタイトルです");
 		}
 		else if (IsTextEqual.isPartialText(key_fieldName = "Title", locator1 = "Message#SUCCESS_SPECIFIC_FORM_FIELD_REQUIRED", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
@@ -554,9 +554,9 @@ definition {
 				newTargetLocale = "es-ES");
 
 			Translations.viewTargetFields(
-				webContentContent = "Este es el contenido de un artículo web en inglés.",
+				webContentContent = "Este es el contenido de un artículo web en inglés",
 				webContentDescription = "Esta es la descripción de un artículo web en inglés",
-				webContentTitle = "Este es el título de un artículo web en inglés.");
+				webContentTitle = "Este es el título de un artículo web en inglés");
 		}
 		else if (IsTextEqual.isPartialText(locator1 = "Toolbar#FEEDBACK", value1 = "There is a problem with the translation service. Please contact your administrator.")) {
 			echo("There is a Google network issue. Ending test.");

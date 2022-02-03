@@ -1433,12 +1433,12 @@ public class PortalImpl implements Portal {
 				getSiteDefaultLocale(layout.getGroupId()));
 		}
 
-		Group siteGroup = themeDisplay.getSiteGroup();
+		Group layoutGroup = layout.getGroup();
 
 		if (forceLayoutFriendlyURL ||
 			((!layout.isFirstParent() || Validator.isNotNull(parametersURL)) &&
 			 _requiresLayoutFriendlyURL(
-				 siteGroup.getFriendlyURL(),
+				 layoutGroup.getFriendlyURL(),
 				 themeDisplay.getLayoutFriendlyURL(layout),
 				 StringUtil.toLowerCase(groupFriendlyURL))) ||
 			groupFriendlyURL.endsWith(
@@ -2508,15 +2508,6 @@ public class PortalImpl implements Portal {
 			FullNameGeneratorFactory.getInstance();
 
 		return fullNameGenerator.getFullName(firstName, middleName, lastName);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getGlobalLibDir() {
-		return PropsValues.LIFERAY_LIB_GLOBAL_DIR;
 	}
 
 	@Override
@@ -4054,11 +4045,6 @@ public class PortalImpl implements Portal {
 
 		return _portalInetSocketAddressEventListeners.toArray(
 			new PortalInetSocketAddressEventListener[0]);
-	}
-
-	@Override
-	public String getPortalLibDir() {
-		return PropsValues.LIFERAY_LIB_PORTAL_DIR;
 	}
 
 	@Override

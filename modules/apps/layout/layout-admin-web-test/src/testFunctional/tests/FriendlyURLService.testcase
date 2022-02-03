@@ -68,7 +68,7 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = '''link&''',
+			friendlyURL = '''link&''',
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -152,7 +152,7 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = "friendlyUrl",
+			friendlyURL = "friendlyUrl",
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -211,7 +211,7 @@ definition {
 			pageName = "Test Source Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES,es-ES",
+			friendlyURLLocalizedList = "es-ES,es-ES",
 			localizedFriendlyURLList = "/pagina-de-prueba,/nueva-pagina-de-prueba",
 			localizedNameList = "Pagina de prueba,-");
 
@@ -330,7 +330,7 @@ definition {
 			pageName = "Test Source Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES",
+			friendlyURLLocalizedList = "es-ES",
 			localizedFriendlyURLList = "/pagina-de-prueba",
 			localizedNameList = "Pagina de prueba");
 
@@ -349,7 +349,7 @@ definition {
 			pageName = "Test Source Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES",
+			friendlyURLLocalizedList = "es-ES",
 			localizedFriendlyURLList = "/nueva-pagina-de-prueba",
 			localizedNameList = "-");
 
@@ -438,7 +438,7 @@ definition {
 			pageName = "Test Source Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES",
+			friendlyURLLocalizedList = "es-ES",
 			localizedFriendlyURLList = "/^_^",
 			localizedNameList = "Pagina de prueba");
 
@@ -459,7 +459,7 @@ definition {
 			pageName = "Test Source Page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES",
+			friendlyURLLocalizedList = "es-ES",
 			localizedFriendlyURLList = "/página-de-prueba",
 			localizedNameList = "-");
 
@@ -496,7 +496,7 @@ definition {
 		PagesAdmin.editFriendlyURL(friendlyURLEdit = "/new-test-page");
 
 		PagesAdmin.addLocalizedFriendlyURL(
-			friendlyUrlLocalizedList = "es-ES,es-ES",
+			friendlyURLLocalizedList = "es-ES,es-ES",
 			localizedFriendlyURLList = "/pagina-de-prueba,/nueva-pagina-de-prueba",
 			localizedNameList = "Pagina de prueba,-");
 
@@ -576,7 +576,7 @@ definition {
 
 		PagesAdmin.viewActiveURL(activeURL = "/new-test-page");
 
-		PagesAdmin.viewOldFriendlyURLNotPresent(oldFriendlyUrlList = "/test-page");
+		PagesAdmin.viewOldFriendlyURLNotPresent(oldFriendlyURLList = "/test-page");
 	}
 
 }

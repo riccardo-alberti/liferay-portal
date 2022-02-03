@@ -1141,7 +1141,7 @@ definition {
 		for (var i : list "1,2,3") {
 			Redirect.view404URLs(
 				ignoreURL = "${portalURL}/web/test-site-name/test-destination-page${i}",
-				multipleURLs = "true");
+				multipleUrLs = "true");
 		}
 	}
 

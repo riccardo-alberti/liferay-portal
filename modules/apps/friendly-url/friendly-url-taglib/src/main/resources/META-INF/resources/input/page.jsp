@@ -28,6 +28,7 @@ String value = (String)request.getAttribute("liferay-friendly-url:input:value");
 	<liferay-friendly-url:history
 		className='<%= (String)request.getAttribute("liferay-friendly-url:input:className") %>'
 		classPK='<%= (long)request.getAttribute("liferay-friendly-url:input:classPK") %>'
+		disabled="<%= disabled %>"
 		elementId="<%= portletDisplay.getNamespace() + name %>"
 		localizable="<%= localizable %>"
 	/>

@@ -1,88 +1,115 @@
-import {useQuery} from '@apollo/client';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import classNames from 'classnames';
-import {useState} from 'react';
-import {LiferayTheme} from '../../../../common/services/liferay';
+import {useEffect, useState} from 'react';
+import client from '../../../../apolloClient';
 import {getKoroneikiAccounts} from '../../../../common/services/liferay/graphql/queries';
-import {PARAMS_KEYS} from '../../../../common/services/liferay/search-params';
+import {SEARCH_PARAMS_KEYS} from '../../../../common/utils/constants';
+import getLiferaySiteName from '../../../../common/utils/getLiferaySiteName';
 import ProjectCard from '../../components/ProjectCard';
 import SearchProject from '../../components/SearchProject';
-import {status} from '../../utils/constants';
+import {STATUS_TAG_TYPES} from '../../utils/constants';
 import HomeSkeleton from './Skeleton';
 
 const PROJECT_THRESHOLD_COUNT = 4;
-const liferaySiteName = LiferayTheme.getLiferaySiteName();
+const liferaySiteName = getLiferaySiteName();
 
 const getStatus = (slaCurrent, slaFuture) => {
 	if (slaCurrent) {
-		return status.active;
+		return STATUS_TAG_TYPES.active;
 	}
 
 	if (slaFuture) {
-		return status.future;
+		return STATUS_TAG_TYPES.future;
 	}
 
-	return status.expired;
+	return STATUS_TAG_TYPES.expired;
 };
 
 const Home = ({userAccount}) => {
 	const [keyword, setKeyword] = useState('');
+	const [projects, setProjects] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
 
-	const {data, loading} = useQuery(getKoroneikiAccounts, {
-		variables: {
-			filter: userAccount.accountBriefs
-				.map(
+	useEffect(() => {
+		const getProjects = async (accountKeysFilter, accountBriefs) => {
+			const {data} = await client.query({
+				query: getKoroneikiAccounts,
+				variables: {
+					filter: accountKeysFilter,
+				},
+			});
+
+			if (data) {
+				setProjects(
+					data.c?.koroneikiAccounts?.items.map(
+						({
+							accountKey,
+							code,
+							liferayContactEmailAddress,
+							liferayContactName,
+							liferayContactRole,
+							region,
+							slaCurrent,
+							slaCurrentEndDate,
+							slaFuture,
+						}) => ({
+							accountKey,
+							code,
+							contact: {
+								emailAddress: liferayContactEmailAddress,
+								name: liferayContactName,
+								role: liferayContactRole,
+							},
+							region,
+							sla: {
+								current: slaCurrent,
+								currentEndDate: slaCurrentEndDate,
+								future: slaFuture,
+							},
+							status: getStatus(slaCurrent, slaFuture),
+							title: accountBriefs.find(
+								({externalReferenceCode}) =>
+									externalReferenceCode === accountKey
+							)?.name,
+						})
+					) || []
+				);
+			}
+
+			setIsLoading(false);
+		};
+
+		if (userAccount.accountBriefs.length) {
+			const accountKeys = userAccount.accountBriefs
+				?.map(
 					(
 						{externalReferenceCode},
 						index,
 						{length: totalAccountBriefs}
 					) =>
-						`accountKey eq '${externalReferenceCode}' ${
-							index + 1 < totalAccountBriefs ? ' or ' : ' '
+						`accountKey eq '${externalReferenceCode}'${
+							index + 1 < totalAccountBriefs ? ' or' : ''
 						}`
 				)
-				.join(' '),
-		},
-	});
+				.join(' ');
 
-	const koroneikiAccountsData = data?.c?.koroneikiAccounts?.items || [];
+			getProjects(accountKeys, userAccount.accountBriefs);
+		}
+	}, [userAccount]);
 
 	const nextPage = (project) => {
-		window.location.href = `${window.location.origin}/${liferaySiteName}/overview?${PARAMS_KEYS.PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE}=${project.accountKey}`;
+		window.location.href = `${window.location.origin}/${liferaySiteName}/overview?${SEARCH_PARAMS_KEYS.accountKey}=${project.accountKey}`;
 	};
-
-	const projects =
-		koroneikiAccountsData.map(
-			({
-				accountKey,
-				code,
-				liferayContactEmailAddress,
-				liferayContactName,
-				liferayContactRole,
-				region,
-				slaCurrent,
-				slaCurrentEndDate,
-				slaFuture,
-			}) => ({
-				accountKey,
-				code,
-				contact: {
-					emailAddress: liferayContactEmailAddress,
-					name: liferayContactName,
-					role: liferayContactRole,
-				},
-				region,
-				sla: {
-					current: slaCurrent,
-					currentEndDate: slaCurrentEndDate,
-					future: slaFuture,
-				},
-				status: getStatus(slaCurrent, slaFuture),
-				title: userAccount.accountBriefs.find(
-					({externalReferenceCode}) =>
-						externalReferenceCode === accountKey
-				)?.name,
-			})
-		) || [];
 
 	const projectsFiltered = projects.filter((project) =>
 		keyword
@@ -95,12 +122,13 @@ const Home = ({userAccount}) => {
 	return (
 		<div
 			className={classNames({
-				'mx-auto project-cards-container-sm': withManyProjects,
-				'pl-5 project-cards-container': !withManyProjects,
+				'cp-project-cards-container': !withManyProjects,
+				'mx-auto cp-project-cards-container-sm': withManyProjects,
 			})}
 		>
 			<div
-				className={classNames('d-flex flex-column w-100', {
+				className={classNames({
+					'd-flex flex-column w-100': withManyProjects,
 					'ml-3': !withManyProjects,
 				})}
 			>
@@ -109,16 +137,22 @@ const Home = ({userAccount}) => {
 						<SearchProject onChange={setKeyword} value={keyword} />
 
 						<h5 className="m-0 text-neutral-7">
-							{projects.length} projects
+							{keyword
+								? `${projectsFiltered.length} result${
+										projectsFiltered.length === 1 ? '' : 's'
+								  }`
+								: `${projects.length} project${
+										projects.length === 1 ? '' : 's'
+								  }`}
 						</h5>
 					</div>
 				)}
 
-				{!loading ? (
+				{!isLoading ? (
 					<div
 						className={classNames('d-flex flex-wrap', {
-							'home-projects': !withManyProjects,
-							'home-projects-sm pt-2': withManyProjects,
+							'cp-home-projects px-5': !withManyProjects,
+							'cp-home-projects-sm pt-2': withManyProjects,
 						})}
 					>
 						{projectsFiltered.length ? (

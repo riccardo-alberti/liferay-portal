@@ -5,44 +5,34 @@
 	"name": "AccountFlag",
 	"objectFields": [
 		{
+			"DBType": "String",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en-US": "Account Key"
 			},
 			"name": "accountKey",
-			"required": true,
-			"type": "String"
+			"required": true
 		},
 		{
-			"indexed": true,
-			"indexedAsKeyword": false,
-			"label": {
-				"en-US": "User UUID"
-			},
-			"name": "userUuid",
-			"required": true,
-			"type": "String"
-		},
-		{
+			"DBType": "String",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en-US": "Name"
 			},
 			"name": "name",
-			"required": true,
-			"type": "String"
+			"required": true
 		},
 		{
+			"DBType": "Boolean",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
-				"en-US": "Value"
+				"en-US": "Finished"
 			},
-			"name": "value",
-			"required": false,
-			"type": "Integer"
+			"name": "finished",
+			"required": false
 		}
 	],
 	"pluralLabel": {

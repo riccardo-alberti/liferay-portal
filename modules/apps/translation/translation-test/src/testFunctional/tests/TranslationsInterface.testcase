@@ -179,7 +179,7 @@ definition {
 
 		Translations.translateFields(
 			webContentDescription = "WC WebContent Descripción",
-			webContentSourceHTML = '''<h2 class="text-center">Este es un título HTML</h2>''',
+			webContentSourceHtml = '''<h2 class="text-center">Este es un título HTML</h2>''',
 			webContentTitle = "WC WebContent Título");
 
 		PortletEntry.publish();
@@ -192,7 +192,7 @@ definition {
 
 		Translations.viewTargetFields(
 			webContentDescription = "WC WebContent Descripción",
-			webContentHTML = "Este es un título HTML",
+			webContentHtml = "Este es un título HTML",
 			webContentTitle = "WC WebContent Título");
 
 		Translations.openTranslationAdmin(siteURLKey = "guest");

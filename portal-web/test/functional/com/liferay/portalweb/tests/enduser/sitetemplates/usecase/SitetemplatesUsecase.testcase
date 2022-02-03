@@ -536,11 +536,10 @@ definition {
 			pageName = "Page1 Name",
 			siteName = "Site Name");
 
-		Click(locator1 = "WCD#WEB_CONTENT_LINK");
-
-		Pause(locator1 = "1000");
-
-		AssertLocation(value1 = "${portalURL}/web/site-name/page2-name");
+		WebContentDisplayPortlet.viewContent(
+			displayText = "${page2URL}",
+			url = "${portalURL}/web/site-name/page2-name",
+			webContentTitle = "Web Content Title");
 	}
 
 	@description = "This is a use case for LPS-74081."
@@ -741,7 +740,7 @@ definition {
 			siteTemplateActive = "Yes",
 			siteTemplateName = "Site Template Name");
 
-		var siteTemplateID = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
+		var siteTemplateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
 
 		SiteTemplates.addSitePageViaSiteTemplateCP(
 			pageName = "Page1 Name",
@@ -751,7 +750,7 @@ definition {
 			pageName = "Page2 Name",
 			siteTemplateName = "Site Template Name");
 
-		NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "${siteTemplateID}");
+		NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "${siteTemplateId}");
 
 		NavigationMenusAdmin.addMenu(menuName = "Test Navigation Menu Name");
 
@@ -778,7 +777,7 @@ definition {
 
 		NavigationMenusAdmin.viewItem(itemName = "Google");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateId}");
 
 		NavigationMenusWidget.gotoNavigationMenuWidgetConfig();
 
@@ -836,21 +835,21 @@ definition {
 			siteTemplateActive = "Yes",
 			siteTemplateName = "Site Template Name");
 
-		var siteTemplateID = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
+		var siteTemplateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "Site Template Name");
 
 		SiteTemplates.addSitePageViaSiteTemplateCP(
 			inheritChanges = "disable",
 			pageName = "Page Name",
-			pageTemplateName = "Blog",
+			pageTemplateName = "Search",
 			siteTemplateName = "Site Template Name");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateID}/page-name");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateId}/page-name");
 
 		Portlet.addPG(portletName = "Asset Publisher");
 
 		AssetPublisherPortlet.configureManualAssetSelectionPG();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateID}/page-name");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteTemplateId}/page-name");
 
 		AssetPublisherPortlet.viewManualAssetSelectionConfigurationPG(portletName = "Asset Publisher");
 

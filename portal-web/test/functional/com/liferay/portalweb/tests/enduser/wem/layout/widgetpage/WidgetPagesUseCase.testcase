@@ -250,7 +250,7 @@ definition {
 
 			PagesAdmin.addLocalizedFriendlyURL(
 				configureWithoutSave = "true",
-				friendlyUrlLocalizedList = "de-DE",
+				friendlyURLLocalizedList = "de-DE",
 				localizedFriendlyURLList = "/german",
 				localizedNameList = "-");
 		}

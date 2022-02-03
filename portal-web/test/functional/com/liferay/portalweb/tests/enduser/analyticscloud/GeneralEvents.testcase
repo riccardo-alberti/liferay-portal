@@ -89,7 +89,7 @@ definition {
 		}
 
 		task ("Get fileEntryUUID of document") {
-			var fileEntryUUID = JSONDocument.getFileEntryUUID(
+			var fileEntryUuid = JSONDocument.getFileEntryUUID(
 				dmDocumentTitle = "DM AC Title",
 				groupName = "Site Name");
 		}
@@ -329,7 +329,7 @@ definition {
 				applicationId = "Document",
 				eventId = "documentPreviewed",
 				property = "fileEntryUUID",
-				value = "${fileEntryUUID}");
+				value = "${fileEntryUuid}");
 
 			ACUtils.assertEventPropertyValue(
 				applicationId = "Document",

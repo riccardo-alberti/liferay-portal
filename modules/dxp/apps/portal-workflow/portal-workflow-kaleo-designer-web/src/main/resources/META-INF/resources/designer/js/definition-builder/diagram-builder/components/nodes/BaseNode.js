@@ -15,6 +15,7 @@ import React, {useContext, useEffect, useRef} from 'react';
 import {Handle} from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../../../DefinitionBuilderContext';
+import {defaultLanguageId} from '../../../constants';
 import {singleEventObserver} from '../../../util/EventObserver';
 import {DiagramBuilderContext} from '../../DiagramBuilderContext';
 import {sourceHandles, targetHandles} from './nodeHandles';
@@ -27,18 +28,24 @@ export default function BaseNode({
 	className,
 	description,
 	descriptionSidebar,
+	dragHandle,
 	icon,
 	id,
+	isConnectable,
+	isDragging,
 	label,
 	newNode,
+	script,
+	sourcePosition,
+	targetPosition,
 	type,
+	xPos,
+	yPos,
 	...otherProps
 }) {
 	const sourcehandlesRef = useRef();
 	const targethandlesRef = useRef();
-	const {defaultLanguageId, selectedLanguageId} = useContext(
-		DefinitionBuilderContext
-	);
+	const {selectedLanguageId} = useContext(DefinitionBuilderContext);
 
 	const {collidingElements, selectedItem, setSelectedItem} = useContext(
 		DiagramBuilderContext
@@ -133,6 +140,7 @@ export default function BaseNode({
 				description,
 				label,
 				newNode: false,
+				script,
 			},
 			id,
 			type,
@@ -184,21 +192,29 @@ export default function BaseNode({
 
 			<div
 				className={`node ${className}`}
+				draghandle={dragHandle}
+				isconnectable={isConnectable?.toString()}
+				isdragging={isDragging?.toString()}
 				onClick={() => {
 					if (!descriptionSidebar) {
 						setSelectedItem({
 							data: {
 								description,
 								label,
+								script,
 							},
 							id,
 							type,
 						});
 					}
 				}}
+				sourceposition={sourcePosition}
 				style={{
 					position: displayBorderArea ? 'absolute' : 'unset',
 				}}
+				targetposition={targetPosition}
+				xpos={xPos}
+				ypos={yPos}
 				{...otherProps}
 			>
 				{descriptionSidebar && (
@@ -230,7 +246,7 @@ BaseNode.propTypes = {
 	description: PropTypes.string,
 	descriptionSidebar: PropTypes.string,
 	icon: PropTypes.string.isRequired,
-	id: PropTypes.string.isRequired,
+	id: PropTypes.string,
 	label: PropTypes.object,
 	type: PropTypes.string.isRequired,
 };

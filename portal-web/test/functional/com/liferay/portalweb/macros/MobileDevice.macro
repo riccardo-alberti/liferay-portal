@@ -20,7 +20,7 @@ definition {
 
 		AddSelection(
 			locator1 = "MobileDevice#ADD_CLASSIFICATION_RULE_OPERATING_SYSTEM",
-			value1 = "${ruleOSScope}");
+			value1 = "${ruleOsScope}");
 
 		Select(
 			locator1 = "MobileDevice#ADD_CLASSIFICATION_RULE_DEVICE_TYPE",

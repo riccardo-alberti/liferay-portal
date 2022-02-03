@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * @author Peter Yoo
@@ -30,14 +29,6 @@ public abstract class PluginsGitRepositoryJob
 	@Override
 	public String getBranchName() {
 		return _branchName;
-	}
-
-	@Override
-	public Set<String> getDistTypes() {
-		String testBatchDistAppServers = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.dist.app.servers");
-
-		return getSetFromString(testBatchDistAppServers);
 	}
 
 	@Override
@@ -108,13 +99,6 @@ public abstract class PluginsGitRepositoryJob
 		}
 
 		return buildProperties.getProperty(buildPropertyName);
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names", getJobName()));
 	}
 
 	protected Properties buildProperties;

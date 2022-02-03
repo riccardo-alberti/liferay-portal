@@ -14,6 +14,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.SegmentTestClassGroup;
@@ -22,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -71,14 +71,6 @@ public class SubrepositoryGitRepositoryJob
 	@Override
 	public List<SegmentTestClassGroup> getDependentSegmentTestClassGroups() {
 		return getSegmentTestClassGroups(getRawDependentBatchNames());
-	}
-
-	@Override
-	public Set<String> getDistTypes() {
-		String testBatchDistAppServers = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.dist.app.servers");
-
-		return getSetFromString(testBatchDistAppServers);
 	}
 
 	@Override
@@ -182,27 +174,14 @@ public class SubrepositoryGitRepositoryJob
 					buildProperties.getProperty("base.repository.dir"),
 					"/liferay-jenkins-ee/commands/dependencies",
 					"/test-subrepository-batch.properties")));
-
-		readJobProperties();
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		String batchNames = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.names", getBranchName());
-
-		return getSetFromString(batchNames);
 	}
 
 	protected Set<String> getRawDependentBatchNames() {
-		String dependentBatchNames = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.names.smoke", getBranchName());
+		JobProperty jobProperty = getJobProperty("test.batch.names.smoke");
 
-		if (JenkinsResultsParserUtil.isNullOrEmpty(dependentBatchNames)) {
-			return new HashSet<>();
-		}
+		recordJobProperty(jobProperty);
 
-		return getSetFromString(dependentBatchNames);
+		return getSetFromString(jobProperty.getValue());
 	}
 
 	protected PortalGitWorkingDirectory portalGitWorkingDirectory;

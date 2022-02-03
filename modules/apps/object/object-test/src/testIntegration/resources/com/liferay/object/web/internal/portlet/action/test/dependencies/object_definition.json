@@ -11,7 +11,7 @@
 	},
 	"active": false,
 	"label": {
-		"en-US": "Object Definition"
+		"en_US": "Object Definition"
 	},
 	"name": "ImportedObjectDefinition",
 	"objectActions": [
@@ -27,22 +27,24 @@
 	],
 	"objectFields": [
 		{
+			"DBType": "String",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"indexedLanguageId": "",
 			"label": {
-				"en-US": "Text Field 1"
+				"en_US": "Text Field 1"
 			},
 			"name": "textField1",
 			"required": false,
 			"type": "String"
 		},
 		{
+			"DBType": "String",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"indexedLanguageId": "",
 			"label": {
-				"en-US": "Text Field 2"
+				"en_US": "Text Field 2"
 			},
 			"name": "textField2",
 			"required": false,
@@ -53,18 +55,18 @@
 		{
 			"defaultObjectLayout": true,
 			"name": {
-				"en-US": "Layout"
+				"en_US": "Layout"
 			},
 			"objectLayoutTabs": [
 				{
 					"name": {
-						"en-US": "Tab"
+						"en_US": "Tab"
 					},
 					"objectLayoutBoxes": [
 						{
 							"collapsable": false,
 							"name": {
-								"en-US": "Block"
+								"en_US": "Block"
 							},
 							"objectLayoutRows": [
 								{
@@ -96,9 +98,27 @@
 			]
 		}
 	],
+	"objectViews": [
+		{
+			"defaultObjectView": true,
+			"name": {
+				"en_US": "View"
+			},
+			"objectViewColumns": [
+				{
+					"objectFieldName": "textField1",
+					"priority": 0
+				},
+				{
+					"objectFieldName": "textField2",
+					"priority": 1
+				}
+			]
+		}
+	],
 	"panelCategoryKey": "",
 	"pluralLabel": {
-		"en-US": "Object Definitions"
+		"en_US": "Object Definitions"
 	},
 	"portlet": false,
 	"scope": "company",

@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-DisplayPageTypeSiteNavigationMenuTypeDisplayContext displayPageTypeSiteNavigationMenuTypeDisplayContext = new DisplayPageTypeSiteNavigationMenuTypeDisplayContext(request);
+DisplayPageTypeSiteNavigationMenuTypeDisplayContext displayPageTypeSiteNavigationMenuTypeDisplayContext = (DisplayPageTypeSiteNavigationMenuTypeDisplayContext)request.getAttribute(DisplayPageTypeSiteNavigationMenuTypeDisplayContext.class.getName());
 %>
 
 <c:choose>
@@ -25,30 +25,7 @@ DisplayPageTypeSiteNavigationMenuTypeDisplayContext displayPageTypeSiteNavigatio
 		<div>
 			<react:component
 				module="js/DisplayPageItemContextualSidebar"
-				props='<%=
-					HashMapBuilder.<String, Object>put(
-						"chooseItemProps", displayPageTypeSiteNavigationMenuTypeDisplayContext.getChooseInfoItemButtonContext(request, liferayPortletResponse)
-					).put(
-						"item",
-						HashMapBuilder.<String, Object>put(
-							"classNameId", displayPageTypeSiteNavigationMenuTypeDisplayContext.getClassNameId()
-						).put(
-							"classPK", displayPageTypeSiteNavigationMenuTypeDisplayContext.getClassPK()
-						).put(
-							"classTypeId", displayPageTypeSiteNavigationMenuTypeDisplayContext.getClassTypeId()
-						).put(
-							"title", displayPageTypeSiteNavigationMenuTypeDisplayContext.getTitle()
-						).put(
-							"type", displayPageTypeSiteNavigationMenuTypeDisplayContext.getType()
-						).build()
-					).put(
-						"itemSubtype", displayPageTypeSiteNavigationMenuTypeDisplayContext.getItemSubtype()
-					).put(
-						"itemType", displayPageTypeSiteNavigationMenuTypeDisplayContext.getItemType()
-					).put(
-						"namespace", liferayPortletResponse.getNamespace()
-					).build()
-				%>'
+				props="<%= displayPageTypeSiteNavigationMenuTypeDisplayContext.getDisplayPageItemContextualSidebarContext() %>"
 			/>
 		</div>
 	</c:when>
@@ -96,7 +73,7 @@ DisplayPageTypeSiteNavigationMenuTypeDisplayContext displayPageTypeSiteNavigatio
 		</div>
 
 		<clay:button
-			additionalProps="<%= displayPageTypeSiteNavigationMenuTypeDisplayContext.getChooseInfoItemButtonContext(request, liferayPortletResponse) %>"
+			additionalProps="<%= displayPageTypeSiteNavigationMenuTypeDisplayContext.getChooseInfoItemButtonContext() %>"
 			cssClass="mb-4"
 			displayType="secondary"
 			id='<%= liferayPortletResponse.getNamespace() + "chooseInfoItem" %>'

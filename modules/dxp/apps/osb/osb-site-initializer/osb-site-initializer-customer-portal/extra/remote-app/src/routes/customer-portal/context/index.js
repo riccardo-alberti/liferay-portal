@@ -1,27 +1,29 @@
-import {
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useReducer,
-} from 'react';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
+import {createContext, useContext, useEffect, useReducer} from 'react';
 import client from '../../../apolloClient';
-import {useApplicationProvider} from '../../../common/context/ApplicationPropertiesProvider';
-import {useCustomEvent} from '../../../common/hooks/useCustomEvent';
-import {LiferayTheme} from '../../../common/services/liferay';
-import {fetchSession} from '../../../common/services/liferay/api';
+import {useApplicationProvider} from '../../../common/context/AppPropertiesProvider';
+import {Liferay} from '../../../common/services/liferay';
 import {
 	getAccountSubscriptionGroups,
 	getKoroneikiAccounts,
 	getStructuredContentFolders,
 	getUserAccount,
 } from '../../../common/services/liferay/graphql/queries';
-import {
-	PARAMS_KEYS,
-	SearchParams,
-} from '../../../common/services/liferay/search-params';
+import {searchParams} from '../../../common/services/liferay/searchParams';
+import {getCurrentSession} from '../../../common/services/okta/rest/sessions';
+import {ROLE_TYPES, SEARCH_PARAMS_KEYS} from '../../../common/utils/constants';
 import {isValidPage} from '../../../common/utils/page.validation';
-import {CUSTOM_EVENTS} from '../utils/constants';
+import {CUSTOM_EVENT_TYPES} from '../utils/constants';
 import reducer, {actionTypes} from './reducer';
 
 const AppContext = createContext();
@@ -33,79 +35,101 @@ const getCurrentPageName = () => {
 	return pathSplit.length > 2 ? pathSplit[2] : '';
 };
 
+const EVENT_OPTION = {
+	async: true,
+	fireOnce: true,
+};
+
 const AppContextProvider = ({assetsPath, children, page}) => {
 	const {oktaSessionURL} = useApplicationProvider();
-	const dispatchEventUserAccount = useCustomEvent(CUSTOM_EVENTS.USER_ACCOUNT);
-	const dispatchEventSubscriptionGroups = useCustomEvent(
-		CUSTOM_EVENTS.SUBSCRIPTION_GROUPS
+	const eventUserAccount = Liferay.publish(
+		CUSTOM_EVENT_TYPES.userAccount,
+		EVENT_OPTION
+	);
+	const eventSubscriptionGroups = Liferay.publish(
+		CUSTOM_EVENT_TYPES.subscriptionGroups,
+		EVENT_OPTION
 	);
 
 	const [state, dispatch] = useReducer(reducer, {
 		assetsPath,
+		isQuickLinksExpanded: true,
 		page,
 		project: undefined,
 		quickLinks: undefined,
-		sessionId: 'sessionId',
+		sessionId: '',
 		structuredContents: undefined,
 		subscriptionGroups: undefined,
 		userAccount: undefined,
 	});
 
-	const onPageMenuChange = useCallback(({detail}) => {
-		dispatch({
-			payload: detail,
-			type: actionTypes.UPDATE_PAGE,
-		});
+	useEffect(() => {
+		const handler = ({detail}) =>
+			dispatch({
+				payload: detail,
+				type: actionTypes.UPDATE_PAGE,
+			});
+
+		Liferay.on(CUSTOM_EVENT_TYPES.menuPage, handler);
+
+		return () => Liferay.detach(CUSTOM_EVENT_TYPES.menuPage, handler);
 	}, []);
 
 	useEffect(() => {
-		window.addEventListener(CUSTOM_EVENTS.MENU_PAGE, onPageMenuChange);
-
-		return () => {
-			window.removeEventListener(
-				CUSTOM_EVENTS.MENU_PAGE,
-				onPageMenuChange
-			);
-		};
-	}, [onPageMenuChange]);
-
-	useEffect(() => {
-		const getUser = async () => {
+		const getUser = async (projectExternalReferenceCode) => {
 			const {data} = await client.query({
 				query: getUserAccount,
 				variables: {
-					id: LiferayTheme.getUserId(),
+					id: Liferay.ThemeDisplay.getUserId(),
 				},
 			});
 
 			if (data) {
+				const isAccountAdministrator = !!data.userAccount?.accountBriefs
+					?.find(
+						({externalReferenceCode}) =>
+							externalReferenceCode ===
+							projectExternalReferenceCode
+					)
+					?.roleBriefs?.find(
+						({name}) => name === ROLE_TYPES.admin.key
+					);
+
+				const userAccount = {
+					...data.userAccount,
+					isAdmin: isAccountAdministrator,
+				};
+
 				dispatch({
-					payload: data.userAccount,
+					payload: userAccount,
 					type: actionTypes.UPDATE_USER_ACCOUNT,
 				});
 
-				dispatchEventUserAccount(data.userAccount);
+				eventUserAccount.fire({
+					detail: data.userAccount,
+				});
 
-				return data.userAccount;
+				return userAccount;
 			}
 		};
 
-		const getProject = async (projectExternalReferenceCode) => {
+		const getProject = async (externalReferenceCode, accountBrief) => {
 			const {data: projects} = await client.query({
 				query: getKoroneikiAccounts,
 				variables: {
-					filter: `accountKey eq '${projectExternalReferenceCode}'`,
+					filter: `accountKey eq '${externalReferenceCode}'`,
 				},
 			});
 
 			if (projects) {
-				const project = projects?.c?.koroneikiAccounts?.items[0];
 				dispatch({
-					payload: project,
+					payload: {
+						...projects.c.koroneikiAccounts.items[0],
+						id: accountBrief.id,
+						name: accountBrief.name,
+					},
 					type: actionTypes.UPDATE_PROJECT,
 				});
-
-				return project;
 			}
 		};
 
@@ -125,12 +149,14 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 					type: actionTypes.UPDATE_SUBSCRIPTION_GROUPS,
 				});
 
-				dispatchEventSubscriptionGroups(items);
+				eventSubscriptionGroups.fire({
+					detail: items,
+				});
 			}
 		};
 
 		const getSessionId = async () => {
-			const session = await fetchSession(oktaSessionURL);
+			const session = await getCurrentSession(oktaSessionURL);
 
 			if (session) {
 				dispatch({
@@ -145,7 +171,7 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 				query: getStructuredContentFolders,
 				variables: {
 					filter: `name eq 'actions'`,
-					siteKey: LiferayTheme.getScopeGroupId(),
+					siteKey: Liferay.ThemeDisplay.getScopeGroupId(),
 				},
 			});
 
@@ -160,10 +186,10 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 		};
 
 		const fetchData = async () => {
-			const user = await getUser();
-			const projectExternalReferenceCode = SearchParams.get(
-				PARAMS_KEYS.PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE
+			const projectExternalReferenceCode = searchParams.get(
+				SEARCH_PARAMS_KEYS.accountKey
 			);
+			const user = await getUser(projectExternalReferenceCode);
 
 			if (user && getCurrentPageName() === 'overview') {
 				const isValid = await isValidPage(
@@ -173,10 +199,18 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 				);
 
 				if (isValid) {
-					getProject(projectExternalReferenceCode);
-					getSubscriptionGroups(projectExternalReferenceCode);
-					getStructuredContents();
-					getSessionId();
+					const accountBrief = user.accountBriefs?.find(
+						(accountBrief) =>
+							accountBrief.externalReferenceCode ===
+							projectExternalReferenceCode
+					);
+
+					if (accountBrief) {
+						getProject(projectExternalReferenceCode, accountBrief);
+						getSubscriptionGroups(projectExternalReferenceCode);
+						getStructuredContents();
+						getSessionId();
+					}
 				}
 			}
 		};

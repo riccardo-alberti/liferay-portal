@@ -14,6 +14,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.SegmentTestClassGroup;
@@ -23,9 +24,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author Michael Hashimoto
@@ -36,31 +35,27 @@ public abstract class BasePortalReleaseJob
 
 	public BasePortalReleaseJob(
 		String jobName, BuildProfile buildProfile, String portalBranchName,
-		String testSuiteName) {
+		String testSuiteName,
+		PortalGitWorkingDirectory portalGitWorkingDirectory) {
 
 		super(jobName, buildProfile);
 
 		_portalBranchName = portalBranchName;
 		_testSuiteName = testSuiteName;
 
-		_jenkinsGitWorkingDirectory =
-			GitWorkingDirectoryFactory.newJenkinsGitWorkingDirectory();
-
-		jobPropertiesFiles.add(
-			new File(
-				_jenkinsGitWorkingDirectory.getWorkingDirectory(),
-				"commands/build.properties"));
-
-		_portalGitWorkingDirectory =
-			GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
-				portalBranchName);
+		if (portalGitWorkingDirectory != null) {
+			_portalGitWorkingDirectory = portalGitWorkingDirectory;
+		}
+		else {
+			_portalGitWorkingDirectory =
+				GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
+					portalBranchName);
+		}
 
 		jobPropertiesFiles.add(
 			new File(
 				_portalGitWorkingDirectory.getWorkingDirectory(),
 				"test.properties"));
-
-		readJobProperties();
 	}
 
 	@Override
@@ -103,6 +98,17 @@ public abstract class BasePortalReleaseJob
 	}
 
 	@Override
+	public List<String> getJobPropertyOptions() {
+		List<String> jobPropertyOptions = super.getJobPropertyOptions();
+
+		jobPropertyOptions.add(_portalBranchName);
+
+		jobPropertyOptions.removeAll(Collections.singleton(null));
+
+		return jobPropertyOptions;
+	}
+
+	@Override
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
 		return _portalGitWorkingDirectory;
 	}
@@ -112,51 +118,24 @@ public abstract class BasePortalReleaseJob
 		return _testSuiteName;
 	}
 
-	protected GitWorkingDirectory getJenkinsGitWorkingDirectory() {
-		return _jenkinsGitWorkingDirectory;
-	}
-
 	@Override
 	protected Set<String> getRawBatchNames() {
-		Set<String> batchNames = new TreeSet<>();
+		JobProperty jobProperty = getJobProperty("test.batch.names", false);
 
-		Properties jobProperties = getJobProperties();
+		recordJobProperty(jobProperty);
 
-		batchNames.addAll(
-			getSetFromString(
-				JenkinsResultsParserUtil.getProperty(
-					jobProperties, "test.batch.names", false, _portalBranchName,
-					getTestSuiteName())));
-
-		batchNames.addAll(
-			getSetFromString(
-				JenkinsResultsParserUtil.getProperty(
-					jobProperties, "test.batch.names", false, _portalBranchName,
-					String.valueOf(getBuildProfile()), getTestSuiteName())));
-
-		return batchNames;
+		return getSetFromString(jobProperty.getValue());
 	}
 
 	protected Set<String> getRawDependentBatchNames() {
-		Set<String> dependentBatchNames = new TreeSet<>();
+		JobProperty jobProperty = getJobProperty(
+			"test.batch.names.smoke", false);
 
-		dependentBatchNames.addAll(
-			getSetFromString(
-				JenkinsResultsParserUtil.getProperty(
-					getJobProperties(), "test.batch.names.smoke", false,
-					_portalBranchName, getTestSuiteName())));
+		recordJobProperty(jobProperty);
 
-		dependentBatchNames.addAll(
-			getSetFromString(
-				JenkinsResultsParserUtil.getProperty(
-					getJobProperties(), "test.batch.names.smoke", false,
-					_portalBranchName, String.valueOf(getBuildProfile()),
-					getTestSuiteName())));
-
-		return dependentBatchNames;
+		return getSetFromString(jobProperty.getValue());
 	}
 
-	private final GitWorkingDirectory _jenkinsGitWorkingDirectory;
 	private final String _portalBranchName;
 	private final PortalGitWorkingDirectory _portalGitWorkingDirectory;
 	private final String _testSuiteName;

@@ -29,7 +29,7 @@ definition {
 
 		Select(
 			locator1 = "AuditReports#ADVANCED_SEARCH_MATCH_SELECT",
-			value1 = "Any");
+			value1 = "${match}");
 
 		Type(
 			locator1 = "AuditReports#ADVANCED_SEARCH_${reportFieldKey}_FIELD",
@@ -85,10 +85,10 @@ definition {
 			locator1 = "AuditReports#REPORTS_DETAIL_ADDITIONAL_INFORMATION",
 			value1 = "${additionalInformation}");
 
-		if (isSet(clientIP)) {
+		if (isSet(clientIp)) {
 			AssertTextEquals.assertPartialText(
 				locator1 = "AuditReports#REPORTS_DETAIL_CLIENT_IP",
-				value1 = "${clientIP}");
+				value1 = "${clientIp}");
 		}
 	}
 

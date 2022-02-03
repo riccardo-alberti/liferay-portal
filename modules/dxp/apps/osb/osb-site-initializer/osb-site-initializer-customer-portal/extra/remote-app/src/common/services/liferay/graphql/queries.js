@@ -1,7 +1,18 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import {gql} from '@apollo/client';
 
-export const getSetupDXPCloudInfo = gql`
-	query getSetupDXPCloudInfo($accountSubscriptionsFilter: String) {
+export const getDXPCloudPageInfo = gql`
+	query getDXPCloudPageInfo($accountSubscriptionsFilter: String) {
 		c {
 			accountSubscriptions(filter: $accountSubscriptionsFilter) {
 				items {
@@ -95,11 +106,9 @@ export const addAccountFlag = gql`
 	mutation addAccountFlag($accountFlag: InputC_AccountFlag!) {
 		c {
 			createAccountFlag(AccountFlag: $accountFlag) {
-				accountFlagId
 				accountKey
 				name
-				userUuid
-				value
+				finished
 			}
 		}
 	}
@@ -132,17 +141,18 @@ export const getBannedEmailDomains = gql`
 	}
 `;
 
-export const addSetupDXPCloud = gql`
-	mutation addSetupDXPCloud(
-		$scopeKey: String
-		$SetupDXPCloud: InputC_SetupDXPCloud!
+export const addDXPCloudEnvironment = gql`
+	mutation addDXPCloudEnvironment(
+		$scopeKey: String!
+		$DXPCloudEnvironment: InputC_DXPCloudEnvironment!
 	) {
 		c {
-			createSetupDXPCloud(
+			createDXPCloudEnvironment(
 				scopeKey: $scopeKey
-				SetupDXPCloud: $SetupDXPCloud
+				DXPCloudEnvironment: $DXPCloudEnvironment
 			) {
-				admins
+				dxpCloudEnvironmentId
+				accountKey
 				dataCenterRegion
 				disasterDataCenterRegion
 				projectId
@@ -151,9 +161,41 @@ export const addSetupDXPCloud = gql`
 	}
 `;
 
+export const getDXPCloudEnvironment = gql`
+	query getDXPCloudEnvironment($scopeKey: String, $filter: String) {
+		c {
+			dXPCloudEnvironments(filter: $filter, scopeKey: $scopeKey) {
+				items {
+					projectId
+				}
+			}
+		}
+	}
+`;
+
+export const addAdminDXPCloud = gql`
+	mutation addAdminDXPCloud(
+		$scopeKey: String!
+		$AdminDXPCloud: InputC_AdminDXPCloud!
+	) {
+		c {
+			createAdminDXPCloud(
+				scopeKey: $scopeKey
+				AdminDXPCloud: $AdminDXPCloud
+			) {
+				emailAddress
+				firstName
+				githubUsername
+				lastName
+				dxpCloudEnvironmentId
+			}
+		}
+	}
+`;
+
 export const addTeamMembersInvitation = gql`
 	mutation addTeamMembersInvitation(
-		$scopeKey: String
+		$scopeKey: String!
 		$TeamMembersInvitation: InputC_TeamMembersInvitation!
 	) {
 		c {
@@ -168,23 +210,14 @@ export const addTeamMembersInvitation = gql`
 	}
 `;
 
-export const getAccountRolesAndAccountFlags = gql`
-	query getAccountRolesAndAccountFlags(
-		$accountFlagsFilter: String
-		$accountId: Long!
-	) {
-		accountAccountRoles(accountId: $accountId) {
-			items {
-				id
-				name
-			}
-		}
+export const getAccountFlags = gql`
+	query getAccountFlags($filter: String) {
 		c {
-			accountFlags(filter: $accountFlagsFilter) {
+			accountFlags(filter: $filter) {
 				items {
 					accountKey
 					name
-					userUuid
+					finished
 				}
 			}
 		}
@@ -221,7 +254,9 @@ export const getAccountSubscriptionGroups = gql`
 				sort: $sort
 			) {
 				items {
+					accountSubscriptionGroupId
 					accountKey
+					activationStatus
 					name
 				}
 			}
@@ -253,6 +288,19 @@ export const getKoroneikiAccounts = gql`
 	}
 `;
 
+export const getListTypeDefinitions = gql`
+	query getListTypeDefinitions($filter: String) {
+		listTypeDefinitions(filter: $filter) {
+			items {
+				listTypeEntries {
+					key
+					name
+				}
+			}
+		}
+	}
+`;
+
 export const getUserAccount = gql`
 	query getUserAccount($id: Long!) {
 		userAccount(userAccountId: $id) {
@@ -260,11 +308,34 @@ export const getUserAccount = gql`
 				externalReferenceCode
 				id
 				name
+				roleBriefs {
+					id
+					name
+				}
 			}
 			externalReferenceCode
 			id
 			image
 			name
+		}
+	}
+`;
+
+export const updateAccountSubscriptionGroups = gql`
+	mutation putAccountSubscriptionGroups(
+		$id: Long!
+		$accountSubscriptionGroup: InputC_AccountSubscriptionGroup!
+	) {
+		c {
+			updateAccountSubscriptionGroup(
+				accountSubscriptionGroupId: $id
+				AccountSubscriptionGroup: $accountSubscriptionGroup
+			) {
+				accountSubscriptionGroupId
+				accountKey
+				activationStatus
+				name
+			}
 		}
 	}
 `;

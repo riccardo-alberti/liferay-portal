@@ -12,11 +12,11 @@
  * details.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import AuditBarChart from '../../../src/main/resources/META-INF/resources/js/components/AuditBarChart';
+import AuditBarChart from '../../../src/main/resources/META-INF/resources/js/components/AuditGraphApp/AuditBarChart';
 
 import '@testing-library/jest-dom/extend-expect';
 
@@ -237,7 +237,6 @@ const mockTwoVocabulariesWithNoneCategory = [
 describe('AuditBarChart', () => {
 	afterEach(() => {
 		jest.clearAllMocks();
-		cleanup();
 	});
 
 	it('renders audit bar chart from one vocabulary', () => {

@@ -23,7 +23,7 @@ definition {
 
 			Type(
 				locator1 = "SiteSettingsStaging#REMOTE_STAGING_SITE_ID",
-				value1 = "${groupID}");
+				value1 = "${groupId}");
 		}
 		else {
 			Check.checkHiddenToggleSwitch(locator1 = "SiteSettingsStaging#STAGING_LOCAL_LIVE");
@@ -261,7 +261,7 @@ definition {
 
 		DepotNavigator.gotoSites(depotName = "${depotName}");
 
-		if (isSet(makeWCUnavailable)) {
+		if (isSet(makeWcUnavailable)) {
 			LexiconTable.clickEllipsisItem(
 				item = "Make Structures Unavailable",
 				tableEntry = "${siteName}");
@@ -590,9 +590,9 @@ definition {
 			depotName = "${depotName}",
 			portlet = "Asset Library Settings");
 
-		var groupID = selenium.getElementValue("//input[contains(@id,'groupId')]");
+		var groupId = selenium.getElementValue("//input[contains(@id,'groupId')]");
 
-		return "${groupID}";
+		return "${groupId}";
 	}
 
 	macro moveLanguage {
@@ -632,7 +632,7 @@ definition {
 
 		Depot.addDepot(depotName = "Remote Depot");
 
-		var groupID = Depot.getGroupID(depotName = "Remote Depot");
+		var groupId = Depot.getGroupID(depotName = "Remote Depot");
 
 		if (isSet(remotePort)) {
 			User.loginPG(
@@ -649,7 +649,7 @@ definition {
 
 		Depot.activateStaging(
 			depotName = "${depotName}",
-			groupID = "${groupID}",
+			groupId = "${groupId}",
 			remotePort = "${remotePort}",
 			remoteStaging = "true");
 	}

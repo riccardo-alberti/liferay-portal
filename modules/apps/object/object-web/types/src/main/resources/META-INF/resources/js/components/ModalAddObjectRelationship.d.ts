@@ -15,6 +15,8 @@
 import React from 'react';
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
+	ffOneToOneRelationshipConfigurationEnabled: boolean;
+	objectDefinitionId: number;
 	observer: any;
 	onClose: () => void;
 }

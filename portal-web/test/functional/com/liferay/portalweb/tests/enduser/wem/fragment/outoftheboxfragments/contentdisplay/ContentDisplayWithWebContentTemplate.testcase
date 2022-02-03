@@ -139,12 +139,12 @@ definition {
 				pageName = "Content Page Name",
 				siteName = "Test Site Name");
 
-			var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+			var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 			ContentPages.viewFragmentText(
 				assetType = "journal",
 				fragmentName = "Content Display",
-				text = "${siteID}");
+				text = "${siteId}");
 
 			AssertTextNotEquals.assertNotPartialText(
 				assetType = "journal",

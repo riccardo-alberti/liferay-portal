@@ -95,10 +95,10 @@ definition {
 		SAMLPortlet.addIdentityProviderConnection(
 			idpAttributeMapping = "${idpAttributeMapping}",
 			idpAttributeMappingText = "${idpAttributeMappingText}",
-			idpEntityID = "${idpEntityID}",
+			idpEntityId = "${idpEntityId}",
 			idpKeepAliveURL = "${idpKeepAliveURL}",
 			idpMetadataURL = "${idpURL}/c/portal/saml/metadata",
-			idpNameID = "${idpEntityID}",
+			idpNameId = "${idpEntityId}",
 			nameIdentifierFormat = "${nameIdentifierFormat}",
 			userMatchingAttributeIndex = "${userMatchingAttributeIndex}",
 			userResolution = "${userResolution}");
@@ -136,10 +136,10 @@ definition {
 			nameIdentifierAttributeName = "${nameIdentifierAttributeName}",
 			nameIdentifierFormat = "${nameIdentifierFormat}",
 			spAttributes = "${spAttributes}",
-			spEntityID = "${spEntityID}",
+			spEntityId = "${spEntityId}",
 			spKeepAliveURL = "${spKeepAliveURL}",
 			spMetadataURL = "${spURL}/c/portal/saml/metadata",
-			spNameID = "${spEntityID}");
+			spNameId = "${spEntityId}");
 
 		// Logout from Identity Provider host
 
@@ -235,12 +235,12 @@ definition {
 		SAML.goToSAMLAdmin(baseURL = "${idpURL}");
 
 		SAMLRole.configure(
-			samlEntityID = "${samlEntityID}",
+			samlEntityId = "${samlEntityId}",
 			samlRoleType = "Identity Provider");
 
 		SAMLRole.configureCertificateAndPrivateKey(
 			certificateUsage = "SIGNING",
-			samlKeyPassword = "${samlEntityID}");
+			samlKeyPassword = "${samlEntityId}");
 
 		if (isSet(idpSessionIdleTimeout) || isSet(idpSessionMaximumAge)) {
 			SAMLNavigation.gotoIdentityProvider();
@@ -252,7 +252,7 @@ definition {
 			SAMLNavigation.gotoGeneral();
 		}
 
-		SAMLRole.enable(samlEntityID = "${samlEntityID}");
+		SAMLRole.enable(samlEntityId = "${samlEntityId}");
 
 		SAMLNavigation.gotoIdentityProvider();
 
@@ -283,31 +283,31 @@ definition {
 		SAML.goToSAMLAdmin(baseURL = "${spURL}");
 
 		SAMLRole.configure(
-			samlEntityID = "${samlEntityID}",
+			samlEntityId = "${samlEntityId}",
 			samlRoleType = "Service Provider");
 
 		if ("${encryptionCertificate}" == "true") {
 			for (var certificateUsage : list "SIGNING,ENCRYPTION") {
 				SAMLRole.configureCertificateAndPrivateKey(
 					certificateUsage = "${certificateUsage}",
-					samlKeyPassword = "${samlEntityID}");
+					samlKeyPassword = "${samlEntityId}");
 			}
 		}
 		else {
 			SAMLRole.configureCertificateAndPrivateKey(
 				certificateUsage = "SIGNING",
-				samlKeyPassword = "${samlEntityID}");
+				samlKeyPassword = "${samlEntityId}");
 		}
 
 		SAML.connectSPAndIdP(
 			idpAttributes = "${idpAttributes}",
-			idpEntityID = "samlidp",
+			idpEntityId = "samlidp",
 			idpKeepAliveURL = "${idpKeepAliveURL}",
 			idpURL = "http://localhost:8080",
 			nameIdentifierAttributeName = "${nameIdentifierAttributeName}",
 			nameIdentifierFormat = "${nameIdentifierFormat}",
 			spAttributes = "${spAttributes}",
-			spEntityID = "${samlEntityID}",
+			spEntityId = "${samlEntityId}",
 			spKeepAliveURL = "${spKeepAliveURL}",
 			spURL = "${spURL}",
 			userMatchingAttributeIndex = "${userMatchingAttributeIndex}",
@@ -334,17 +334,17 @@ definition {
 
 		SAMLPortlet.addIdentityProviderConnection(
 			idpAttributeMapping = "${idpAttributeMapping}",
-			idpEntityID = "${idpEntityID}",
+			idpEntityId = "${idpEntityId}",
 			idpKeepAliveURL = "${idpKeepAliveURL}",
 			idpMetadataURL = "${idpURL}/c/portal/saml/metadata",
-			idpNameID = "${idpEntityID}",
+			idpNameId = "${idpEntityId}",
 			nameIdentifierFormat = "${nameIdentifierFormat}",
 			userMatchingAttributeIndex = "${userMatchingAttributeIndex}",
 			userResolution = "${userResolution}");
 
 		SAMLNavigation.gotoGeneral();
 
-		SAMLRole.enable(samlEntityID = "${spEntityID}");
+		SAMLRole.enable(samlEntityId = "${spEntityId}");
 
 		User.logoutPG(specificURL = "${spURL}");
 
@@ -367,10 +367,10 @@ definition {
 			nameIdentifierAttributeName = "${nameIdentifierAttributeName}",
 			nameIdentifierFormat = "${nameIdentifierFormat}",
 			spAttributes = "${spAttributes}",
-			spEntityID = "${spEntityID}",
+			spEntityId = "${spEntityId}",
 			spKeepAliveURL = "${spKeepAliveURL}",
 			spMetadataURL = "${spURL}/c/portal/saml/metadata",
-			spNameID = "${spEntityID}");
+			spNameId = "${spEntityId}");
 	}
 
 	@description = "Delete SAML certificate from a Service Provider's settings"
@@ -412,7 +412,7 @@ definition {
 			idpAttributeMappingNew = "${idpAttributeMappingNew}",
 			idpAttributeMappingOld = "${idpAttributeMappingOld}",
 			idpAttributeMappingText = "${idpAttributeMappingText}",
-			idpEntityID = "${idpEntityID}");
+			idpEntityId = "${idpEntityId}");
 
 		User.logoutPG(specificURL = "${spURL}");
 	}
@@ -430,7 +430,7 @@ definition {
 
 		SAMLPortlet.editAttributesSentByIdP(
 			spAttributes = "${spAttributes}",
-			spEntityID = "${spEntityID}");
+			spEntityId = "${spEntityId}");
 
 		User.logoutPG(specificURL = "${idpURL}");
 	}
@@ -456,7 +456,7 @@ definition {
 
 		SAMLPortlet.configureServiceProviderConnection(
 			forceEncryption = "enable",
-			samlEntityID = "${samlEntityID}");
+			samlEntityId = "${samlEntityId}");
 
 		User.logoutPG(specificURL = "${idpURL}");
 	}
@@ -469,12 +469,12 @@ definition {
 		ServerAdministration.openServerAdmin();
 
 		ServerAdministration.addCategoryLogLevels(
-			categoryName = "com.liferay.saml.opensaml.integration",
-			categoryPriority = "DEBUG");
+			categoryLevel = "DEBUG",
+			categoryName = "com.liferay.saml.opensaml.integration");
 
 		ServerAdministration.addCategoryLogLevels(
-			categoryName = "com.liferay.saml.web.internal.opensaml.integration.field.expression.resolver",
-			categoryPriority = "DEBUG");
+			categoryLevel = "DEBUG",
+			categoryName = "com.liferay.saml.web.internal.opensaml.integration.field.expression.resolver");
 	}
 
 	@description = "7.4-SAML-S2: Configure Portal Instance to act as a SAML Service Provider"
@@ -496,7 +496,7 @@ definition {
 
 		SAML.goToSAMLAdmin(baseURL = "${spURL}");
 
-		SAMLRole.enable(samlEntityID = "${samlEntityID}");
+		SAMLRole.enable(samlEntityId = "${samlEntityId}");
 
 		User.logoutPG(specificURL = "${spURL}");
 
@@ -506,14 +506,14 @@ definition {
 	@description = "Sign into portal by executing a IdP initiated SSO login. The IdP will redirect to the SP. If the same users with the same email address are present on both instances, it will authenticate and show the SP. SAML can authenticate across major portal versions, that is, the IdP can be Portal 6.1 EE GA3 and the SP can be Portal 6.2. EE GA1. For testing purposes, it is obvious if the authentication succeeds or fails if the IdP and SP are different portal versions."
 	macro executeIdPInitiatedSSO {
 		if ("${autoLogin}" == "true") {
-			Open.openNoError(locator1 = "${idpInitiatedSSOURL}");
+			Open.openNoError(locator1 = "${idpInitiatedSsourl}");
 
 			AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
 		}
 		else {
 			User.firstLoginUI(
 				password = "${password}",
-				specificURL = "${idpInitiatedSSOURL}",
+				specificURL = "${idpInitiatedSsourl}",
 				userEmailAddress = "${userEmailAddress}");
 		}
 
@@ -713,7 +713,7 @@ definition {
 			idpSessionIdleTimeout = "${idpSessionIdleTimeout}",
 			idpSessionMaximumAge = "${idpSessionMaximumAge}",
 			idpURL = "${idpURL}",
-			samlEntityID = "${samlEntityID}",
+			samlEntityId = "${samlEntityId}",
 			userEmailAddress = "${userEmailAddress}");
 
 		// Logout from identity provider site
@@ -743,20 +743,20 @@ definition {
 		SAML.goToSAMLAdmin(baseURL = "${spURL}");
 
 		SAMLRole.configure(
-			samlEntityID = "${samlEntityID}",
+			samlEntityId = "${samlEntityId}",
 			samlRoleType = "Service Provider");
 
 		if ("${encryptionCertificate}" == "true") {
 			for (var certificateUsage : list "SIGNING,ENCRYPTION") {
 				SAMLRole.configureCertificateAndPrivateKey(
 					certificateUsage = "${certificateUsage}",
-					samlKeyPassword = "${samlEntityID}");
+					samlKeyPassword = "${samlEntityId}");
 			}
 		}
 		else {
 			SAMLRole.configureCertificateAndPrivateKey(
 				certificateUsage = "SIGNING",
-				samlKeyPassword = "${samlEntityID}");
+				samlKeyPassword = "${samlEntityId}");
 		}
 
 		// Logout from Service Provider host

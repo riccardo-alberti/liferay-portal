@@ -806,7 +806,7 @@ definition {
 		UserNavigator.gotoRoles();
 
 		AssertClick(
-			key_RoleType = StringUtil.replace("Organization Role", " ", ""),
+			key_roleType = StringUtil.replace("Organization Role", " ", ""),
 			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
 			value1 = "Select");
 
@@ -839,7 +839,7 @@ definition {
 		WaitForLiferayEvent.initializeLiferayEventLog();
 
 		AssertClick(
-			key_RoleType = StringUtil.replace("Regular Role", " ", ""),
+			key_roleType = StringUtil.replace("Regular Role", " ", ""),
 			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
 			value1 = "Select");
 
@@ -872,7 +872,7 @@ definition {
 		UserNavigator.gotoRoles();
 
 		AssertClick(
-			key_RoleType = StringUtil.replace("Site Role", " ", ""),
+			key_roleType = StringUtil.replace("Site Role", " ", ""),
 			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
 			value1 = "Select");
 
@@ -1256,13 +1256,13 @@ definition {
 
 		Type(
 			locator1 = "SignInOpenID#OPENID_FIELD",
-			value1 = "${openIDURL}");
+			value1 = "${openIdurl}");
 
 		Click(locator1 = "Button#SIGN_IN");
 
 		Type(
 			locator1 = "OpenIDLogin#YAHOO_LOGIN_USERNAME_FIELD",
-			value1 = "${openIDUsername}");
+			value1 = "${openIdUsername}");
 
 		KeyPress(
 			locator1 = "OpenIDLogin#YAHOO_LOGIN_USERNAME_FIELD",
@@ -1270,7 +1270,7 @@ definition {
 
 		Type(
 			locator1 = "TextInput#PASSWORD_TYPE",
-			value1 = "${openIDPassword}");
+			value1 = "${openIdPassword}");
 
 		KeyPress(
 			locator1 = "TextInput#PASSWORD_TYPE",
@@ -2001,7 +2001,7 @@ definition {
 			Type.typePause(
 				key_text = "ID",
 				locator1 = "TextInput#ANY",
-				value1 = "${userID}");
+				value1 = "${userId}");
 		}
 		else {
 			Type.typePause(
@@ -2352,7 +2352,7 @@ definition {
 
 		Type(
 			locator1 = "SignInOpenID#OPENID_FIELD",
-			value1 = "${openIDURL}");
+			value1 = "${openIdurl}");
 
 		Click(locator1 = "Button#SIGN_IN");
 
@@ -2572,7 +2572,7 @@ definition {
 			Type.typePause(
 				key_text = "ID",
 				locator1 = "TextInput#ANY",
-				value1 = "${userID}");
+				value1 = "${userId}");
 		}
 		else {
 			Type.typePause(
@@ -3033,7 +3033,7 @@ definition {
 
 		AssertElementPresent(locator1 = "Checkbox#REMEMBER_ME");
 
-		if ("${loginPG}" == "Full Screen") {
+		if ("${loginPg}" == "Full Screen") {
 			AssertElementNotPresent(locator1 = "UserBar#USER_SIGN_IN");
 		}
 		else {
@@ -3082,7 +3082,7 @@ definition {
 
 	macro viewUnableToAssignRoleToUserCP {
 		AssertElementNotPresent(
-			key_RoleType = StringUtil.replace("${roleType}", " ", ""),
+			key_roleType = StringUtil.replace("${roleType}", " ", ""),
 			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_LINK",
 			value1 = "Select");
 
@@ -3095,7 +3095,7 @@ definition {
 		}
 
 		AssertTextEquals(
-			key_RoleType = "${roleType}",
+			key_roleType = "${roleType}",
 			locator1 = "Message#ROLE_EMPTY_MUTED_INFO",
 			value1 = "${emptyMessage}");
 	}
@@ -3146,10 +3146,10 @@ definition {
 				value1 = "${userJobTitle}");
 		}
 
-		if (isSet(userID)) {
+		if (isSet(userId)) {
 			AssertTextEquals(
 				locator1 = "UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD",
-				value1 = "${userID}");
+				value1 = "${userId}");
 		}
 	}
 

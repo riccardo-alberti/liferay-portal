@@ -121,9 +121,9 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		WebContentDisplayPortlet.searchForNoWebContent(
+		WebContentDisplayPortlet.searchWebContent(
 			depotName = "Test Depot Name",
-			webContentTitle = "WC Depot Title");
+			webContentTitleNotPresentList = "WC Depot Title");
 
 		BlogsNavigator.openToAddEntry(siteURLKey = "test-site-name");
 
@@ -326,7 +326,9 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Test Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC Depot Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WC Depot Content",
+			webContentTitle = "WC Depot Title");
 	}
 
 	@description = "This ensures that the DM application can be viewed after reactivating in a depot."

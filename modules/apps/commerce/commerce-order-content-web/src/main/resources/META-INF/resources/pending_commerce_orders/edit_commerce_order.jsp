@@ -394,11 +394,6 @@ List<String> errorMessages = (List<String>)request.getAttribute(CommerceWebKeys.
 		}
 		%>
 
-		<liferay-ui:icon
-			message="print"
-			url='<%= "javascript:window.print();" %>'
-		/>
-
 		<c:if test="<%= commerceOrderContentDisplayContext.hasModelPermission(commerceOrder, ActionKeys.DELETE) %>">
 			<portlet:actionURL name="/commerce_open_order_content/edit_commerce_order" var="deleteURL">
 				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
@@ -425,6 +420,7 @@ List<String> errorMessages = (List<String>)request.getAttribute(CommerceWebKeys.
 			<liferay-ui:icon
 				icon="print"
 				message="print"
+				target="_blank"
 				url="<%= commerceOrderContentDisplayContext.getExportCommerceOrderReportURL() %>"
 			/>
 		</c:if>

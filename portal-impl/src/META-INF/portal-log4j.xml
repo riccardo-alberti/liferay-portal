@@ -80,7 +80,6 @@
 		<Logger level="ERROR" name="com.liferay.portal.events.ShutdownHook" />
 		<Logger level="INFO" name="com.liferay.portal.events.StartupAction" />
 		<Logger level="INFO" name="com.liferay.portal.events.StartupHelperUtil" />
-		<Logger level="INFO" name="com.liferay.portal.fabric" />
 		<Logger level="ERROR" name="com.liferay.portal.image.HookFactory" />
 		<Logger level="ERROR" name="com.liferay.portal.image.ImageToolImpl" />
 		<Logger level="WARN" name="com.liferay.portal.image.SpriteProcessorImpl" />
@@ -266,7 +265,6 @@
 		<Logger level="ERROR" name="net.sf.hibernate" />
 		<Logger level="WARN" name="org.apache.aries.jax.rs.whiteboard.activator.CxfJaxrsBundleActivator" />
 		<Logger level="INFO" name="org.apache.axis" />
-		<Logger level="FATAL" name="org.apache.bsf" />
 		<Logger level="ERROR" name="org.apache.chemistry.opencmis.client.bindings.spi.atompub.HttpUtils" />
 		<Logger level="ERROR" name="org.apache.commons.beanutils" />
 		<Logger level="ERROR" name="org.apache.commons.digester" />

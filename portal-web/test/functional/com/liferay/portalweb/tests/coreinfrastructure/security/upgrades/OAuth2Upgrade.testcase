@@ -36,7 +36,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Instance Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -69,7 +69,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Instance Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -101,7 +101,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Instance Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -133,7 +133,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Instance Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -159,7 +159,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -185,7 +185,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -210,7 +210,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",
@@ -235,7 +235,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientProfile = "Web Application",
 				clientSecret = "${generatedClientSecret}",

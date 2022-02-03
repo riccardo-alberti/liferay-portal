@@ -1,12 +1,13 @@
 .sidebar {
 	background: #fff;
 	border-left: 1px solid #e7e7ed;
-	width: 30vw;
+	max-width: 850px;
+	min-width: 510px;
 
 	.node {
 		border: none;
 		cursor: grab;
-		width: 100%;
+		width: 480px;
 
 		&:hover {
 			border: 2px solid #80acff;
@@ -25,12 +26,29 @@
 	}
 
 	.sidebar-body {
+		overflow: hidden;
+
 		.panel .sheet-subtitle {
 			align-items: center;
 			cursor: pointer;
 			display: flex;
 			justify-content: space-between;
 			width: 100%;
+		}
+
+		.section-buttons-area {
+			align-items: center;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+
+			.delete-button {
+				align-items: flex-end;
+
+				& svg {
+					fill: #6b6c7e;
+				}
+			}
 		}
 
 		span .lexicon-icon-exclamation-full:hover {
@@ -48,37 +66,6 @@
 		display: flex;
 		height: 75px;
 
-		.spaced-items {
-			align-items: center;
-			display: flex;
-			justify-content: space-between;
-			width: 100%;
-
-			.trash-button {
-				height: 32px;
-				width: 32px;
-
-				svg {
-					height: 16px;
-					width: 16px;
-				}
-
-				&:hover {
-					background: #feefef;
-					border-radius: 4px;
-					height: 32px;
-					padding: 8px;
-					width: 32px;
-
-					svg {
-						fill: #da1414;
-						height: 16px;
-						width: 16px;
-					}
-				}
-			}
-		}
-
 		.title {
 			color: #272833;
 			font-size: 20px;
@@ -86,6 +73,46 @@
 
 			&:first-letter {
 				text-transform: capitalize;
+			}
+		}
+	}
+
+	.spaced-items {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+
+		.auto-create {
+			align-items: center;
+			display: flex;
+
+			.custom-control {
+				margin-bottom: 0;
+			}
+		}
+
+		.trash-button {
+			height: 32px;
+			width: 32px;
+
+			svg {
+				height: 16px;
+				width: 16px;
+			}
+
+			&:hover {
+				background: #feefef;
+				border-radius: 4px;
+				height: 32px;
+				padding: 8px;
+				width: 32px;
+
+				svg {
+					fill: #da1414;
+					height: 16px;
+					width: 16px;
+				}
 			}
 		}
 	}

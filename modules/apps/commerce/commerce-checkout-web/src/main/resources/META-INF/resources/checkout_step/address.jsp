@@ -40,34 +40,42 @@ if (commerceOrder.isGuestOrder()) {
 }
 
 CommerceAddress currentCommerceAddress = baseAddressCheckoutStepDisplayContext.getCommerceAddress(commerceAddressId);
+
+CommerceAccount commerceAccount = commerceContext.getCommerceAccount();
+
+boolean hasManageAddressesPermission = baseAddressCheckoutStepDisplayContext.hasPermission(permissionChecker, commerceAccount, AccountActionKeys.MANAGE_ADDRESSES);
 %>
 
 <div class="form-group-autofit">
 	<c:if test="<%= !commerceOrder.isGuestOrder() %>">
-		<aui:select label="<%= selectLabel %>" name="commerceAddress" onChange='<%= liferayPortletResponse.getNamespace() + "selectAddress();" %>' wrapperCssClass="commerce-form-group-item-row form-group-item">
-			<aui:option label="add-new-address" value="0" />
+		<c:if test="<%= baseAddressCheckoutStepDisplayContext.hasPermission(permissionChecker, commerceAccount, AccountActionKeys.VIEW_ADDRESSES) %>">
+			<aui:select label="<%= selectLabel %>" name="commerceAddress" onChange='<%= liferayPortletResponse.getNamespace() + "selectAddress();" %>' wrapperCssClass="commerce-form-group-item-row form-group-item">
+				<c:if test="<%= hasManageAddressesPermission %>">
+					<aui:option label="add-new-address" value="0" />
+				</c:if>
 
-			<%
-			boolean addressWasFound = false;
+				<%
+				boolean addressWasFound = false;
 
-			for (CommerceAddress commerceAddress : commerceAddresses) {
-				boolean selectedAddress = commerceAddressId == commerceAddress.getCommerceAddressId();
+				for (CommerceAddress commerceAddress : commerceAddresses) {
+					boolean selectedAddress = commerceAddressId == commerceAddress.getCommerceAddressId();
 
-				if (selectedAddress) {
-					addressWasFound = true;
+					if (selectedAddress) {
+						addressWasFound = true;
+					}
+				%>
+
+					<aui:option data-city="<%= HtmlUtil.escapeAttribute(commerceAddress.getCity()) %>" data-country="<%= HtmlUtil.escapeAttribute(String.valueOf(commerceAddress.getCountryId())) %>" data-name="<%= HtmlUtil.escapeAttribute(commerceAddress.getName()) %>" data-phone-number="<%= HtmlUtil.escapeAttribute(commerceAddress.getPhoneNumber()) %>" data-region="<%= HtmlUtil.escapeAttribute(String.valueOf(commerceAddress.getRegionId())) %>" data-street-1="<%= HtmlUtil.escapeAttribute(commerceAddress.getStreet1()) %>" data-street-2="<%= Validator.isNotNull(commerceAddress.getStreet2()) ? HtmlUtil.escapeAttribute(commerceAddress.getStreet2()) : StringPool.BLANK %>" data-street-3="<%= Validator.isNotNull(commerceAddress.getStreet3()) ? HtmlUtil.escapeAttribute(commerceAddress.getStreet3()) : StringPool.BLANK %>" data-zip="<%= HtmlUtil.escapeAttribute(commerceAddress.getZip()) %>" label="<%= commerceAddress.getName() %>" selected="<%= selectedAddress %>" value="<%= commerceAddress.getCommerceAddressId() %>" />
+
+				<%
 				}
-			%>
+				%>
 
-				<aui:option data-city="<%= HtmlUtil.escapeAttribute(commerceAddress.getCity()) %>" data-country="<%= HtmlUtil.escapeAttribute(String.valueOf(commerceAddress.getCountryId())) %>" data-name="<%= HtmlUtil.escapeAttribute(commerceAddress.getName()) %>" data-phone-number="<%= HtmlUtil.escapeAttribute(commerceAddress.getPhoneNumber()) %>" data-region="<%= HtmlUtil.escapeAttribute(String.valueOf(commerceAddress.getRegionId())) %>" data-street-1="<%= HtmlUtil.escapeAttribute(commerceAddress.getStreet1()) %>" data-street-2="<%= Validator.isNotNull(commerceAddress.getStreet2()) ? HtmlUtil.escapeAttribute(commerceAddress.getStreet2()) : StringPool.BLANK %>" data-street-3="<%= Validator.isNotNull(commerceAddress.getStreet3()) ? HtmlUtil.escapeAttribute(commerceAddress.getStreet3()) : StringPool.BLANK %>" data-zip="<%= HtmlUtil.escapeAttribute(commerceAddress.getZip()) %>" label="<%= commerceAddress.getName() %>" selected="<%= selectedAddress %>" value="<%= commerceAddress.getCommerceAddressId() %>" />
-
-			<%
-			}
-			%>
-
-			<c:if test="<%= (currentCommerceAddress != null) && !addressWasFound %>">
-				<aui:option label="<%= HtmlUtil.escapeAttribute(currentCommerceAddress.getName()) %>" selected="<%= true %>" value="<%= currentCommerceAddress.getCommerceAddressId() %>" />
-			</c:if>
-		</aui:select>
+				<c:if test="<%= (currentCommerceAddress != null) && !addressWasFound %>">
+					<aui:option label="<%= HtmlUtil.escapeAttribute(currentCommerceAddress.getName()) %>" selected="<%= true %>" value="<%= currentCommerceAddress.getCommerceAddressId() %>" />
+				</c:if>
+			</aui:select>
+		</c:if>
 	</c:if>
 
 	<aui:input disabled="<%= commerceAddresses.isEmpty() ? true : false %>" name="<%= paramName %>" type="hidden" value="<%= commerceAddressId %>" />
@@ -87,15 +95,15 @@ CommerceAddress currentCommerceAddress = baseAddressCheckoutStepDisplayContext.g
 
 <div class="address-fields">
 	<div class="form-group-autofit">
-		<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="name" placeholder="name" wrapperCssClass="form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="name" placeholder="name" wrapperCssClass="form-group-item" />
 
-		<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="phoneNumber" placeholder="phone-number" wrapperCssClass="form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="phoneNumber" placeholder="phone-number" wrapperCssClass="form-group-item" />
 	</div>
 
 	<div class="form-group-autofit">
-		<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="street1" placeholder="address" wrapperCssClass="form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="street1" placeholder="address" wrapperCssClass="form-group-item" />
 
-		<aui:select disabled="<%= commerceAddressId > 0 %>" label="" name="countryId" placeholder="country" title="country" wrapperCssClass="form-group-item">
+		<aui:select disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="countryId" placeholder="country" title="country" wrapperCssClass="form-group-item">
 			<aui:validator errorMessage='<%= LanguageUtil.get(request, "please-enter-a-valid-country") %>' name="min">1</aui:validator>
 		</aui:select>
 	</div>
@@ -103,34 +111,33 @@ CommerceAddress currentCommerceAddress = baseAddressCheckoutStepDisplayContext.g
 	<c:choose>
 		<c:when test="<%= (commerceAddressId > 0) && (!Validator.isBlank(currentCommerceAddress.getStreet2()) || !Validator.isBlank(currentCommerceAddress.getStreet3())) %>">
 			<div class="form-group-autofit">
-				<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="street2" placeholder="address-2" wrapperCssClass="form-group-item" />
-
-				<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="street3" placeholder="address-3" wrapperCssClass="form-group-item" />
+				<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="street2" placeholder="address-2" wrapperCssClass="form-group-item" />
+				<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="street3" placeholder="address-3" wrapperCssClass="form-group-item" />
 			</div>
 		</c:when>
 		<c:otherwise>
 			<div class="add-street-link form-group-autofit">
-				<aui:a disabled="<%= commerceAddressId > 0 %>" href="javascript:;" label="+-add-address-line" onClick='<%= liferayPortletResponse.getNamespace() + "addStreetAddress();" %>' />
+				<aui:a disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" href="javascript:;" label="+-add-address-line" onClick='<%= liferayPortletResponse.getNamespace() + "addStreetAddress();" %>' />
 			</div>
 
 			<div class="add-street-fields form-group-autofit hide">
-				<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="street2" placeholder="address-2" wrapperCssClass="form-group-item" />
+				<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="street2" placeholder="address-2" wrapperCssClass="form-group-item" />
 
-				<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="street3" placeholder="address-3" wrapperCssClass="form-group-item" />
+				<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="street3" placeholder="address-3" wrapperCssClass="form-group-item" />
 			</div>
 		</c:otherwise>
 	</c:choose>
 
 	<div class="form-group-autofit">
-		<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="zip" placeholder="zip" wrapperCssClass="form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="zip" placeholder="zip" wrapperCssClass="form-group-item" />
 
-		<aui:input disabled="<%= commerceAddressId > 0 %>" label="" name="city" placeholder="city" wrapperCssClass="form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="city" placeholder="city" wrapperCssClass="form-group-item" />
 
-		<aui:select disabled="<%= commerceAddressId > 0 %>" label="" name="regionId" placeholder="region" title="region" wrapperCssClass="form-group-item" />
+		<aui:select disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" label="" name="regionId" placeholder="region" title="region" wrapperCssClass="form-group-item" />
 
-		<aui:input disabled="<%= commerceAddressId > 0 %>" id="commerceRegionIdInput" label="" name="regionId" placeholder="regionId" title="region" wrapperCssClass="d-none form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" id="commerceRegionIdInput" label="" name="regionId" placeholder="regionId" title="region" wrapperCssClass="d-none form-group-item" />
 
-		<aui:input disabled="<%= commerceAddressId > 0 %>" id="commerceRegionIdName" label="" name="regionId" placeholder="regionName" title="region" wrapperCssClass="d-none form-group-item" />
+		<aui:input disabled="<%= (commerceAddressId > 0) || !hasManageAddressesPermission %>" id="commerceRegionIdName" label="" name="regionId" placeholder="regionName" title="region" wrapperCssClass="d-none form-group-item" />
 	</div>
 
 	<div class="form-group-autofit">
@@ -143,7 +150,7 @@ CommerceAddress currentCommerceAddress = baseAddressCheckoutStepDisplayContext.g
 	</div>
 </div>
 
-<c:if test="<%= Objects.equals(CommerceCheckoutWebKeys.SHIPPING_ADDRESS_PARAM_NAME, paramName) %>">
+<c:if test="<%= Objects.equals(CommerceCheckoutWebKeys.SHIPPING_ADDRESS_PARAM_NAME, paramName) && baseAddressCheckoutStepDisplayContext.hasPermission(permissionChecker, commerceAccount, AccountActionKeys.MANAGE_ADDRESSES) %>">
 	<div class="shipping-as-billing">
 		<aui:input checked="<%= baseAddressCheckoutStepDisplayContext.isShippingUsedAsBilling() || (commerceAddressId == 0) %>" disabled="<%= false %>" label="use-shipping-address-as-billing-address" name="use-as-billing" type="checkbox" />
 	</div>

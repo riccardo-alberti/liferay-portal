@@ -36,7 +36,7 @@ definition {
 	test CanChangeImageTag {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Navigator.openToGroupPagesPortlet(
 			groupName = "Test Site Name",
@@ -58,7 +58,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteId}/0/Document_2.jpg''');
 	}
 
 	@description = "This makes sure that the user can change the default image for OpenGraph at the site level."
@@ -69,7 +69,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		for (var imageNumber : list "1,2") {
 			Site.openToSiteSettingsPages(
@@ -95,7 +95,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteId}/0/Document_2.jpg''');
 	}
 
 	@description = "This makes sure that the previously added image can be cleared at the page level."
@@ -104,7 +104,7 @@ definition {
 	test CanClearImageAtPageLevel {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Site.openToSiteSettingsPages(
 			portlet = "Open Graph",
@@ -138,7 +138,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteID}/0/Document_1.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteId}/0/Document_1.jpg''');
 	}
 
 	@description = "This makes sure that it will apply the OG image of the page when images are set at both the site level and the page level."
@@ -147,7 +147,7 @@ definition {
 	test CanClearImageAtSiteLevel {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Site.openToSiteSettingsPages(
 			portlet = "Open Graph",
@@ -237,7 +237,7 @@ definition {
 	test CanConfigurePageSpecificImage {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Site.openToSiteSettingsPages(
 			portlet = "Open Graph",
@@ -269,7 +269,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteId}/0/Document_2.jpg''');
 	}
 
 	@description = "This ensures that the OG image tags will not appear when the HTTPS user disables Open Graph."

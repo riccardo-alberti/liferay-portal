@@ -648,7 +648,7 @@ definition {
 			kbArticleContentAddedDiff = "Edit",
 			kbArticleVersionNew = "2",
 			kbArticleVersionOld = "1",
-			viewNoXMLInTitle = "true");
+			viewNoXmlInTitle = "true");
 	}
 
 	@priority = "4"

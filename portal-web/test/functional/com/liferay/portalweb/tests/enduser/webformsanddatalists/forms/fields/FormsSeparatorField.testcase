@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -34,7 +36,7 @@ definition {
 	@description = "Verify that a Separator Field can be created"
 	@priority = "5"
 	test CanBeCreated {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -58,7 +60,7 @@ definition {
 	@description = "Verify that a Separator Field can be deleted"
 	@priority = "5"
 	test CanBeDeleted {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -120,7 +122,7 @@ definition {
 	@description = "Verify that a Separator Field can be edited"
 	@priority = "5"
 	test CanBeEdited {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 

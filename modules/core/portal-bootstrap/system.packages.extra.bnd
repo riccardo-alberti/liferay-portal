@@ -21,7 +21,6 @@ Export-Package:\
 	\
 	!com.liferay.portal.cache.thread.local,\
 	!com.liferay.portal.dao.jdbc.aop,\
-	!com.liferay.portal.fabric,\
 	!com.liferay.portal.freemarker,\
 	!com.liferay.portal.increment,\
 	!com.liferay.portal.javadoc,\
@@ -31,7 +30,6 @@ Export-Package:\
 	!com.liferay.portal.messaging.async,\
 	!com.liferay.portal.microsofttranslator,\
 	!com.liferay.portal.monitoring.statistics.service,\
-	!com.liferay.portal.nio.intraband.proxy,\
 	!com.liferay.portal.scripting.beanshell,\
 	!com.liferay.portal.scripting.groovy,\
 	!com.liferay.portal.scripting.javascript,\
@@ -114,8 +112,6 @@ Export-Package:\
 	\
 	com.thoughtworks.xstream.*;version='1.4.17',\
 	\
-	io.netty.*,\
-	\
 	java_cup.runtime.*;version='2.7.1',\
 	\
 	javax.jws;version='1.1',\
@@ -181,14 +177,6 @@ Export-Package:\
 	org.apache.commons.beanutils.expression;version='1.9.4',\
 	org.apache.commons.beanutils.locale;version='1.9.4',\
 	org.apache.commons.beanutils.locale.converters;version='1.9.4',\
-	org.apache.commons.chain;version='1.2',\
-	org.apache.commons.chain.config;version='1.2',\
-	org.apache.commons.chain.generic;version='1.2',\
-	org.apache.commons.chain.impl;version='1.2',\
-	org.apache.commons.chain.web;version='1.2',\
-	org.apache.commons.chain.web.faces;version='1.2',\
-	org.apache.commons.chain.web.portlet;version='1.2',\
-	org.apache.commons.chain.web.servlet;version='1.2',\
 	org.apache.commons.codec;version='1.9',\
 	org.apache.commons.codec.binary;version='1.9',\
 	org.apache.commons.codec.digest;version='1.9',\
@@ -237,7 +225,6 @@ Export-Package:\
 	org.apache.logging.log4j.message;version='2.17.1',\
 	org.apache.logging.log4j.spi;version='2.17.1',\
 	org.apache.naming.java,\
-	org.apache.regexp;version='2.7.1',\
 	org.apache.tika.*;version='1.26.0',\
 	org.apache.tools.ant.*;version='1.9.15',\
 	org.apache.xalan.*;version='2.7.2',\
@@ -323,9 +310,7 @@ Provide-Capability:\
 	@../../../lib/portal/asm-tree.jar,\
 	@../../../lib/portal/asm-util.jar,\
 	@../../../lib/portal/asm.jar,\
-	@../../../lib/portal/ccpp.jar,\
 	@../../../lib/portal/commons-beanutils.jar,\
-	@../../../lib/portal/commons-chain.jar,\
 	@../../../lib/portal/commons-codec.jar,\
 	@../../../lib/portal/commons-collections.jar,\
 	@../../../lib/portal/commons-compress.jar,\
@@ -345,7 +330,6 @@ Provide-Capability:\
 	@../../../lib/portal/log4j-1.2-api.jar,\
 	@../../../lib/portal/log4j-api.jar,\
 	@../../../lib/portal/log4j-core.jar,\
-	@../../../lib/portal/netty-all.jar,\
 	@../../../lib/portal/persistence.jar,\
 	@../../../lib/portal/portlet.jar,\
 	@../../../lib/portal/portletmvc4spring-framework.jar,\

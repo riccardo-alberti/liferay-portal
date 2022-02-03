@@ -537,7 +537,7 @@ definition {
 
 			AssertVisible(
 				key_append = "//img",
-				key_URL = "${baseURL}/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -550,12 +550,12 @@ definition {
 
 			AssertVisible(
 				key_append = "/img",
-				key_URL = "${baseURL}/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "/img",
-				key_URL = "${baseURL}/web/test-site-name/w/web-content-title",
+				key_url = "${baseURL}/web/test-site-name/w/web-content-title",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertTextEquals(
@@ -643,7 +643,7 @@ definition {
 
 			AssertVisible(
 				key_append = "//img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			PageEditor.clickPublish();
@@ -656,12 +656,12 @@ definition {
 
 			AssertVisible(
 				key_append = "/img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			Click(
 				key_append = "/img",
-				key_URL = "https://liferay.com",
+				key_url = "https://liferay.com",
 				locator1 = "Fragment#FRAGMENT_LINK");
 
 			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");

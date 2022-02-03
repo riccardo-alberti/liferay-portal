@@ -18,10 +18,11 @@ import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.SegmentTestClassGroup;
 
+import java.io.File;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.json.JSONObject;
@@ -53,9 +54,9 @@ public interface Job {
 
 	public String getJobName();
 
-	public Properties getJobProperties();
+	public List<File> getJobPropertiesFiles();
 
-	public String getJobProperty(String key);
+	public List<String> getJobPropertyOptions();
 
 	public String getJobURL(JenkinsMaster jenkinsMaster);
 
@@ -71,7 +72,9 @@ public interface Job {
 
 	public boolean isValidationRequired();
 
-	public void readJobProperties();
+	public boolean testReleaseBundle();
+
+	public boolean testRelevantChanges();
 
 	public static enum BuildProfile {
 

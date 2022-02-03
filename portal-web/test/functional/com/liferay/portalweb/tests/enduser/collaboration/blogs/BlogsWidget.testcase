@@ -1,6 +1,7 @@
 @component-name = "portal-collaboration"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Blogs";
@@ -566,7 +567,7 @@ definition {
 			column = "2",
 			groupName = "Guest",
 			layoutName = "Blogs Page",
-			widgetName = "Categories Navigation");
+			widgetName = "Category Filter");
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content 1",

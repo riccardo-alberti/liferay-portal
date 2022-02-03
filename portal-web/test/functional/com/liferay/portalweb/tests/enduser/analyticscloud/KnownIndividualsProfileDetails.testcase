@@ -35,7 +35,7 @@ definition {
 		}
 
 		task ("Connect the DXP to AC") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+			ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 		}
 	}
 
@@ -59,9 +59,9 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8938 | Test Summary: All attributes of the individual appear in a list"
 	@priority = "5"
 	test AllIndividualAttributesAppearInList {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
+		property portal.upstream = "quarantine";
+
+		// AC Refactor ticket: LRAC-9707
 
 		task ("Sign in as new user to view the site page") {
 			User.logoutAndLoginPG(
@@ -80,7 +80,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Go to the Individual > KnownIndividual > Details") {
@@ -125,10 +125,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8939 | Test Summary: Assert Individuals details search result displays correct number"
 	@priority = "3"
 	test AssertIndividualsSearchDetailsResult {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Sign in as new user to view the site page") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "user1@liferay.com",
@@ -146,7 +142,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Go to the Individual > KnownIndividual > Details") {
@@ -192,10 +188,6 @@ definition {
 	test OrderIndividualDetails {
 		property portal.upstream = "quarantine";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Sign in as new user to view the site page") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "user1@liferay.com",
@@ -213,7 +205,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Go to the Individual > KnownIndividual > Details") {

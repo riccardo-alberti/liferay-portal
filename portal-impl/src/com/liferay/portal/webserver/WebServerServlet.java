@@ -60,6 +60,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.repository.util.FileEntryHttpHeaderCustomizerUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -1114,6 +1115,10 @@ public class WebServerServlet extends HttpServlet {
 			}
 		}
 
+		if (converted && (contentLength == 0)) {
+			throw new NoSuchFileException("The converted file is empty");
+		}
+
 		// Determine proper content type
 
 		String contentType = null;
@@ -1130,6 +1135,12 @@ public class WebServerServlet extends HttpServlet {
 		}
 
 		// Send file
+
+		httpServletResponse.addHeader(
+			HttpHeaders.CACHE_CONTROL,
+			FileEntryHttpHeaderCustomizerUtil.getHttpHeaderValue(
+				fileEntry, HttpHeaders.CACHE_CONTROL,
+				HttpHeaders.CACHE_CONTROL_PRIVATE_VALUE));
 
 		if (isSupportsRangeHeader(contentType)) {
 			ServletResponseUtil.sendFileWithRangeHeader(
@@ -1161,6 +1172,12 @@ public class WebServerServlet extends HttpServlet {
 
 		FileEntry fileEntry = DLAppServiceUtil.getFileEntry(
 			groupId, folderId, title);
+
+		httpServletResponse.addHeader(
+			HttpHeaders.CACHE_CONTROL,
+			FileEntryHttpHeaderCustomizerUtil.getHttpHeaderValue(
+				fileEntry, HttpHeaders.CACHE_CONTROL,
+				HttpHeaders.CACHE_CONTROL_PRIVATE_VALUE));
 
 		ServletResponseUtil.sendFile(
 			null, httpServletResponse, title, fileEntry.getContentStream(),
@@ -1239,6 +1256,12 @@ public class WebServerServlet extends HttpServlet {
 		if (fileEntry.isInTrash()) {
 			fileName = TrashUtil.getOriginalTitle(fileName);
 		}
+
+		httpServletResponse.addHeader(
+			HttpHeaders.CACHE_CONTROL,
+			FileEntryHttpHeaderCustomizerUtil.getHttpHeaderValue(
+				fileEntry, HttpHeaders.CACHE_CONTROL,
+				HttpHeaders.CACHE_CONTROL_PRIVATE_VALUE));
 
 		boolean download = ParamUtil.getBoolean(httpServletRequest, "download");
 

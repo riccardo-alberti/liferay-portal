@@ -36,13 +36,13 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable TOTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Get TOTP") {
@@ -87,7 +87,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Configure email OTP") {
@@ -102,8 +102,8 @@ definition {
 			MultiFactorAuthentication.viewOTPSentElements(elementList = "emailOTPSentSubject,emailOTPSentBody");
 
 			MultiFactorAuthentication.emailOTPConfiguration(
-				emailOTPSentBody = "One-Time Password for test is:[$ONE_TIME_PASSWORD$]",
-				emailOTPSentSubject = "[$PORTAL_URL$]: Your One-Time Password for test");
+				emailOtpSentBody = "One-Time Password for test is:[$ONE_TIME_PASSWORD$]",
+				emailOtpSentSubject = "[$PORTAL_URL$]: Your One-Time Password for test");
 		}
 
 		task ("Sign Out") {
@@ -130,6 +130,7 @@ definition {
 	@description = "This is a use case for LPS-101717. Assert portal will not show any other MFA after IP Address Configuration is Enabled and assert portal will goes in other MFA verifier if IP verifier is failed."
 	@priority = "5"
 	test AssertLoginGoesInOtherMFAVerifierWhenIPVerifierFailed {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#AssertLoginGoesInOtherMFAVerifierWhenIPVerifierFailed";
 
 		task ("Add CP able.com") {
@@ -149,7 +150,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Assert IP address and TOTP configurations are present for virtual instance scope") {
@@ -163,7 +164,7 @@ definition {
 				baseURL = "http://www.able.com:8080",
 				portlet = "IP Address");
 
-			MultiFactorAuthentication.configureIPAddress(enableIP = "true");
+			MultiFactorAuthentication.configureIPAddress(enableIp = "true");
 		}
 
 		task ("Enable OTP") {
@@ -171,7 +172,7 @@ definition {
 				baseURL = "http://www.able.com:8080",
 				portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Signout and login at able.com") {
@@ -189,8 +190,8 @@ definition {
 				portlet = "IP Address");
 
 			MultiFactorAuthentication.configureIPAddress(
-				allowedIP = "192.168.132.153/255.0.0.0",
-				enableIP = "true");
+				allowedIp = "192.168.132.153/255.0.0.0",
+				enableIp = "true");
 		}
 
 		task ("Signout and login at able.com") {
@@ -236,7 +237,7 @@ definition {
 
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Set MFA checker order to 100") {
@@ -248,7 +249,7 @@ definition {
 				baseURL = "http://www.able.com:8080",
 				portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Set MFA checker order to 10") {
@@ -285,6 +286,7 @@ definition {
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 		property osgi.module.configuration.file.names = "com.liferay.multi.factor.authentication.email.otp.configuration.MFAEmailOTPConfiguration.config";
 		property osgi.module.configurations = "emailFromAddress=&quot;test@liferay.com&quot;${line.separator}emailFromName=&quot;Joe\ Bloggs&quot;";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#AssertUserIsBlockedAfterReachAllowedFailedAttempts";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -292,7 +294,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Configure OTP failed attempts allowed and retry time out") {
@@ -314,7 +316,7 @@ definition {
 		}
 
 		task ("Enter wrong password to reached the maximum allowed failed attempt") {
-			MultiFactorAuthentication.verifyOTP(validOTP = "false");
+			MultiFactorAuthentication.verifyOTP(validOtp = "false");
 
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#ERROR_2",
@@ -347,7 +349,7 @@ definition {
 
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Disable Auto Login Basic Authentication Header") {
@@ -381,7 +383,7 @@ definition {
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#CanDisableOTPForInstanceOnSystemLevel";
 
 		task ("Assert MFA is not disabled on system level") {
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "false");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "false");
 		}
 
 		task ("Add CP able.com") {
@@ -413,7 +415,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Sign out of able.com") {
@@ -445,7 +447,7 @@ definition {
 		task ("Open URL and disable MFA") {
 			Navigator.openURL();
 
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "true");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "true");
 		}
 
 		task ("Logout and login with test@www.able.com at able.com") {
@@ -488,7 +490,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable TOTP") {
@@ -496,7 +498,7 @@ definition {
 				baseURL = "http://www.able.com:8080",
 				portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Go to able.com and get TOTP") {
@@ -523,10 +525,11 @@ definition {
 	@priority = "5"
 	test EnableOTPForInstanceAsInstanceAdminUser {
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#EnableOTPForInstanceAsInstanceAdminUser";
 
 		task ("Assert MFA is not disabled on system level") {
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "false");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "false");
 		}
 
 		task ("Add CP able.com") {
@@ -558,7 +561,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Sign out of able.com") {
@@ -586,7 +589,7 @@ definition {
 		task ("Disable OTP at able.com") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "false");
+			MultiFactorAuthentication.configureOTP(enableOtp = "false");
 		}
 
 		task ("Log out and login at able.com") {
@@ -624,13 +627,13 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable IP Address 127.0.0.1/255.0.0.0") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "IP Address");
 
-			MultiFactorAuthentication.configureIPAddress(enableIP = "true");
+			MultiFactorAuthentication.configureIPAddress(enableIp = "true");
 
 			AssertTextEquals(
 				locator1 = "MultiFactorAuthentication#IP_ADDRESS_CONFIGURATION_ALLOWED_IP_FIELD_1",
@@ -674,7 +677,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Signout and send reset password link for new user") {
@@ -726,7 +729,7 @@ definition {
 		task ("Enable OTP and set failed attempts maximum number and retry time out") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 
 			MultiFactorAuthentication.emailOTPConfiguration(
 				failedAttemptsAllowed = "1",
@@ -746,7 +749,7 @@ definition {
 		}
 
 		task ("Assert user cannot login portal before retry time out") {
-			MultiFactorAuthentication.verifyOTP(validOTP = "false");
+			MultiFactorAuthentication.verifyOTP(validOtp = "false");
 
 			AssertElementPresent(locator1 = "MultiFactorAuthentication#EMAIL_OTP_VERIFY_SUBMIT_EMAIL_BUTTON_DISABLED");
 		}
@@ -767,6 +770,7 @@ definition {
 	test LoginWithIPBasedVerifierEnabled {
 		property osgi.module.configuration.file.names = "com.liferay.multi.factor.authentication.email.otp.configuration.MFAEmailOTPConfiguration.config";
 		property osgi.module.configurations = "emailFromAddress=&quot;test@liferay.com&quot;${line.separator}emailFromName=&quot;Joe\ Bloggs&quot;";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#LoginWithIPBasedVerifierEnabled";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -774,13 +778,13 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable IP address 127.0.0.1/255.0.0.0") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "IP Address");
 
-			MultiFactorAuthentication.configureIPAddress(enableIP = "true");
+			MultiFactorAuthentication.configureIPAddress(enableIp = "true");
 
 			AssertTextEquals(
 				locator1 = "MultiFactorAuthentication#IP_ADDRESS_CONFIGURATION_ALLOWED_IP_FIELD_1",
@@ -807,7 +811,7 @@ definition {
 		task ("Assert audit details") {
 			Audit.viewAuditDetails(
 				additionalInformation = "None",
-				clientIP = "127.0.0.1",
+				clientIp = "127.0.0.1",
 				resourceAction = "MFA_IP_OTP_VERIFICATION_SUCCESS",
 				resourceName = "IPAddressHeadlessMFAChecker",
 				userName = "Test Test");
@@ -817,8 +821,8 @@ definition {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "IP Address");
 
 			MultiFactorAuthentication.configureIPAddress(
-				allowedIP = " ",
-				enableIP = "true");
+				allowedIp = " ",
+				enableIp = "true");
 		}
 
 		task ("Signout and login") {
@@ -851,7 +855,7 @@ definition {
 		task ("Assert audit details") {
 			Audit.viewAuditDetails(
 				additionalInformation = "IP is not allowed",
-				clientIP = "127.0.0.1",
+				clientIp = "127.0.0.1",
 				resourceAction = "MFA_IP_OTP_VERIFICATION_FAILURE",
 				resourceName = "IPAddressHeadlessMFAChecker",
 				userName = "Test Test");
@@ -867,6 +871,7 @@ definition {
 		property environment.acceptance = "true";
 		property osgi.module.configuration.file.names = "com.liferay.multi.factor.authentication.email.otp.configuration.MFAEmailOTPConfiguration.config";
 		property osgi.module.configurations = "emailFromAddress=&quot;test@liferay.com&quot;${line.separator}emailFromName=&quot;Joe\ Bloggs&quot;";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#LoginWithOTPEnabled";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -887,7 +892,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Sign out and login with new user") {
@@ -913,6 +918,7 @@ definition {
 	@priority = "5"
 	test LoginWithTOTPEnabledAsEndUser {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "MultiFactorAuthentication#LoginWithTOTPEnabledAsEndUser";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -933,13 +939,13 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable TOTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Sign out and login with userea@liferay.com") {
@@ -1040,13 +1046,13 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable TOTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Get TOTP") {
@@ -1114,7 +1120,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Assert MFA order is set to 400 and set it to 50") {
@@ -1126,7 +1132,7 @@ definition {
 			MultiFactorAuthentication.viewMFAOrderValue(orderValue = "400");
 
 			MultiFactorAuthentication.configureOTP(
-				enableOTP = "true",
+				enableOtp = "true",
 				order = "50");
 		}
 
@@ -1181,13 +1187,13 @@ definition {
 		task ("Configure MFA and Email OTP and enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Diable MFA") {
 			Navigator.openURL();
 
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "true");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "true");
 		}
 
 		task ("Go to able.com and Assert Instance administrator got notification in notifications list") {
@@ -1206,7 +1212,7 @@ definition {
 		task ("Enable MFA") {
 			Navigator.openURL();
 
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "false");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "false");
 		}
 
 		task ("Go to able.com and Assert Instance administrator got notification in notifications list") {
@@ -1225,13 +1231,13 @@ definition {
 		task ("Go to able.com and disable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "false");
+			MultiFactorAuthentication.configureOTP(enableOtp = "false");
 		}
 
 		task ("Disable MFA") {
 			Navigator.openURL();
 
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "true");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "true");
 		}
 
 		task ("Go to able.com and and Assert Instance administrator got notification in notifications list") {
@@ -1243,7 +1249,7 @@ definition {
 		task ("Enable mfa") {
 			Navigator.openURL();
 
-			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMFA = "false");
+			MultiFactorAuthentication.configureMFAOnSystemLevel(disabledMfa = "false");
 		}
 
 		task ("Go to able.com and and Assert Instance administrator got notification in notifications list") {
@@ -1295,7 +1301,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings();
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Sign out and login") {
@@ -1314,7 +1320,7 @@ definition {
 				recipient = "test test",
 				userEmailAddress = "test@liferay.com",
 				userPassword = "test",
-				validOTP = "false");
+				validOtp = "false");
 
 			MultiFactorAuthentication.verifyOTP(
 				portalURL = "${portalURL}",
@@ -1371,7 +1377,7 @@ definition {
 		task ("Enable OTP") {
 			MultiFactorAuthentication.openToConfigInInstanceSettings(baseURL = "http://www.able.com:8080");
 
-			MultiFactorAuthentication.configureOTP(enableOTP = "true");
+			MultiFactorAuthentication.configureOTP(enableOtp = "true");
 		}
 
 		task ("Enable TOTP") {
@@ -1379,7 +1385,7 @@ definition {
 				baseURL = "http://www.able.com:8080",
 				portlet = "Time-Based OTP");
 
-			MultiFactorAuthentication.configureTOTP(enableTOTP = "true");
+			MultiFactorAuthentication.configureTOTP(enableTotp = "true");
 		}
 
 		task ("Sign out and login at able.com") {

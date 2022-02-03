@@ -768,13 +768,13 @@ definition {
 
 		OpenGraph.viewPreviewImage(imageName = "Document_2.jpg");
 
-		var groupID = Depot.getGroupID(depotName = "Remote Depot");
+		var groupId = Depot.getGroupID(depotName = "Remote Depot");
 
 		User.logoutPG();
 
 		Navigator.openSpecificURL(url = "http://localhost:9080/web/remote-site/test-page");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupId}/0/Document_2.jpg''');
 
 		User.loginPG(
 			nodePort = "8080",
@@ -830,13 +830,13 @@ definition {
 
 		OpenGraph.viewNoPreviewImage(imageName = "Document_2.jpg");
 
-		var groupID = Depot.getGroupID(depotName = "Remote Depot");
+		var groupId = Depot.getGroupID(depotName = "Remote Depot");
 
 		User.logoutPG();
 
 		Navigator.openSpecificURL(url = "http://localhost:9080/web/remote-site/test-page");
 
-		OpenGraph.viewNoOpenGraphProperties(ogPropertyList = '''og:image" content="http://localhost:9080/documents/${groupID}/0/Document_2.jpg"''');
+		OpenGraph.viewNoOpenGraphProperties(ogPropertyList = '''og:image" content="http://localhost:9080/documents/${groupId}/0/Document_2.jpg"''');
 	}
 
 	@description = "This ensures that video shortcut in depot can be deleted and republished in Blogs when enabling remote staging."
@@ -1030,9 +1030,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Remote Site");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_1.jpg",
+			webContentTitle = "Web Content Title");
 
 		User.loginPG(
 			nodePort = "8080",
@@ -1076,8 +1076,9 @@ definition {
 			siteName = "Remote Site");
 
 		AssertElementNotPresent(
-			key_image = "Document_1.jpg",
-			locator1 = "WCD#WEB_CONTENT_CONTENT_IMAGE");
+			key_imageFileName = "Document_1.jpg",
+			key_webContentTitle = "Web Content Title",
+			locator1 = "WCD#WEB_CONTENT_IMAGE");
 	}
 
 	@description = "This ensures that the blog image from a depot can be edited and republished when enabling remote staging."
@@ -1959,13 +1960,13 @@ definition {
 
 		OpenGraph.viewPreviewImage(imageName = "Document_1.jpg");
 
-		var groupID = Depot.getGroupID(depotName = "Remote Depot");
+		var groupId = Depot.getGroupID(depotName = "Remote Depot");
 
 		User.logoutPG();
 
 		Navigator.openSpecificURL(url = "http://localhost:9080/web/remote-site/test-page");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupID}/0/Document_1.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupId}/0/Document_1.jpg''');
 
 		User.loginPG(
 			nodePort = "8080",
@@ -2011,13 +2012,13 @@ definition {
 
 		OpenGraph.viewPreviewImage(imageName = "Document_2.jpg");
 
-		var groupID = Depot.getGroupID(depotName = "Remote Depot");
+		var groupId = Depot.getGroupID(depotName = "Remote Depot");
 
 		User.logoutPG();
 
 		Navigator.openSpecificURL(url = "http://localhost:9080/web/remote-site/test-page");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="http://localhost:9080/documents/${groupId}/0/Document_2.jpg''');
 	}
 
 	@description = "This ensures that the image in depot can be replaced and republished in web content when enabling remote staging."
@@ -2096,9 +2097,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Remote Site");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_1.jpg",
+			webContentTitle = "Web Content Title");
 
 		User.loginPG(
 			nodePort = "8080",
@@ -2142,9 +2143,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Remote Site");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_2.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_2.jpg",
+			webContentTitle = "Web Content Title");
 	}
 
 	@description = "This ensures that a document pending review cannot be searched for in a staged site when enabling remote staging."
@@ -2312,6 +2313,70 @@ definition {
 			locator1 = "Card#CARD_TITLE");
 	}
 
+	@description = "This ensures that assets stored in a depot can be published from the site DM widget when remote staging is enabled."
+	@priority = "4"
+	test CanPublishAssetFromSiteWidget {
+		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property test.name.skip.portal.instance = "DepotRemoteStagingDM#CanPublishAssetFromSiteWidget";
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "Depot Folder Name",
+			groupName = "Test Depot Name");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "DM Document Title",
+			folderName = "Depot Folder Name",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.setRootFolder(
+			depotName = "Test Depot Name",
+			dmRootFolderName = "Depot Folder Name");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Test Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");
+	}
+
 	@description = "This ensures that a document using a custom document type from a depot can be published in the staging site when enabling remote staging."
 	@priority = "5"
 	@refactordone
@@ -2446,6 +2511,74 @@ definition {
 		AssetPublisherPortlet.viewAssetDetailsPG(
 			assetContent = "1 Document",
 			assetTitle = "DM Folder Name");
+	}
+
+	@description = "This ensures that an image in a depot can be published in Media Gallery when remote staging is enabled."
+	@priority = "4"
+	test CanPublishImageInMG {
+		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+		property test.name.skip.portal.instance = "DepotRemoteStagingDM#CanPublishImageInMG";
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Test Depot Name");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_2.jpg",
+			folderName = "DM Folder Name",
+			groupName = "Test Depot Name",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdmin(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Test Page",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		MGPortlet.setRootFolder(
+			depotName = "Test Depot Name",
+			dmRootFolderName = "DM Folder Name");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_2.jpg",
+			staging = "true");
+
+		Navigator.gotoSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive(remoteStaging = "true");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSitePage(
+			baseURL = "http://localhost:9080",
+			pageName = "Test Page",
+			siteName = "Remote Site");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_2.jpg",
+			staging = "true");
 	}
 
 	@description = "This ensures that the shortcut to an image in the depot can be added and published in the staging site when enabling remote staging."

@@ -14,6 +14,8 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.job.property.JobProperty;
+import com.liferay.jenkins.results.parser.job.property.JobPropertyFactory;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.FunctionalBatchTestClassGroup;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -154,6 +157,13 @@ public abstract class BaseJob implements Job {
 	}
 
 	@Override
+	public Set<String> getDistTypes() {
+		JobProperty jobProperty = getJobProperty("test.batch.dist.app.servers");
+
+		return getSetFromString(jobProperty.getValue());
+	}
+
+	@Override
 	public Set<String> getDistTypesExcludingTomcat() {
 		Set<String> distTypesExcludingTomcat = new TreeSet<>(getDistTypes());
 
@@ -168,13 +178,27 @@ public abstract class BaseJob implements Job {
 	}
 
 	@Override
-	public Properties getJobProperties() {
-		return _jobProperties;
+	public List<File> getJobPropertiesFiles() {
+		return jobPropertiesFiles;
 	}
 
 	@Override
-	public String getJobProperty(String key) {
-		return _jobProperties.getProperty(key);
+	public List<String> getJobPropertyOptions() {
+		List<String> jobPropertyOptions = new ArrayList<>();
+
+		jobPropertyOptions.add(String.valueOf(getBuildProfile()));
+
+		String jobName = getJobName();
+
+		jobPropertyOptions.add(jobName);
+
+		if (jobName.contains("(")) {
+			jobPropertyOptions.add(jobName.substring(0, jobName.indexOf("(")));
+		}
+
+		jobPropertyOptions.removeAll(Collections.singleton(null));
+
+		return jobPropertyOptions;
 	}
 
 	@Override
@@ -197,8 +221,24 @@ public abstract class BaseJob implements Job {
 
 		jsonObject.put("batches", batchesJSONArray);
 
-		jsonObject.put("build_profile", getBuildProfile());
+		jsonObject.put("build_profile", String.valueOf(getBuildProfile()));
 		jsonObject.put("job_name", getJobName());
+		jsonObject.put("job_properties", _getJobPropertiesMap());
+		jsonObject.put("job_property_options", getJobPropertyOptions());
+
+		JSONArray smokeBatchesJSONArray = new JSONArray();
+
+		if (this instanceof BatchDependentJob) {
+			BatchDependentJob batchDependentJob = (BatchDependentJob)this;
+
+			for (BatchTestClassGroup batchTestClassGroup :
+					batchDependentJob.getDependentBatchTestClassGroups()) {
+
+				smokeBatchesJSONArray.put(batchTestClassGroup.getJSONObject());
+			}
+		}
+
+		jsonObject.put("smoke_batches", smokeBatchesJSONArray);
 
 		if (this instanceof TestSuiteJob) {
 			TestSuiteJob testSuiteJob = (TestSuiteJob)this;
@@ -346,17 +386,9 @@ public abstract class BaseJob implements Job {
 
 	@Override
 	public boolean isSegmentEnabled() {
-		String testSuiteName = "default";
+		JobProperty jobProperty = getJobProperty("test.batch.segment.enabled");
 
-		if (this instanceof TestSuiteJob) {
-			TestSuiteJob testSuiteJob = (TestSuiteJob)this;
-
-			testSuiteName = testSuiteJob.getTestSuiteName();
-		}
-
-		String segmentEnabled = JenkinsResultsParserUtil.getProperty(
-			_jobProperties, "test.batch.segment.enabled", getJobName(),
-			testSuiteName);
+		String segmentEnabled = jobProperty.getValue();
 
 		if ((segmentEnabled != null) && segmentEnabled.equals("true")) {
 			return true;
@@ -371,13 +403,29 @@ public abstract class BaseJob implements Job {
 	}
 
 	@Override
-	public void readJobProperties() {
-		_jobProperties.clear();
+	public boolean testReleaseBundle() {
+		JobProperty jobProperty = getJobProperty("test.release.bundle");
 
-		for (File jobPropertiesFile : jobPropertiesFiles) {
-			_jobProperties.putAll(
-				JenkinsResultsParserUtil.getProperties(jobPropertiesFile));
+		if (jobProperty != null) {
+			recordJobProperty(jobProperty);
+
+			return Boolean.parseBoolean(jobProperty.getValue());
 		}
+
+		return false;
+	}
+
+	@Override
+	public boolean testRelevantChanges() {
+		JobProperty jobProperty = getJobProperty("test.relevant.changes");
+
+		if (jobProperty != null) {
+			recordJobProperty(jobProperty);
+
+			return Boolean.parseBoolean(jobProperty.getValue());
+		}
+
+		return false;
 	}
 
 	protected BaseJob(String jobName, BuildProfile buildProfile) {
@@ -551,7 +599,26 @@ public abstract class BaseJob implements Job {
 		}
 	}
 
-	protected abstract Set<String> getRawBatchNames();
+	protected JobProperty getJobProperty(String basePropertyName) {
+		return JobPropertyFactory.newJobProperty(
+			basePropertyName, null, null, this, null, null, true);
+	}
+
+	protected JobProperty getJobProperty(
+		String basePropertyName, boolean useBasePropertyName) {
+
+		return JobPropertyFactory.newJobProperty(
+			basePropertyName, null, null, this, null, null,
+			useBasePropertyName);
+	}
+
+	protected Set<String> getRawBatchNames() {
+		JobProperty jobProperty = getJobProperty("test.batch.names");
+
+		recordJobProperty(jobProperty);
+
+		return getSetFromString(jobProperty.getValue());
+	}
 
 	protected List<SegmentTestClassGroup> getSegmentTestClassGroups(
 		Set<String> rawBatchNames) {
@@ -579,7 +646,7 @@ public abstract class BaseJob implements Job {
 	protected Set<String> getSetFromString(String string) {
 		Set<String> set = new TreeSet<>();
 
-		if (string == null) {
+		if (JenkinsResultsParserUtil.isNullOrEmpty(string)) {
 			return set;
 		}
 
@@ -594,10 +661,12 @@ public abstract class BaseJob implements Job {
 		return set;
 	}
 
-	protected void setJobProperties(Properties properties) {
-		_jobProperties.clear();
+	protected void recordJobProperty(JobProperty jobProperty) {
+		if ((jobProperty == null) || _jobProperties.contains(jobProperty)) {
+			return;
+		}
 
-		_jobProperties.putAll(properties);
+		_jobProperties.add(jobProperty);
 	}
 
 	protected final List<File> jobPropertiesFiles = new ArrayList<>();
@@ -608,10 +677,7 @@ public abstract class BaseJob implements Job {
 				JenkinsResultsParserUtil.getBuildProperty(
 					"dist.node.axis.count");
 
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(distNodeAxisCount) &&
-				distNodeAxisCount.matches("\\d+") &&
-				!distNodeAxisCount.equals("0")) {
-
+			if (JenkinsResultsParserUtil.isInteger(distNodeAxisCount)) {
 				return Integer.parseInt(distNodeAxisCount);
 			}
 		}
@@ -627,10 +693,7 @@ public abstract class BaseJob implements Job {
 				JenkinsResultsParserUtil.getBuildProperty(
 					"dist.node.count.minimum");
 
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(distNodeCountMinimum) &&
-				distNodeCountMinimum.matches("\\d+") &&
-				!distNodeCountMinimum.equals("0")) {
-
+			if (JenkinsResultsParserUtil.isInteger(distNodeCountMinimum)) {
 				return Integer.parseInt(distNodeCountMinimum);
 			}
 		}
@@ -640,17 +703,58 @@ public abstract class BaseJob implements Job {
 		return 3;
 	}
 
+	private Map<String, Properties> _getJobPropertiesMap() {
+		synchronized (_jobProperties) {
+			if (!_initializeJobProperties) {
+				getBatchTestClassGroups();
+
+				if (this instanceof BatchDependentJob) {
+					BatchDependentJob batchDependentJob =
+						(BatchDependentJob)this;
+
+					batchDependentJob.getDependentBatchTestClassGroups();
+				}
+
+				_initializeJobProperties = true;
+			}
+		}
+
+		Map<String, Properties> jobPropertiesMap = new TreeMap<>();
+
+		for (JobProperty jobProperty : _jobProperties) {
+			if (jobProperty == null) {
+				continue;
+			}
+
+			String jobPropertyValue = jobProperty.getValue();
+
+			if (jobPropertyValue == null) {
+				continue;
+			}
+
+			String propertiesFilePath = jobProperty.getPropertiesFilePath();
+
+			Properties properties = jobPropertiesMap.get(propertiesFilePath);
+
+			if (properties == null) {
+				properties = new Properties();
+			}
+
+			properties.setProperty(jobProperty.getName(), jobPropertyValue);
+
+			jobPropertiesMap.put(propertiesFilePath, properties);
+		}
+
+		return jobPropertiesMap;
+	}
+
 	private int _getSlaveRAMMinimumDefault() {
 		try {
 			String slaveRAMMinimumDefault =
 				JenkinsResultsParserUtil.getBuildProperty(
 					"slave.ram.minimum.default");
 
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(
-					slaveRAMMinimumDefault) &&
-				slaveRAMMinimumDefault.matches("\\d+") &&
-				!slaveRAMMinimumDefault.equals("0")) {
-
+			if (JenkinsResultsParserUtil.isInteger(slaveRAMMinimumDefault)) {
 				return Integer.parseInt(slaveRAMMinimumDefault);
 			}
 		}
@@ -666,10 +770,7 @@ public abstract class BaseJob implements Job {
 				JenkinsResultsParserUtil.getBuildProperty(
 					"slaves.per.host.default");
 
-			if (!JenkinsResultsParserUtil.isNullOrEmpty(slavesPerHostDefault) &&
-				slavesPerHostDefault.matches("\\d+") &&
-				!slavesPerHostDefault.equals("0")) {
-
+			if (JenkinsResultsParserUtil.isInteger(slavesPerHostDefault)) {
 				return Integer.parseInt(slavesPerHostDefault);
 			}
 		}
@@ -685,7 +786,8 @@ public abstract class BaseJob implements Job {
 		JenkinsResultsParserUtil.getNewThreadPoolExecutor(_THREAD_COUNT, true);
 
 	private final BuildProfile _buildProfile;
+	private boolean _initializeJobProperties;
 	private final String _jobName;
-	private final Properties _jobProperties = new Properties();
+	private final List<JobProperty> _jobProperties = new ArrayList<>();
 
 }

@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -34,7 +36,6 @@ definition {
 	@description = "LPS-68182 - Verify that the Field Label is blank when adding a new Field"
 	@priority = "3"
 	test AddingANewFieldCreatesADefaultLabel {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsFields#AddingANewFieldCreatesADefaultLabel";
@@ -67,7 +68,6 @@ definition {
 	@description = "LPS-73274 - Verify that when duplicating a Field, the new Field Reference is unique"
 	@priority = "4"
 	test CanBeDuplicated {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsFields#CanBeDuplicated";
@@ -108,7 +108,7 @@ definition {
 	@description = "Verify that a Form with all the Fields can be submitted"
 	@priority = "5"
 	test CanBeSubmittedWithAllFields {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsFields#CanBeSubmittedWithAllFields";
 		property testray.component.names = "Training";
 
@@ -143,22 +143,8 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.addTextField(
-			fieldPositionNumber = "2",
-			formPageNumber = "0");
-
-		var fieldMultilineTextField = FormFields.getFieldName();
-
-		Form.editFieldLabelMetal(fieldValue = "MultilineText");
-
-		FormFields.selectTextFieldLineOption(textFieldLineOption = "Multiple Lines");
-
-		FormFields.enableSwitch(fieldName = "Required Field");
-
-		Form.closeSidebar();
-
 		Form.gotoAddField(
-			fieldPositionNumber = "3",
+			fieldPositionNumber = "2",
 			fieldType = "Select from List",
 			formPageNumber = "0");
 
@@ -178,7 +164,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "4",
+			fieldPositionNumber = "3",
 			fieldType = "Single Selection",
 			formPageNumber = "0");
 
@@ -200,7 +186,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "5",
+			fieldPositionNumber = "4",
 			fieldType = "Date",
 			formPageNumber = "0");
 
@@ -209,7 +195,7 @@ definition {
 		Form.closeSidebar();
 
 		Form.gotoAddField(
-			fieldPositionNumber = "6",
+			fieldPositionNumber = "5",
 			fieldType = "Multiple Selection",
 			formPageNumber = "0");
 
@@ -350,10 +336,6 @@ definition {
 			checkboxOption = "Checkbox 1",
 			fieldName = "${fieldMultipleSelectionField}");
 
-		FormFields.editTextMultilineOnPages(
-			fieldName = "${fieldMultilineTextField}",
-			fieldValue = "Multiline Text");
-
 		FormPortlet.nextPage(
 			formPageCurrent = "Page 1",
 			formPageNext = "Page 2");
@@ -390,7 +372,6 @@ definition {
 	@description = "LPS-70560 - Verify that a user is not able to bypass field validation by pressing Next twice"
 	@priority = "4"
 	test ViewFieldValidationIsNotBypassedWhenNextButtonIsHitTwice {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsFields#ViewFieldValidationIsNotBypassedWhenNextButtonIsHitTwice";

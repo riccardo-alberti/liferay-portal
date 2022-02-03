@@ -12,11 +12,13 @@
  * details.
  */
 
-import {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
 import ClayManagementToolbar from '@clayui/management-toolbar';
+import {LinkOrButton} from '@clayui/shared';
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import ActionControls from './ActionControls';
 import CreationMenu from './CreationMenu';
@@ -26,6 +28,10 @@ import InfoPanelControl from './InfoPanelControl';
 import ResultsBar from './ResultsBar';
 import SearchControls from './SearchControls';
 import SelectionControls from './SelectionControls';
+
+import './ManagementToolbar.scss';
+
+const noop = () => {};
 
 function ManagementToolbar({
 	clearResultsURL,
@@ -40,15 +46,17 @@ function ManagementToolbar({
 	initialCheckboxStatus,
 	initialSelectAllButtonVisible,
 	initialSelectedItems,
-	onActionButtonClick = () => {},
-	onCheckboxChange = () => {},
-	onClearSelectionButtonClick = () => {},
-	onCreateButtonClick = () => {},
-	onCreationMenuItemClick = () => {},
-	onInfoButtonClick = () => {},
-	onFilterDropdownItemClick = () => {},
-	onSelectAllButtonClick = () => {},
+	onActionButtonClick = noop,
+	onCheckboxChange = noop,
+	onClearSelectionButtonClick = noop,
+	onCreateButtonClick = noop,
+	onCreationMenuItemClick = noop,
+	onInfoButtonClick = noop,
+	onFilterDropdownItemClick = noop,
+	onOrderDropdownItemClick = noop,
+	onSelectAllButtonClick = noop,
 	onShowMoreButtonClick,
+	orderDropdownItems,
 	searchActionURL,
 	searchContainerId,
 	searchData,
@@ -74,6 +82,10 @@ function ManagementToolbar({
 	);
 	const [active, setActive] = useState(initialCheckboxStatus !== 'unchecked');
 	const [searchMobile, setSearchMobile] = useState(false);
+	const viewTypeIcon = useMemo(
+		() => viewTypeItems?.find((item) => item.active)?.icon,
+		[viewTypeItems]
+	);
 
 	return (
 		<FeatureFlagContext.Provider
@@ -117,6 +129,8 @@ function ManagementToolbar({
 							onFilterDropdownItemClick={
 								onFilterDropdownItemClick
 							}
+							onOrderDropdownItemClick={onOrderDropdownItemClick}
+							orderDropdownItems={orderDropdownItems}
 							sortingOrder={sortingOrder}
 							sortingURL={sortingURL}
 						/>
@@ -146,7 +160,7 @@ function ManagementToolbar({
 						/>
 					)}
 
-					{showInfoButton && (
+					{!showDesignImprovementsFF && showInfoButton && (
 						<InfoPanelControl
 							infoPanelId={infoPanelId}
 							onInfoButtonClick={onInfoButtonClick}
@@ -168,15 +182,34 @@ function ManagementToolbar({
 									<ClayDropDownWithItems
 										items={viewTypeItems}
 										trigger={
-											<ClayButtonWithIcon
-												className="nav-link nav-link-monospaced"
-												displayType="unstyled"
-												symbol={
-													viewTypeItems.find(
-														(item) => item.active
-													)?.icon || ''
-												}
-											/>
+											showDesignImprovementsFF ? (
+												<ClayButton
+													className="nav-link"
+													displayType="unstyled"
+													title={Liferay.Language.get(
+														'show-view-options'
+													)}
+												>
+													{viewTypeIcon && (
+														<ClayIcon
+															symbol={
+																viewTypeIcon
+															}
+														/>
+													)}
+
+													<ClayIcon
+														className="inline-item inline-item-after"
+														symbol="caret-double-l"
+													/>
+												</ClayButton>
+											) : (
+												<ClayButtonWithIcon
+													className="nav-link nav-link-monospaced"
+													displayType="unstyled"
+													symbol={viewTypeIcon}
+												/>
+											)
 										}
 									/>
 								</ClayManagementToolbar.Item>
@@ -197,6 +230,16 @@ function ManagementToolbar({
 												onShowMoreButtonClick
 											}
 										/>
+									) : showDesignImprovementsFF ? (
+										<LinkOrButton
+											className="nav-btn"
+											displayType="primary"
+											onClick={onCreateButtonClick}
+											symbol="plus"
+											wide
+										>
+											{Liferay.Language.get('new')}
+										</LinkOrButton>
 									) : (
 										<ClayButtonWithIcon
 											className="nav-btn nav-btn-monospaced"
@@ -208,6 +251,14 @@ function ManagementToolbar({
 								</ClayManagementToolbar.Item>
 							)}
 						</>
+					)}
+
+					{showDesignImprovementsFF && showInfoButton && (
+						<InfoPanelControl
+							infoPanelId={infoPanelId}
+							onInfoButtonClick={onInfoButtonClick}
+							separator={active}
+						/>
 					)}
 				</ClayManagementToolbar.ItemList>
 			</ClayManagementToolbar>
@@ -248,6 +299,7 @@ ManagementToolbar.propTypes = {
 	onCreateButtonClick: PropTypes.func,
 	onInfoButtonClick: PropTypes.func,
 	onViewTypeSelect: PropTypes.func,
+	orderDropdownItems: PropTypes.array,
 	searchActionURL: PropTypes.string,
 	searchContainerId: PropTypes.string,
 	searchData: PropTypes.object,

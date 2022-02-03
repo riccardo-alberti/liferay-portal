@@ -1,7 +1,19 @@
-import Layout from '../components/Layout';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import {useCustomerPortal} from '../context';
-import {pages} from '../utils/constants';
+import Layout from '../layouts/BaseLayout';
+import {PAGE_TYPES} from '../utils/constants';
 import ActivationKeys from './ActivationKeys';
+import DXP from './DXP';
 import DXPCloud from './DXPCloud';
 import Home from './Home';
 import Overview from './Overview';
@@ -13,7 +25,7 @@ const Pages = () => {
 	] = useCustomerPortal();
 
 	const PageLayout = {
-		[pages.COMMERCE]: {
+		[PAGE_TYPES.commerce]: {
 			Component: (
 				<ActivationKeys.Commerce
 					accountKey={project?.accountKey}
@@ -22,11 +34,22 @@ const Pages = () => {
 			),
 			Skeleton: <ActivationKeys.Skeleton />,
 		},
-		[pages.DXP_CLOUD]: {
-			Component: <DXPCloud />,
+		[PAGE_TYPES.dxp]: {
+			Component: <DXP project={project} sessionId={sessionId} />,
 			Skeleton: <ActivationKeys.Skeleton />,
 		},
-		[pages.ENTERPRISE_SEARCH]: {
+		[PAGE_TYPES.dxpCloud]: {
+			Component: (
+				<DXPCloud
+					project={project}
+					sessionId={sessionId}
+					subscriptionGroups={subscriptionGroups}
+					userAccount={userAccount}
+				/>
+			),
+			Skeleton: <ActivationKeys.Skeleton />,
+		},
+		[PAGE_TYPES.enterpriseSearch]: {
 			Component: (
 				<ActivationKeys.EnterpriseSearch
 					accountKey={project?.accountKey}
@@ -35,11 +58,11 @@ const Pages = () => {
 			),
 			Skeleton: <ActivationKeys.Skeleton />,
 		},
-		[pages.HOME]: {
+		[PAGE_TYPES.home]: {
 			Component: <Home userAccount={userAccount} />,
 			Skeleton: <Home.Skeleton />,
 		},
-		[pages.OVERVIEW]: {
+		[PAGE_TYPES.overview]: {
 			Component: (
 				<Overview
 					project={project}
@@ -48,21 +71,22 @@ const Pages = () => {
 			),
 			Skeleton: <Overview.Skeleton />,
 		},
-		[pages.TEAM_MEMBERS]: {
-			Component: <TeamMembers />,
+		[PAGE_TYPES.teamMembers]: {
+			Component: <TeamMembers project={project} />,
 			Skeleton: <ActivationKeys.Skeleton />,
 		},
 	};
 
 	if (
-		((project && subscriptionGroups && sessionId) || page === pages.HOME) &&
+		((project && subscriptionGroups && sessionId) ||
+			page === PAGE_TYPES.home) &&
 		userAccount
 	) {
 		return (
 			<Layout
-				hasProjectContact={page === pages.OVERVIEW}
+				hasProjectContact={page === PAGE_TYPES.overview}
 				hasQuickLinks={
-					page !== pages.TEAM_MEMBERS && page !== pages.HOME
+					page !== PAGE_TYPES.teamMembers && page !== PAGE_TYPES.home
 				}
 				project={project}
 			>

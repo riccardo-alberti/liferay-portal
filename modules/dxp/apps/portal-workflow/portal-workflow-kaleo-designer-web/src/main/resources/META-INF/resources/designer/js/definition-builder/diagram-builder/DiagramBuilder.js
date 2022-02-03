@@ -20,73 +20,62 @@ import React, {
 import ReactFlow, {
 	Background,
 	Controls,
-	ReactFlowProvider,
 	addEdge,
 	isEdge,
-	isNode,
 } from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../DefinitionBuilderContext';
-import DefinitionDiagramController from '../source-builder/definitionDiagramController';
+import {defaultLanguageId} from '../constants';
+import DeserializeUtil from '../source-builder/deserializeUtil';
 import {singleEventObserver} from '../util/EventObserver';
+import {retrieveDefinitionRequest} from '../util/fetchUtil';
 import {DiagramBuilderContextProvider} from './DiagramBuilderContext';
 import {nodeTypes} from './components/nodes/utils';
 import Sidebar from './components/sidebar/Sidebar';
 import {isIdDuplicated} from './components/sidebar/utils';
 import edgeTypes from './components/transitions/Edge';
 import FloatingConnectionLine from './components/transitions/FloatingConnectionLine';
+import getCollidingElements from './util/collisionDetection';
 
 let id = 2;
 const getId = () => `item_${id++}`;
 
-const isOverlapping = (elementPosition, newElementPosition) => {
-	const isInHorizontalBounds =
-		newElementPosition.x < elementPosition.x + 280 &&
-		newElementPosition.x + 280 > elementPosition.x;
-
-	const isInVerticalBounds =
-		newElementPosition.y < elementPosition.y + 100 &&
-		newElementPosition.y + 100 > elementPosition.y;
-
-	const isOverlapping = isInHorizontalBounds && isInVerticalBounds;
-
-	return isOverlapping;
-};
-
-const getCollidingElements = (elements, newElementPosition) => {
-	const collidingElements = [];
-
-	elements.forEach((element) => {
-		if (
-			isNode(element) &&
-			isOverlapping(element.position, newElementPosition)
-		) {
-			collidingElements.push(element.id);
-		}
-	});
-
-	return collidingElements;
-};
-
-const definitionDiagramController = new DefinitionDiagramController();
+const deserializeUtil = new DeserializeUtil();
 
 export default function DiagramBuilder({version}) {
 	const {
 		currentEditor,
-		defaultLanguageId,
+		definitionId,
+		definitionTitle,
 		deserialize,
 		elements,
 		selectedLanguageId,
+		setActive,
+		setDefinitionDescription,
+		setDefinitionId,
+		setDefinitionTitle,
 		setDeserialize,
 		setElements,
 	} = useContext(DefinitionBuilderContext);
 	const reactFlowWrapperRef = useRef(null);
 	const [collidingElements, setCollidingElements] = useState(null);
+	const [elementRectangle, setElementRectangle] = useState(null);
 	const [reactFlowInstance, setReactFlowInstance] = useState(null);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [selectedItemNewId, setSelectedItemNewId] = useState(null);
 
 	const onConnect = (params) => {
+		if (
+			elements.filter(
+				(element) =>
+					isEdge(element) &&
+					element.source === params.source &&
+					element.target === params.target
+			).length
+		) {
+			return;
+		}
+
 		const defaultEdge = !elements.filter(
 			(element) =>
 				isEdge(element) &&
@@ -117,7 +106,7 @@ export default function DiagramBuilder({version}) {
 		singleEventObserver.notify('handle-connect-end', true);
 	};
 
-	const onConnectStart = (event, {nodeId}) => {
+	const onConnectStart = (_, {nodeId}) => {
 		singleEventObserver.notify('handle-connect-start', nodeId);
 	};
 
@@ -125,11 +114,19 @@ export default function DiagramBuilder({version}) {
 		const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
 
 		const position = reactFlowInstance.project({
-			x: event.clientX - reactFlowBounds.left,
-			y: event.clientY - reactFlowBounds.top,
+			x:
+				event.clientX -
+				reactFlowBounds.left -
+				elementRectangle.mouseXInRectangle,
+			y:
+				event.clientY -
+				reactFlowBounds.top -
+				elementRectangle.mouseYInRectangle,
 		});
 
-		setCollidingElements(getCollidingElements(elements, position));
+		setCollidingElements(
+			getCollidingElements(elements, elementRectangle, position)
+		);
 
 		event.preventDefault();
 
@@ -141,11 +138,20 @@ export default function DiagramBuilder({version}) {
 			const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
 
 			const position = reactFlowInstance.project({
-				x: event.clientX - reactFlowBounds.left,
-				y: event.clientY - reactFlowBounds.top,
+				x:
+					event.clientX -
+					reactFlowBounds.left -
+					elementRectangle.mouseXInRectangle,
+				y:
+					event.clientY -
+					reactFlowBounds.top -
+					elementRectangle.mouseYInRectangle,
 			});
 
-			if (getCollidingElements(elements, position).length === 0) {
+			if (
+				getCollidingElements(elements, elementRectangle, position)
+					.length === 0
+			) {
 				event.preventDefault();
 
 				const type = event.dataTransfer.getData(
@@ -165,15 +171,50 @@ export default function DiagramBuilder({version}) {
 			}
 			setCollidingElements(null);
 		},
-		[elements, reactFlowInstance, setElements]
+		[elements, elementRectangle, reactFlowInstance, setElements]
 	);
 
 	const onLoad = (reactFlowInstance) => {
-		if (version !== '0') {
-			reactFlowInstance.fitView();
-		}
-
 		setReactFlowInstance(reactFlowInstance);
+	};
+
+	const onNodeDragStart = (event) => {
+		const elementRectangle = event.currentTarget.getBoundingClientRect();
+
+		setElementRectangle({
+			mouseXInRectangle: event.clientX - elementRectangle.left,
+			mouseYInRectangle: event.clientY - elementRectangle.top,
+			rectangleHeight: elementRectangle.height,
+			rectangleWidth: elementRectangle.width,
+		});
+	};
+
+	const onNodeDragStop = (event, node) => {
+		const reactFlowBounds = reactFlowWrapperRef.current.getBoundingClientRect();
+
+		const position = reactFlowInstance.project({
+			x:
+				event.clientX -
+				reactFlowBounds.left -
+				elementRectangle.mouseXInRectangle,
+			y:
+				event.clientY -
+				reactFlowBounds.top -
+				elementRectangle.mouseYInRectangle,
+		});
+
+		setElements((elements) =>
+			elements.map((element) => {
+				if (element.id === node.id) {
+					element = {
+						...element,
+						position,
+					};
+				}
+
+				return element;
+			})
+		);
 	};
 
 	useEffect(() => {
@@ -221,6 +262,17 @@ export default function DiagramBuilder({version}) {
 
 						setSelectedItem(element);
 					}
+					else if (isEdge(element)) {
+						element = {
+							...element,
+							...(selectedItem.id === element.source && {
+								source: selectedItemNewId,
+							}),
+							...(selectedItem.id === element.target && {
+								target: selectedItemNewId,
+							}),
+						};
+					}
 
 					return element;
 				})
@@ -234,23 +286,57 @@ export default function DiagramBuilder({version}) {
 		if (deserialize && currentEditor) {
 			const xmlDefinition = currentEditor.getData();
 
-			definitionDiagramController.updateXMLDefinition(xmlDefinition);
+			deserializeUtil.updateXMLDefinition(xmlDefinition);
 
-			const nodes = definitionDiagramController.getNodes();
+			const elements = deserializeUtil.getElements();
 
-			setElements(nodes);
+			const metadata = deserializeUtil.getMetadata();
+
+			setDefinitionDescription(metadata.description);
+			setDefinitionTitle(metadata.name);
+
+			setElements(elements);
 
 			setDeserialize(false);
 		}
-	}, [currentEditor, deserialize, setDeserialize, setElements]);
+	}, [
+		currentEditor,
+		definitionTitle,
+		deserialize,
+		setDefinitionDescription,
+		setDefinitionTitle,
+		setDeserialize,
+		setElements,
+		version,
+	]);
+
+	useEffect(() => {
+		if (version !== '0' && !deserialize) {
+			retrieveDefinitionRequest(definitionId)
+				.then((response) => response.json())
+				.then(({active, content, description, name}) => {
+					setActive(active);
+					setDefinitionDescription(description);
+					setDefinitionId(name);
+
+					deserializeUtil.updateXMLDefinition(content);
+
+					const elements = deserializeUtil.getElements();
+
+					setElements(elements);
+				});
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [version]);
 
 	const contextProps = {
 		collidingElements,
-		elements,
+		elementRectangle,
 		selectedItem,
 		selectedItemNewId,
 		setCollidingElements,
-		setElements,
+		setElementRectangle,
 		setSelectedItem,
 		setSelectedItemNewId,
 	};
@@ -259,25 +345,25 @@ export default function DiagramBuilder({version}) {
 		<DiagramBuilderContextProvider {...contextProps}>
 			<div className="diagram-builder">
 				<div className="diagram-area" ref={reactFlowWrapperRef}>
-					<ReactFlowProvider>
-						<ReactFlow
-							connectionLineComponent={FloatingConnectionLine}
-							edgeTypes={edgeTypes}
-							elements={elements}
-							minZoom="0.1"
-							nodeTypes={nodeTypes}
-							onConnect={onConnect}
-							onConnectEnd={onConnectEnd}
-							onConnectStart={onConnectStart}
-							onDragOver={onDragOver}
-							onDrop={onDrop}
-							onLoad={onLoad}
-						/>
+					<ReactFlow
+						connectionLineComponent={FloatingConnectionLine}
+						edgeTypes={edgeTypes}
+						elements={elements}
+						minZoom="0.1"
+						nodeTypes={nodeTypes}
+						onConnect={onConnect}
+						onConnectEnd={onConnectEnd}
+						onConnectStart={onConnectStart}
+						onDragOver={onDragOver}
+						onDrop={onDrop}
+						onLoad={onLoad}
+						onNodeDragStart={onNodeDragStart}
+						onNodeDragStop={onNodeDragStop}
+					/>
 
-						<Controls showInteractive={false} />
+					<Controls showInteractive={false} />
 
-						<Background size={1} />
-					</ReactFlowProvider>
+					<Background size={1} />
 				</div>
 
 				<Sidebar />

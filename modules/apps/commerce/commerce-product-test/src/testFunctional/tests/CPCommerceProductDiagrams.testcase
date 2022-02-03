@@ -1,16 +1,16 @@
 @component-name = "portal-commerce"
 definition {
 
-	property portal.release = "quarantine";
-	property portal.upstream = "quarantine";
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property osgi.module.configuration.file.names = "com.liferay.commerce.shop.by.diagram.configuration.CSDiagramCPTypeConfiguration.config";
+	property osgi.module.configurations = "enabled=&quot;true&quot;";
 	property testray.main.component.name = "Product Info Management";
 
 	setUp {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
-
-		CommerceConfiguration.enableDiagramFeature();
 	}
 
 	tearDown {
@@ -30,57 +30,47 @@ definition {
 	@description = "This is a test for COMMERCE-7025. AddANewPin"
 	@priority = "3"
 	test AddANewPin {
-		property portal.acceptance = "false";
+		task ("Given a diagram product with an image") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Diagram T-Shirt",
+				productType = "diagram");
 
-		CommerceNavigator.gotoPortlet(
-			category = "Product Management",
-			portlet = "Products");
+			CommerceProducts.openProductsAdmin();
 
-		CPCommerceCatalog.newProductsEntry(
-			productCatalog = "Master",
-			productName = "Diagram T-Shirt",
-			productType = "Diagram");
+			CommerceNavigator.searchEntry(entryName = "Diagram T-Shirt");
 
-		CommerceEntry.gotoMenuTab(menuTab = "Diagram");
+			CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
 
-		CommerceProductImages.addDiagramImages(
-			imageTitles = "Black",
-			productType = "Diagram");
+			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
 
-		Button.clickPublish();
+			CommerceProductImages.addDiagramImages(
+				imageTitles = "Black",
+				productType = "Diagram");
 
-		Alert.viewSuccessMessage();
+			Button.clickPublish();
 
-		DoubleClick(
-			key_image = "Commerce_Black",
-			locator1 = "CommerceEntry#VERIFY_IMAGE");
+			Alert.viewSuccessMessage();
+		}
 
-		AssertElementPresent(
-			key_color = "transparent",
-			locator1 = "CommerceEntry#VERIFY_PIN");
+		task ("When a pin is added on the product") {
+			CommerceDiagram.addPin(
+				label = "Test",
+				pinNumber = "1",
+				quantity = "1",
+				selectType = "Not Linked to a Catalog");
+		}
 
-		AssertElementPresent(
-			key_strokeColor = "#ffa500",
-			locator1 = "CommerceEntry#VERIFY_PIN_COLOR_STROKE");
-
-		Refresh();
-
-		Click(locator1 = "CommerceEntry#DIAGRAM_ADD_BUTTON");
-
-		AssertElementPresent(
-			key_color = "transparent",
-			locator1 = "CommerceEntry#VERIFY_PIN");
-
-		AssertElementPresent(
-			key_strokeColor = "#0B5FFF",
-			locator1 = "CommerceEntry#VERIFY_PIN_COLOR_STROKE");
+		task ("Then the pin should be saved on the product diagram") {
+			AssertElementPresent(
+				key_pinNumber = "1",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+		}
 	}
 
 	@description = "This is a test for COMMERCE-7019. AddDiagramProduct"
 	@priority = "3"
 	test AddDiagramProduct {
-		property portal.acceptance = "false";
-
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
 			portlet = "Products");
@@ -110,26 +100,22 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-7100. Verify user can change a diagram product type to SVG."
-	@ignore = "true"
 	@priority = "3"
 	test ChangeDiagramType {
-
-		// TODO COMMERCE-7100 Add SVG file to testcase dependencies and replace imageTitles variable in test once an alternative SVG file is created
-
 		task ("Given a diagram product with an svg diagram image") {
 			CommerceJSONProductsAPI._addCommerceProduct(
 				catalogName = "Master",
-				productName = "Diagram T-Shirt",
+				productName = "Diagram Product",
 				productType = "diagram");
 
 			CommerceProducts.openProductsAdmin();
 
-			CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
+			CommerceNavigator.gotoEntry(entryName = "Diagram Product");
 
 			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
 
 			CommerceProductImages.addDiagramImages(
-				imageTitles = "imageTitle",
+				imageTitles = "sbd",
 				imageType = "svg",
 				productType = "Diagram");
 
@@ -144,23 +130,25 @@ definition {
 			CommerceDiagram.assertPinToolTipOpens();
 		}
 
-		task ("When I change the Diagram Settings Type to SVG and click on pin 10") {
+		task ("When I change the Diagram Settings Type to SVG and click on pin 1") {
 			CommerceDiagram.changeSettingsType(settingsType = "SVG");
 
-			CommerceDiagram.viewPin(pinNumber = "10");
+			CommerceDiagram.viewPin(pinNumber = "1");
 		}
 
-		task ("Then a tooltip opens with information on pin 10") {
+		task ("Then a tooltip opens with information on pin 1") {
 			CommerceDiagram.assertPinToolTipInfo(
+				pinNumber = "1",
 				pinType = "SKU",
-				positionNumber = "10",
 				quantity = "1");
 
 			Click(
 				key_text = "Cancel",
 				locator1 = "Button#ANY_SECONDARY");
 
-			Click(locator1 = "CommerceDiagrams#DIAGRAM_IMAGE");
+			Click(
+				key_imageItem = "rect",
+				locator1 = "CommerceDiagrams#DIAGRAM_IMAGE_SVG_SPECIFIC");
 
 			CommerceDiagram.assertPinToolTipNotOpen();
 		}
@@ -169,7 +157,11 @@ definition {
 	@description = "This is a test for COMMERCE-7023. EditTheDefaultSettingForPinsCreation"
 	@priority = "3"
 	test EditTheDefaultSettingForPinsCreation {
-		property portal.acceptance = "false";
+		property portal.acceptance = "quarantine";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+
+		// TODO COMMERCE-8268 Test needs refactoring due to a failure locating the Default Diameter button.
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -190,9 +182,11 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DoubleClick(
-			key_image = "Commerce_Black",
-			locator1 = "CommerceEntry#VERIFY_IMAGE");
+		CommerceDiagram.addPin(
+			label = "Test",
+			pinNumber = "1",
+			quantity = "1",
+			selectType = "Not Linked to a Catalog");
 
 		Click(
 			key_text = "Default Diameter",
@@ -222,8 +216,6 @@ definition {
 	@description = "This is a test for COMMERCE-7126. RemoveDiagramProduct"
 	@priority = "3"
 	test RemoveDiagramProduct {
-		property portal.acceptance = "false";
-
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
 			portlet = "Products");
@@ -289,17 +281,17 @@ definition {
 		}
 
 		task ("And given a pin on the product") {
-			CPCommerceCatalog.addPin(
+			CommerceDiagram.addPin(
 				label = "Test",
-				position = "1",
+				pinNumber = "1",
 				quantity = "1",
 				selectType = "Not Linked to a Catalog");
 		}
 
-		task ("When I delete the pin") {
+		task ("When the pin is deleted") {
 			Click(
-				key_positionNumber = "1",
-				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_IMAGE_PIN");
+				key_pinNumber = "1",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN");
 
 			Button.clickDelete();
 
@@ -308,16 +300,59 @@ definition {
 
 		task ("Then the pin should no longer be present") {
 			AssertElementNotPresent(
-				key_positionNumber = "1",
-				locator1 = "CommerceDiagrams#DIAGRAM_PRODUCT_IMAGE_PIN");
+				key_pinNumber = "1",
+				locator1 = "CommerceDiagrams#DIAGRAM_PIN");
+		}
+	}
+
+	@description = "This is a test for COMMERCE-7021. Upload an already mapped new image"
+	@priority = "3"
+	test UploadAlreadyMappedNewImage {
+		task ("Given a diagram product with a svg diagram image.") {
+			property portal.acceptance = "false";
+
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			CPCommerceCatalog.newProductsEntry(
+				productCatalog = "Master",
+				productName = "Diagram T-Shirt",
+				productType = "Diagram");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
+
+			CommerceProductImages.addDiagramImages(
+				imageTitles = "Title",
+				imageType = "svg",
+				productType = "Diagram");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When the Diagram Settings Type is put to SVG and on pin 1") {
+			CommerceDiagram.changeSettingsType(settingsType = "SVG");
+
+			CommerceDiagram.viewPin(pinNumber = "1");
+		}
+
+		task ("Then verify position is 1 and type is "Linked to a SKU"") {
+			CommerceDiagram.assertPinToolTipInfo(
+				pinType = "SKU",
+				positionNumber = "1",
+				quantity = "1");
+
+			Click(
+				key_text = "Cancel",
+				locator1 = "Button#ANY_SECONDARY");
 		}
 	}
 
 	@description = "This is a test for COMMERCE-7020. UploadANotMappedNewImage"
 	@priority = "3"
 	test UploadANotMappedNewImage {
-		property portal.acceptance = "false";
-
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
 			portlet = "Products");
@@ -337,9 +372,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		AssertElementPresent(
-			key_image = "Commerce_Black.jpg",
-			locator1 = "CommerceEntry#VERIFY_IMAGE");
+		WaitForElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_IMAGE");
 
 		AssertElementNotPresent(
 			key_color = "#ffffff",
@@ -347,24 +380,20 @@ definition {
 
 		Refresh();
 
-		AssertElementPresent(
-			key_image = "Commerce_Black.jpg",
-			locator1 = "CommerceEntry#VERIFY_IMAGE");
+		AssertElementPresent(locator1 = "CommerceDiagrams#DIAGRAM_IMAGE");
 	}
 
 	@description = "This is a test for COMMERCE-7036. UseDragForPin"
 	@priority = "3"
 	test UseDragForPin {
-		property portal.acceptance = "false";
-
-		CommerceNavigator.gotoPortlet(
-			category = "Product Management",
-			portlet = "Products");
-
-		CPCommerceCatalog.newProductsEntry(
-			productCatalog = "Master",
+		CommerceJSONProductsAPI._addCommerceProduct(
+			catalogName = "Master",
 			productName = "Diagram T-Shirt",
-			productType = "Diagram");
+			productType = "diagram");
+
+		CommerceProducts.openProductsAdmin();
+
+		CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Diagram");
 
@@ -376,20 +405,24 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		DoubleClick(
-			key_image = "Commerce_Black",
-			locator1 = "CommerceEntry#VERIFY_IMAGE");
+		Refresh();
 
-		CommerceDiagram.useDragOnPin(
-			image_name = "Commerce_Black",
+		CommerceDiagram.addPin(
+			label = "Test",
+			pinNumber = "1",
+			quantity = "1",
+			selectType = "Not Linked to a Catalog");
+
+		DragAndDrop.dragAndDropReorganizeObjects(
+			key_pinNumber = "1",
+			locator1 = "CommerceDiagrams#DIAGRAM_PIN",
+			locator2 = "CommerceDiagrams#DIAGRAM_IMAGE",
 			position = "300,0");
 	}
 
 	@description = "Verify user can use the pin tooltip to edit the information of a diagram product image pin"
 	@priority = "3"
 	test UseToolTip {
-		property portal.acceptance = "false";
-
 		task ("Given a Minium site") {
 			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
 		}
@@ -420,37 +453,41 @@ definition {
 		}
 
 		task ("And given a pin on the product") {
-			CPCommerceCatalog.addPin(
+			CommerceDiagram.addPin(
 				label = "Test",
-				position = "1",
+				pinNumber = "1",
 				quantity = "1",
 				selectType = "Not Linked to a Catalog");
 		}
 
 		task ("When I change the pin information") {
 			CommerceDiagram.changePinInfo(
+				newPinNumber = "2",
 				pinNumber = "1",
-				position = "2",
 				quantity = "2",
 				selectType = "Linked to a SKU",
-				SKU = "MIN93015");
+				sku = "MIN93015");
 		}
 
 		task ("Then I should be able to see the updated pin information when I click on the pin") {
 			CommerceDiagram.viewPin(pinNumber = "2");
 
 			CommerceDiagram.assertPinToolTipInfo(
+				pinNumber = "2",
 				pinType = "SKU",
-				positionNumber = "2",
 				quantity = "2",
-				SKU = "MIN93015");
+				sku = "MIN93015");
 		}
 	}
 
 	@description = "This is a test for COMMERCE-7035. UseZoomAndDragBackground"
 	@priority = "3"
 	test UseZoomAndDragBackground {
-		property portal.acceptance = "false";
+		property portal.acceptance = "quarantine";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+
+		// TODO COMMERCE-8269 Test needs refactoring due to a failure locating the Reset Zoom button.
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -476,6 +513,72 @@ definition {
 		CommerceDiagram.useDragOnBackground(
 			image_name = "Commerce_Black",
 			position = "300,0");
+	}
+
+	@description = "This test asserts that the Mapped Products Table saves all info from pins"
+	@priority = "3"
+	test VerifyMappedProductsTableSavesAllPins {
+		task ("Given a minium site") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		}
+
+		task ("And Given two diagram products") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Diagram T-Shirt 2",
+				productType = "diagram");
+
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Master",
+				productName = "Diagram T-Shirt",
+				productType = "diagram");
+
+			CommerceProducts.openProductsAdmin();
+
+			CommerceNavigator.searchEntry(entryName = "Diagram T-Shirt");
+
+			CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
+
+			CommerceProductImages.addDiagramImages(
+				imageTitles = "Black",
+				productType = "Diagram");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When multiple pins are added to a diagram with an image") {
+			CommerceDiagram.addPin(
+				label = "Test",
+				pinNumber = "1",
+				position = "0,150",
+				quantity = "1",
+				selectType = "Not Linked to a Catalog");
+
+			CommerceDiagram.addPin(
+				pinNumber = "2",
+				position = "150,100",
+				quantity = "1",
+				selectType = "Linked to a SKU",
+				sku = "MIN93015");
+
+			CommerceDiagram.addPin(
+				diagram = "Diagram T-Shirt 2",
+				pinNumber = "3",
+				quantity = "1",
+				selectType = "Linked to a Diagram");
+		}
+
+		task ("Then the Mapped Products table should save information for all pins") {
+			for (var mappedProducts : list "Test,MIN93015,Diagram T-Shirt 2") {
+				AssertElementPresent(
+					key_productName = "${mappedProducts}",
+					locator1 = "CommerceDiagrams#DIAGRAM_MAPPED_PRODUCTS_CONTENT");
+			}
+		}
 	}
 
 }

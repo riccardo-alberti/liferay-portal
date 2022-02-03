@@ -20,6 +20,7 @@ import {
 } from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../../../DefinitionBuilderContext';
+import {defaultLanguageId} from '../../../constants';
 import {DiagramBuilderContext} from '../../DiagramBuilderContext';
 import MarkerEndDefinition, {markerEndId} from './MarkerEndDefinition';
 import {getEdgeParams} from './utils';
@@ -38,9 +39,7 @@ function Edge(props) {
 		targetX,
 		targetY,
 	} = props;
-	const {defaultLanguageId, selectedLanguageId} = useContext(
-		DefinitionBuilderContext
-	);
+	const {elements, selectedLanguageId} = useContext(DefinitionBuilderContext);
 	const {selectedItem, setSelectedItem} = useContext(DiagramBuilderContext);
 
 	let edgeLabel = label[defaultLanguageId];
@@ -106,12 +105,51 @@ function Edge(props) {
 		targetNode
 	);
 
+	const hasCollidingNode = elements.filter(
+		(element) =>
+			element.source === props.target && element.target === props.source
+	).length;
+
+	let newSourceX = sx;
+	let newTargetX = tx;
+
+	if (hasCollidingNode) {
+		const currentTransitionIndex = elements.findIndex(
+			(element) => element.id === props.id
+		);
+
+		const collidedTransitionIndex = elements.findIndex(
+			(element) =>
+				element.source === props.target &&
+				element.target === props.source
+		);
+
+		newSourceX =
+			currentTransitionIndex > collidedTransitionIndex
+				? newSourceX + 40
+				: newSourceX - 40;
+		newTargetX =
+			currentTransitionIndex > collidedTransitionIndex
+				? newTargetX + 40
+				: newTargetX - 40;
+
+		labelPositionX =
+			currentTransitionIndex > collidedTransitionIndex
+				? newSourceX + 40
+				: newSourceX - 40;
+
+		labelPositionY =
+			labelPositionY === targetY || labelPositionY === sourceY
+				? labelPositionY + Math.abs(sourceY - targetY)
+				: labelPositionY;
+	}
+
 	const drawn = getBezierPath({
 		sourcePosition: sourcePos,
-		sourceX: sx,
+		sourceX: newSourceX,
 		sourceY: sy,
 		targetPosition: targetPos,
-		targetX: tx,
+		targetX: newTargetX,
 		targetY: ty,
 	});
 
@@ -145,7 +183,7 @@ function Edge(props) {
 
 			<EdgeText
 				className="reaft-flow-__edge-text"
-				label={edgeLabel.toUpperCase()}
+				label={edgeLabel?.toUpperCase()}
 				labelBgBorderRadius="13px"
 				labelBgPadding={[8, 4]}
 				labelBgStyle={{
@@ -169,13 +207,13 @@ Edge.propTypes = {
 	id: PropTypes.string.isRequired,
 	source: PropTypes.string,
 	sourcePosition: PropTypes.string,
-	sourceX: PropTypes.string,
-	sourceY: PropTypes.string,
+	sourceX: PropTypes.number,
+	sourceY: PropTypes.number,
 	style: PropTypes.object,
 	target: PropTypes.string,
 	targetPosition: PropTypes.string,
-	targetX: PropTypes.string,
-	targetY: PropTypes.string,
+	targetX: PropTypes.number,
+	targetY: PropTypes.number,
 };
 
 const edgeTypes = {

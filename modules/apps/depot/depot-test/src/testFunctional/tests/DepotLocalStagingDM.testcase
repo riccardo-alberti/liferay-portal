@@ -789,9 +789,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_1.jpg",
+			webContentTitle = "Web Content Title");
 
 		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
 
@@ -822,8 +822,9 @@ definition {
 			siteName = "Site Name");
 
 		AssertElementNotPresent(
-			key_image = "Document_1.jpg",
-			locator1 = "WCD#WEB_CONTENT_CONTENT_IMAGE");
+			key_imageFileName = "Document_1.jpg",
+			key_webContentTitle = "Web Content Title",
+			locator1 = "WCD#WEB_CONTENT_IMAGE");
 	}
 
 	@description = "This ensures that the blog image from a depot can be edited and republished when enabling local staging."
@@ -1603,9 +1604,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_1.jpg",
+			webContentTitle = "Web Content Title");
 
 		WebContentNavigator.openToEditWCInSite(
 			groupName = "Site Name (Staging)",
@@ -1634,9 +1635,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_2.jpg");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_2.jpg",
+			webContentTitle = "Web Content Title");
 	}
 
 	@description = "This ensures that a document pending review cannot be searched for in a staged site when enabling local staging."
@@ -1812,6 +1813,62 @@ definition {
 			locator1 = "Card#CARD_TITLE");
 	}
 
+	@description = "This ensures that assets stored in a depot can be published from the site DM widget when local staging is enabled."
+	@priority = "4"
+	test CanPublishAssetFromSiteWidget {
+		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "Depot Folder Name",
+			groupName = "Test Depot Name-staging");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "DM Document Title",
+			folderName = "Depot Folder Name",
+			groupName = "Test Depot Name-staging",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive();
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name (Staging)",
+			layoutName = "Test Page",
+			site = "false",
+			widgetName = "Documents and Media");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.setRootFolder(
+			depotName = "Test Depot Name",
+			dmRootFolderName = "Depot Folder Name");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		Navigator.openSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPG(dmDocumentTitle = "DM Document Title");
+	}
+
 	@description = "This ensures that a document using a custom document type from a depot can be published in the staging site when enabling local staging."
 	@priority = "5"
 	@refactordone
@@ -1965,6 +2022,66 @@ definition {
 		AssetPublisherPortlet.viewAssetDetailsPG(
 			assetContent = "1 Document",
 			assetTitle = "DM Folder Name");
+	}
+
+	@description = "This ensures that an image in a depot can be published in Media Gallery when local staging is enabled."
+	@priority = "4"
+	test CanPublishImageInMG {
+		property osgi.module.configuration.file.names = "com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+
+		JSONFolder.addFolder(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name",
+			groupName = "Test Depot Name-staging");
+
+		JSONDocument.addFileWithUploadedFile(
+			dmDocumentDescription = "DM Image Description",
+			dmDocumentTitle = "Document_2.jpg",
+			folderName = "DM Folder Name",
+			groupName = "Test Depot Name-staging",
+			mimeType = "image/jpeg",
+			sourceFileName = "Document_2.jpg");
+
+		DepotNavigator.openDepotDocumentsAndMediaAdminStaging(depotName = "Test Depot Name");
+
+		DepotNavigator.switchStagingStatus(stagingItem = "Publish to Live");
+
+		Staging.publishToLive();
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name (Staging)",
+			layoutName = "Test Page",
+			site = "false",
+			widgetName = "Media Gallery");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		MGPortlet.setRootFolder(
+			depotName = "Test Depot Name",
+			dmRootFolderName = "DM Folder Name");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_2.jpg",
+			staging = "true");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
+
+		Navigator.openSitePage(
+			pageName = "Test Page",
+			siteName = "Site Name");
+
+		DMDocument.viewPGViaMG(
+			mgDocumentTitle = "Document_2.jpg",
+			staging = "true");
 	}
 
 	@description = "This ensures that the shortcut to an image in the depot can be added and published in the staging site when enabling local staging."

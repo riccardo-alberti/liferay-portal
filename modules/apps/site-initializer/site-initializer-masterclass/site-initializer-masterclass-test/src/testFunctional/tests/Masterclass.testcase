@@ -1,7 +1,6 @@
 @component-name = "portal-lol"
 definition {
 
-	property database.types = "mysql";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Masterclass";
@@ -32,6 +31,8 @@ definition {
 	@description = "This is a test for LPS-137508. Create a Site with the Masterclass Site initializer"
 	@priority = "5"
 	test AddMasterclassSite {
+		property portal.acceptance = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "Test Masterclass Name");
 		}
@@ -838,7 +839,6 @@ definition {
 	}
 
 	@description = "This is a test for LPS-140611. Masterclass Home Page in Desktop size"
-	@ignore = "Test Stub"
 	@priority = "4"
 	test MasterclassHomeinDesktopSize {
 		task ("Go to Home Page") {
@@ -991,6 +991,8 @@ definition {
 	@description = "This is a test for LPS-141750. Masterclass Sign In"
 	@priority = "5"
 	test MasterclassSignIn {
+		property portal.acceptance = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "Test Masterclass Name");
 		}
@@ -1113,7 +1115,7 @@ definition {
 		}
 
 		task ("Go to Courses Page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 		}
@@ -1130,7 +1132,7 @@ definition {
 		}
 
 		task ("Assert the Read More link of the second course redirects to the course display page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 
@@ -1145,7 +1147,7 @@ definition {
 		}
 
 		task ("Assert the Read More link of the third course redirects to the course display page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 
@@ -1370,7 +1372,7 @@ definition {
 		}
 
 		task ("Go to Courses Page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 		}
@@ -1417,7 +1419,6 @@ definition {
 	}
 
 	@description = "This is a test for LPS-137508. View the Masterclass Stylebook Classic Theme"
-	@ignore = "true"
 	test ViewMasterclassClassicStylebook {
 		task ("Go to Masterclass Stylebook") {
 			StyleBooksAdmin.openStyleBooksAdmin(siteURLKey = "test-masterclass-name");
@@ -1644,7 +1645,7 @@ definition {
 		}
 
 		task ("Go to Courses Page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 		}
@@ -1660,7 +1661,7 @@ definition {
 		}
 
 		task ("Assert the title of the second course redirects to the course display page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 
@@ -1674,7 +1675,7 @@ definition {
 		}
 
 		task ("Assert the title of the third course redirects to the course display page") {
-			Navigator.gotoSitePage(
+			ContentPagesNavigator.openViewContentPage(
 				pageName = "Courses",
 				siteName = "Test Masterclass Name");
 
@@ -1691,6 +1692,8 @@ definition {
 	@description = "This is a test for LPS-141750. View the Sign In page elements"
 	@priority = "5"
 	test ViewSignInPageElements {
+		property portal.acceptance = "true";
+
 		task ("Go to Masterclass Site") {
 			ApplicationsMenu.gotoSite(site = "Test Masterclass Name");
 		}

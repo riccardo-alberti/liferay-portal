@@ -12,7 +12,7 @@
  * details.
  */
 
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
@@ -107,8 +107,6 @@ const renderPageContent = (props = contents[0]) =>
 	);
 
 describe('PageContent', () => {
-	afterEach(cleanup);
-
 	useSetEditableProcessorUniqueId.mockImplementation(() => jest.fn);
 
 	it('shows properly the title of the content', () => {
@@ -158,11 +156,9 @@ describe('PageContent', () => {
 		fireEvent.click(queryByText('open-actions-menu'));
 		fireEvent.click(queryByText('edit-image'));
 
-		await wait(() => {
-			expect(
-				baseElement.querySelector('.image-editor-modal')
-			).toBeInTheDocument();
-		});
+		expect(
+			baseElement.querySelector('.image-editor-modal')
+		).toBeInTheDocument();
 	});
 
 	it('shows the edit button if the content is inline text', () => {
@@ -177,11 +173,9 @@ describe('PageContent', () => {
 
 		fireEvent.click(getByText('edit-inline-text'));
 
-		await wait(() => {
-			expect(selectItem).toHaveBeenCalledWith('11113-element-text', {
-				itemType: 'editable',
-				origin: 'sidebar',
-			});
+		expect(selectItem).toHaveBeenCalledWith('11113-element-text', {
+			itemType: 'editable',
+			origin: 'sidebar',
 		});
 	});
 

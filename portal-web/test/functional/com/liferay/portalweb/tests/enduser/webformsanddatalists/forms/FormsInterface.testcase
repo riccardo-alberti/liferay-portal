@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -38,7 +40,6 @@ definition {
 	@description = "LPS-59331 - Verify that a user can navigate to the correct Form when multiple Forms exist"
 	@priority = "5"
 	test CanNavigateToCorrectForm {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsInterface#CanNavigateToCorrectForm";
@@ -120,7 +121,7 @@ definition {
 	@description = "Verify if individual fields can be moved to different positions after being added via element set"
 	@priority = "5"
 	test FieldsAddedViaElementSetCanBeReordered {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -172,7 +173,7 @@ definition {
 	@description = "Verify that fields can be moved between pages"
 	@priority = "5"
 	test FieldsCanBeMovedBetweenPages {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -206,7 +207,7 @@ definition {
 	@description = "Verify that fields can be reordered by DND"
 	@priority = "5"
 	test FieldsCanBeReorderedViaDND {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -249,7 +250,7 @@ definition {
 	@description = "Verify that fields can be resized"
 	@priority = "5"
 	test FieldsCanBeResized {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -277,7 +278,7 @@ definition {
 	@description = "Verify that after resizing, the field does not lose any functionality (edit, duplicate, etc...)"
 	@priority = "5"
 	test FieldsDoNotLoseFunctionalityAfterResizing {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -329,7 +330,7 @@ definition {
 	@description = "Verify that after resizing, the labels, text fields, help text, properties, etc. remain the same"
 	@priority = "5"
 	test FieldsDoNotLosePropertiesAfterResizing {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -383,7 +384,7 @@ definition {
 	@description = "Verify that Fields Groups can be reordered by DND"
 	@priority = "5"
 	test FieldsGroupsCanBeReorderedViaDND {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -429,7 +430,7 @@ definition {
 	@description = "Verify that Fields Groups can be resized"
 	@priority = "5"
 	test FieldsGroupsCanBeResized {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -475,7 +476,7 @@ definition {
 	@description = "Verify that a second field can be added to the same row as a resized field"
 	@priority = "5"
 	test MultipleFieldsCanBeAddedToARow {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -519,7 +520,7 @@ definition {
 	@description = "Verify that a second Fields Group can be added to the same row as a resized Fields Group"
 	@priority = "5"
 	test MultipleFieldsGroupsCanBeAddedToARow {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -575,7 +576,7 @@ definition {
 	@description = "Verify that when there is more than one Fields Group per row and one of the Fields Groups is resized, the non-resized Fields Group adapts its width as well"
 	@priority = "5"
 	test MultipleFieldsGroupsInARowCanBeResized {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -647,7 +648,7 @@ definition {
 	@description = "Verify that when there is more than one field per row and one of those fields is resized, the non-resized field adapts its width as well"
 	@priority = "5"
 	test MultipleFieldsInARowCanBeResized {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 

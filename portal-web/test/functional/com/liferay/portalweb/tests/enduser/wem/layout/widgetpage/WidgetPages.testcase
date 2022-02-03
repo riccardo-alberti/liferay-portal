@@ -32,51 +32,28 @@ definition {
 		}
 	}
 
-	@description = "The user can add a page based in global blog template."
-	@priority = "4"
-	@uitest
-	test AddPageBasedOnGlobalBlogTemplate {
-		task ("Add a page based in global blog template") {
-			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
-
-			PagesAdmin.addPublicPage(
-				pageName = "Test Page Name",
-				pageTemplateName = "Blog");
-		}
-
-		task ("View portlets are shown in blog template page") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			for (var portletName : list "Blogs,Tag Cloud,Recent Bloggers") {
-				Portlet.viewSpecificPG(portletName = "${portletName}");
-			}
-		}
-	}
-
-	@description = "The user can add a page based in global wiki template."
+	@description = "The user can add a page based in global search template."
 	@priority = "5"
 	@uitest
-	test AddPageBasedOnGlobalWikiTemplate {
+	test AddPageBasedOnGlobalSearchTemplate {
 		property portal.acceptance = "true";
 		property testray.component.names = "Training";
 
-		task ("Add a page based in global wiki template") {
+		task ("Add a page based in global search template") {
 			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
 			PagesAdmin.addPublicPage(
 				pageName = "Test Page Name",
-				pageTemplateName = "Wiki");
+				pageTemplateName = "Search");
 		}
 
-		task ("View portlets are shown in wiki template page") {
+		task ("View portlets are shown in search template page") {
 			Navigator.gotoSitePage(
 				pageName = "Test Page Name",
 				siteName = "Test Site Name");
 
-			for (var portletName : list "Tags Navigation,Categories Navigation,Wiki") {
-				Portlet.viewSpecificPG(portletName = "${portletName}");
+			for (var portletName : list "Search Bar,Suggestions,Site Facet,Type Facet,Tag Facet,Category Facet,Folder Facet,User Facet,Modified Facet,Search Results,Search Options") {
+				Portlet.viewDefaultTitle(portletName = "${portletName}");
 			}
 		}
 	}
@@ -153,6 +130,35 @@ definition {
 				depth = "2",
 				pageName = "Test Child Page",
 				privacy = "Private Pages");
+		}
+	}
+
+	@description = "Add a web content via content panel on a widget page."
+	@priority = "4"
+	@uitest
+	test AddWebContentViaContentPanel {
+		task ("Add a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("Add a web content via content panel") {
+			Navigator.gotoSitePage(
+				pageName = "Test Page Name",
+				siteName = "Test Site Name");
+
+			WidgetPages.addNewContent(assetType = "Basic Web Content");
+
+			WebContent.addCP(
+				webContentContent = "Web Content Content",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("View web content is shown in content panel") {
+			WidgetPages.viewContentPanel(entryTitleList = "Web Content Title");
 		}
 	}
 

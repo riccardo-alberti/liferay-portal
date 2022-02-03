@@ -109,6 +109,11 @@ public interface UserGroupService extends BaseService {
 	public UserGroup fetchUserGroup(long userGroupId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public UserGroup fetchUserGroupByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<UserGroup> getGtUserGroups(
 		long gtUserGroupId, long companyId, long parentUserGroupId, int size);
 
@@ -278,6 +283,10 @@ public interface UserGroupService extends BaseService {
 	 * @param userGroupIds the primary keys of the user groups
 	 */
 	public void unsetTeamUserGroups(long teamId, long[] userGroupIds)
+		throws PortalException;
+
+	public UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
 		throws PortalException;
 
 	/**

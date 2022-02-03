@@ -21,7 +21,7 @@ definition {
 	}
 
 	macro accountSignIn {
-		if (contains("${specificURL}", "{specificURL}")) {
+		if (!(isSet(specificURL))) {
 			Navigator.openURL();
 		}
 		else {
@@ -39,6 +39,10 @@ definition {
 		Type(
 			locator1 = "OpenIDConnect#LOGIN_USERNAME_FIELD",
 			value1 = "${userEmailAddress}");
+
+		if (IsElementPresent(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON")) {
+			Click(locator1 = "GoogleLogin#LOGIN_NEXT_BUTTON");
+		}
 
 		Type(
 			locator1 = "OpenIDConnect#LOGIN_PASSWORD_FIELD",
@@ -61,11 +65,11 @@ definition {
 
 		FormFields.editTextMultiline(
 			fieldName = "openIdConnectClientId",
-			fieldValue = "${openIDConnectClientID}");
+			fieldValue = "${openIdConnectClientId}");
 
 		FormFields.editTextMultiline(
 			fieldName = "openIdConnectClientSecret",
-			fieldValue = "${openIDConnectClientSecret}");
+			fieldValue = "${openIdConnectClientSecret}");
 
 		FormFields.editTextMultiline(
 			fieldName = "discoveryEndPoint",

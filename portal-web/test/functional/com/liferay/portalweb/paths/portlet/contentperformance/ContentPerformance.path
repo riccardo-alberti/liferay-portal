@@ -21,28 +21,23 @@
 	<td></td>
 </tr>
 <tr>
-	<td>CONTENT_PERFORMANCE_START_FREE_TRIAL</td>
-	<td>//span[contains(@class,'taglib-text') and contains(.,'Start Free Trial')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>CONTENT_PERFORMANCE_PANEL</td>
 	<td>//*[contains(@class, 'sidebar sidebar-light sidenav-menu sidebar-sm')]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_PERFORMANCE_START_FREE_TRIAL</td>
+	<td>//span[contains(@class,'taglib-text') and contains(.,'Start Free Trial')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONTENT_PERFORMANCE_TITLE</td>
-	<td>//*[contains(@class, 'font-weight-semi-bold text-truncate-inline')]//span[contains(text(),'Content Page')]</td>
+	<td>//*[contains(@class, 'font-weight-semi-bold text-truncate-inline')]//span[contains(text(),'${pageName}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CONTENT_PERFORMANCE_TITLE_PANEL</td>
 	<td>//span[contains(@class, 'font-weight-bold') and contains(text(),'Content Performance')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CONTENT_PERFORMANCE_URL</td>
-	<td>//*[contains(@class, 'text-truncate text-truncate-reverse')]//bdi[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -56,18 +51,18 @@
 	<td></td>
 </tr>
 <tr>
-	<td>NUMBER_VIEWS</td>
-	<td>xpath=(//span[contains(@class, 'font-weight-bold') and contains(text(),'0')])[${key_number}]</td>
+	<td>CONTENT_PERFORMANCE_URL</td>
+	<td>//*[contains(@class, 'text-truncate text-truncate-reverse')]//bdi[contains(@class,'text-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_DATE_RANGE</td>
-	<td>//select[contains(@class,'form-control')]</td>
+	<td>PAGE_AUTHOR</td>
+	<td>//div[contains(@class,'text-secondary') and contains (text(),'Authored by ${key_author}')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SELECT_TRAFFIC_SOURCES_NUMBER</td>
-	<td>//div[@class='pie-chart-wrapper'] //td[contains(text(),'0')]</td>
+	<td>ICON_VIEW_METRICS</td>
+	<td>//button[contains(@label,'View Metrics')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -76,8 +71,48 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ICON_VIEW_METRICS</td>
-	<td>//button[contains(@label,'View Metrics')]</td>
+	<td>LANGUAGE_DROPDOWN_BUTTON</td>
+	<td>//div[contains(@class, 'sidebar-section')] //button[contains(@class, 'dropdown-toggle')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LANGUAGE_LABEL</td>
+	<td>//span[contains(@class,'label-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LOCALE_BUTTON</td>
+	<td>//div[contains(@class,'sidebar-body')] //button[*[name()='svg'][contains(@class,'lexicon-icon')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NUMBER_VIEWS</td>
+	<td>//*[contains(@class, 'recharts-legend-item-text')] //span[contains(@class, 'font-weight-bold')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_DATE_RANGE</td>
+	<td>//select[contains(@class,'form-control')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>GRAPH_ENGAGEMENT</td>
+	<td>//div[contains(@class,'recharts-wrapper')]//*[name()='svg'][contains(@class,'recharts-surface')]//*[name()='g'][contains(@class,'recharts-cartesian-grid')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_TRAFFIC_SOURCES_NUMBER</td>
+	<td>//div[@class='pie-chart-wrapper'] //td[contains(text(),'0')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR</td>
+	<td>//div[contains(@class,'lfr-analytics-reports-panel')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TOTAL_VIEWS_NUMBER</td>
+	<td>//*[contains(@class, 'mb-2')]//span[contains(@class, 'inline-item-after')]</td>
 	<td></td>
 </tr>
 </tbody>

@@ -1,11 +1,11 @@
 definition {
 
 	macro _addCustomElementRemoteAppAllFields {
-		Variables.assertDefined(parameterList = "${customElementCSSURL},${customElementHTMLName},${customElementName},${customElementProperties},${customElementURL}");
+		Variables.assertDefined(parameterList = "${customElementCssurl},${customElementHtmlName},${customElementName},${customElementProperties},${customElementURL}");
 
-		var CSSURLModified = StringUtil.replace("${customElementCSSURL}", ":", "%3A");
+		var cssurlModified = StringUtil.replace("${customElementCssurl}", ":", "%3A");
 		var customElementURLModified = StringUtil.replace("${customElementURL}", ":", "%3A");
-		var htmlNameModified = StringUtil.replace("${customElementHTMLName}", " ", "%20");
+		var htmlNameModified = StringUtil.replace("${customElementHtmlName}", " ", "%20");
 		var nameModified = StringUtil.replace("${customElementName}", " ", "%20");
 		var propertiesModified = StringUtil.replace("${customElementProperties}", " ", "%20");
 
@@ -14,7 +14,7 @@ definition {
 		var curl = '''
 			${portalURL}/api/jsonws/remoteapp.remoteappentry/add-custom-element-remote-app-entry \
 				  -u test@liferay.com:test \
-				  -d customElementCSSURLs=${CSSURLModified} \
+				  -d customElementCSSURLs=${cssurlModified} \
 				  -d customElementHTMLElementName=${htmlNameModified} \
 				  -d customElementURLs=${customElementURLModified} \
 				  -d description= \
@@ -26,17 +26,17 @@ definition {
 				  -d properties=${propertiesModified} \
 				  -d sourceCodeURL=
 		''';
-		var remoteAppEntryID = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
+		var remoteAppEntryId = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
 
-		return "${remoteAppEntryID}";
+		return "${remoteAppEntryId}";
 	}
 
 	macro _addCustomElementRemoteAppEntry {
-		Variables.assertDefined(parameterList = "${customElementName},${customElementHTMLName},${customElementURL}");
+		Variables.assertDefined(parameterList = "${customElementName},${customElementHtmlName},${customElementURL}");
 
 		var customElementURLModified = StringUtil.replace("${customElementURL}", ":", "%3A");
 		var nameModified = StringUtil.replace("${customElementName}", " ", "%20");
-		var htmlNameModified = StringUtil.replace("${customElementHTMLName}", " ", "%20");
+		var htmlNameModified = StringUtil.replace("${customElementHtmlName}", " ", "%20");
 
 		var portalURL = JSONCompany.getPortalURL();
 
@@ -55,9 +55,9 @@ definition {
 				  -d properties= \
 				  -d sourceCodeURL=
 		''';
-		var remoteAppEntryID = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
+		var remoteAppEntryId = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
 
-		return "${remoteAppEntryID}";
+		return "${remoteAppEntryId}";
 	}
 
 	macro _addIFrameRemoteAppEntry {
@@ -80,9 +80,9 @@ definition {
 				  -d properties= \
 				  -d sourceCodeURL=
 		''';
-		var remoteAppEntryID = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
+		var remoteAppEntryId = JSONCurlUtil.post("${curl}", "$.['remoteAppEntryId']");
 
-		return "${remoteAppEntryID}";
+		return "${remoteAppEntryId}";
 	}
 
 	macro _deleteIFrameRemoteAppEntry {

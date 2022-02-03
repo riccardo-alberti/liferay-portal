@@ -38,21 +38,15 @@ type Locale =
 type LocalizedTextKey =
 	| 'error'
 	| 'please-add-at-least-one-field'
-	| 'your-responses-will-be-visible-to-all-form-respondents'
 	| 'see-partial-results'
 	| 'submit-again'
-	| 'understood';
+	| 'summary'
+	| 'there-are-no-entries'
+	| 'understood'
+	| 'x-entries'
+	| 'x-entry'
+	| 'your-responses-will-be-visible-to-all-form-respondents';
 
 type LocalizedValue<T> = {
 	[key in Locale]?: T;
-};
-
-declare const Liferay: {
-	Language: {
-		direction: LocalizedValue<Direction>;
-		get: (key: LocalizedTextKey) => string;
-	};
-	Util: {
-		sub: (string: string, data: any, ...others: string[]) => string;
-	};
 };

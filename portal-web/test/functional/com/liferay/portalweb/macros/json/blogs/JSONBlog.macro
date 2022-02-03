@@ -47,7 +47,7 @@ definition {
 
 		var portalURL = JSONCompany.getPortalURL();
 
-		var contentXML = JSONBlogSetter.setContentXML(content = "${entryContent}");
+		var contentXml = JSONBlogSetter.setContentXML(content = "${entryContent}");
 
 		if (!(isSet(entrySubtitle))) {
 			var entrySubtitle = "";
@@ -114,7 +114,7 @@ definition {
 			-d subtitle=${entrySubtitle} \
 			-d urlTitle=${friendlyURL} \
 			-d description=${entryAbstractDescription} \
-			-d content=${contentXML} \
+			-d content=${contentXml} \
 			-d displayDateMonth=${displayDateMonth} \
 			-d displayDateDay=${displayDateDay} \
 			-d displayDateYear=${displayDateYear} \
@@ -346,7 +346,7 @@ definition {
 			var newFriendlyURL = "";
 		}
 
-		var contentXML = JSONBlogSetter.setContentXML(content = "${entryContent}");
+		var contentXml = JSONBlogSetter.setContentXML(content = "${entryContent}");
 
 		var entryId = JSONBlog.getBlogEntryId(
 			entryTitle = "${entryTitle}",
@@ -398,7 +398,7 @@ definition {
 			-d subtitle=${entrySubtitle} \
 			-d urlTitle=${newFriendlyURL} \
 			-d description= \
-			-d content=${contentXML} \
+			-d content=${contentXml} \
 			-d displayDateMonth=${displayDateMonth} \
 			-d displayDateDay=${displayDateDay} \
 			-d displayDateYear=${displayDateYear} \

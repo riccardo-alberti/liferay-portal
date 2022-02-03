@@ -28,6 +28,7 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetLinkLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.diff.DiffHtml;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.util.DLUtil;
@@ -117,7 +118,6 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
-import com.liferay.portal.kernel.diff.DiffHtmlUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -625,6 +625,7 @@ public class JournalArticleLocalServiceImpl
 		}
 
 		article.setStatusByUserId(userId);
+		article.setStatusByUserName(user.getFullName());
 		article.setStatusDate(serviceContext.getModifiedDate(date));
 		article.setExpandoBridgeAttributes(serviceContext);
 
@@ -5783,8 +5784,8 @@ public class JournalArticleLocalServiceImpl
 			article.setResourcePrimKey(latestArticle.getResourcePrimKey());
 			article.setGroupId(latestArticle.getGroupId());
 			article.setCompanyId(latestArticle.getCompanyId());
-			article.setUserId(user.getUserId());
-			article.setUserName(user.getFullName());
+			article.setUserId(latestArticle.getUserId());
+			article.setUserName(latestArticle.getUserName());
 			article.setCreateDate(latestArticle.getCreateDate());
 			article.setModifiedDate(serviceContext.getModifiedDate(date));
 			article.setExternalReferenceCode(
@@ -6471,6 +6472,18 @@ public class JournalArticleLocalServiceImpl
 			article.setSmallImageURL(oldArticle.getSmallImageURL());
 
 			article.setStatus(WorkflowConstants.STATUS_DRAFT);
+
+			User statusUser = _userLocalService.fetchUser(
+				serviceContext.getUserId());
+
+			if (statusUser == null) {
+				statusUser = _userLocalService.getDefaultUser(
+					oldArticle.getCompanyId());
+			}
+
+			article.setStatusByUserId(statusUser.getUserId());
+			article.setStatusByUserName(statusUser.getFullName());
+
 			article.setStatusDate(new Date());
 
 			ExpandoBridgeUtil.copyExpandoBridgeAttributes(
@@ -6961,7 +6974,7 @@ public class JournalArticleLocalServiceImpl
 
 						String fileEntryName = DLUtil.getUniqueFileName(
 							folder.getGroupId(), folder.getFolderId(),
-							tempFileEntry.getFileName());
+							tempFileEntry.getFileName(), false);
 
 						fileEntry = _portletFileRepository.addPortletFileEntry(
 							folder.getGroupId(), tempFileEntry.getUserId(),
@@ -8260,8 +8273,7 @@ public class JournalArticleLocalServiceImpl
 		subscriptionSender.setContextAttribute(
 			"[$ARTICLE_CONTENT$]", articleContent, false);
 		subscriptionSender.setContextAttribute(
-			"[$ARTICLE_DIFFS$]", DiffHtmlUtil.replaceStyles(articleDiffs),
-			false);
+			"[$ARTICLE_DIFFS$]", _diffHtml.replaceStyles(articleDiffs), false);
 
 		String articleURL = JournalUtil.getJournalControlPanelLink(
 			article.getFolderId(), article.getGroupId(),
@@ -9171,7 +9183,7 @@ public class JournalArticleLocalServiceImpl
 			fileEntry -> {
 				String fileEntryName = DLUtil.getUniqueFileName(
 					fileEntry.getGroupId(), fileEntry.getFolderId(),
-					fileEntry.getFileName());
+					fileEntry.getFileName(), false);
 
 				Folder folder = article.addImagesFolder();
 
@@ -9274,6 +9286,9 @@ public class JournalArticleLocalServiceImpl
 
 	@Reference
 	private DDMStructureVersionLocalService _ddmStructureVersionLocalService;
+
+	@Reference
+	private DiffHtml _diffHtml;
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;

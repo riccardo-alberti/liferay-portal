@@ -92,6 +92,7 @@ const StyleBookEditor = ({
 };
 
 export default function ({
+	fragmentCollectionPreviewURL = '',
 	frontendTokenDefinition = [],
 	frontendTokensValues = {},
 	initialPreviewLayout,
@@ -105,8 +106,10 @@ export default function ({
 	styleBookEntryId,
 	templatesPreviewEnabled,
 	themeName,
+	tokenReuseEnabled,
 } = {}) {
 	initializeConfig({
+		fragmentCollectionPreviewURL,
 		frontendTokenDefinition,
 		initialPreviewLayout,
 		isPrivateLayoutsEnabled,
@@ -119,6 +122,7 @@ export default function ({
 		styleBookEntryId,
 		templatesPreviewEnabled,
 		themeName,
+		tokenReuseEnabled,
 	});
 
 	return (

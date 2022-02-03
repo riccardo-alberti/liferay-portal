@@ -10,6 +10,8 @@ definition {
 		Button.clickSave();
 
 		WaitForSPARefresh();
+
+		WaitForPageLoad();
 	}
 
 	macro assertAuthorColumnDisplaysUserName {
@@ -52,10 +54,26 @@ definition {
 			locator1 = "ObjectPortlet#VIEW_ENTRY_DETAILS_LABEL");
 	}
 
+	macro assertEntryDetailsNotPresent {
+		SelectFrameTop();
+
+		AssertElementNotPresent(
+			key_entrySelected = "${entryNotSelected}",
+			locator1 = "ObjectPortlet#OBJECT_FIELD_SELECTED");
+	}
+
 	macro assertEntryDetailsValuePresent {
 		AssertElementPresent(
 			key_entryValue = "${entryValue}",
 			locator1 = "ObjectPortlet#VIEW_ENTRY_DETAILS_VALUE");
+	}
+
+	macro assertEntryDetailsValueSelected {
+		SelectFrameTop();
+
+		AssertElementPresent(
+			key_entrySelected = "${entrySelected}",
+			locator1 = "ObjectPortlet#OBJECT_FIELD_SELECTED");
 	}
 
 	macro assertEntryNotPresent {
@@ -122,6 +140,16 @@ definition {
 			locator1 = "ObjectPortlet#OBJECT_PORTLET_HEADER");
 	}
 
+	macro assertIsDisplayedOnControlPanel {
+		ApplicationsMenuHelper.openApplicationsMenu();
+
+		ApplicationsMenu.gotoPanel(panel = "Control Panel");
+
+		AssertElementPresent(
+			key_itemMenu = "${itemMenu}",
+			locator1 = "ObjectPortlet#VIEW_FIELD_ON_MENU");
+	}
+
 	macro assertMenuItemColumn {
 		AssertElementPresent(
 			key_dropdowntItem = "${dropdowntItem}",
@@ -144,6 +172,12 @@ definition {
 
 	macro assertPlusButtonIsNotPresent {
 		AssertElementNotPresent(locator1 = "Button#PLUS");
+	}
+
+	macro assertRelationshipEntrySearchResultsNotPresent {
+		AssertElementNotPresent(
+			key_picklistOption = "${entry}",
+			locator1 = "ObjectAdmin#ENTRY_PICKLIST_OPTION");
 	}
 
 	macro assertRelationshipEntrySearchResultsPresent {
@@ -262,6 +296,10 @@ definition {
 			locator1 = "CreateObject#ENTRY_RELATIONSHIP_FIELD_OPTION");
 
 		Button.clickSave();
+
+		WaitForSPARefresh();
+
+		WaitForPageLoad();
 	}
 
 	macro sortField {
@@ -291,6 +329,21 @@ definition {
 		Button.clickSave();
 
 		WaitForSPARefresh();
+	}
+
+	macro viewClobEntryDetails {
+		var key_entry = "${clobEntry}";
+
+		if (IsElementPresent(locator1 = "ObjectPortlet#ENTRY_CLOB_KEBAB_MENU")) {
+			Click(locator1 = "ObjectPortlet#ENTRY_CLOB_KEBAB_MENU");
+
+			Click(locator1 = "ObjectPortlet#VIEW_ENTRY_BUTTON");
+		}
+		else {
+			Click(locator1 = "ObjectPortlet#VIEW_ENTRY_EYE_BUTTON");
+		}
+
+		WaitForPageLoad();
 	}
 
 	macro viewEntry {

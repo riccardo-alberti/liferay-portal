@@ -47,6 +47,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testCollapseImports() throws Exception {
+		test("CollapseImports.testjava");
+	}
+
+	@Test
 	public void testCombineLines() throws Exception {
 		test("CombineLines.testjava");
 	}
@@ -212,9 +217,9 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			"IncorrectParameterNames.testjava",
 			new String[] {
 				"Parameter 'StringMap' must match pattern " +
-					"'^[a-z][a-zA-Z0-9]*$'",
+					"'^[a-z][_a-zA-Z0-9]*$'",
 				"Parameter 'TestString' must match pattern " +
-					"'^[a-z][a-zA-Z0-9]*$'"
+					"'^[a-z][_a-zA-Z0-9]*$'"
 			},
 			new Integer[] {24, 28});
 	}
@@ -481,6 +486,17 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testUnusedImport() throws Exception {
 		test("UnusedImport.testjava");
+	}
+
+	@Test
+	public void testUnusedMethods() throws Exception {
+		test(
+			"UnusedMethods.testjava",
+			new String[] {
+				"Method '_getInteger' is unused",
+				"Method '_getString' is unused"
+			},
+			new Integer[] {33, 41});
 	}
 
 	@Test

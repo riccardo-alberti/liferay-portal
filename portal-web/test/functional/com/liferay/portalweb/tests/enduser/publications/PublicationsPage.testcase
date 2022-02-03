@@ -97,13 +97,13 @@ definition {
 
 		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
-		var fragmentHTML = '''<lfr-widget-asset-list>''';
+		var fragmentHtml = '''<lfr-widget-asset-list>''';
 
 		var htmlSnippet = '''<lfr-''';
 
 		FragmentsEditor.autocompleteFragmentHTML(
 			autocompleteField = "lfr-widget-asset-list",
-			fragmentHTML = "${fragmentHTML}",
+			fragmentHtml = "${fragmentHtml}",
 			htmlSnippet = "${htmlSnippet}");
 
 		PortletEntry.publish();

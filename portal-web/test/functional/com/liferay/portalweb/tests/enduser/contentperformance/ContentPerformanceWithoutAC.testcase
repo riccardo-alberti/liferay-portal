@@ -52,7 +52,6 @@ definition {
 	}
 
 	@description = "LPS-108856: When user opens Content Performance panel and AC is not connected, a Dont show me this again button is displayed"
-	@ignore = "true"
 	@priority = "3"
 	test DontShowButton {
 		task ("Assert if element is not present") {
@@ -67,7 +66,6 @@ definition {
 	}
 
 	@description = "LPS-105216: Validate that Free trial and dismiss buttons are displayed when AC is disabled"
-	@ignore = "true"
 	@priority = "5"
 	test FreeTrialButtonPresent {
 		task ("Open Content Performance and Assert if element is present") {
@@ -88,39 +86,133 @@ definition {
 	}
 
 	@description = "LPS-108856: When user clicks on Dont show me this again button, the Content Performance panel disappears"
-	@ignore = "true"
 	@priority = "5"
 	test HideContentPerformancePanel {
+		task ("Assert if element is not present") {
+			if (IsVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_PANEL")) {
+				Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+			}
 
-		// TODO LPS-139239 HideContentPerformancePanel pending implementation
+			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
+		}
 
+		task ("Click on the button") {
+			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_DO_NOT_SHOW_AGAIN");
+		}
+
+		task ("Assert that the Content Performance panel button disappears") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON",
+				value1 = "Content Performance");
+		}
 	}
 
-	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is not shown in the bar above the blog display page in the view mode"
-	@ignore = "true"
+	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is shown in the bar above the blog display page in the view mode"
 	@priority = "3"
-	test MetricsIconNotVisibleInBlogDisplayPage {
+	test MetricsIconNotVisibleInBlogDisplayPageWithoutAC {
+		task ("Create a Blog Entry") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				groupName = "Test Site Name");
+		}
 
-		// TODO LPS-144030 MetricsIconNotVisibleInBlogDisplayPage pending implementation
+		task ("Add 'Asset Publisher' to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
 
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Open Content Performance panel") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "Blogs Entry Title");
+
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Check if infomation is not present at painel") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_TITLE",
+				pageName = "DM Document Title");
+
+			AssertTextNotPresent(
+				locator1 = "ContentPerformance#TOTAL_VIEWS_NUMBER",
+				value1 = "0");
+		}
 	}
 
-	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is not shown in the bar above the document display page in the view mode"
-	@ignore = "true"
+	@description = "LPS-126044: When DXP is not connected to AC, the metrics icon is shown in the bar above the document display page in the view mode"
 	@priority = "3"
-	test MetricsIconNotVisibleInDocumentDisplayPage {
+	test MetricsIconNotVisibleInDocumentDisplayPageWithoutAC {
+		task ("Create a Document") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				groupName = "Test Site Name");
+		}
 
-		// TODO LPS-144030 MetricsIconNotVisibleInDocumentDisplayPage pending implementation
+		task ("Add 'Asset Publisher' to page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
 
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Open Content Performance panel") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-widget-page-name");
+
+			AssetPublisherPortlet.clickAssetTitle(assetTitle = "DM Document Title");
+
+			ContentPerformance.openContentPerformance();
+		}
+
+		task ("Check if infomation is not present at painel") {
+			AssertElementNotPresent(
+				locator1 = "ContentPerformance#CONTENT_PERFORMANCE_TITLE",
+				pageName = "DM Document Title");
+
+			AssertTextNotPresent(
+				locator1 = "ContentPerformance#TOTAL_VIEWS_NUMBER",
+				value1 = "0");
+		}
 	}
 
-	@description = "LPS-126047: When DXP is not connected to AC, the metrics icon is not shown in the bar above the widget page in the view mode"
-	@ignore = "true"
+	@description = "LPS-126047: When DXP is not connected to AC, the metrics icon is shown in the bar above the widget page in the view mode"
 	@priority = "3"
-	test MetricsIconNotVisibleInWidgetPage {
+	test MetricsIconNotVisibleInWidgetPageWithoutAC {
+		task ("Create Widget Page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
 
-		// TODO LPS-144029 MetricsIconNotVisibleInWidgetPage pending implementation
+			PagesAdmin.addPublicPage(
+				pageName = "Widget Page Name",
+				sitePageType = "Widget Page");
+		}
 
+		task ("Navigate to Widget page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/3");
+		}
+
+		task ("Assert icon is displayed by opening panel") {
+			ContentPerformance.openContentPerformance();
+		}
+	}
+
+	@description = "LPS-127220: When DXP is not connected to AC, the metrics icon is shown in the bar above the content page in the view mode"
+	@priority = "3"
+	test MetricsIconVisibleInContentPageWithoutAC {
+		task ("Open content performance panel") {
+			ContentPerformance.openContentPerformance();
+		}
 	}
 
 	@description = "LPS-118006: When the DXP is not connected to AC, if the user clicks on the Metrics button, the sidebar panel shows up and displays a button titled Dont show me this again and a message informing the user that the panel will show up again if AC is connected"
@@ -171,55 +263,29 @@ definition {
 		}
 	}
 
-	@description = "LPS-118006: When the DXP is connected to AC after the user has clicked the Don't show me this again button, the Metrics option is shown again, and the sidebar panel with instructions to sync, and without the Dont show me this again button shows up when the user clicks on it"
-	@ignore = "true"
-	@priority = "4"
-	test MetricsInContentDashboardACEnabled {
-
-		// TODO LPS-139257 MetricsInContentDashboardACEnabled pending implementation
-
-	}
-
 	@description = "LPS-108856: When user opens Content Performance panel and AC is connected but not synced, the Content Performance panel displays instructions to sync to AC (Dont show me this again button and the message is not displayed)"
-	@ignore = "true"
 	@priority = "3"
 	test NotSyncedPanel {
-		task ("Open Analytics Cloud") {
-			var analyticsCloudURL = PropsUtil.get("analytics.cloud.url");
+		task ("Launch AC and get Token") {
+			ACUtils.launchAC();
 
-			Navigator.openURL(baseURL = "${analyticsCloudURL}");
+			ACSettings.takeTokenFromAnalyticsCloud();
 		}
 
-		task ("Take token from Analytics Cloud") {
-			AnalyticsCloud.loginAnalyticsCloud(
-				emailAddress = "test@liferay.com",
-				password = "test");
-
-			AnalyticsCloud.takeTokenFromAnalyticsCloud();
-		}
-
-		task ("Go to DXP portal, login and create site") {
-			TestCase.setUpPortalInstance();
-
-			User.firstLoginPG();
-
+		task ("Navigate to DXP and connect with AC") {
 			Navigator.openURL();
-		}
 
-		task ("Connect with Analytics Cloud and back to Home Page") {
-			ContentPerformance.onlyConectWithAnalyticsCloud();
+			User.loginPG(
+				password = "test",
+				userEmailAddress = "test@liferay.com");
 
-			Navigator.openURL();
+			ContentPerformance.connectDXPtoAnalyticsCloudNoSync();
 		}
 
 		task ("Open Content Performance") {
+			Navigator.openURL();
+
 			ContentPerformance.openContentPerformance();
-
-			if (IsVisible(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_PANEL")) {
-				Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
-			}
-
-			Click(locator1 = "ContentPerformance#CONTENT_PERFORMANCE_BUTTON");
 		}
 
 		task ("Assert if button is not present and instructions are present") {
@@ -233,17 +299,7 @@ definition {
 		}
 
 		task ("End connection with Analytics Cloud") {
-			var testPortalInstance = PropsUtil.get("test.portal.instance");
-
-			Navigator.openURL();
-
 			AnalyticsCloud.teardownAnalyticsCloud();
-
-			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
-
-			if ("${testPortalInstance}" == "true") {
-				PortalInstances.tearDownCP();
-			}
 		}
 	}
 

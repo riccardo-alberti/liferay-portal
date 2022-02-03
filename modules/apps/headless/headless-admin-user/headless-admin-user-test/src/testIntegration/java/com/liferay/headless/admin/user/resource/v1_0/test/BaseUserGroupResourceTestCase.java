@@ -179,6 +179,7 @@ public abstract class BaseUserGroupResourceTestCase {
 		UserGroup userGroup = randomUserGroup();
 
 		userGroup.setDescription(regex);
+		userGroup.setExternalReferenceCode(regex);
 		userGroup.setName(regex);
 
 		String json = UserGroupSerDes.toJSON(userGroup);
@@ -188,6 +189,7 @@ public abstract class BaseUserGroupResourceTestCase {
 		userGroup = UserGroupSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, userGroup.getDescription());
+		Assert.assertEquals(regex, userGroup.getExternalReferenceCode());
 		Assert.assertEquals(regex, userGroup.getName());
 	}
 
@@ -207,6 +209,111 @@ public abstract class BaseUserGroupResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testDeleteUserGroupByExternalReferenceCode() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserGroup userGroup =
+			testDeleteUserGroupByExternalReferenceCode_addUserGroup();
+
+		assertHttpResponseStatusCode(
+			204,
+			userGroupResource.
+				deleteUserGroupByExternalReferenceCodeHttpResponse(
+					userGroup.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			userGroupResource.getUserGroupByExternalReferenceCodeHttpResponse(
+				userGroup.getExternalReferenceCode()));
+
+		assertHttpResponseStatusCode(
+			404,
+			userGroupResource.getUserGroupByExternalReferenceCodeHttpResponse(
+				userGroup.getExternalReferenceCode()));
+	}
+
+	protected UserGroup
+			testDeleteUserGroupByExternalReferenceCode_addUserGroup()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGetUserGroupByExternalReferenceCode() throws Exception {
+		UserGroup postUserGroup =
+			testGetUserGroupByExternalReferenceCode_addUserGroup();
+
+		UserGroup getUserGroup =
+			userGroupResource.getUserGroupByExternalReferenceCode(
+				postUserGroup.getExternalReferenceCode());
+
+		assertEquals(postUserGroup, getUserGroup);
+		assertValid(getUserGroup);
+	}
+
+	protected UserGroup testGetUserGroupByExternalReferenceCode_addUserGroup()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetUserGroupByExternalReferenceCode()
+		throws Exception {
+
+		UserGroup userGroup = testGraphQLUserGroup_addUserGroup();
+
+		Assert.assertTrue(
+			equals(
+				userGroup,
+				UserGroupSerDes.toDTO(
+					JSONUtil.getValueAsString(
+						invokeGraphQLQuery(
+							new GraphQLField(
+								"userGroupByExternalReferenceCode",
+								new HashMap<String, Object>() {
+									{
+										put(
+											"externalReferenceCode",
+											"\"" +
+												userGroup.
+													getExternalReferenceCode() +
+														"\"");
+									}
+								},
+								getGraphQLFields())),
+						"JSONObject/data",
+						"Object/userGroupByExternalReferenceCode"))));
+	}
+
+	@Test
+	public void testGraphQLGetUserGroupByExternalReferenceCodeNotFound()
+		throws Exception {
+
+		String irrelevantExternalReferenceCode =
+			"\"" + RandomTestUtil.randomString() + "\"";
+
+		Assert.assertEquals(
+			"Not Found",
+			JSONUtil.getValueAsString(
+				invokeGraphQLQuery(
+					new GraphQLField(
+						"userGroupByExternalReferenceCode",
+						new HashMap<String, Object>() {
+							{
+								put(
+									"externalReferenceCode",
+									irrelevantExternalReferenceCode);
+							}
+						},
+						getGraphQLFields())),
+				"JSONArray/errors", "Object/0", "JSONObject/extensions",
+				"Object/code"));
 	}
 
 	@Test
@@ -369,6 +476,43 @@ public abstract class BaseUserGroupResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	@Test
+	public void testDeleteUserGroupUsers() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserGroup userGroup = testDeleteUserGroupUsers_addUserGroup();
+
+		assertHttpResponseStatusCode(
+			204,
+			userGroupResource.deleteUserGroupUsersHttpResponse(
+				userGroup.getId(), null));
+	}
+
+	protected UserGroup testDeleteUserGroupUsers_addUserGroup()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPostUserGroupUsers() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		UserGroup userGroup = testPostUserGroupUsers_addUserGroup();
+
+		assertHttpResponseStatusCode(
+			204,
+			userGroupResource.postUserGroupUsersHttpResponse(
+				userGroup.getId(), null));
+
+		assertHttpResponseStatusCode(
+			404, userGroupResource.postUserGroupUsersHttpResponse(0L, null));
+	}
+
+	protected UserGroup testPostUserGroupUsers_addUserGroup() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
 	protected UserGroup testGraphQLUserGroup_addUserGroup() throws Exception {
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
@@ -459,6 +603,16 @@ public abstract class BaseUserGroupResourceTestCase {
 
 			if (Objects.equals("description", additionalAssertFieldName)) {
 				if (userGroup.getDescription() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"externalReferenceCode", additionalAssertFieldName)) {
+
+				if (userGroup.getExternalReferenceCode() == null) {
 					valid = false;
 				}
 
@@ -586,6 +740,19 @@ public abstract class BaseUserGroupResourceTestCase {
 				if (!Objects.deepEquals(
 						userGroup1.getDescription(),
 						userGroup2.getDescription())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"externalReferenceCode", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						userGroup1.getExternalReferenceCode(),
+						userGroup2.getExternalReferenceCode())) {
 
 					return false;
 				}
@@ -734,6 +901,14 @@ public abstract class BaseUserGroupResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("externalReferenceCode")) {
+			sb.append("'");
+			sb.append(String.valueOf(userGroup.getExternalReferenceCode()));
+			sb.append("'");
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("id")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -797,6 +972,8 @@ public abstract class BaseUserGroupResourceTestCase {
 		return new UserGroup() {
 			{
 				description = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());

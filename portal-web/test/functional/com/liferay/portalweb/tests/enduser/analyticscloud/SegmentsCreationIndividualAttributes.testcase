@@ -20,8 +20,10 @@ definition {
 			ACUtils.launchDXP();
 		}
 
-		task ("Add a new site with a public widget page") {
+		task ("Add a new site and blog") {
 			ACUtils.addSiteAndPage();
+
+			ACUtils.createBlogsAndAddToPage();
 		}
 
 		task ("Connect the DXP to AC") {
@@ -66,10 +68,6 @@ definition {
 	test CanAddSegmentUsingIndividualPropertyRole {
 		property portal.upstream = "quarantine";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Add a new regular role and assign to the user") {
 			JSONRole.addRegularRole(
 				roleKey = "AC Seg Reg Role",
@@ -101,7 +99,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property Role") {
@@ -132,8 +130,21 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8564 | Test Summary: Add segment using an individual property 'site'"
 	@priority = "4"
 	test CanAddSegmentUsingIndividualPropertySite {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
+		property portal.upstream = "quarantine";
+
+		// AC Refactor ticket: LRAC-9707
+
+		task ("Add a new user") {
+			JSONUser.addUser(
+				userEmailAddress = "ac1@liferay.com",
+				userFirstName = "ac1",
+				userLastName = "ac1",
+				userScreenName = "ac1");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "ac1@liferay.com");
 		}
 
 		task ("Assign the user to site") {
@@ -146,12 +157,11 @@ definition {
 			ACDXPSettings.syncNewContactData();
 		}
 
-		task ("View the page as the new added user") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "ac@liferay.com",
-				userLoginFullName = "ac ac");
-
-			ACUtils.navigateToSitePage(
+		task ("View the page as the new users") {
+			ACUtils.navigateToSitePageWithUser(
+				actionType = "View Blog",
+				documentTitleList = "Blogs AC Title,Blogs AC Title",
+				emailList = "${emailList}",
 				pageName = "AC Page",
 				siteName = "Site Name");
 		}
@@ -163,7 +173,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property Site") {
@@ -184,10 +194,86 @@ definition {
 				indexField = "1");
 		}
 
-		task ("View the user showns on the Preview mode") {
+		task ("View the user showns on the Preview mode and save segment") {
 			ACSegments.previewSegmentMembership();
 
 			ACUtils.viewNameList(nameList = "ac ac");
+
+			Button.clickDone();
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Assert that the user is present in the Segments") {
+			ACNavigation.switchTab(tabName = "Membership");
+
+			ACUtils.viewNameList(nameList = "ac ac");
+		}
+
+		task ("Edit Segment") {
+			Button.click(button = "Edit Segment");
+
+			ACSegments.selectOperator(operator = "is not");
+
+			ACSegments.selectDocument(
+				documentTitle = "Site Name",
+				indexField = "1");
+
+			ACSegments.previewSegmentMembership();
+
+			ACUtils.viewNameList(nameList = "ac1 ac1");
+		}
+
+		task ("View the user showns on the Preview mode and save segment") {
+			ACSegments.previewSegmentMembership();
+
+			ACUtils.viewNameList(nameList = "ac1 ac1");
+
+			Button.clickDone();
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Assert that the user is present in the Segments") {
+			ACNavigation.switchTab(tabName = "Membership");
+
+			ACUtils.viewNameList(nameList = "ac1 ac1");
+		}
+
+		task ("Edit Segment") {
+			Button.click(button = "Edit Segment");
+
+			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
+
+			ACSegments.addSegmentField(segmentField = "Site Membership");
+
+			ACSegments.selectOperator(operator = "is not");
+
+			ACSegments.selectDocument(
+				documentTitle = "Site Name",
+				indexField = "1");
+
+			ACSegments.selectDocument(
+				documentTitle = "Site Name",
+				indexField = "2");
+
+			ACSegments.editConjunction();
+		}
+
+		task ("View the users showns on the Preview mode and save segment") {
+			ACSegments.previewSegmentMembership();
+
+			ACUtils.viewNameList(nameList = "ac ac,ac1 ac1");
+
+			Button.clickDone();
+
+			ACSegments.saveSegment();
+		}
+
+		task ("Assert that the users are present in the Segments") {
+			ACNavigation.switchTab(tabName = "Membership");
+
+			ACUtils.viewNameList(nameList = "ac ac,ac1 ac1");
 		}
 	}
 
@@ -195,10 +281,6 @@ definition {
 	@priority = "4"
 	test CanAddSegmentUsingIndividualPropertyTeam {
 		property portal.upstream = "quarantine";
-
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
 
 		task ("Assign the site to user") {
 			JSONGroup.assignUserToGroup(
@@ -239,7 +321,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property Team") {
@@ -277,10 +359,6 @@ definition {
 		// AC Refactor ticket: LRAC-9281
 		// AC Bug ticket: LRAC-9263
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Sync the Contact Data") {
 			ACDXPSettings.syncNewContactData();
 		}
@@ -306,7 +384,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property User") {
@@ -347,10 +425,6 @@ definition {
 	test CanAddSegmentUsingIndividualPropertyUserGroup {
 		property portal.upstream = "quarantine";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Add a new user group and assign to the user") {
 			JSONUserGroup.addUserGroup(
 				userGroupDescription = "UG UserGroup Description",
@@ -382,7 +456,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property User Group") {
@@ -419,10 +493,6 @@ definition {
 		// AC Refactor: DXP User never appears
 		// AC Refactor ticket: LRAC-9351
 		// AC Bug ticket: LRAC-9350
-
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
 
 		task ("Add a user custom field") {
 			ApplicationsMenu.gotoPortlet(
@@ -471,7 +541,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Individual Property Custom Fields") {
@@ -500,10 +570,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8570 | Test Summary: Add segment with custom fields for organizations"
 	@priority = "4"
 	test CanAddSegmentWithCustomFieldsForOrganizations {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Add a new organization and assign to the user") {
 			JSONOrganization.addOrganization(organizationName = "Organization Name");
 
@@ -545,7 +611,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add a new dynamic segment using Organization Custom Fields") {

@@ -741,7 +741,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -752,7 +752,7 @@ definition {
 			mimeType = "video/mp4",
 			sourceFileName = "Document_1.mp4");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/Document_1.mp4");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/Document_1.mp4");
 
 		DownloadTempFile();
 
@@ -769,7 +769,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -780,7 +780,7 @@ definition {
 			mimeType = "video/mp4",
 			sourceFileName = "Document_1.mp4");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/Document_1");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/Document_1");
 
 		DownloadTempFile();
 
@@ -797,7 +797,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -814,7 +814,7 @@ definition {
 			dmDocumentFileNameEdit = "Document_3Edit.doc",
 			dmDocumentTitle = "Document_3");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/Document_3Edit.doc");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/Document_3Edit.doc");
 
 		DownloadTempFile();
 
@@ -831,7 +831,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -847,7 +847,7 @@ definition {
 			dmDocumentTitle = "Document_3",
 			dmDocumentTitleEdit = "Document_3Edit");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/Document_3Edit");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/Document_3Edit");
 
 		DownloadTempFile();
 
@@ -1460,7 +1460,7 @@ definition {
 
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -1472,9 +1472,9 @@ definition {
 
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/Document_1");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/Document_1");
 
-		var key_imageSourceURL = "${portalURL}/documents/${siteID}/0/Document_1";
+		var key_imageSourceURL = "${portalURL}/documents/${siteId}/0/Document_1";
 
 		AssertElementPresent.pauseAssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_VIEWPORT_PREVIEW");
 	}
@@ -2047,11 +2047,11 @@ definition {
 			pageName = "Display Page Template Name",
 			siteURLKey = "test-site-name");
 
-		var dmFileEntryID = JSONDocument.getFileEntryId(
+		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Test Site Name");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
 
 		AssertVisible(
 			key_imageFileName = "Document_1.jpg",

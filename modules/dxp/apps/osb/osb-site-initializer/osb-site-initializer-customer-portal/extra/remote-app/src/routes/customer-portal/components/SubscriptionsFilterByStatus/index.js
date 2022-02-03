@@ -1,3 +1,14 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import ClayButton from '@clayui/button';
 import {DropDown} from '@clayui/core';
 import ClayIcon from '@clayui/icon';
@@ -29,14 +40,14 @@ const SubscriptionsFilterByStatus = ({selectedStatus, setSelectedStatus}) => {
 	};
 
 	return (
-		<div className="d-flex ml-3">
+		<div className="d-flex mr-5 mt-4">
 			<h6 className="mr-2 my-auto">Status:</h6>
 
 			<DropDown
 				active={active}
 				closeOnClickOutside
 				menuElementAttrs={{
-					className: 'subscription-status-filter',
+					className: 'cp-subscription-status-filter',
 				}}
 				onActiveChange={setActive}
 				trigger={

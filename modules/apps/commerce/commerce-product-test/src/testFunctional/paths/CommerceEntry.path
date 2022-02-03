@@ -56,6 +56,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CATEGORY_CONTENT_TITLE</td>
+	<td>//div[contains(@class,'portlet-content-editable')]//*[contains(@class,'category-title')] | //div[contains(@class,'category-content')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CHANGE_TAX_CATEGORY</td>
 	<td>//label[text()='Shipping Tax Category']/..//input[@type='text']</td>
 	<td></td>
@@ -71,13 +76,13 @@
 	<td></td>
 </tr>
 <tr>
-	<td>DEFAULT_PRODUCT_DISPLAY_PAGE</td>
-	<td>//span[contains (@id,'displayPageNameInput') and contains(.,'${key_displayPage}')]</td>
+	<td>DESCRIPTION_FIELD</td>
+	<td>//textarea[contains (@id,'description')]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>DESCRIPTION_FIELD</td>
-	<td>//textarea[contains (@id,'description')]</td>
+	<td>DISPLAY_PAGE_ITEM_REMOVE</td>
+	<td>//span[contains(@id,'displayPageItemRemove')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -88,6 +93,11 @@
 <tr>
 	<td>DISPLAY_DATE_TIME_FIELD</td>
 	<td>//span/input[contains(@id,'displayDateTime') and (@placeholder='h:mm am/pm')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_PAGE_ANY</td>
+	<td>//span[contains (@id,'displayPageNameInput')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -138,6 +148,11 @@
 <tr>
 	<td>DISCOUNT_LEVEL_1_FIELD</td>
 	<td>//div/input[contains(@id,'level1')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_ORDER_FIELD</td>
+	<td>//div/input[contains(@id,'displayOrder')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -272,7 +287,7 @@
 </tr>
 <tr>
 	<td>PRODUCT_SKU_CONFIGURATION_AVAILABLE_QUANTITY</td>
-	<td>//div[contains(@class,'dnd-table fixed table-style-stacked')]//descendant::div[16][contains(text(),'${key_productQuantity}')]</td>
+	<td>//div[contains(@class,'dnd-table fixed table-style-stacked')]//descendant::div[17][contains(text(),'${key_productQuantity}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -773,7 +788,7 @@
 </tr>
 <tr>
 	<td>PRODUCT_CARD_SKU</td>
-	<td>//div[@class="cp-information"]//span[contains(text(),'${key_productSKU}')]//following::p[contains(.,'${key_productName}')]</td>
+	<td>//div[@class="cp-information"]//span[contains(text(),'${key_productSku}')]//following::p[contains(.,'${key_productName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -879,7 +894,7 @@
 </tr>
 <tr>
 	<td>VALUE_PRODUCT_RELATIONS</td>
-	<td>//a[contains(text(),'${key_productName}')]/../../..//div[contains(@class,'dnd-td') and (text()='${key_Value}')]</td>
+	<td>//a[contains(text(),'${key_productName}')]/../../..//div[contains(@class,'dnd-td') and (text()='${key_value}')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -78,10 +78,8 @@ public class ObjectDefinitionGraphQLDTOContributor
 
 				String objectFieldName = objectField.getName();
 
-				String[] objectFieldNameParts = objectFieldName.split(
-					StringPool.UNDERLINE);
-
-				String relationshipIdName = objectFieldNameParts[3];
+				String relationshipIdName = objectFieldName.substring(
+					objectFieldName.lastIndexOf(StringPool.UNDERLINE) + 1);
 
 				graphQLDTOProperties.add(
 					GraphQLDTOProperty.of(relationshipIdName, Long.class));
@@ -97,7 +95,7 @@ public class ObjectDefinitionGraphQLDTOContributor
 					GraphQLDTOProperty.of(
 						objectField.getName(),
 						_typedClasses.getOrDefault(
-							objectField.getType(), Object.class)));
+							objectField.getDBType(), Object.class)));
 			}
 		}
 

@@ -11,6 +11,16 @@
 
 <tbody>
 <tr>
+	<td>ADD</td>
+	<td>//button[contains(@id, 'addButton')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_DISABLED</td>
+	<td>//button[contains(@id, 'addButton') and @disabled]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_ADDRESS</td>
 	<td>//a[contains(@class,'add-address')]</td>
 	<td></td>
@@ -232,7 +242,7 @@
 </tr>
 <tr>
 	<td>COLOR_PICKER</td>
-	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')] | //div[contains(@class,'color-picker')][./label[normalize-space(text())='${key_fieldLabel}']]//button[contains(@class,'clay-color-btn')]</td>
+	<td>//label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'clay-color-btn')] | //div[contains(@class,'color-picker')][./label[normalize-space(text())='${key_fieldLabel}']]//button[contains(@class,'clay-color-btn')] | //label[normalize-space(text())='${key_fieldLabel}']/following-sibling::div//div[contains(@class,'color-picker')]//button[contains(@class,'color-picker__selector')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -383,11 +393,6 @@
 <tr>
 	<td>EXPORT_MODAL_DISABLED</td>
 	<td>//div[contains(@class,'btn-group-item')]/button[@disabled and contains(.,'Export')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FIELD_FILTER_APPLY</td>
-	<td>//tr[contains(.,'${key_fieldName}')]//button[contains(.,'Apply')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -918,11 +923,6 @@
 <tr>
 	<td>VOTE</td>
 	<td>//button[contains(.,'Vote')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>WEB_CONTENT_CHOOSE</td>
-	<td>//tr[contains(.,'${key_webContentTitle}')]/td//button</td>
 	<td></td>
 </tr>
 <tr>

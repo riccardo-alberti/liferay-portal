@@ -13,7 +13,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import {
@@ -98,6 +98,20 @@ jest.mock(
 					},
 					type: 'displayPageTemplate',
 				},
+				{
+					data: {
+						itemSelectorURL: 'fragment-collection-selector-url',
+						recentLayouts: [
+							{
+								name: 'Fragment Collection 1',
+								private: false,
+								url: 'fragment-collection-1-url',
+							},
+						],
+						totalLayouts: 1,
+					},
+					type: 'fragmentCollection',
+				},
 			],
 		},
 	})
@@ -119,7 +133,6 @@ const renderPreviewSelector = (layoutType = LAYOUT_TYPES.page) => {
 
 describe('PreviewSelector', () => {
 	afterEach(() => {
-		cleanup();
 		openItemSelector.mockClear();
 	});
 

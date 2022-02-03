@@ -84,9 +84,9 @@ definition {
 
 		SelectFieldText(locator1 = "CKEditor#BODY");
 
-		var windowID = selenium.getTitle();
+		var windowId = selenium.getTitle();
 
-		SelectWindow(locator1 = "title=${windowID}");
+		SelectWindow(locator1 = "title=${windowId}");
 
 		WaitForLiferayEvent.initializeLiferayEventLog();
 

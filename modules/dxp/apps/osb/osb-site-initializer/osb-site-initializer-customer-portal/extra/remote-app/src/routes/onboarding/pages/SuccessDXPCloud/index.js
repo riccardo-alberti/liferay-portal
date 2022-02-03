@@ -1,16 +1,26 @@
-import BaseButton from '../../../../common/components/BaseButton';
-import {LiferayTheme} from '../../../../common/services/liferay';
-import {PARAMS_KEYS} from '../../../../common/services/liferay/search-params';
-import {API_BASE_URL} from '../../../../common/utils';
-import Layout from '../../components/Layout';
-import {useOnboarding} from '../../context';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
 
-const SuccessDXPCloud = () => {
-	const [{project}] = useOnboarding();
+import {Button} from '../../../../common/components';
+import Layout from '../../../../common/containers/setup-forms/Layout';
+import {
+	API_BASE_URL,
+	SEARCH_PARAMS_KEYS,
+} from '../../../../common/utils/constants';
+import getLiferaySiteName from '../../../../common/utils/getLiferaySiteName';
 
+const SuccessDXPCloud = ({project}) => {
 	const onClickDone = () => {
-		window.location.href = `${API_BASE_URL}/${LiferayTheme.getLiferaySiteName()}/overview?${
-			PARAMS_KEYS.PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE
+		window.location.href = `${API_BASE_URL}/${getLiferaySiteName()}/overview?${
+			SEARCH_PARAMS_KEYS.accountKey
 		}=${project.accountKey}`;
 	};
 
@@ -18,9 +28,9 @@ const SuccessDXPCloud = () => {
 		<Layout
 			footerProps={{
 				middleButton: (
-					<BaseButton displayType="primary" onClick={onClickDone}>
+					<Button displayType="primary" onClick={onClickDone}>
 						Done
-					</BaseButton>
+					</Button>
 				),
 			}}
 			headerProps={{

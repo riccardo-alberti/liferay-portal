@@ -173,7 +173,7 @@ definition {
 	}
 
 	macro _selectPageType {
-		if (!(contains("${pageTemplateName}", "{pageTemplateName}"))) {
+		if (isSet(pageTemplateName)) {
 			var sitePageType = "${pageTemplateName}";
 
 			if (isSet(collectionName)) {
@@ -260,7 +260,7 @@ definition {
 		}
 
 		var list1 = ListUtil.newListFromString("${localeList}");
-		var list2 = ListUtil.newListFromString("${localizedCanonicalUrlList}");
+		var list2 = ListUtil.newListFromString("${localizedCanonicalURLList}");
 		var size = ListUtil.size("${list1}");
 		var i = "0";
 
@@ -282,20 +282,20 @@ definition {
 	}
 
 	macro addLocalizedFriendlyURL {
-		var list1 = ListUtil.newListFromString("${friendlyUrlLocalizedList}");
+		var list1 = ListUtil.newListFromString("${friendlyURLLocalizedList}");
 		var list2 = ListUtil.newListFromString("${localizedFriendlyURLList}");
 		var list3 = ListUtil.newListFromString("${localizedNameList}");
 		var size = ListUtil.size("${list1}");
 		var i = "0";
 
 		while ("${i}" != "${size}") {
-			var friendlyUrlLocalized = ListUtil.get("${list1}", "${i}");
+			var friendlyURLLocalized = ListUtil.get("${list1}", "${i}");
 			var localizedFriendlyURL = ListUtil.get("${list2}", "${i}");
 			var localizedName = ListUtil.get("${list3}", "${i}");
 
 			PortletEntry.changeLocale(
 				fieldName = "Friendly URL",
-				locale = "${friendlyUrlLocalized}");
+				locale = "${friendlyURLLocalized}");
 
 			Type(
 				inputFieldId = "friendlyURL",
@@ -633,10 +633,10 @@ definition {
 		MenuItem.clickNoError(menuItem = "Delete");
 
 		if (isSet(hasChildren)) {
-			AssertConfirm(value1 = "This page has child pages that will also be removed. Are you sure you want to delete this page?");
+			AssertConfirm(value1 = "Are you sure you want to delete the page &quot;${pageName}&quot;? This page contains child pages that will also be removed.");
 		}
 		else {
-			AssertConfirm(value1 = "Are you sure you want to delete this page?");
+			AssertConfirm(value1 = "Are you sure you want to delete the page &quot;${pageName}&quot;? It will be removed immediately.");
 		}
 
 		if (isSet(failure)) {
@@ -717,7 +717,7 @@ definition {
 	macro getFriendlyURL {
 		var baseURL = "${baseURL}";
 
-		if (contains("${baseURL}", "{baseURL}")) {
+		if (!(isSet(baseURL))) {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
@@ -1081,7 +1081,7 @@ definition {
 	}
 
 	macro viewOldFriendlyURLNotPresent {
-		for (var oldFriendlyURL : list "${oldFriendlyUrlList}") {
+		for (var oldFriendlyURL : list "${oldFriendlyURLList}") {
 			AssertElementNotPresent(
 				key_oldFriendlyURL = "${oldFriendlyURL}",
 				locator1 = "PagesAdmin#FRIENDLY_URL_HISTORY_ITEM");

@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.source.formatter.checks.util.SourceUtil;
 
 import java.io.IOException;
 
@@ -35,6 +36,17 @@ public class PoshiStylingCheck extends BaseFileCheck {
 	protected String doProcess(
 			String fileName, String absolutePath, String content)
 		throws IOException {
+
+		if (SourceUtil.isXML(content) || fileName.endsWith(".path")) {
+			return content;
+		}
+
+		content = content.replaceAll(
+			"(?<!!)\\(contains\\(\"\\$\\{(.+?)\\}\", \"\\{\\1\\}\"\\)\\)",
+			"(!(isSet($1)))");
+		content = content.replaceAll(
+			"\\!\\(contains\\(\"\\$\\{(.+?)\\}\", \"\\{\\1\\}\"\\)\\)",
+			"isSet($1)");
 
 		return _formatComments(content);
 	}

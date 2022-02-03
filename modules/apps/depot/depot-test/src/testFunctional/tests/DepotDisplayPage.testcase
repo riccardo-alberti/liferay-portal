@@ -688,21 +688,21 @@ definition {
 			pageName = "Display Page Template Name",
 			siteURLKey = "test-site-name");
 
-		var dmFileEntryID = JSONDocument.getFileEntryId(
+		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Test Site Name");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Test Site Name",
 			site = "true");
 
 		User.logoutPG();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
 
 		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="Title is File Name: Document_1.jpg","og:description" content="Description is MIME Type: image/jpeg"''');
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Author Name: Test Test","og:image" content="${portalURL}/documents/${siteID}/0/Document_1.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image:alt" content="Image Alt is Author Name: Test Test","og:image" content="${portalURL}/documents/${siteId}/0/Document_1.jpg''');
 	}
 
 	@description = "This test ensures that a user can map the display page with SEO when using the DM type from AL on a connect site."
@@ -1046,11 +1046,11 @@ definition {
 			pageName = "Display Page Template Name",
 			siteURLKey = "test-site-name");
 
-		var dmFileEntryID = JSONDocument.getFileEntryId(
+		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "Document_1.jpg",
 			groupName = "Test Site Name");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/d/${dmFileEntryId}");
 
 		AssertVisible(
 			key_imageFileName = "Document_1.jpg",

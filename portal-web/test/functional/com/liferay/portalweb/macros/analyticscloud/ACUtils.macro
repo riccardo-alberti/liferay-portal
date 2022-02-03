@@ -476,8 +476,8 @@ definition {
 	}
 
 	macro createFormAndAddToPage {
-		if (!(isSet(formACTitle))) {
-			var formACTitle = "Created Form Name";
+		if (!(isSet(formAcTitle))) {
+			var formAcTitle = "Created Form Name";
 		}
 
 		if (!(isSet(layoutName))) {
@@ -492,7 +492,7 @@ definition {
 
 		FormsAdminNavigator.gotoAddForm();
 
-		Form.editName(formTitle = "${formACTitle}");
+		Form.editName(formTitle = "${formAcTitle}");
 
 		Form.addTextField(fieldPositionNumber = "0");
 
@@ -506,7 +506,7 @@ definition {
 
 		FormPortletNavigator.gotoSelectForm();
 
-		FormPortletConfiguration.selectForm(formTitle = "${formACTitle}");
+		FormPortletConfiguration.selectForm(formTitle = "${formAcTitle}");
 
 		PortletEntry.save();
 	}

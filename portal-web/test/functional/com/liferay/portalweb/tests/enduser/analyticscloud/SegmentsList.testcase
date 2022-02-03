@@ -46,14 +46,10 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8462 | Test Summary: Inform the User when there are no disabled Segments"
 	@priority = "3"
 	test AssertUserIsInformedWhenThereAreNoDisabledSegments {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Go to Segments and filter by "Disable Segments"") {
@@ -70,12 +66,12 @@ definition {
 	@description = "Search for specific segment"
 	@priority = "5"
 	test CanSearchForSegment {
+		property portal.upstream = "quarantine";
+
+		// AC Refactor ticket: LRAC-9707
+
 		var usernameList = "ac,userea";
 		var emailList = "ac@liferay.com,userea@liferay.com";
-
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
 
 		for (var name : list "${usernameList}") {
 			JSONUser.addUser(
@@ -94,7 +90,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToSegments();
 
@@ -130,10 +126,6 @@ definition {
 	@description = "Search for specific segment"
 	@priority = "5"
 	test CanShowSegmentList {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
@@ -154,7 +146,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToSegments();
 
@@ -195,10 +187,6 @@ definition {
 		var usernameList = "user1,user2,user3";
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		for (var name : list "${usernameList}") {
 			JSONUser.addUser(
 				userEmailAddress = "${name}@liferay.com",
@@ -228,7 +216,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add 3 new Static Segments") {
@@ -299,10 +287,6 @@ definition {
 	test OrderSegmentListByName {
 		property portal.upstream = "quarantine";
 
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Add a new user in DXP") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -337,7 +321,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add 3 new Static Segments") {
@@ -398,9 +382,9 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8461 | Test Summary: Paginate Segment list"
 	@priority = "3"
 	test PaginateSegmentList {
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
+		property portal.upstream = "quarantine";
+
+		// AC Refactor ticket: LRAC-9707
 
 		task ("Add a new user in DXP") {
 			JSONUser.addUser(
@@ -436,7 +420,7 @@ definition {
 		task ("Switch to new property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Add 6 new Static Segments") {

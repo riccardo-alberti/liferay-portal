@@ -215,7 +215,7 @@ definition {
 			openGraph = "true",
 			portalURL = "${portalURL}",
 			siteNameURL = "test-site-name",
-			truncatedHTMLTitle = "true",
+			truncatedHtmlTitle = "true",
 			truncatedURL = "true");
 
 		Button.click(button = "Save");
@@ -226,7 +226,7 @@ definition {
 			openGraph = "true",
 			portalURL = "${portalURL}",
 			siteNameURL = "test-site-name",
-			truncatedHTMLTitle = "true",
+			truncatedHtmlTitle = "true",
 			truncatedURL = "true");
 	}
 

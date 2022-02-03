@@ -101,12 +101,39 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 
 				<aui:input checked="<%= commerceChannelDisplayContext.isShowPurchaseOrderNumber() %>" helpMessage="configures-whether-purchase-order-number-is-shown-or-hidden-in-placed-and-pending-order-details" label="purchase-order-number" labelOff="hide" labelOn="show" name="settings--showPurchaseOrderNumber--" type="toggle-switch" />
 
+				<aui:input checked="<%= commerceChannelDisplayContext.isCheckoutRequestedDeliveryDateEnabled() %>" helpMessage="configures-whether-an-order-requested-delivery-date-can-be-set-during-checkout" label="requested-delivery-date-at-checkout" labelOff="disabled" labelOn="enabled" name="settings--checkoutRequestedDeliveryDateEnabled--" type="toggle-switch" />
+
 				<aui:input checked="<%= commerceChannelDisplayContext.isGuestCheckoutEnabled() %>" helpMessage="configures-whether-a-guest-may-checkout-by-providing-an-email-address-or-if-they-must-sign-in" label="guest-checkout" labelOff="disabled" labelOn="enabled" name="settings--guestCheckoutEnabled--" type="toggle-switch" />
 
 				<aui:input label="maximum-number-of-open-orders-per-account" name="orderSettings--accountCartMaxAllowed--" type="number" value="<%= commerceChannelDisplayContext.getAccountCartMaxAllowed() %>">
 					<aui:validator name="number" />
 					<aui:validator name="min">0</aui:validator>
 				</aui:input>
+
+				<%
+				FileEntry fileEntry = commerceChannelDisplayContext.fetchFileEntry();
+				%>
+
+				<aui:model-context bean="<%= fileEntry %>" model="<%= FileEntry.class %>" />
+
+				<portlet:actionURL name="/commerce_channels/upload_jrxml_template" var="uploadJRXMLTemplateURL" />
+
+				<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.IMPORT %>" />
+				<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+				<aui:input name="fileEntryId" type="hidden" />
+
+				<label>Print Order Template</label>
+
+				<p class="text-default">
+					<span class="<%= (fileEntry != null) ? "" : "hide" %>" id="<portlet:namespace />fileEntryRemoveIcon" role="button">
+						<aui:icon cssClass="icon-monospaced" image="times" markupView="lexicon" />
+					</span>
+					<span id="<portlet:namespace />fileEntryNameInput"><a><%= (fileEntry != null) ? fileEntry.getFileName() : "" %></a></span>
+				</p>
+
+				<aui:button name="selectFileButton" value="Select File" />
+
+				<liferay-ui:error exception="<%= FileExtensionException.class %>" message="please-select-a-valid-jrxml-file" />
 			</commerce-ui:panel>
 		</div>
 
@@ -240,3 +267,12 @@ if (shippingTaxCategory != null) {
 		},
 	});
 </aui:script>
+
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"itemSelectorURL", commerceChannelDisplayContext.getImageItemSelectorUrl()
+		).build()
+	%>'
+	module="js/jrxml"
+/>

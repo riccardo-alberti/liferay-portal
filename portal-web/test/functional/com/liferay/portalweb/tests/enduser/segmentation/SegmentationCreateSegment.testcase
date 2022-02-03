@@ -1125,7 +1125,7 @@ definition {
 			Select(
 				key_criterion = "options",
 				locator1 = "Segmentation#CRITERION_INPUT_FORM_CONTROL",
-				value1 = "FALSE");
+				value1 = "False");
 
 			Button.clickSave();
 
@@ -2453,7 +2453,7 @@ definition {
 		task ("Create a site") {
 			JSONGroup.addGroup(groupName = "Test Site Name");
 
-			var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+			var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 		}
 
 		task ("Create a segment using the property") {
@@ -2462,7 +2462,7 @@ definition {
 				groupName = "Guest",
 				operator = "equals",
 				segmentName = "Validade Site Segment",
-				text = "${siteID}");
+				text = "${siteId}");
 
 			Refresh();
 		}

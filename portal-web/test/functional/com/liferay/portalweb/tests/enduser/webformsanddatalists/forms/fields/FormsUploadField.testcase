@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -34,7 +36,7 @@ definition {
 	@description = "Verify that a user can upload up to 5 files when the Repeatable option is enabled"
 	@priority = "3"
 	test AllowsFiveUploadsWhenRepeatableIsEnabled {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -118,7 +120,7 @@ definition {
 	@description = "Verify that, by default, guest users cannot upload files"
 	@priority = "5"
 	test ByDefaultCannotBeUsedByGuestUser {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -148,7 +150,7 @@ definition {
 	@description = "Verify that a file added to the Upload field can be removed by clicking the Clear button"
 	@priority = "5"
 	test CanBeCleared {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -181,7 +183,7 @@ definition {
 	@description = "Verify that an Upload Field can be created"
 	@priority = "5"
 	test CanBeCreated {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -205,7 +207,7 @@ definition {
 	@description = "Verify that an Upload Field can be deleted"
 	@priority = "5"
 	test CanBeDeleted {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -269,7 +271,7 @@ definition {
 	@description = "Verify that an Upload Field can be edited"
 	@priority = "5"
 	test CanBeEdited {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -307,7 +309,7 @@ definition {
 	@description = "Verify that an Upload Field can be required"
 	@priority = "5"
 	test CanBeRequired {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -404,7 +406,6 @@ definition {
 	@description = "LPS-84340 - Verify that a Form can be submitted with the Upload Field"
 	@priority = "5"
 	test CanBeSubmitted {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 
@@ -469,7 +470,6 @@ definition {
 	@description = "LPS-125462 - Verify that a new user can submit a Form after uploading a file"
 	@priority = "5"
 	test CanBeSubmittedByANewUser {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 
@@ -557,7 +557,7 @@ definition {
 	@description = "LPS-122760 - Verify that a guest user can upload a file"
 	@priority = "5"
 	test CanBeSubmittedByGuestUser {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -645,7 +645,7 @@ definition {
 	@description = "This is a use case for LPS-125499."
 	@priority = "2"
 	test GuestUserCannotUploadFileWithInvalidSize {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsUploadField#GuestUserCannotUploadFileWithInvalidSize";
 
 		FormsAdmin.addForm();
@@ -750,7 +750,7 @@ definition {
 	@description = "Verify that guest users can only access upload fields that have guest user uploads enabled"
 	@priority = "5"
 	test GuestUserCanOnlyAccessEnabledFields {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -911,7 +911,7 @@ definition {
 	@description = "Verify that guest users cannot see files submitted by other users"
 	@priority = "5"
 	test SubmittedFilesCannotBeSeenByGuestUsers {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 

@@ -142,7 +142,7 @@
 </tr>
 <tr>
 	<td>NAVIGATE_TO_VIEW</td>
-	<td>//a[contains(text(), '${key_PageLink}')] | //div[@class='liferay-faces-bridge-body']/a[contains(text(), '${key_PageLink}')] | //input[contains(@value, '${key_PageLink}')]</td>
+	<td>//a[contains(text(), '${key_pageLink}')] | //div[@class='liferay-faces-bridge-body']/a[contains(text(), '${key_pageLink}')] | //input[contains(@value, '${key_pageLink}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -152,7 +152,7 @@
 </tr>
 <tr>
 	<td>PAGE_LINK</td>
-	<td>//*[contains(text(),'${key_PageLink}')] | //*[contains(@class,'testAction')] | //input[@value='${key_PageLink}']</td>
+	<td>//*[contains(text(),'${key_pageLink}')] | //*[contains(@class,'testAction')] | //input[@value='${key_pageLink}']</td>
 	<td></td>
 </tr>
 <tr>

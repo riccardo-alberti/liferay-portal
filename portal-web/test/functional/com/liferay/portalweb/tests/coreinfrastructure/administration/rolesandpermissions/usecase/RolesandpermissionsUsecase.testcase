@@ -1135,11 +1135,11 @@ definition {
 			portlet = "Pages");
 
 		PagesAdmin.addPublicPage(
-			pageName = "USA Ice Hockey Team Blog",
-			pageTemplateName = "Blog");
+			pageName = "USA Ice Hockey Team Search",
+			pageTemplateName = "Search");
 
 		PermissionsInline.gotoPagePG(
-			pageName = "USA Ice Hockey Team Blog",
+			pageName = "USA Ice Hockey Team Search",
 			site = "Site Name");
 
 		Role.removePermissionPG(
@@ -1167,15 +1167,14 @@ definition {
 			userEmailAddress = "userea1@liferay.com");
 
 		Navigator.gotoSitePage(
-			pageName = "USA Ice Hockey Team Blog",
+			pageName = "USA Ice Hockey Team Search",
 			siteName = "Site Name");
 
-		for (var portletTitleName : list "Blogs,Tag Cloud,Recent Bloggers") {
-			var key_portletTitleName = "${portletTitleName}";
-
-			AssertTextEquals(
-				locator1 = "Portlet#SPECIFIC_TITLE",
-				value1 = "${portletTitleName}");
+		for (var portletName : list "SearchBar,Suggestions,SiteFacet,TypeFacet,TagFacet,CategoryFacet,FolderFacet,UserFacet,ModifiedFacet,SearchResults,SearchOptions") {
+			AssertVisible(
+				key_decorator = "barebone",
+				key_portletTitleName = "${portletName}",
+				locator1 = "Portlet#SPECIFIC_PORTLET_BORDER_DECORATOR");
 		}
 
 		User.logoutPG();
@@ -1185,7 +1184,7 @@ definition {
 			userEmailAddress = "userea2@liferay.com");
 
 		AssertElementNotPresent(
-			key_pageName = "USA Ice Hockey Team Blog",
+			key_pageName = "USA Ice Hockey Team Search",
 			locator1 = "Home#PAGE");
 
 		User.logoutPG();

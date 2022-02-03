@@ -48,6 +48,7 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
+		"com.liferay.fragment.entry.processor.portlet.alias=search-bar",
 		"com.liferay.portlet.add-default-resource=true",
 		"com.liferay.portlet.css-class-wrapper=portlet-search-bar",
 		"com.liferay.portlet.display-category=category.search",
@@ -85,7 +86,7 @@ public class SearchBarPortlet extends MVCPortlet {
 			portletSharedSearchRequest.search(renderRequest);
 
 		SearchBarPortletDisplayContext searchBarPortletDisplayContext =
-			buildDisplayContext(
+			_buildDisplayContext(
 				portletSharedSearchResponse, renderRequest,
 				searchBarPortletPreferences);
 
@@ -98,56 +99,6 @@ public class SearchBarPortlet extends MVCPortlet {
 		}
 
 		super.render(renderRequest, renderResponse);
-	}
-
-	protected SearchBarPortletDisplayContext buildDisplayContext(
-			PortletSharedSearchResponse portletSharedSearchResponse,
-			RenderRequest renderRequest,
-			SearchBarPortletPreferences searchBarPortletPreferences)
-		throws PortletException {
-
-		SearchBarPortletDisplayBuilder searchBarPortletDisplayBuilder =
-			new SearchBarPortletDisplayBuilder(
-				http, layoutLocalService, portal, renderRequest);
-
-		ThemeDisplay themeDisplay = portletSharedSearchResponse.getThemeDisplay(
-			renderRequest);
-
-		String keywordsParameterName = getKeywordsParameterName(
-			portletSharedSearchResponse.getSearchSettings(),
-			searchBarPortletPreferences, themeDisplay);
-
-		String scopeParameterName = getScopeParameterName(
-			portletSharedSearchResponse.getSearchSettings(),
-			searchBarPortletPreferences, themeDisplay);
-
-		SearchResponse searchResponse = getSearchResponse(
-			portletSharedSearchResponse, searchBarPortletPreferences);
-
-		SearchRequest searchRequest = searchResponse.getRequest();
-
-		return searchBarPortletDisplayBuilder.setDestination(
-			searchBarPortletPreferences.getDestinationString()
-		).setEmptySearchEnabled(
-			isEmptySearchEnabled(portletSharedSearchResponse)
-		).setInvisible(
-			searchBarPortletPreferences.isInvisible()
-		).setKeywords(
-			Optional.ofNullable(searchRequest.getQueryString())
-		).setKeywordsParameterName(
-			keywordsParameterName
-		).setPaginationStartParameterName(
-			searchRequest.getPaginationStartParameterName()
-		).setScopeParameterName(
-			scopeParameterName
-		).setScopeParameterValue(
-			portletSharedSearchResponse.getParameter(
-				scopeParameterName, renderRequest)
-		).setSearchScopePreference(
-			searchBarPortletPreferences.getSearchScopePreference()
-		).setThemeDisplay(
-			themeDisplay
-		).build();
 	}
 
 	protected String getKeywordsParameterName(
@@ -210,14 +161,6 @@ public class SearchBarPortlet extends MVCPortlet {
 		return searchBarPortletPreferences.getScopeParameterName();
 	}
 
-	protected SearchResponse getSearchResponse(
-		PortletSharedSearchResponse portletSharedSearchResponse,
-		SearchBarPortletPreferences searchBarPortletPreferences) {
-
-		return portletSharedSearchResponse.getFederatedSearchResponse(
-			searchBarPortletPreferences.getFederatedSearchKeyOptional());
-	}
-
 	protected boolean isEmptySearchEnabled(
 		PortletSharedSearchResponse portletSharedSearchResponse) {
 
@@ -246,5 +189,63 @@ public class SearchBarPortlet extends MVCPortlet {
 
 	@Reference
 	protected SearchBarPrecedenceHelper searchBarPrecedenceHelper;
+
+	private SearchBarPortletDisplayContext _buildDisplayContext(
+			PortletSharedSearchResponse portletSharedSearchResponse,
+			RenderRequest renderRequest,
+			SearchBarPortletPreferences searchBarPortletPreferences)
+		throws PortletException {
+
+		SearchBarPortletDisplayBuilder searchBarPortletDisplayBuilder =
+			new SearchBarPortletDisplayBuilder(
+				http, layoutLocalService, portal, renderRequest);
+
+		ThemeDisplay themeDisplay = portletSharedSearchResponse.getThemeDisplay(
+			renderRequest);
+
+		String keywordsParameterName = getKeywordsParameterName(
+			portletSharedSearchResponse.getSearchSettings(),
+			searchBarPortletPreferences, themeDisplay);
+
+		String scopeParameterName = getScopeParameterName(
+			portletSharedSearchResponse.getSearchSettings(),
+			searchBarPortletPreferences, themeDisplay);
+
+		SearchResponse searchResponse = _getSearchResponse(
+			portletSharedSearchResponse, searchBarPortletPreferences);
+
+		SearchRequest searchRequest = searchResponse.getRequest();
+
+		return searchBarPortletDisplayBuilder.setDestination(
+			searchBarPortletPreferences.getDestinationString()
+		).setEmptySearchEnabled(
+			isEmptySearchEnabled(portletSharedSearchResponse)
+		).setInvisible(
+			searchBarPortletPreferences.isInvisible()
+		).setKeywords(
+			Optional.ofNullable(searchRequest.getQueryString())
+		).setKeywordsParameterName(
+			keywordsParameterName
+		).setPaginationStartParameterName(
+			searchRequest.getPaginationStartParameterName()
+		).setScopeParameterName(
+			scopeParameterName
+		).setScopeParameterValue(
+			portletSharedSearchResponse.getParameter(
+				scopeParameterName, renderRequest)
+		).setSearchScopePreference(
+			searchBarPortletPreferences.getSearchScopePreference()
+		).setThemeDisplay(
+			themeDisplay
+		).build();
+	}
+
+	private SearchResponse _getSearchResponse(
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		SearchBarPortletPreferences searchBarPortletPreferences) {
+
+		return portletSharedSearchResponse.getFederatedSearchResponse(
+			searchBarPortletPreferences.getFederatedSearchKeyOptional());
+	}
 
 }

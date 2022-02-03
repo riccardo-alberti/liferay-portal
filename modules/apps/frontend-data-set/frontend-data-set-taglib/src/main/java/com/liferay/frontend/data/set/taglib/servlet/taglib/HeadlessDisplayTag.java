@@ -23,17 +23,21 @@ import com.liferay.frontend.data.set.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.frontend.data.set.view.FDSViewSerializer;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.taglib.util.IncludeTag;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import javax.portlet.PortletURL;
@@ -46,7 +50,7 @@ import javax.servlet.jsp.PageContext;
  * @author Marco Leo
  * @author Alessio Antonio Rendina
  */
-public class HeadlessDisplayTag extends IncludeTag {
+public class HeadlessDisplayTag extends BaseDisplayTag {
 
 	@Override
 	public int doStartTag() throws JspException {
@@ -67,6 +71,11 @@ public class HeadlessDisplayTag extends IncludeTag {
 		catch (Exception exception) {
 			_log.error(exception, exception);
 		}
+
+		String randomKey = PortalUtil.generateRandomKey(
+			getRequest(), "taglib_frontend_data_set_headless_display_page");
+
+		setRandomNamespace(randomKey + StringPool.UNDERLINE);
 
 		return super.doStartTag();
 	}
@@ -101,10 +110,6 @@ public class HeadlessDisplayTag extends IncludeTag {
 
 	public String getFormName() {
 		return _formName;
-	}
-
-	public String getId() {
-		return _id;
 	}
 
 	public int getItemsPerPage() {
@@ -201,10 +206,6 @@ public class HeadlessDisplayTag extends IncludeTag {
 		_formName = formName;
 	}
 
-	public void setId(String id) {
-		_id = id;
-	}
-
 	public void setItemsPerPage(int itemsPerPage) {
 		_itemsPerPage = itemsPerPage;
 	}
@@ -288,7 +289,6 @@ public class HeadlessDisplayTag extends IncludeTag {
 		_fdsViewSerializer = null;
 		_formId = null;
 		_formName = null;
-		_id = null;
 		_itemsPerPage = 0;
 		_namespace = null;
 		_nestedItemsKey = null;
@@ -306,87 +306,76 @@ public class HeadlessDisplayTag extends IncludeTag {
 	}
 
 	@Override
-	protected String getPage() {
-		return _PAGE;
-	}
-
-	@Override
-	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		httpServletRequest = getRequest();
-
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:actionParameterName",
-			_actionParameterName);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:activeViewSettingsJSON",
-			_activeViewSettingsJSON);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:apiURL", _apiURL);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:appURL", _appURL);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:bulkActionDropdownItems",
-			_bulkActionDropdownItems);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:creationMenu", _creationMenu);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:customViewsEnabled",
-			_customViewsEnabled);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:fdsActionDropdownItems",
-			_fdsActionDropdownItems);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:fdsDisplayViewsContext",
-			_fdsViewsContext);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:fdsFiltersContext",
-			_fdsFiltersContext);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:fdsPaginationEntries",
-			_fdsPaginationEntries);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:fdsSortItemList",
-			_fdsSortItemList);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:formId", _formId);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:formName", _formName);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:id", _id);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:itemsPerPage", _itemsPerPage);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:namespace", _namespace);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:nestedItemsKey",
-			_nestedItemsKey);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:nestedItemsReferenceKey",
-			_nestedItemsReferenceKey);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:pageNumber", _pageNumber);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:paginationSelectedEntry",
-			_paginationSelectedEntry);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:portletURL", _portletURL);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:selectedItems", _selectedItems);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:selectedItemsKey",
-			_selectedItemsKey);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:selectionType", _selectionType);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:showManagementBar",
-			_showManagementBar);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:showPagination",
-			_showPagination);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:showSearch", _showSearch);
-		httpServletRequest.setAttribute(
-			"frontend-data-set:headless-display:style", _style);
+	protected Map<String, Object> prepareProps(Map<String, Object> props) {
+		return super.prepareProps(
+			HashMapBuilder.<String, Object>putAll(
+				props
+			).put(
+				"actionParameterName",
+				GetterUtil.getString(_actionParameterName)
+			).put(
+				"activeViewSettings", _activeViewSettingsJSON
+			).put(
+				"apiURL", _apiURL
+			).put(
+				"appURL", _appURL
+			).put(
+				"bulkActions", _bulkActionDropdownItems
+			).put(
+				"creationMenu", _creationMenu
+			).put(
+				"currentURL", PortalUtil.getCurrentURL(getRequest())
+			).put(
+				"customViewsEnabled", _customViewsEnabled
+			).put(
+				"filters", _fdsFiltersContext
+			).put(
+				"formId", _validateDataAttribute(_formId)
+			).put(
+				"formName", _validateDataAttribute(_formName)
+			).put(
+				"id", getId()
+			).put(
+				"itemsActions", _fdsActionDropdownItems
+			).put(
+				"namespace", _namespace
+			).put(
+				"nestedItemsKey", _validateDataAttribute(_nestedItemsKey)
+			).put(
+				"nestedItemsReferenceKey",
+				_validateDataAttribute(_nestedItemsReferenceKey)
+			).put(
+				"pagination",
+				HashMapBuilder.<String, Object>put(
+					"deltas", _fdsPaginationEntries
+				).put(
+					"initialDelta", _itemsPerPage
+				).put(
+					"initialPageNumber", _pageNumber
+				).build()
+			).put(
+				"portletId", PortalUtil.getPortletId(getRequest())
+			).put(
+				"portletURL", _portletURL.toString()
+			).put(
+				"selectedItems", _selectedItems
+			).put(
+				"selectedItemsKey", _validateDataAttribute(_selectedItemsKey)
+			).put(
+				"selectionType", _validateDataAttribute(_selectionType)
+			).put(
+				"showManagementBar", _showManagementBar
+			).put(
+				"showPagination", _showPagination
+			).put(
+				"showSearch", _showSearch
+			).put(
+				"sorting", _fdsSortItemList
+			).put(
+				"style", _validateDataAttribute(_style)
+			).put(
+				"views", _fdsViewsContext
+			).build());
 	}
 
 	private List<FDSPaginationEntry> _getFdsPaginationEntries() {
@@ -411,13 +400,14 @@ public class HeadlessDisplayTag extends IncludeTag {
 				httpServletRequest);
 
 		_activeViewSettingsJSON = portalPreferences.getValue(
-			ServletContextUtil.getFDSSettingsNamespace(httpServletRequest, _id),
+			ServletContextUtil.getFDSSettingsNamespace(
+				httpServletRequest, getId()),
 			"activeViewSettingsJSON");
 	}
 
 	private void _setFDSFiltersContext() {
 		_fdsFiltersContext = _fdsFilterSerializer.serialize(
-			_id, PortalUtil.getLocale(getRequest()));
+			getId(), PortalUtil.getLocale(getRequest()));
 	}
 
 	private void _setFDSPaginationEntries() {
@@ -438,10 +428,16 @@ public class HeadlessDisplayTag extends IncludeTag {
 
 	private void _setFDSViewsContext() {
 		_fdsViewsContext = _fdsViewSerializer.serialize(
-			_id, PortalUtil.getLocale(getRequest()));
+			getId(), PortalUtil.getLocale(getRequest()));
 	}
 
-	private static final String _PAGE = "/headless_display/page.jsp";
+	private Object _validateDataAttribute(Object object) {
+		if (Validator.isNull(object)) {
+			return null;
+		}
+
+		return object;
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		HeadlessDisplayTag.class);
@@ -463,7 +459,6 @@ public class HeadlessDisplayTag extends IncludeTag {
 	private FDSViewSerializer _fdsViewSerializer;
 	private String _formId;
 	private String _formName;
-	private String _id;
 	private int _itemsPerPage;
 	private String _namespace;
 	private String _nestedItemsKey;

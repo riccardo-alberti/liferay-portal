@@ -14,11 +14,10 @@
 
 package com.liferay.object.web.internal.object.definitions.display.context;
 
-import com.liferay.frontend.taglib.clay.data.set.servlet.taglib.util.ClayDataSetActionDropdownItem;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.web.internal.configuration.activator.FFExportImportObjectDefinitionTypeConfigurationActivator;
 import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -27,7 +26,7 @@ import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.portlet.PortletException;
@@ -43,14 +42,10 @@ import javax.servlet.http.HttpServletRequest;
 public class ViewObjectDefinitionsDisplayContext {
 
 	public ViewObjectDefinitionsDisplayContext(
-		FFExportImportObjectDefinitionTypeConfigurationActivator
-			ffExportImportObjectDefinitionTypeConfigurationActivator,
 		HttpServletRequest httpServletRequest,
 		ModelResourcePermission<ObjectDefinition>
 			objectDefinitionModelResourcePermission) {
 
-		_ffExportImportObjectDefinitionTypeConfigurationActivator =
-			ffExportImportObjectDefinitionTypeConfigurationActivator;
 		_objectDefinitionModelResourcePermission =
 			objectDefinitionModelResourcePermission;
 
@@ -59,55 +54,6 @@ public class ViewObjectDefinitionsDisplayContext {
 
 	public String getAPIURL() {
 		return "/o/object-admin/v1.0/object-definitions";
-	}
-
-	public List<ClayDataSetActionDropdownItem>
-			getClayDataSetActionDropdownItems()
-		throws Exception {
-
-		LiferayPortletResponse liferayPortletResponse =
-			_objectRequestHelper.getLiferayPortletResponse();
-
-		ResourceURL resourceURL = liferayPortletResponse.createResourceURL();
-
-		resourceURL.setParameter("objectDefinitionId", "{id}");
-		resourceURL.setResourceID(
-			"/object_definitions/export_object_definition");
-
-		List<ClayDataSetActionDropdownItem> clayDataSetActionDropdownItems =
-			new ArrayList<>();
-
-		clayDataSetActionDropdownItems.add(
-			new ClayDataSetActionDropdownItem(
-				PortletURLBuilder.create(
-					getPortletURL()
-				).setMVCRenderCommandName(
-					"/object_definitions/edit_object_definition"
-				).setParameter(
-					"objectDefinitionId", "{id}"
-				).buildString(),
-				"view", "view",
-				LanguageUtil.get(_objectRequestHelper.getRequest(), "view"),
-				"get", null, null));
-
-		if (_ffExportImportObjectDefinitionTypeConfigurationActivator.
-				enabled()) {
-
-			clayDataSetActionDropdownItems.add(
-				new ClayDataSetActionDropdownItem(
-					resourceURL.toString(), "export", "export",
-					LanguageUtil.get(
-						_objectRequestHelper.getRequest(), "export-as-json"),
-					"get", null, null));
-		}
-
-		clayDataSetActionDropdownItems.add(
-			new ClayDataSetActionDropdownItem(
-				getAPIURL() + "/{id}", "trash", "delete",
-				LanguageUtil.get(_objectRequestHelper.getRequest(), "delete"),
-				"delete", "delete", "async"));
-
-		return clayDataSetActionDropdownItems;
 	}
 
 	public CreationMenu getCreationMenu() throws Exception {
@@ -129,6 +75,41 @@ public class ViewObjectDefinitionsDisplayContext {
 		return creationMenu;
 	}
 
+	public List<FDSActionDropdownItem> getFDSActionDropdownItems()
+		throws Exception {
+
+		LiferayPortletResponse liferayPortletResponse =
+			_objectRequestHelper.getLiferayPortletResponse();
+
+		ResourceURL resourceURL = liferayPortletResponse.createResourceURL();
+
+		resourceURL.setParameter("objectDefinitionId", "{id}");
+		resourceURL.setResourceID(
+			"/object_definitions/export_object_definition");
+
+		return Arrays.asList(
+			new FDSActionDropdownItem(
+				PortletURLBuilder.create(
+					getPortletURL()
+				).setMVCRenderCommandName(
+					"/object_definitions/edit_object_definition"
+				).setParameter(
+					"objectDefinitionId", "{id}"
+				).buildString(),
+				"view", "view",
+				LanguageUtil.get(_objectRequestHelper.getRequest(), "view"),
+				"get", null, null),
+			new FDSActionDropdownItem(
+				resourceURL.toString(), "export", "export",
+				LanguageUtil.get(
+					_objectRequestHelper.getRequest(), "export-as-json"),
+				"get", null, null),
+			new FDSActionDropdownItem(
+				getAPIURL() + "/{id}", "trash", "delete",
+				LanguageUtil.get(_objectRequestHelper.getRequest(), "delete"),
+				"delete", "delete", "async"));
+	}
+
 	public PortletURL getPortletURL() throws PortletException {
 		return PortletURLUtil.clone(
 			PortletURLUtil.getCurrent(
@@ -147,8 +128,6 @@ public class ViewObjectDefinitionsDisplayContext {
 			ObjectActionKeys.ADD_OBJECT_DEFINITION);
 	}
 
-	private final FFExportImportObjectDefinitionTypeConfigurationActivator
-		_ffExportImportObjectDefinitionTypeConfigurationActivator;
 	private final ModelResourcePermission<ObjectDefinition>
 		_objectDefinitionModelResourcePermission;
 	private final ObjectRequestHelper _objectRequestHelper;

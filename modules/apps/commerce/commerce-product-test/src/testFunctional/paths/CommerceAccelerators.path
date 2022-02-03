@@ -395,7 +395,7 @@
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_NAME_USING_SKU</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]/../h5</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../h5</td>
 	<td></td>
 </tr>
 <tr>
@@ -405,27 +405,27 @@
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_SKU</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_QUANTITY</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]/../../../../div[@class='mini-cart-item-quantity']//input</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../../../div[@class='mini-cart-item-quantity']//input</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_PRICE_VALUE</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]/../../../..//span[@class='price-value']</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../../..//span[@class='price-value']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_THUMBNAIL</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]/../../../div[@class='mini-cart-item-thumbnail']</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../../div[@class='mini-cart-item-thumbnail']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>MINI_CART_ITEM_THUMBNAIL_STYLE</td>
-	<td>//div[@class='mini-cart-item-thumbnail' and contains(@style, '${key_imageName}')]</td>
+	<td>MINI_CART_ITEM_DEFAULT_THUMBNAIL</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../../div[@class='mini-cart-item-thumbnail']//img[contains(@src, 'default')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -435,7 +435,7 @@
 </tr>
 <tr>
 	<td>MINI_CART_ITEM_INFO_EXTRA</td>
-	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSKU}')]/../../div[@class='item-info-extra mt-3']/*</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../div[@class='item-info-extra mt-3']/*</td>
 	<td></td>
 </tr>
 <tr>
@@ -460,7 +460,7 @@
 </tr>
 <tr>
 	<td>MINI_CART_REMOVE_ITEM</td>
-	<td>//p[contains(text(),"${key_cartItemSKU}")]/../../../../div//*[name()='svg'][contains(@class,'lexicon-icon lexicon-icon-times-circle-full')]</td>
+	<td>//p[contains(text(),"${key_cartItemSku}")]/../../../../div//*[name()='svg'][contains(@class,'lexicon-icon lexicon-icon-times-circle-full')]</td>
 	<td></td>
 </tr>
 <!--ORDERS-->
@@ -517,6 +517,21 @@
 <tr>
 	<td>PRODUCT_CARD_VIEW_ALL_VARIANTS</td>
 	<td>//div[contains(@class,'add-to-cart d-flex my-2 pt-5')]//a[contains(@href,'${key_productName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CART_PORTLET_ORDER_QUANTITY</td>
+	<td>//input[@id='_com_liferay_commerce_cart_content_web_internal_portlet_CommerceCartContentPortlet_moil_column_2d_1_1_Quantity']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CART_PORTLET_ORDER_DESCRIPTION</td>
+	<td>//td[contains(@class, 'lfr-description-column')]//a[contains(text(),'${key_productName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CART_PORTLET_ORDER_UPDATE</td>
+	<td>//span[contains(text(),'Update')]</td>
 	<td></td>
 </tr>
 <!--COMPARE-->

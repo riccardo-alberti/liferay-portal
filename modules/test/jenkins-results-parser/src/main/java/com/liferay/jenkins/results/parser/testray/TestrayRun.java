@@ -16,6 +16,9 @@ package com.liferay.jenkins.results.parser.testray;
 
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 
+import java.io.File;
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -31,13 +34,21 @@ public class TestrayRun {
 
 	public TestrayRun(
 		TestrayBuild testrayBuild, String batchName,
-		List<Properties> propertiesList) {
+		List<File> propertiesFiles) {
 
 		_testrayBuild = testrayBuild;
 		_batchName = batchName;
 
-		for (int i = propertiesList.size() - 1; i >= 0; i--) {
-			_properties.putAll(propertiesList.get(i));
+		try {
+			_properties.putAll(JenkinsResultsParserUtil.getBuildProperties());
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		for (int i = propertiesFiles.size() - 1; i >= 0; i--) {
+			_properties.putAll(
+				JenkinsResultsParserUtil.getProperties(propertiesFiles.get(i)));
 		}
 	}
 

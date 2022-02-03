@@ -1,5 +1,21 @@
 definition {
 
+	macro addWCWithCustomEventToPage {
+		if (!(isSet(webContentTitle))) {
+			var webContentTitle = "Custom Event AC Title";
+		}
+
+		ACUtils.addWidgetToPage(
+			layoutName = "${layoutName}",
+			widgetName = "Web Content Display");
+
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "${webContentTitle}");
+
+		Navigator.gotoSitePage(
+			pageName = "${layoutName}",
+			siteName = "Site Name");
+	}
+
 	macro blockAllCustomEvents {
 		var key_actionButton = "Block";
 
@@ -18,7 +34,7 @@ definition {
 
 		WaitForPageLoad();
 
-		if (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) {
+		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 
@@ -67,22 +83,22 @@ definition {
 		}
 
 		Type(
-			key_inputID = "name-custom",
+			key_inputId = "name-custom",
 			locator1 = "ACCustomEvents#INPUT_CUSTOM_EVENT",
 			value1 = "${customEventName}");
 
 		Type(
-			key_inputID = "times-custom",
+			key_inputId = "times-custom",
 			locator1 = "ACCustomEvents#INPUT_CUSTOM_EVENT",
 			value1 = "${timeToSendCustomEvent}");
 
 		Type(
-			key_textareaID = "placements",
+			key_textareaId = "placements",
 			locator1 = "ACCustomEvents#TEXTAREA_CUSTOM_EVENT",
 			value1 = "${attributesName}");
 
 		Type(
-			key_textareaID = "expected",
+			key_textareaId = "expected",
 			locator1 = "ACCustomEvents#TEXTAREA_CUSTOM_EVENT",
 			value1 = "${attributesValue}");
 
@@ -156,7 +172,7 @@ definition {
 
 		WaitForPageLoad();
 
-		if (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) {
+		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 
@@ -187,7 +203,7 @@ definition {
 
 		WaitForPageLoad();
 
-		if (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST")) {
+		while (IsElementNotPresent(locator1 = "ACUtils#NAME_LIST") && (maxIterations = "50")) {
 			ACUtils.searchBar(searchItem = "${customEventName}");
 		}
 

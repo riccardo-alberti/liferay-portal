@@ -227,7 +227,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentMultipleSelection = "Option 2 - pt-BR edited",
 			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
@@ -277,7 +277,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentMultipleSelection = "Option 1 - pt-BR edited",
 			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",

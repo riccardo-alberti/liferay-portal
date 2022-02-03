@@ -404,42 +404,38 @@ definition {
 
 		task ("Assert access to given pages via Web Content Display") {
 			for (var fieldLabel : list "Widget Page,Content Page,Search,Full Page Application,Embedded,Panel") {
-				Click(
-					key_contentText = "${fieldLabel}",
-					locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
-
-				ControlMenu.viewHeaderTitle(headerTitle = "Test ${fieldLabel}");
+				WebContentDisplayPortlet.viewContent(
+					displayText = "${fieldLabel}",
+					pageName = "Test ${fieldLabel}",
+					webContentTitle = "Web Content Title");
 
 				Navigator.gotoSitePage(
 					pageName = "Test Widget Page",
 					siteName = "Test Site Name");
 			}
 
-			Click(
-				key_contentText = "Link To A Page Of This Site",
-				locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
-
-			ControlMenu.viewHeaderTitle(headerTitle = "Test Content Page");
-
-			Navigator.gotoSitePage(
-				pageName = "Test Widget Page",
-				siteName = "Test Site Name");
-
-			Click(
-				key_contentText = "Page Set",
-				locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
-
-			ControlMenu.viewHeaderTitle(headerTitle = "Test Child Page");
+			WebContentDisplayPortlet.viewContent(
+				displayText = "Link To A Page Of This Site",
+				pageName = "Test Content Page",
+				webContentTitle = "Web Content Title");
 
 			Navigator.gotoSitePage(
 				pageName = "Test Widget Page",
 				siteName = "Test Site Name");
 
-			Click(
-				key_contentText = "Link To URL",
-				locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
+			WebContentDisplayPortlet.viewContent(
+				displayText = "Page Set",
+				pageName = "Test Child Page",
+				webContentTitle = "Web Content Title");
 
-			AssertLocation.assertPartialLocation(value1 = "https://www.liferay.com");
+			Navigator.gotoSitePage(
+				pageName = "Test Widget Page",
+				siteName = "Test Site Name");
+
+			WebContentDisplayPortlet.viewContent(
+				displayText = "Link To URL",
+				url = "https://www.liferay.com",
+				webContentTitle = "Web Content Title");
 		}
 	}
 
@@ -524,18 +520,11 @@ definition {
 			WebContentDisplayPortlet.selectWebContent(webContentTitle = "Web Content Title");
 		}
 
-		task ("Click the link in Web Content Display") {
-			WebContent.viewPGViaWCD(
-				linkName = "Link to Page",
-				linkToPage = "true");
-
-			Click(
-				key_contentText = "Link to Page",
-				locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
-		}
-
 		task ("Assert the page redirects to the great grand child page") {
-			ControlMenu.viewHeaderTitle(headerTitle = "Test Great Grand Child Page");
+			WebContentDisplayPortlet.viewContent(
+				displayText = "Link to Page",
+				pageName = "Test Great Grand Child Page",
+				webContentTitle = "Web Content Title");
 		}
 	}
 
@@ -603,9 +592,9 @@ definition {
 		}
 
 		task ("Assert the image is shown in Web Content Display") {
-			WebContent.viewPGViaWCD(
-				image = "true",
-				key_image = "Document_1.jpg");
+			WebContentDisplayPortlet.viewContent(
+				imageFileName = "Document_1.jpg",
+				webContentTitle = "Web Content Title");
 		}
 	}
 

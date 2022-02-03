@@ -102,6 +102,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.portlet.ActionRequest;
@@ -1550,6 +1551,14 @@ public class LayoutsAdminDisplayContext {
 		return false;
 	}
 
+	public boolean isShowExportTranslationAction(Layout layout) {
+		if (layout.isTypeContent() && !isSingleLanguageSite()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isShowFirstColumnConfigureAction() throws PortalException {
 		if (!GroupPermissionUtil.contains(
 				themeDisplay.getPermissionChecker(), getSelGroupId(),
@@ -1713,6 +1722,17 @@ public class LayoutsAdminDisplayContext {
 		return false;
 	}
 
+	public boolean isSingleLanguageSite() {
+		Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
+			themeDisplay.getSiteGroupId());
+
+		if (availableLocales.size() == 1) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected long getActiveLayoutSetBranchId() throws PortalException {
 		if (_activeLayoutSetBranchId != null) {
 			return _activeLayoutSetBranchId;
@@ -1772,6 +1792,10 @@ public class LayoutsAdminDisplayContext {
 				ActionKeys.DELETE)) {
 
 			availableActions.add("deleteSelectedPages");
+		}
+
+		if (isShowExportTranslationAction(layout)) {
+			availableActions.add("exportTranslation");
 		}
 
 		return availableActions;
