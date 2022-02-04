@@ -58,7 +58,7 @@ definition {
 			kbArticleTitle = "Knowledge Base Article Title");
 
 		KBArticle.deletePG(
-			deleteViaKBArticle = "true",
+			deleteViaKbArticle = "true",
 			kbArticleTitle = "Knowledge Base Article Title");
 
 		KBAdmin.openKBAdmin(siteURLKey = "guest");

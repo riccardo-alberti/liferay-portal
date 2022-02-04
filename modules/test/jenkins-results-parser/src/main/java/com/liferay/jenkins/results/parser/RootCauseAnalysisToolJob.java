@@ -51,8 +51,6 @@ public class RootCauseAnalysisToolJob
 			new File(
 				_portalGitWorkingDirectory.getWorkingDirectory(),
 				"test.properties"));
-
-		readJobProperties();
 	}
 
 	@Override
@@ -72,13 +70,6 @@ public class RootCauseAnalysisToolJob
 	@Override
 	public boolean isSegmentEnabled() {
 		return true;
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names"));
 	}
 
 	private final GitWorkingDirectory _jenkinsGitWorkingDirectory;

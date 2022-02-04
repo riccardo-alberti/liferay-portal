@@ -164,12 +164,12 @@ definition {
 			newTargetLocale = "pt-BR");
 
 		Translations.viewTargetFields(
-			webContentHTML = "Rich Text PT",
+			webContentHtml = "Rich Text PT",
 			webContentText = "Text PT",
 			webContentTitle = "WC WebContent Title PT");
 
 		Translations.translateFields(
-			webContentSourceHTML = "Rich Text PT Edit",
+			webContentSourceHtml = "Rich Text PT Edit",
 			webContentText = "Text PT Edit",
 			webContentTitle = "WC WebContent Title PT Edit");
 
@@ -202,7 +202,7 @@ definition {
 			newTargetLocale = "pt-BR");
 
 		Translations.viewTargetFields(
-			webContentHTML = "Rich Text PT Edit Again",
+			webContentHtml = "Rich Text PT Edit Again",
 			webContentText = "Text PT Again",
 			webContentTitle = "WC WebContent Title PT Again");
 	}

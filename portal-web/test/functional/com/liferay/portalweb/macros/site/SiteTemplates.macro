@@ -68,13 +68,13 @@ definition {
 
 		LexiconEntry.gotoAddMenuItem(menuItem = "Add Site Template Page");
 
-		if (contains("${sitePageType}", "{sitePageType}")) {
+		if (!(isSet(sitePageType))) {
 			var sitePageType = "Widget Page";
 		}
 
 		var rowEntry = "${sitePageType}";
 
-		if (!(contains("${pageTemplateName}", "{pageTemplateName}"))) {
+		if (isSet(pageTemplateName)) {
 			Navigator.gotoNavNested(navNested = "Global Templates");
 
 			var rowEntry = "${pageTemplateName}";
@@ -360,11 +360,11 @@ definition {
 		var currentURL = Navigator.getCurrentURL();
 
 		var siteTemplateURL = StringUtil.extractFirst("${currentURL}", "/~/");
-		var siteTemplateID = StringUtil.extractLast("${siteTemplateURL}", "/");
+		var siteTemplateId = StringUtil.extractLast("${siteTemplateURL}", "/");
 
-		echo("siteTemplateID: ${siteTemplateID}");
+		echo("siteTemplateID: ${siteTemplateId}");
 
-		return "${siteTemplateID}";
+		return "${siteTemplateId}";
 	}
 
 	macro gotoSettingsCP {
@@ -404,9 +404,14 @@ definition {
 	}
 
 	macro openSiteTemplateInEditMode {
-		var templateID = SiteTemplates.getSiteTemplateID(siteTemplateName = "${siteTemplateName}");
+		var templateId = SiteTemplates.getSiteTemplateID(siteTemplateName = "${siteTemplateName}");
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${templateID}?p_l_mode=edit");
+		if (isSet(widgetPage)) {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/${templateId}");
+		}
+		else {
+			Navigator.openWithAppendToBaseURL(urlAppend = "group/${templateId}?p_l_mode=edit");
+		}
 	}
 
 	macro resetPageChanges {

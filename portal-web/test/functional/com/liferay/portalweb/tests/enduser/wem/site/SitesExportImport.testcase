@@ -51,13 +51,13 @@ definition {
 
 			FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
-			var fragmentHTML = '''<lfr-widget-web-content>''';
+			var fragmentHtml = '''<lfr-widget-web-content>''';
 
 			var htmlSnippet = '''<lfr-''';
 
 			FragmentsEditor.autocompleteFragmentHTML(
 				autocompleteField = "lfr-widget-web-content",
-				fragmentHTML = "${fragmentHTML}",
+				fragmentHtml = "${fragmentHtml}",
 				htmlSnippet = "${htmlSnippet}");
 
 			PortletEntry.publish();
@@ -86,9 +86,9 @@ definition {
 		}
 
 		task ("Set the created Web Content to be displayed in the Web Content Display and publish the page") {
-			WebContentDisplayPortlet.selectWebContent(
-				contentPage = "true",
-				webContentTitle = "WC WebContent Title");
+			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+			IFrame.closeFrame();
 
 			PageEditor.clickPublish();
 		}
@@ -98,7 +98,7 @@ definition {
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
 		}
 
 		task ("Expoet site and download site lar") {
@@ -119,7 +119,7 @@ definition {
 				siteName = "Site Name");
 		}
 
-		task ("	Edit the Web Content on the Original Site") {
+		task (" Edit the Web Content on the Original Site") {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
 
 			WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
@@ -130,20 +130,20 @@ definition {
 				webContentTitleEdit = "WC WebContent New Title");
 		}
 
-		task ("	View the Web Content on the Original Site") {
+		task (" View the Web Content on the Original Site") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Content Page Name",
 				siteName = "Test Site Name");
 
-			WebContent.viewPGViaWCD(webContentContent = "WC WebContent New Content");
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent New Content");
 		}
 
-		task ("	View the Web Content doesn't change on the new site") {
+		task (" View the Web Content doesn't change on the new site") {
 			ContentPagesNavigator.openViewContentPage(
 				pageName = "Test Content Page Name",
 				siteName = "Site Name");
 
-			WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+			WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
 		}
 	}
 
@@ -405,7 +405,7 @@ definition {
 		task ("View selected page is linked to Button fragment") {
 			AssertVisible(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "/web/test-site-name/test-content-page-name",
+				key_url = "/web/test-site-name/test-content-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 		}
 
@@ -438,7 +438,7 @@ definition {
 
 			Click(
 				key_append = "[normalize-space(text())='Go Somewhere']",
-				key_URL = "/web/site-name/test-content-page-name",
+				key_url = "/web/site-name/test-content-page-name",
 				locator1 = "Fragment#FRAGMENT_LINK");
 		}
 

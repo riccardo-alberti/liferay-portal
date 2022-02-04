@@ -24,11 +24,52 @@ definition {
 		}
 	}
 
+	@description = "LPS-141236. Verify remote app can be displayed under a portlet category"
+	@priority = "3"
+	test CanBeAssignedAPortletCategory {
+		property portal.acceptance = "true";
+
+		task ("Create remote app entry with portlet category") {
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteApps.addEntryWithPortletCategory();
+		}
+
+		task ("Add a public widget page with JSON") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page");
+
+			Navigator.openURL();
+
+			Navigator.gotoPage(pageName = "Test Page");
+		}
+
+		task ("Assert remote app is categorized under correct portlet category") {
+			Click(locator1 = "ControlMenu#ADD");
+
+			AssertElementPresent(locator1 = "ControlMenuAddPanel#SIDEBAR_HEADER");
+
+			Navigator.gotoNavTab(navTab = "Widgets");
+
+			Pause(locator1 = "3000");
+
+			Type(
+				locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
+				value1 = "Test Remote App");
+
+			AssertElementPresent(
+				key_assetItem = "Collaboration",
+				locator1 = "ControlMenuAddPanel#ASSET_ITEM");
+		}
+	}
+
 	@description = "Verify remote app can be deleted"
 	@priority = "5"
 	@refactordone
 	test CanBeDeleted {
 		property portal.acceptance = "true";
+		property testray.component.names = "Frontend Dataset,Remote Apps";
 
 		var remoteAppName = "My New Remote App To Delete";
 
@@ -46,17 +87,21 @@ definition {
 	@description = "Verify that remote app of type Custom Element can be created"
 	@priority = "5"
 	test CustomElementCanBeCreated {
+		property app.server.types = "tomcat";
+		property database.types = "mysql";
+		property environment.acceptance = "true";
 		property portal.acceptance = "true";
+		property testray.component.names = "Frontend Dataset,Remote Apps";
 
 		task ("Create Vanilla Counter as a Custom Element") {
 			RemoteApps.goToRemoteAppsPortlet();
 
 			RemoteApps.addCustomElementAllFields(
-				entryCSSURL = "http://remote-component-test.wincent.com/index.css",
-				entryHTMLName = "vanilla-counter",
+				entryCssurl = "https://liferay.github.io/liferay-frontend-projects/index.css",
+				entryHtmlName = "vanilla-counter",
 				entryName = "Vanilla Counter",
 				entryProperties = "test-data-user=QAuser",
-				entryURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				entryURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 
 		task ("Assert that the Vanilla Counter is listed") {
@@ -71,11 +116,11 @@ definition {
 				locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
 
 			RemoteApps.assertCustomElementFields(
-				entryCSSURL = "http://remote-component-test.wincent.com/index.css",
-				entryHTMLName = "vanilla-counter",
+				entryCssurl = "https://liferay.github.io/liferay-frontend-projects/index.css",
+				entryHtmlName = "vanilla-counter",
 				entryName = "Vanilla Counter",
 				entryProperties = "test-data-user=QAuser",
-				entryURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				entryURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 	}
 
@@ -86,9 +131,9 @@ definition {
 
 		task ("Create Vanilla Counter as a Custom Element") {
 			JSONRemoteApp.addCustomElementRemoteAppEntry(
-				customElementHTMLName = "vanilla-counter",
+				customElementHtmlName = "vanilla-counter",
 				customElementName = "Vanilla Counter",
-				customElementURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 
 		task ("Delete Vanilla Counter") {
@@ -143,8 +188,8 @@ definition {
 		property portal.acceptance = "true";
 
 		var customElementName = "Vanilla Counter";
-		var customElementHTMLName = "vanilla-counter";
-		var customElementURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js";
+		var customElementHtmlName = "vanilla-counter";
+		var customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js";
 
 		task ("Add a public page with JSON") {
 			JSONLayout.addPublicLayout(
@@ -157,7 +202,7 @@ definition {
 			RemoteApps.goToRemoteAppsPortlet();
 
 			RemoteApps.addCustomElement(
-				entryHTMLName = "${customElementHTMLName}",
+				entryHtmlName = "${customElementHtmlName}",
 				entryName = "${customElementName}",
 				entryURL = "${customElementURL}");
 		}
@@ -188,9 +233,9 @@ definition {
 
 		task ("Create a Custom Element") {
 			JSONRemoteApp.addCustomElementRemoteAppEntry(
-				customElementHTMLName = "new-counter",
+				customElementHtmlName = "new-counter",
 				customElementName = "New Counter",
-				customElementURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 
 		task ("Edit the fields of the Custom Element") {
@@ -201,8 +246,8 @@ definition {
 				locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
 
 			RemoteApps.editCustomElement(
-				entryCSSURL = "http://remote-component-test.wincent.com/index.css",
-				entryHTMLName = "vanilla-counter-edited",
+				entryCssurl = "https://liferay.github.io/liferay-frontend-projects/index.css",
+				entryHtmlName = "vanilla-counter-edited",
 				entryName = "Vanilla Counter Edited",
 				entryProperties = "test-data-user=QAuser");
 		}
@@ -217,11 +262,11 @@ definition {
 				locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
 
 			RemoteApps.assertCustomElementFields(
-				entryCSSURL = "http://remote-component-test.wincent.com/index.css",
-				entryHTMLName = "vanilla-counter-edited",
+				entryCssurl = "https://liferay.github.io/liferay-frontend-projects/index.css",
+				entryHtmlName = "vanilla-counter-edited",
 				entryName = "Vanilla Counter Edited",
 				entryProperties = "test-data-user=QAuser",
-				entryURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				entryURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 	}
 
@@ -243,9 +288,9 @@ definition {
 
 		task ("Create Vanilla Counter as a Custom Element") {
 			JSONRemoteApp.addCustomElementRemoteAppEntry(
-				customElementHTMLName = "vanilla-counter",
+				customElementHtmlName = "vanilla-counter",
 				customElementName = "Vanilla Counter",
-				customElementURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
+				customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
 		}
 
 		task ("Add a Grid to page") {
@@ -286,20 +331,151 @@ definition {
 		}
 	}
 
+	@description = "Verify remote app can be configured one its portlet name has been changed"
+	@priority = "3"
+	test CustomElementCanConfigurePortletName {
+		property portal.acceptance = "true";
+
+		task ("Add a public page with JSON") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page");
+		}
+
+		task ("Create Vanilla Counter as a Custom Element") {
+			JSONRemoteApp.addCustomElementRemoteAppEntry(
+				customElementHtmlName = "vanilla-counter",
+				customElementName = "Vanilla Counter",
+				customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
+		}
+
+		task ("Obtain Vanilla Counter's remoteAppEntryId") {
+			var remoteAppEntryIdValue = RemoteApps.getRemoteAppEntryIdValue();
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page",
+				remoteAppEntryId = "${remoteAppEntryIdValue}",
+				widgetName = "Vanilla Counter");
+		}
+
+		task ("Change Vanilla Counter portlet name") {
+			RemoteApps.goToRemoteAppsPortlet();
+
+			Click(
+				key_tableEntryName = "Vanilla Counter",
+				locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
+
+			Type(
+				key_text = "Name",
+				locator1 = "TextInput#ANY",
+				value1 = "Vanilla Counter Modified");
+
+			PortletEntry.publish();
+		}
+
+		task ("Assert that Vanilla Counter name has been changed in Widget Page Editor") {
+			Navigator.gotoPage(pageName = "Test Page");
+
+			Click(locator1 = "ControlMenu#ADD");
+
+			AssertElementPresent(locator1 = "ControlMenuAddPanel#SIDEBAR_HEADER");
+
+			Navigator.gotoNavTab(navTab = "Widgets");
+
+			Pause(locator1 = "3000");
+
+			Type(
+				locator1 = "NavBar#APPLICATION_SEARCH_FIELD",
+				value1 = "Vanilla Counter Modified");
+
+			AssertElementPresent(
+				key_remoteAppName = "Vanilla Counter Modified",
+				locator1 = "RemoteApps#APPLICATION_SEARCH_FIELD_WIDGET_SEARCH_REMOTE_APP");
+		}
+
+		task ("Assert Vanilla Counter continues displayed") {
+			Navigator.gotoPage(pageName = "Test Page");
+
+			AssertElementPresent(locator1 = "RemoteApps#VANILLA_COUNTER_REMOTE_APP");
+		}
+	}
+
+	@description = "Verify that remote app of type Custom Element can displayed properties in HTML"
+	@priority = "3"
+	test CustomElementCanInjectHTMLProperties {
+		property portal.acceptance = "true";
+
+		task ("Add a public page with JSON") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page");
+		}
+
+		task ("Create Vanilla Counter as a Custom Element") {
+			JSONRemoteApp.addCustomElementRemoteAppAllFields(
+				customElementCssurl = "http://remote-component-test.wincent.com/index.css",
+				customElementHtmlName = "vanilla-counter",
+				customElementName = "Vanilla Counter",
+				customElementProperties = "test-data-user=QAuser",
+				customElementURL = "https://liferay.github.io/liferay-frontend-projects/vanilla-counter/index.js");
+		}
+
+		task ("Add Vanilla Counter to Test Page") {
+			var remoteAppEntryIdValue = RemoteApps.getRemoteAppEntryIdValue();
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Test Page",
+				remoteAppEntryId = "${remoteAppEntryIdValue}",
+				widgetName = "Vanilla Counter");
+		}
+
+		task ("Assert Vanilla Counter's property is present") {
+			Navigator.gotoPage(pageName = "Test Page");
+
+			AssertElementPresent(
+				key_customElementHtmlName = "vanilla-counter",
+				key_customElementProperty = "QAuser",
+				locator1 = "RemoteApps#REMOTE_APP_PROPERTY_HTML");
+		}
+	}
+
+	@description = "Verify that remote app of type Custom Element can save multiple URLs"
+	@priority = "4"
+	test CustomElementCanSaveMultipleURLs {
+		property portal.acceptance = "true";
+
+		task ("Create Vanilla Counter as a Custom Element") {
+			RemoteApps.goToRemoteAppsPortlet();
+
+			RemoteApps.addCustomElementMultipleURLs();
+		}
+
+		task ("Go to edit entry") {
+			Click(
+				key_tableEntryName = "Vanilla Counter",
+				locator1 = "RemoteApps#TABLE_ENTRY_NAME_REMOTE_TABLE");
+		}
+
+		task ("Assert multiple URL fields are saved") {
+			RemoteApps.assertCustomElementMultipleURLFields();
+		}
+	}
+
 	@description = "Verify an iframe remote app can be created"
 	@priority = "5"
 	test IFrameCanBeCreated {
 		property portal.acceptance = "true";
-
-		var remoteAppName = "Test Remote App";
+		property testray.component.names = "Frontend Dataset,Remote Apps";
 
 		RemoteApps.goToRemoteAppsPortlet();
 
 		RemoteApps.addApp(
-			entryName = "${remoteAppName}",
+			entryName = "Test Remote App",
 			entryURL = "http://www.liferay.com");
 
-		RemoteApps.viewTableEntryName(entryName = "${remoteAppName}");
+		RemoteApps.viewTableEntryName(entryName = "Test Remote App");
 	}
 
 	@description = "Verify that remote app type IFrame can display property fields"
@@ -308,7 +484,7 @@ definition {
 		property portal.acceptance = "true";
 
 		var customElementType = "Custom Element";
-		var IFrameType = "IFrame";
+		var iFrameType = "IFrame";
 
 		RemoteApps.goToRemoteAppsPortlet();
 
@@ -316,7 +492,7 @@ definition {
 
 		Select(
 			locator1 = "Select#TYPE",
-			value1 = "${IFrameType}");
+			value1 = "${iFrameType}");
 
 		AssertNotVisible(
 			key_text = "HTML Element Name",

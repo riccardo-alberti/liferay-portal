@@ -50,7 +50,7 @@ definition {
 		LexiconEntry.gotoAdd();
 
 		if ("${singleSiteTypePermission}" != "true") {
-			if (contains("${siteTemplateName}", "{siteTemplateName}")) {
+			if (!(isSet(siteTemplateName))) {
 				var siteTemplateName = "${siteType} Site";
 			}
 
@@ -65,6 +65,8 @@ definition {
 			SelectFrameTop();
 
 			Alert.viewSuccessMessage();
+
+			WaitForPageLoad();
 		}
 
 		if ("${siteType}" == "Site Template") {
@@ -763,7 +765,7 @@ definition {
 
 		Type(
 			locator1 = "TextInput#GOOGLE_ANALYTICS_ID",
-			value1 = "${googleAnalyticsID}");
+			value1 = "${googleAnalyticsId}");
 
 		PortletEntry.save();
 	}
@@ -809,11 +811,11 @@ definition {
 	}
 
 	macro importSiteFromTempFolder {
-		var siteLARFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "Public_Pages-*.lar");
+		var siteLarFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "Public_Pages-*.lar");
 
 		UploadTempFile.uploadTempFileHiddenNoMouseOver(
 			locator1 = "TextInput#FILE",
-			value1 = "${siteLARFileName}");
+			value1 = "${siteLarFileName}");
 
 		Button.click(button = "Continue");
 

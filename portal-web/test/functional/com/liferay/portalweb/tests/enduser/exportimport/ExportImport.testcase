@@ -755,10 +755,6 @@ definition {
 				siteName = "Site A");
 
 			WebContentDisplayPortlet.selectWebContent(webContentTitle = "Web Content Title ${count}");
-
-			WebContent.viewPGViaWCD(
-				linkName = "Link to Page",
-				linkToPage = "true");
 		}
 
 		LAR.exportSiteCP(siteScopeName = "Site A");
@@ -787,13 +783,15 @@ definition {
 			pageName = "Page A",
 			siteName = "Site B");
 
-		WebContentDisplayPortlet.viewLinkToPageFieldViaWCD(
-			linkedPageName = "Page B",
-			linkName = "Link to Page");
+		WebContentDisplayPortlet.viewContent(
+			displayText = "Link to Page",
+			pageName = "Page B",
+			webContentTitle = "Web Content Title A");
 
-		WebContentDisplayPortlet.viewLinkToPageFieldViaWCD(
-			linkedPageName = "Page C",
-			linkName = "Link to Page");
+		WebContentDisplayPortlet.viewContent(
+			displayText = "Link to Page",
+			pageName = "Page C",
+			webContentTitle = "Web Content Title B");
 	}
 
 	@description = "This is a use case for LPS-88378."
@@ -876,9 +874,10 @@ definition {
 
 		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title 2");
 
-		WebContent.viewPGViaWCD(
-			linkName = "Link to Page",
-			linkToPage = "true");
+		WebContentDisplayPortlet.viewContent(
+			displayText = "Link to Page",
+			pageName = "Site Child Child Page",
+			webContentTitle = "WC WebContent Title 2");
 
 		LAR.exportSiteCP(siteScopeName = "Site Name");
 
@@ -1402,7 +1401,7 @@ definition {
 		AssertConsoleTextNotPresent(value1 = "com.liferay.journal.exception.NoSuchArticleException");
 	}
 
-	@description = "This is a use case for LPS-83326."
+	@description = "This is a use case for LPS-83326 and LPS-99287."
 	@priority = "5"
 	test ExportImportWebContentFolderWithWorkflow {
 		property portal.acceptance = "true";
@@ -1422,6 +1421,14 @@ definition {
 
 		LAR.exportPortlet(larFileName = "WebContent_portlet.lar");
 
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
+
+		WebContentFolder.moveToRecycleBinCP(folderName = "WC Folder Name");
+
+		RecycleBin.openRecycleBinAdmin(siteURLKey = "guest");
+
+		RecycleBin.emptyCP();
+
 		JSONGroup.addGroup(groupName = "Site Name");
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
@@ -1433,6 +1440,8 @@ definition {
 		WebContentFolder.viewFolderWorkflow(
 			folderName = "WC Folder Name",
 			workflowResourceValue = "Single Approver");
+
+		AssertConsoleTextNotPresent(value1 = "com.liferay.exportimport.kernel.lar.PortletDataException");
 	}
 
 	@description = "This is a use case for LPS-86608."
@@ -1608,7 +1617,7 @@ definition {
 
 		LAR.exportSiteCP(siteScopeName = "Guest");
 
-		var downloadURL = selenium.getAttribute("//ul/li/div/h2/span/a@href");
+		var downloadURL = selenium.getAttribute("//dl/dd/div/h2/span/a@href");
 
 		User.logoutAndLoginPG(
 			userLoginEmailAddress = "userea@liferay.com",
@@ -1943,17 +1952,10 @@ definition {
 			pageName = "Page A",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(
-			linkName = "Link to Page",
-			linkToPage = "true");
-
-		Navigator.gotoSitePage(
+		WebContentDisplayPortlet.viewContent(
+			displayText = "Link to Page",
 			pageName = "Page B",
-			siteName = "Site Name");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "WCD#WEB_CONTENT_TITLE",
-			value1 = "WC WebContent Title 2");
+			webContentTitle = "WC WebContent Title 1");
 
 		LAR.exportSiteCP(siteScopeName = "Site Name");
 
@@ -1996,7 +1998,9 @@ definition {
 			webContentContent = "WebContent Content",
 			webContentTitle = "WebContent Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WebContent Content",
+			webContentTitle = "WebContent Title");
 
 		LAR.exportSiteCP(siteScopeName = "Site Name A");
 
@@ -2020,7 +2024,9 @@ definition {
 			pageName = "Test Page",
 			siteName = "Site Name B");
 
-		WebContent.viewPGViaWCD(webContentContent = "WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WebContent Content",
+			webContentTitle = "WebContent Title");
 	}
 
 	@description = "This is a test for LPS-91233."

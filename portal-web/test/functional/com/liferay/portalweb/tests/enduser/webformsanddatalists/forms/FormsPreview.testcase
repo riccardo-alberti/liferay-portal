@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -228,7 +230,7 @@ definition {
 	@description = "Verify that it is not possible to submit a preview of a Form"
 	@priority = "4"
 	test CannotBeSubmitted {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -704,7 +706,7 @@ definition {
 	@description = "Verify that is is not possible to preview an invalid Form (ie. no Fields or a Paragraph field with no body text)"
 	@priority = "5"
 	test InvalidFormCannotBePreviewed {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -1375,7 +1377,7 @@ definition {
 	@description = "Verify that translations can be previewed"
 	@priority = "5"
 	test TranslationsCanBePreviewed {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 

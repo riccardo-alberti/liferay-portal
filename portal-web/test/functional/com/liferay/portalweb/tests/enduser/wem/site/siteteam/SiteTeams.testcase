@@ -476,14 +476,14 @@ definition {
 		property custom.properties = "jsonws.web.service.paths.excludes=";
 		property testray.component.names = "Permissions,Site Administration";
 
-		task ("Add a site team and a public page basing on Blog page template") {
+		task ("Add a site team and a public page basing on Search page template") {
 			JSONGroup.addGroup(groupName = "Site Name");
 
 			PagesAdmin.openPagesAdmin(siteURLKey = "Site Name");
 
 			PagesAdmin.addPublicPage(
-				pageName = "Blog Page Template",
-				pageTemplateName = "Blog");
+				pageName = "Search Page Template",
+				pageTemplateName = "Search");
 		}
 
 		task ("Add a user") {
@@ -547,7 +547,7 @@ definition {
 
 		task ("Edit page permission, remove view permission for guest") {
 			PermissionsInline.gotoPagePG(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				site = "Site Name");
 
 			Role.removePermissionPG(
@@ -557,11 +557,11 @@ definition {
 
 		task ("Edit page permission, remove view and add discussion permission for site memeber") {
 			Navigator.gotoSitePage(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				siteName = "Site Name");
 
 			PermissionsInline.gotoPagePG(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				site = "Site Name");
 
 			for (var permissionsInLineUncheckListsCount : list "CONTENT_PERMISSIONS_ADD_DISCUSSION_CHECKBOX,CONTENT_PERMISSIONS_VIEW_CHECKBOX") {
@@ -573,11 +573,11 @@ definition {
 
 		task ("Edit page permission, add configure page permissions for site team") {
 			Navigator.gotoSitePage(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				siteName = "Site Name");
 
 			PermissionsInline.gotoPagePG(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				site = "Site Name");
 
 			for (var permissionsInLineCheckListsCount : list "ACTION_ADD_DISCUSSION,ACTION_ADD_LAYOUT,ACTION_CONFIGURE_PORTLETS,ACTION_CUSTOMIZE,ACTION_DELETE,ACTION_DELETE_DISCUSSION,ACTION_PERMISSIONS,ACTION_UPDATE,ACTION_UPDATE_DISCUSSION,ACTION_VIEW") {
@@ -593,14 +593,17 @@ definition {
 				userEmailAddress = "userea1@liferay.com");
 		}
 
-		task ("View portlets in blog page template page") {
+		task ("View portlets in search page template page") {
 			Navigator.gotoSitePage(
-				pageName = "Blog Page Template",
+				pageName = "Search Page Template",
 				siteName = "Site Name");
 
-			PageTemplatesAdminGlobalSite.viewDefaultPortletPG(
-				pageTemplateName = "Blog",
-				portletTitleList = "Blogs,Tag Cloud,Recent Bloggers");
+			for (var portletName : list "SearchBar,Suggestions,SiteFacet,TypeFacet,TagFacet,CategoryFacet,FolderFacet,UserFacet,ModifiedFacet,SearchResults,SearchOptions") {
+				AssertVisible(
+					key_decorator = "barebone",
+					key_portletTitleName = "${portletName}",
+					locator1 = "Portlet#SPECIFIC_PORTLET_BORDER_DECORATOR");
+			}
 		}
 
 		task ("Log out and log in as the second created user") {

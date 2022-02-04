@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -34,7 +36,6 @@ definition {
 	@description = "This is a use case for LPS-98073."
 	@priority = "5"
 	test CanBeCreated {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsImageField#CanBeCreated";
 
@@ -58,7 +59,6 @@ definition {
 	@description = "LPS-84335 - Verify that an Image Field can be deleted"
 	@priority = "5"
 	test CanBeDeleted {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsImageField#CanBeDeleted";
 
@@ -130,7 +130,6 @@ definition {
 	@description = "LPS-98073 - Verify that an Image Field can be edited"
 	@priority = "5"
 	test CanBeEdited {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsImageField#CanBeEdited";
 
@@ -166,7 +165,6 @@ definition {
 	@description = "LPS-98073 - Verify that an Image Field can be required"
 	@priority = "5"
 	test CanBeRequired {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "FormsImageField#CanBeRequired";
 
@@ -263,7 +261,7 @@ definition {
 	@description = "Verify that an image can be uploaded"
 	@priority = "5"
 	test CanUploadAnImage {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -294,7 +292,7 @@ definition {
 	@description = "Verify that an image can be uploaded from Liferay Documents and Media"
 	@priority = "5"
 	test CanUploadFromDocumentsAndMedia {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
@@ -345,7 +343,7 @@ definition {
 	@description = "Verify that an Image Description can be added to an uploaded Image"
 	@priority = "4"
 	test DescriptionCanBeAdded {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -459,7 +457,7 @@ definition {
 	@description = "Veriy that the Field Label can be hidden"
 	@priority = "5"
 	test LabelCanBeHidden {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -491,7 +489,7 @@ definition {
 	@description = "Verify that a Predefined Value can be set"
 	@priority = "4"
 	test PredefinedValueCanBeAdded {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -526,7 +524,7 @@ definition {
 	@description = "Verify that the Field Reference can be edited"
 	@priority = "5"
 	test ReferenceCanBeEdited {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -554,7 +552,7 @@ definition {
 	@description = "Verify that an image added to the Image Field can be removed by clicking the Clear button"
 	@priority = "5"
 	test SelectedImagesCanBeCleared {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 

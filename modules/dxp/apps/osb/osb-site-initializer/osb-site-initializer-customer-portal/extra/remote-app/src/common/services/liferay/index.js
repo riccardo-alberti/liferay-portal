@@ -1,58 +1,44 @@
-const getUserId = () => {
-	try {
-		// eslint-disable-next-line no-undef
-		if (!Liferay.ThemeDisplay) {
-			new Error('themeDisplay is not defined');
-		}
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
 
-		// eslint-disable-next-line no-undef
-		return Liferay.ThemeDisplay.getUserId();
-	}
-	catch (error) {
-		console.warn(error.message);
-	}
-};
+export const Liferay = window.Liferay || {
+	BREAKPOINTS: {
+		PHONE: 0,
+		TABLET: 0,
+	},
+	ThemeDisplay: {
+		getCanonicalURL: () => window.location.href,
+		getCompanyGroupId: () => 0,
+		getPathThemeImages: () => null,
+		getScopeGroupId: () => 0,
+		getSiteGroupId: () => 0,
+		getUserId: () => 0,
+	},
+	authToken: '',
+	detach: (type, callback) => window.removeEventListener(type, callback),
+	on: (type, callback) => window.addEventListener(type, callback),
+	once: (type, callback) =>
+		window.addEventListener(type, function handler() {
+			this.removeEventListener(type, handler);
 
-const getScopeGroupId = () => {
-	try {
-		// eslint-disable-next-line no-undef
-		if (!Liferay.ThemeDisplay) {
-			new Error('themeDisplay is not defined');
-		}
-
-		// eslint-disable-next-line no-undef
-		return Liferay.ThemeDisplay.getScopeGroupId();
-	}
-	catch (error) {
-		console.warn(error.message);
-	}
-};
-
-const getLiferaySiteName = () => {
-	let siteName = '/web/customer-portal';
-	try {
-		// eslint-disable-next-line no-undef
-		if (!Liferay.ThemeDisplay) {
-			new Error('themeDisplay is not defined');
-		}
-
-		// eslint-disable-next-line no-undef
-		const {pathname} = new URL(Liferay.ThemeDisplay.getCanonicalURL());
-		const pathSplit = pathname.split('/').filter(Boolean);
-		siteName = `${(pathSplit.length > 2
-			? pathSplit.slice(0, pathSplit.length - 1)
-			: pathSplit
-		).join('/')}`;
-	}
-	catch (error) {
-		console.warn('Not able to find Liferay PathName\n', error);
-	}
-
-	return siteName;
-};
-
-export const LiferayTheme = {
-	getLiferaySiteName,
-	getScopeGroupId,
-	getUserId,
+			callback();
+		}),
+	publish: (name) => ({
+		fire: (data) =>
+			window.dispatchEvent(
+				new CustomEvent(name, {
+					bubbles: true,
+					composed: true,
+					...data,
+				})
+			),
+	}),
 };

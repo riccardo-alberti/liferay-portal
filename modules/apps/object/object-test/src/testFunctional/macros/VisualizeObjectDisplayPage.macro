@@ -22,6 +22,12 @@ definition {
 			locator1 = "VisualizeObjectDisplayPage#DISPLAY_ENTRY");
 	}
 
+	macro assertDisplayEntryNotPresent {
+		AssertElementNotPresent(
+			key_entry = "${entry}",
+			locator1 = "VisualizeObjectDisplayPage#DISPLAY_ENTRY");
+	}
+
 	macro createObjectPageTemplate {
 		VisualizeObjectDisplayPage.openPageTemplate();
 
@@ -52,6 +58,21 @@ definition {
 		NavItem.gotoDisplayPages();
 
 		Click.javaScriptClick(locator1 = "VisualizeObjectDisplayPage#ADD_PLUS_BUTTON");
+	}
+
+	macro selectFilterCollection {
+		Click(locator1 = "Portlet#MODAL_TITLE");
+
+		Click(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "VisualizeObjectDisplayPage#SELECT_CHOOSE_AN_OPTION_FIELD");
+
+		Select(
+			key_fieldLabel = "${fieldLabel}",
+			locator1 = "VisualizeObjectDisplayPage#SELECT_ITEM_IN_FILTER_COLLECTION",
+			value1 = "${itemName}");
+
+		Button.click(button = "Apply");
 	}
 
 	macro validateObjectContentType {

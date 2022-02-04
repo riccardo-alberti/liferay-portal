@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.VirtualLayoutConstants;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -191,12 +192,12 @@ public class UpdateLanguageActionTest {
 
 		themeDisplay.setI18nLanguageId(_sourceUKLocale.getLanguage());
 		themeDisplay.setI18nPath("/" + _sourceUKLocale.getLanguage());
-		themeDisplay.setLocale(_sourceUKLocale);
 		themeDisplay.setLayout(_layout);
 		themeDisplay.setLayoutSet(_group.getPublicLayoutSet());
-		themeDisplay.setSiteGroupId(_group.getGroupId());
+		themeDisplay.setLocale(_sourceUKLocale);
 		themeDisplay.setPortalDomain(_VIRTUAL_HOSTNAME);
 		themeDisplay.setPortalURL(Http.HTTP_WITH_SLASH + _VIRTUAL_HOSTNAME);
+		themeDisplay.setSiteGroupId(_group.getGroupId());
 
 		Assert.assertEquals(
 			StringBundler.concat(
@@ -345,9 +346,11 @@ public class UpdateLanguageActionTest {
 		_testGetRedirectWithFriendlyURL(
 			i18n,
 			_getFriendlyURLSeparatorPart(
-				_sourceLocale, _FRIENDLY_URL_SEPARATOR_JOURNAL_ARTICLE),
+				_sourceLocale,
+				FriendlyURLResolverConstants.URL_SEPARATOR_JOURNAL_ARTICLE),
 			_getFriendlyURLSeparatorPart(
-				_targetLocale, _FRIENDLY_URL_SEPARATOR_JOURNAL_ARTICLE));
+				_targetLocale,
+				FriendlyURLResolverConstants.URL_SEPARATOR_JOURNAL_ARTICLE));
 	}
 
 	private void _testGetRedirectWithFriendlyURL(
@@ -434,8 +437,6 @@ public class UpdateLanguageActionTest {
 			themeDisplay, targetURL,
 			"/" + _sourceLocale.getLanguage() + sourceURL);
 	}
-
-	private static final String _FRIENDLY_URL_SEPARATOR_JOURNAL_ARTICLE = "/w/";
 
 	private static final String _PORTLET_FRIENDLY_URL_PART_ASSET_PUBLISHER =
 		"/-/asset_publisher/instanceID/content/";

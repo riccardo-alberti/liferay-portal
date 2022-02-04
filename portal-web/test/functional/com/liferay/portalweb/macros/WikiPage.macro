@@ -503,7 +503,7 @@ definition {
 				wikiAdmin = "${wikiAdmin}");
 		}
 
-		if ("${viewCKEditorResizer}" == "true") {
+		if ("${viewCkEditorResizer}" == "true") {
 			AssertVisible(locator1 = "CKEditor#RESIZER");
 
 			MouseDown(locator1 = "CKEditor#RESIZER");

@@ -60,6 +60,14 @@ public interface UserGroupResource {
 	public Response postUserGroupBatch(String callbackURL, Object object)
 		throws Exception;
 
+	public void deleteUserGroupByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception;
+
+	public UserGroup getUserGroupByExternalReferenceCode(
+			String externalReferenceCode)
+		throws Exception;
+
 	public void deleteUserGroup(Long userGroupId) throws Exception;
 
 	public Response deleteUserGroupBatch(String callbackURL, Object object)
@@ -74,6 +82,12 @@ public interface UserGroupResource {
 		throws Exception;
 
 	public Response putUserGroupBatch(String callbackURL, Object object)
+		throws Exception;
+
+	public void deleteUserGroupUsers(Long userGroupId, Long[] longs)
+		throws Exception;
+
+	public void postUserGroupUsers(Long userGroupId, Long[] longs)
 		throws Exception;
 
 	public default void setContextAcceptLanguage(

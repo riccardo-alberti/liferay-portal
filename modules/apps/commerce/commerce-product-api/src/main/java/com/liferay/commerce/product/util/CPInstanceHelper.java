@@ -43,6 +43,10 @@ public interface CPInstanceHelper {
 			long cpDefinitionId, String serializedDDMFormValues)
 		throws PortalException;
 
+	public CPInstance fetchFirstAvailableReplacementCPInstance(
+			long commerceChannelGroupId, long cpInstanceId)
+		throws PortalException;
+
 	public CPInstance fetchReplacementCPInstance(
 			long cProductId, String cpInstanceUuid)
 		throws PortalException;
@@ -104,5 +108,7 @@ public interface CPInstanceHelper {
 	public List<KeyValuePair> getKeyValuePairs(
 			long cpDefinitionId, String json, Locale locale)
 		throws PortalException;
+
+	public CPSku toCPSku(CPInstance cpInstance);
 
 }

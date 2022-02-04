@@ -1252,21 +1252,21 @@ definition {
 	}
 
 	macro editCmd {
-		if (!(contains("${dmDocumentFileEdit}", "{dmDocumentFileEdit}"))) {
+		if (isSet(dmDocumentFileEdit)) {
 			UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
 				locator1 = "TextInput#FILE",
 				value1 = "${dmDocumentFileEdit}");
 		}
 
-		if (!(contains("${dmDocumentTitleEdit}", "{dmDocumentTitleEdit}"))) {
+		if (isSet(dmDocumentTitleEdit)) {
 			PortletEntry.inputTitle(title = "${dmDocumentTitleEdit}");
 		}
 
-		if (!(contains("${dmDocumentDescriptionEdit}", "{dmDocumentDescriptionEdit}"))) {
+		if (isSet(dmDocumentDescriptionEdit)) {
 			PortletEntry.inputDescription(description = "${dmDocumentDescriptionEdit}");
 		}
 
-		if (!(contains("${dmDocumentFileNameEdit}", "{dmDocumentFileNameEdit}"))) {
+		if (isSet(dmDocumentFileNameEdit)) {
 			PortletEntry.inputText(
 				fieldLabel = "File Name",
 				text = "${dmDocumentFileNameEdit}");
@@ -1276,7 +1276,7 @@ definition {
 				value1 = "Warning: Changing the filename will affect existing links to this document.");
 		}
 
-		if (!(contains("${dmDocumentTypeEdit}", "{dmDocumentTypeEdit}"))) {
+		if (isSet(dmDocumentTypeEdit)) {
 			Select(
 				key_selectFieldLabel = "Document Type",
 				locator1 = "Select#ANY",
@@ -1302,13 +1302,13 @@ definition {
 				value1 = "Edit");
 		}
 
-		if (!(contains("${dmDocumentFileEdit}", "{dmDocumentFileEdit}"))) {
+		if (isSet(dmDocumentFileEdit)) {
 			UploadCommonFile(
 				locator1 = "TextInput#FILE",
 				value1 = "${dmDocumentFileEdit}");
 		}
 
-		if (!(contains("${dmDocumentTitleEdit}", "{dmDocumentTitleEdit}"))) {
+		if (isSet(dmDocumentTitleEdit)) {
 			Type(
 				locator1 = "TextInput#TITLE",
 				value1 = "${dmDocumentTitleEdit}");
@@ -1322,7 +1322,7 @@ definition {
 			}
 		}
 
-		if (!(contains("${dmDocumentFileNameEdit}", "{dmDocumentFileNameEdit}"))) {
+		if (isSet(dmDocumentFileNameEdit)) {
 			PortletEntry.inputText(
 				fieldLabel = "File Name",
 				text = "${dmDocumentFileNameEdit}");
@@ -1336,11 +1336,11 @@ definition {
 			}
 		}
 
-		if (!(contains("${dmDocumentDescriptionEdit}", "{dmDocumentDescriptionEdit}"))) {
+		if (isSet(dmDocumentDescriptionEdit)) {
 			PortletEntry.inputDescription(description = "${dmDocumentDescriptionEdit}");
 		}
 
-		if (!(contains("${dmDocumentTagName}", "{dmDocumentTagName}"))) {
+		if (isSet(dmDocumentTagName)) {
 			Panel.expandPanel(panel = "Categorization");
 
 			Type(
@@ -1348,7 +1348,7 @@ definition {
 				value1 = "${dmDocumentTagName}");
 		}
 
-		if (!(contains("${revision}", "{revision}"))) {
+		if (isSet(revision)) {
 			if ("${revision}" == "Major") {
 				Click(locator1 = "DocumentsAndMediaEditDocument#MAJOR_REVISION_BUTTON");
 			}
@@ -1564,7 +1564,7 @@ definition {
 
 		Click.clickNoMouseOver(locator1 = "AP#ASSET_EDIT");
 
-		if (!(contains("${dmDocumentTitleEdit}", "{dmDocumentTitleEdit}"))) {
+		if (isSet(dmDocumentTitleEdit)) {
 			Type(
 				locator1 = "TextInput#TITLE",
 				value1 = "${dmDocumentTitleEdit}");
@@ -1710,7 +1710,9 @@ definition {
 	}
 
 	macro gotoEntry {
-		LexiconCard.clickCardTitle(card = "${dmDocumentTitle}");
+		Click(
+			key_card = "${dmDocumentTitle}",
+			locator1 = "Card#CARD_TITLE");
 	}
 
 	macro gotoMenuItemViaInfoPanel {
@@ -1879,7 +1881,7 @@ definition {
 	macro moveToSubFolderCP {
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 
-		Click(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_VERTICAL_ELLIPSIS");
+		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
 		MenuItem.click(menuItem = "Move");
 
@@ -1910,6 +1912,12 @@ definition {
 
 	macro openDocumentsAndMediaAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet");
+	}
+
+	macro previewImage {
+		while (IsElementNotPresent(key_dmDocumentFileName = "${dmDocumentFileName}", locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW")) {
+			Refresh();
+		}
 	}
 
 	macro publishExpiredDocument {
@@ -2142,6 +2150,20 @@ definition {
 		SelectFrame.selectSecondFrame(
 			key_title = "Select Folder",
 			locator1 = "IFrame#MODAL_ANY");
+
+		if (isSet(depotName)) {
+			AssertClick(
+				key_breadcrumbName = "Sites and Libraries",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Sites and Libraries");
+
+			AssertClick(
+				key_groupTab = "Asset Library",
+				locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+				value1 = "Asset Library");
+
+			LexiconCard.clickCard(card = "${depotName}");
+		}
 
 		AssertClick(
 			key_dmFolderName = "${dmRootFolderName}",
@@ -2497,7 +2519,7 @@ definition {
 				value1 = "${dmDocumentDescription}");
 		}
 
-		if (isSet(dmDocumentSize) && !(contains("${dmDocumentSize}", "{dmDocumentSize}"))) {
+		if (isSet(dmDocumentSize)) {
 			var key_dmDocumentSize = "${dmDocumentSize}";
 
 			AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_SIZE");
@@ -2613,7 +2635,7 @@ definition {
 	}
 
 	macro viewDocumentAuthorCmdPG {
-		if (!(contains("${dmDocumentAuthor}", "{dmDocumentAuthor}"))) {
+		if (isSet(dmDocumentAuthor)) {
 			AssertTextEquals(
 				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_UPLOADED_BY",
 				value1 = "${dmDocumentAuthor}");
@@ -2838,7 +2860,7 @@ definition {
 	macro viewDocumentVersionNumberCmdPG {
 		DMDocument.expandInfo();
 
-		if (!(contains("${dmDocumentVersionNumber}", "{dmDocumentVersionNumber}"))) {
+		if (isSet(dmDocumentVersionNumber)) {
 			AssertTextEquals(
 				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_VERSION",
 				value1 = "VERSION ${dmDocumentVersionNumber}");
@@ -2962,7 +2984,7 @@ definition {
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", ":9080");
 		}
 
-		var latestVersionURL = "${portalURL}/documents/${siteID}/0/${dmDocumentFileName}";
+		var latestVersionURL = "${portalURL}/documents/${siteId}/0/${dmDocumentFileName}";
 
 		AssertElementPresent(
 			key_latestVersionURL = "${latestVersionURL}",
@@ -3038,6 +3060,14 @@ definition {
 				key_mgDocumentTitle = "${mgDocumentTitle}",
 				locator1 = "MediaGallery#IMAGE_TITLE");
 		}
+	}
+
+	macro viewNoPermission {
+		Click(
+			key_rowEntry = "${rowEntry}",
+			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
+
+		MenuItem.viewNotPresent(menuItem = "${menuItem}");
 	}
 
 	macro viewNoTagInfo {
@@ -3330,9 +3360,25 @@ definition {
 	macro viewPGViaMG {
 		var key_mgDocumentTitle = "${mgDocumentTitle}";
 
-		AssertElementPresent(locator1 = "MediaGallery#ENTRY_THUMBNAIL");
+		if (isSet(mgVideoPreview)) {
+			Click(
+				key_mgDocumentTitle = "${mgDocumentTitle}",
+				locator1 = "MediaGallery#ENTRY_THUMBNAIL");
 
-		AssertElementPresent(locator1 = "MediaGallery#IMAGE_TITLE");
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#SELECT_MEDIA_GALLERY_VIDEO");
+
+			AssertElementPresent(locator1 = "MediaGallery#ENTRY_VIDEO_PLAYED");
+		}
+		else if (isSet(staging)) {
+			AssertVisible(
+				key_mgImageName = "${mgDocumentTitle}",
+				locator1 = "MediaGallery#ENTRY_IMAGE_PREVIEW");
+		}
+		else {
+			AssertElementPresent(locator1 = "MediaGallery#ENTRY_THUMBNAIL");
+
+			AssertElementPresent(locator1 = "MediaGallery#IMAGE_TITLE");
+		}
 	}
 
 	macro viewPGViaSearch {
@@ -3581,10 +3627,10 @@ definition {
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", ":9080");
 		}
 
-		var webDAVURL = "${portalURL}/webdav/${siteName}/document_library/${dmDocumentFileName}";
+		var webDavurl = "${portalURL}/webdav/${siteName}/document_library/${dmDocumentFileName}";
 
 		AssertElementPresent(
-			key_webDAVURL = "${webDAVURL}",
+			key_webDavurl = "${webDavurl}",
 			locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_WEBDAV_URL_LINK");
 	}
 

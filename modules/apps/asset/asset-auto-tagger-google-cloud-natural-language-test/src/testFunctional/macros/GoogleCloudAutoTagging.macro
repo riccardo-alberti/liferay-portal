@@ -1,12 +1,12 @@
 definition {
 
 	macro enableImageAutoTagging {
-		var googleAPIKey = PropsUtil.get("google.cloud.autotagging.service.key");
+		var googleApiKey = PropsUtil.get("google.cloud.autotagging.service.key");
 
 		Type(
 			key_text = "apiKey",
 			locator1 = "TextArea#ANY",
-			value1 = "${googleAPIKey}");
+			value1 = "${googleApiKey}");
 
 		FormFields.enableCheckbox(fieldName = "enabled");
 
@@ -19,12 +19,12 @@ definition {
 	}
 
 	macro enableTextAutoTagging {
-		var googleAPIKey = PropsUtil.get("google.cloud.autotagging.service.key");
+		var googleApiKey = PropsUtil.get("google.cloud.autotagging.service.key");
 
 		Type(
 			key_text = "apiKey",
 			locator1 = "TextArea#ANY",
-			value1 = "${googleAPIKey}");
+			value1 = "${googleApiKey}");
 
 		if (isSet(enableClassificationEndpoint)) {
 			FormFields.enableCheckbox(fieldName = "Classification Endpoint Enabled");

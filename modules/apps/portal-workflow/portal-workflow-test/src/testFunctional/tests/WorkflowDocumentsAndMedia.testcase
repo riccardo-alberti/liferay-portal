@@ -811,7 +811,7 @@ definition {
 
 		WorkflowDocumentsAndMedia.addFileWithWorkflow(
 			dmDocumentTitle = "DM Document Title",
-			workflowPNGFile = "workflow.png");
+			workflowPngFile = "workflow.png");
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",

@@ -307,9 +307,9 @@ definition {
 			  -d folderId=${folderId} \
 			  -d title=${dmDocumentTitle}
 		''';
-		var fileEntryUUID = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['uuid']");
+		var fileEntryUuid = JSONCurlUtil.post("${curl}", "$.[?(@['title'] == '${dmDocumentTitle}')]['uuid']");
 
-		return "${fileEntryUUID}";
+		return "${fileEntryUuid}";
 	}
 
 	@summary = "This calls the JSON WS API to move a document to a folder"

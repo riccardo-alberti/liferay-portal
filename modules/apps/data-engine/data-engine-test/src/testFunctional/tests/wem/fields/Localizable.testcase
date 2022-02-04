@@ -132,7 +132,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentText = "This is a Text field - pt-BR edited",
 			webContentTextFieldLabel = "Text",
@@ -420,7 +420,7 @@ definition {
 			webContentTitle = "Web Content Title - pt-BR");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "03/05/2021",
 			webContentLocaleFieldLabel = "ca-ES",
 			webContentNumeric = "20",
@@ -648,7 +648,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "04/01/2021",
 			webContentDateFieldLabel = "Date",
 			webContentLocaleFieldLabel = "pt-BR",

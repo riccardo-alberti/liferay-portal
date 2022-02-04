@@ -17,21 +17,12 @@ package com.liferay.jenkins.results.parser;
 import java.io.File;
 
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * @author Michael Hashimoto
  */
 public class DefaultPortalJob
 	extends BaseJob implements PortalTestClassJob, TestSuiteJob {
-
-	@Override
-	public Set<String> getDistTypes() {
-		String testBatchDistAppServers = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.dist.app.servers");
-
-		return getSetFromString(testBatchDistAppServers);
-	}
 
 	@Override
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
@@ -93,15 +84,6 @@ public class DefaultPortalJob
 			new File(portalWorkingDirectory, "build.properties"));
 		jobPropertiesFiles.add(
 			new File(portalWorkingDirectory, "test.properties"));
-
-		readJobProperties();
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		return getSetFromString(
-			JenkinsResultsParserUtil.getProperty(
-				getJobProperties(), "test.batch.names"));
 	}
 
 	private PortalGitWorkingDirectory _portalGitWorkingDirectory;

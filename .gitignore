@@ -50,12 +50,6 @@
 /modules/private/node_modules_cache
 /nbproject/private
 /out
-/portal-client/*.ipr
-/portal-client/*.iws
-/portal-client/classes
-/portal-client/portal-client*.asc
-/portal-client/portal-client*.jar
-/portal-client/src
 /portal-impl/*.ipr
 /portal-impl/*.iws
 /portal-impl/ServiceBuilder.temp
@@ -116,6 +110,7 @@
 /portal-web/test-results
 /portal-web/test/functional-generated
 /portal-web/test/test-portal-web-ext.properties
+/portal-web/tests
 /rebel.xml
 /release.*.properties
 /selenium-output
@@ -155,8 +150,7 @@
 /tools/sdk/dependencies/*/ivy.xml.MD5
 /tools/sdk/dependencies/*/lib
 /tools/sdk/dist
-/tools/selenium/*.exe
-/tools/selenium/extensions/ide.*.js
+/tools/selenium
 /tools/zip_tmpl
 /tunnel-web/docroot/WEB-INF/classes
 /tunnel-web/docroot/WEB-INF/lib
@@ -196,3 +190,4 @@
 /util-taglib/util-taglib*.jar
 /working.dir.properties
 _sass_cache_*.css
+poshi-warnings.xml

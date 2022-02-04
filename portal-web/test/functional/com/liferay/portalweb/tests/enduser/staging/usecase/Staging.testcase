@@ -165,13 +165,13 @@ definition {
 
 		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
-		var fragmentHTML = '''<lfr-widget-web-content>''';
+		var fragmentHtml = '''<lfr-widget-web-content>''';
 
 		var htmlSnippet = '''<lfr-''';
 
 		FragmentsEditor.autocompleteFragmentHTML(
 			autocompleteField = "lfr-widget-web-content",
-			fragmentHTML = "${fragmentHTML}",
+			fragmentHtml = "${fragmentHtml}",
 			htmlSnippet = "${htmlSnippet}");
 
 		PortletEntry.publish();
@@ -194,15 +194,15 @@ definition {
 			collectionName = "Collection Name",
 			fragmentName = "Fragment Name");
 
-		WebContentDisplayPortlet.selectWebContent(
-			contentPage = "true",
-			webContentTitle = "WC WebContent Title");
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		IFrame.closeFrame();
 
 		PageEditor.clickPublish();
 
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/site-name/test-content-page-name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
 
 		JSONStaging.enableLocalStaging(groupName = "Site Name");
 
@@ -210,13 +210,13 @@ definition {
 			pageName = "Test Content Page Name",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Content Page Name",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+		WebContentDisplayPortlet.viewContent(webContentContent = "WC WebContent Content");
 	}
 
 	@description = "This is a use case for LPS-90127."
@@ -708,9 +708,9 @@ definition {
 
 		PageEditor.addWidget(portletName = "Web Content Display");
 
-		WebContentDisplayPortlet.selectWebContent(
-			contentPage = "true",
-			webContentTitle = "WC WebContent Title");
+		WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent Title");
+
+		IFrame.closeFrame();
 
 		PageEditor.clickPublish();
 
@@ -789,7 +789,9 @@ definition {
 			webContentContent = "WebContent Content",
 			webContentTitle = "WebContent Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "WebContent Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "WebContent Content",
+			webContentTitle = "WebContent Title");
 
 		Navigator.gotoSitePage(
 			pageName = "Staging Test Page",
@@ -1087,14 +1089,14 @@ definition {
 
 		var companyId = JSONCompany.getCompanyId(portalURL = "http://localhost:9080");
 
-		var siteID = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${companyId}");
+		var siteId = JSONGroupAPI._getSiteIdByGroupKey(groupName = "${companyId}");
 
 		Staging.openStagingAdmin(siteURLKey = "global");
 
 		Staging.activateStagingCP(
 			remotePort = "9080",
 			remoteStaging = "true",
-			siteID = "${siteID}",
+			siteId = "${siteId}",
 			siteName = "Global");
 
 		Category.openCategoriesAdmin(siteURLKey = "global");
@@ -1152,7 +1154,7 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = "pepe",
+			friendlyURL = "pepe",
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
@@ -1177,7 +1179,7 @@ definition {
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = "pepe",
+			friendlyURL = "pepe",
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title 2");
 
@@ -1525,6 +1527,7 @@ definition {
 			siteName = "Site Name");
 
 		AssertTextEquals.assertPartialText(
+			index = "1",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Web Content Content 1");
 
@@ -1555,6 +1558,7 @@ definition {
 			siteName = "Site Name");
 
 		AssertTextEquals.assertPartialText(
+			index = "1",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Web Content Content 1");
 
@@ -1562,13 +1566,16 @@ definition {
 			pageName = "Staging Test Page 2",
 			siteName = "Site Name");
 
-		if (IsElementPresent(locator1 = "WCD#WEB_CONTENT_CONTENT")) {
+		if (IsElementPresent(index = "1", locator1 = "WCD#WEB_CONTENT_CONTENT")) {
 			AssertTextNotEquals(
+				index = "1",
 				locator1 = "WCD#WEB_CONTENT_CONTENT",
 				value1 = "Web Content Title 2");
 		}
 		else {
-			AssertElementNotPresent(locator1 = "WCD#WEB_CONTENT_CONTENT");
+			AssertElementNotPresent(
+				index = "1",
+				locator1 = "WCD#WEB_CONTENT_CONTENT");
 		}
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
@@ -1598,6 +1605,7 @@ definition {
 			siteName = "Site Name");
 
 		AssertTextEquals.assertPartialText(
+			index = "1",
 			locator1 = "WCD#WEB_CONTENT_CONTENT",
 			value1 = "Web Content Content 2");
 
@@ -1611,7 +1619,7 @@ definition {
 			pageName = "Staging Test Page 2",
 			siteName = "Site Name");
 
-		WebContentDisplayPortlet.viewRecycleBinMessage(webContentTitle = "Web Content Title 2");
+		WebContentDisplayPortlet.viewMessage(recycleBinWebContentTitle = "Web Content Title 2");
 
 		Staging.gotoPublishToLive();
 
@@ -1621,7 +1629,7 @@ definition {
 			pageName = "Staging Test Page 2",
 			siteName = "Site Name");
 
-		WebContentDisplayPortlet.viewRecycleBinMessage(webContentTitle = "Web Content Title 2");
+		WebContentDisplayPortlet.viewMessage(recycleBinWebContentTitle = "Web Content Title 2");
 	}
 
 	@description = "This is a use case for LPS-89629."
@@ -1753,7 +1761,9 @@ definition {
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Test Page 2",
@@ -1777,7 +1787,9 @@ definition {
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
@@ -1814,7 +1826,9 @@ definition {
 
 		Page.viewSpecificPG(pageNameList = "Test Page 1,Test Page 2");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Portlet.viewSpecificPG(portletName = "Blogs");
 
@@ -1918,14 +1932,14 @@ definition {
 
 		WebContentNavigator.gotoEditCP(webContentTitle = '''Special Char aŐb''');
 
-		WebContent.viewFriendlyURLCP(friendlyUrl = '''special-char-aŐb''');
+		WebContent.viewFriendlyURLCP(friendlyURL = '''special-char-aŐb''');
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
 
 		WebContentNavigator.gotoAddCP();
 
 		WebContent.addWithFriendlyURL(
-			friendlyUrl = "special-char-a-c5-90b",
+			friendlyURL = "special-char-a-c5-90b",
 			webContentContent = "Web Content Content2",
 			webContentTitle = "Web Content Title");
 

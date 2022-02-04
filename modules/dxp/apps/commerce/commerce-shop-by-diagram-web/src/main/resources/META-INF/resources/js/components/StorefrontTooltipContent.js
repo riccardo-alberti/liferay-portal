@@ -9,6 +9,7 @@
  * distribution rights of the Software.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayLabel from '@clayui/label';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClaySticker from '@clayui/sticker';
@@ -32,12 +33,11 @@ function SkuContent({
 	channelId,
 	currencyCode,
 	orderUUID,
-	product,
+	product: mappedProduct,
 	productBaseURL,
-	quantity,
-	quantityDetails,
-	skuId,
 }) {
+	const product =
+		mappedProduct.firstAvailableReplacementMappedProduct || mappedProduct;
 	const isMounted = useIsMounted();
 	const productURL = getProductURL(productBaseURL, product.urls);
 	const productName = getProductName(product);
@@ -55,7 +55,7 @@ function SkuContent({
 
 		setLoading(true);
 
-		getCartItems(cartId, skuId)
+		getCartItems(cartId, product.skuId)
 			.then((jsonResponse) => {
 				if (isMounted()) {
 					setInCart(Boolean(jsonResponse.items?.length));
@@ -68,7 +68,7 @@ function SkuContent({
 					setLoading(false);
 				}
 			});
-	}, [cartId, isMounted, skuId]);
+	}, [cartId, isMounted, product.skuId]);
 
 	const productPurchasable = isProductPurchasable(
 		product.availability,
@@ -78,6 +78,22 @@ function SkuContent({
 
 	return (
 		<div className="row">
+			{mappedProduct.firstAvailableReplacementMappedProduct && (
+				<div className="col-12">
+					<ClayAlert
+						className="p-2"
+						displayType="warning"
+						title={Liferay.Language.get('alert')}
+					>
+						{Liferay.Util.sub(
+							Liferay.Language.get('x-has-been-replaced-by-x'),
+							mappedProduct.sku,
+							product.sku
+						)}
+					</ClayAlert>
+				</div>
+			)}
+
 			{product.thumbnail && (
 				<div className="col-auto">
 					<ClaySticker className="fill-cover" size="xl">
@@ -105,7 +121,7 @@ function SkuContent({
 				</h4>
 
 				<p>
-					{Liferay.Language.get('quantity')}: {quantity}
+					{Liferay.Language.get('quantity')}: {product.quantity}
 				</p>
 			</div>
 
@@ -131,7 +147,7 @@ function SkuContent({
 									product.options,
 									product.productOptions
 								),
-								quantity,
+								quantity: product.quantity,
 								skuId: product.skuId,
 							}}
 							disabled={!productPurchasable}
@@ -141,13 +157,17 @@ function SkuContent({
 								inline: false,
 								quantityDetails: {
 									allowedQuantities:
-										quantityDetails.allowedOrderQuantities,
+										product.productConfiguration
+											.allowedOrderQuantities,
 									maxQuantity:
-										quantityDetails.maxOrderQuantity,
+										product.productConfiguration
+											.maxOrderQuantity,
 									minQuantity:
-										quantityDetails.minOrderQuantity,
+										product.productConfiguration
+											.minOrderQuantity,
 									multipleQuantity:
-										quantityDetails.multipleOrderQuantity,
+										product.productConfiguration
+											.multipleOrderQuantity,
 								},
 								size: 'sm',
 							}}
@@ -191,14 +211,14 @@ function DiagramContent({product, productBaseURL}) {
 	);
 }
 
-function ExternalContent({product, quantity}) {
+function ExternalContent({product}) {
 	return (
 		<>
 			<h4 className="mb-1">{product.sku || product.name}</h4>
 
-			{!!quantity && (
+			{!!product.quantity && (
 				<p className="mb-0">
-					{Liferay.Language.get('quantity')}: {quantity}
+					{Liferay.Language.get('quantity')}: {product.quantity}
 				</p>
 			)}
 		</>
@@ -221,9 +241,7 @@ function StorefrontTooltipContent({
 	productBaseURL,
 	selectedPin,
 }) {
-	const product = selectedPin.mappedProduct;
-
-	const Renderer = ContentsMap[product.type];
+	const Renderer = ContentsMap[selectedPin.mappedProduct.type];
 
 	return (
 		<div className="diagram-storefront-tooltip">
@@ -236,9 +254,6 @@ function StorefrontTooltipContent({
 				orderUUID={orderUUID}
 				product={selectedPin.mappedProduct}
 				productBaseURL={productBaseURL}
-				quantity={product.quantity}
-				quantityDetails={product.productConfiguration || {}}
-				skuId={product.skuId}
 			/>
 		</div>
 	);

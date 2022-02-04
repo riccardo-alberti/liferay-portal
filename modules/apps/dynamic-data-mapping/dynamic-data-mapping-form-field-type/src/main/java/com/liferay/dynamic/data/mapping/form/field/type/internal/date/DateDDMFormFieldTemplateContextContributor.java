@@ -42,7 +42,10 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(
 	immediate = true,
-	property = "ddm.form.field.type.name=" + DDMFormFieldTypeConstants.DATE,
+	property = {
+		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.DATE,
+		"ddm.form.field.type.name=" + DDMFormFieldTypeConstants.DATE_TIME
+	},
 	service = {
 		DateDDMFormFieldTemplateContextContributor.class,
 		DDMFormFieldTemplateContextContributor.class
@@ -68,6 +71,11 @@ public class DateDDMFormFieldTemplateContextContributor
 			DDMFormFieldTypeUtil.getPropertyValue(
 				ddmFormField, ddmFormFieldRenderingContext.getLocale(),
 				"predefinedValue")
+		).put(
+			"tooltip",
+			DDMFormFieldTypeUtil.getPropertyValue(
+				ddmFormField, ddmFormFieldRenderingContext.getLocale(),
+				"tooltip")
 		).put(
 			"weekdaysShort",
 			Stream.of(

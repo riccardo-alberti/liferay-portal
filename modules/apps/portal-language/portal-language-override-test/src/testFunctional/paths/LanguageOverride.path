@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>LanguageOverride</title>
+</head>
+
+<body>
+<table border="1" cellpadding="1" cellspacing="1">
+<thead>
+<tr><td rowspan="1" colspan="3">LanguageOverride</td></tr>
+</thead>
+
+<tbody>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--VIEW_PAGE-->
+<tr>
+	<td>VIEW_PAGE_LANGUAGE_KEY</td>
+	<td>//h5/strong[contains(.,'${key_languageKey}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VIEW_PAGE_LANGUAGE_KEY_TRANSLATION</td>
+	<td>//h6[contains(@class,'text-default') and contains (.,'${key_translation}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--FILTER_BY_OVERRIDE-->
+<tr>
+	<td>FILTER_BY_OVERRIDE_FILTER_LABEL</td>
+	<td>//li[contains(@class,'tbar')]//span[contains(@class,'label-item-expand')][starts-with(.,'Override')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_BY_OVERRIDE_LANGUAGE_KEY_OVERRIDDEN_LABEL</td>
+	<td>//span[contains(@class,'label-item-expand') and contains (.,'Overridden')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FILTER_BY_OVERRIDE_REMOVE_OVERRIDE_FILTER</td>
+	<td>//span[contains(.,'Override')]//following-sibling::span/button[contains(@class,'close')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

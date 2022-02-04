@@ -28,6 +28,7 @@ definition {
 	@priority = "5"
 	test ServiceAccessPolicySmoke {
 		property custom.properties = "access.control.sanitize.security.exception=false${line.separator}json.service.auth.token.hosts.allowed=${line.separator}json.service.serialize.throwable=true";
+		property portal.acceptance = "false";
 		property test.name.skip.portal.instance = "ServiceAccessPolicy#ServiceAccessPolicySmoke";
 
 		task ("Assert access denied for viewing liferay email") {
@@ -64,7 +65,9 @@ definition {
 					-d emailAddress=test@liferay.com
 			''';
 
-			SystemSettings.getViewUserEmailPermissionDenied(curl = "${curl}");
+			SystemSettings.getViewUserEmailPermissionDenied(
+				curl = "${curl}",
+				userId = "${userId}");
 		}
 
 		task ("Assert permission available") {
@@ -74,7 +77,9 @@ definition {
 					-u test@liferay.com:test
 			''';
 
-			SystemSettings.getUserEmailSuccessfully(curl = "${curl}");
+			SystemSettings.getUserEmailSuccessfully(
+				companyId = "${companyId}",
+				curl = "${curl}");
 		}
 
 		task ("Edit service access policy") {

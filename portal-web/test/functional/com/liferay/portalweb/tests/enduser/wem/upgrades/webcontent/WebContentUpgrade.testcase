@@ -184,15 +184,18 @@ definition {
 			var i = "1";
 
 			while ("${i}" != "31") {
-				WebContent.viewPGViaWCD(webContentContent = "text${i}");
+				WebContentDisplayPortlet.viewContent(
+					webContentContent = "text${i}",
+					webContentTitle = "Web Content Complex Title 1");
 
 				var i = ${i} + 1;
 			}
 
-			for (var contentText : list "Link Pagina Origem,Link Pagina Atual") {
+			for (var displayText : list "Link Pagina Origem,Link Pagina Atual") {
 				AssertElementPresent(
-					key_contentText = "${contentText}",
-					locator1 = "WCD#WEB_CONTENT_TEXT_LINK_URL");
+					key_displayText = "${displayText}",
+					key_webContentTitle = "Web Content Complex Title 1",
+					locator1 = "WCD#WEB_CONTENT_LINK");
 			}
 
 			for (var i : list "1,2,3,4") {
@@ -322,15 +325,9 @@ definition {
 
 			WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
 
-			PortletEntry.changeLocale(locale = "zh-CN");
-
-			Click(locator1 = "TextInput#NAME");
-
-			RobotType.robotTypeShortcut(locator1 = "Ctrl + a");
-
-			KeyPress(
-				locator1 = "TextInput#NAME",
-				value1 = "\BACK_SPACE");
+			WebContentStructures.addLocalization(
+				locale = "zh-CN",
+				localization1Name = "");
 
 			WebContentStructures.saveCP();
 
@@ -392,26 +389,26 @@ definition {
 				value1 = "text2");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentLinkToPage = "Page1",
 				webContentLinkToPageFieldLabel = "Link Pagina Origem",
 				webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentLinkToPage = "Page2",
 				webContentLinkToPageFieldLabel = "Link Pagina Atual",
 				webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentImage = "Document_1.jpg",
 				webContentImageDescription = "image1",
 				webContentImageFieldLabel = "Imagem Aba 01",
 				webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentImage = "Document_2.jpg",
 				webContentImageDescription = "image2",
 				webContentImageFieldLabel = "Logo",
@@ -578,7 +575,9 @@ definition {
 			var i = "1";
 
 			while ("${i}" != "121") {
-				WebContent.viewPGViaWCD(webContentContent = "text${i}");
+				WebContentDisplayPortlet.viewContent(
+					webContentContent = "text${i}",
+					webContentTitle = "Web Content Complex Title 1");
 
 				var i = ${i} + 1;
 			}
@@ -889,19 +888,19 @@ definition {
 			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentText = "text1",
 				webContentTextFieldLabel = "Label UF Comunicado",
 				webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentText = "text2",
 				webContentTextFieldLabel = "Lista UF Comunicado",
 				webContentTitle = "Web Content Complex Title 1");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentImage = "Document_1.jpg",
 				webContentImageDescription = "image1",
 				webContentImageFieldLabel = "Url imagem",

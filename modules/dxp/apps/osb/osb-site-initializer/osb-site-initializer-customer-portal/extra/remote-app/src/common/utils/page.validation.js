@@ -1,21 +1,28 @@
-import {API_BASE_URL} from '.';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import client from '../../apolloClient';
-import {LiferayTheme} from '../services/liferay';
-import {getAccountRolesAndAccountFlags} from '../services/liferay/graphql/queries';
-import {PARAMS_KEYS} from '../services/liferay/search-params';
-import {ROLES_PERMISSIONS, ROUTES} from './constants';
+import {getAccountFlags} from '../services/liferay/graphql/queries';
+import getLiferaySiteName from '../utils/getLiferaySiteName';
+import {API_BASE_URL, ROUTE_TYPES, SEARCH_PARAMS_KEYS} from './constants';
 
-const {PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE} = PARAMS_KEYS;
-
-const BASE_API = `${API_BASE_URL}/${LiferayTheme.getLiferaySiteName()}`;
+const BASE_API = `${API_BASE_URL}/${getLiferaySiteName()}`;
 
 const getHomeLocation = () => BASE_API;
 
 const getOnboardingLocation = (externalReferenceCode) =>
-	`${BASE_API}/onboarding?${PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE}=${externalReferenceCode}`;
+	`${BASE_API}/onboarding?${SEARCH_PARAMS_KEYS.accountKey}=${externalReferenceCode}`;
 
 const getOverviewLocation = (externalReferenceCode) => {
-	return `${BASE_API}/overview?${PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE}=${externalReferenceCode}`;
+	return `${BASE_API}/overview?${SEARCH_PARAMS_KEYS.accountKey}=${externalReferenceCode}`;
 };
 
 const isValidPage = async (userAccount, externalReferenceCode, pageKey) => {
@@ -31,13 +38,10 @@ const isValidPage = async (userAccount, externalReferenceCode, pageKey) => {
 		return hasAccountBrief;
 	};
 
-	const accountFlagValue = 1;
-
 	const {data} = await client.query({
-		query: getAccountRolesAndAccountFlags,
+		query: getAccountFlags,
 		variables: {
-			accountFlagsFilter: `accountKey eq '${externalReferenceCode}' and name eq '${ROUTES.ONBOARDING}' and userUuid eq '${userAccount.externalReferenceCode}' and value eq ${accountFlagValue}`,
-			accountId: userAccount.id,
+			filter: `accountKey eq '${externalReferenceCode}' and name eq '${ROUTE_TYPES.onboarding}' and finished eq true`,
 		},
 	});
 
@@ -47,12 +51,9 @@ const isValidPage = async (userAccount, externalReferenceCode, pageKey) => {
 			externalReferenceCode
 		);
 		const hasAccountFlags = !!data.c?.accountFlags?.items?.length;
+		const isAccountAdministrator = userAccount.isAdmin;
 
-		if (pageKey === ROUTES.ONBOARDING) {
-			const isAccountAdministrator = !!data.accountAccountRoles?.items?.find(
-				({name}) => name === ROLES_PERMISSIONS.ACCOUNT_ADMINISTRATOR
-			);
-
+		if (pageKey === ROUTE_TYPES.onboarding) {
 			if (
 				!(
 					isValidExternalReferenceCode &&
@@ -75,11 +76,11 @@ const isValidPage = async (userAccount, externalReferenceCode, pageKey) => {
 			return true;
 		}
 
-		if (pageKey === ROUTES.OVERVIEW) {
+		if (pageKey === ROUTE_TYPES.overview) {
 			if (!isValidExternalReferenceCode) {
 				window.location.href = getHomeLocation();
 			}
-			else if (!hasAccountFlags) {
+			else if (!hasAccountFlags && isAccountAdministrator) {
 				window.location.href = getOnboardingLocation(
 					externalReferenceCode
 				);

@@ -1,5 +1,29 @@
 definition {
 
+	macro changeVocabulary {
+		SelectFrame(
+			key_title = "Commerce Categories Navigation",
+			locator1 = "IFrame#MODAL_ANY");
+
+		Select(
+			key_title = "Vocabulary",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${newVocabularyName}");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();
+	}
+
+	macro editMiniCartItemQuantity {
+		Type(
+			key_cartItemSku = "${cartItemSku}",
+			locator1 = "CommerceAccelerators#MINI_CART_ITEM_QUANTITY",
+			value1 = "${productQuantity}");
+	}
+
 	macro gotoCommercePortletNavItem {
 		AssertClick(
 			key_navItem = "${navItem}",
@@ -12,6 +36,8 @@ definition {
 			key_entryName = "${entryName}",
 			locator1 = "CommerceNavigation#ENTRY_NAME",
 			value1 = "${entryName}");
+
+		WaitForPageLoad();
 	}
 
 	macro gotoFrontStoreProductPage {
@@ -25,6 +51,13 @@ definition {
 		Click.clickNoMouseOver(locator1 = "CommerceAccelerators#MINI_CART_BUTTON");
 
 		WaitForElementPresent(locator1 = "CommerceAccelerators#MINI_CART_OPENED");
+	}
+
+	macro gotoMiniCartEntry {
+		AssertClickNoError(
+			key_cartItemSku = "${cartItemSku}",
+			locator1 = "CommerceAccelerators#MINI_CART_ITEM_NAME_USING_SKU",
+			value1 = "${entryName}");
 	}
 
 	macro gotoMiniumSidebarItem {
@@ -95,6 +128,14 @@ definition {
 			locator1 = "CommerceEntry#TABLE_LIST_TITLE");
 	}
 
+	macro searchCatalog {
+		Type(
+			locator1 = "AppBuilder#SEARCH_BAR_INPUT",
+			value1 = "${productName}");
+
+		Click(locator1 = "Button#SUBMIT");
+	}
+
 	macro searchEntry {
 		AssertElementPresent(locator1 = "CommerceNavigation#SEARCH_FIELD");
 
@@ -107,11 +148,30 @@ definition {
 			value1 = "\RETURN");
 	}
 
+	macro selectItemFromTreeNode {
+		var key_itemName = "${itemName}";
+
+		Click(locator1 = "Treeview#NODE_LIST_ITEM");
+	}
+
 	macro sortField {
 		Click(
 			key_sortFieldName = "${sortFieldName}",
 			locator1 = "CommerceNavigation#SORT_FIELD",
 			value1 = "${sortFieldName}");
+	}
+
+	macro validateMiniCartItemQuantity {
+		AssertTextEquals(
+			key_cartItemSku = "${cartItemSku}",
+			locator1 = "CommerceAccelerators#MINI_CART_ITEM_QUANTITY",
+			value1 = "${productQuantity}");
+	}
+
+	macro viewCartPortletEntry {
+		Click(
+			key_productName = "${productName}",
+			locator1 = "CommerceAccelerators#CART_PORTLET_ORDER_DESCRIPTION");
 	}
 
 	macro viewFilterResultsSpecificOrder {

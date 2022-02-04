@@ -27,8 +27,7 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
-import com.liferay.portal.kernel.portlet.PortalPreferences;
-import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.portlet.SearchDisplayStyleUtil;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
@@ -120,13 +119,9 @@ public class LayoutSetPrototypeDisplayContext {
 			return _displayStyle;
 		}
 
-		PortalPreferences portalPreferences =
-			PortletPreferencesFactoryUtil.getPortalPreferences(
-				_httpServletRequest);
-
-		_displayStyle = portalPreferences.getValue(
-			LayoutSetPrototypePortletKeys.LAYOUT_SET_PROTOTYPE, "display-style",
-			"list");
+		_displayStyle = SearchDisplayStyleUtil.getDisplayStyle(
+			_httpServletRequest,
+			LayoutSetPrototypePortletKeys.LAYOUT_SET_PROTOTYPE, "list");
 
 		return _displayStyle;
 	}
@@ -208,14 +203,14 @@ public class LayoutSetPrototypeDisplayContext {
 		searchContainer.setOrderByComparator(
 			new LayoutSetPrototypeCreateDateComparator(orderByAsc));
 		searchContainer.setOrderByType(getOrderByType());
-		searchContainer.setResults(
-			LayoutSetPrototypeLocalServiceUtil.search(
+		searchContainer.setResultsAndTotal(
+			() -> LayoutSetPrototypeLocalServiceUtil.search(
 				themeDisplay.getCompanyId(), getActive(),
 				searchContainer.getStart(), searchContainer.getEnd(),
-				searchContainer.getOrderByComparator()));
+				searchContainer.getOrderByComparator()),
+			_getTotal());
 		searchContainer.setRowChecker(
 			new EmptyOnClickRowChecker(_renderResponse));
-		searchContainer.setTotal(getTotal());
 
 		return searchContainer;
 	}
@@ -267,7 +262,7 @@ public class LayoutSetPrototypeDisplayContext {
 	}
 
 	public boolean isDisabledManagementBar() {
-		if ((getTotal() > 0) || !Objects.equals(getNavigation(), "all")) {
+		if ((_getTotal() > 0) || !Objects.equals(_getNavigation(), "all")) {
 			return false;
 		}
 
@@ -303,25 +298,6 @@ public class LayoutSetPrototypeDisplayContext {
 		}
 
 		return false;
-	}
-
-	protected String getNavigation() {
-		if (Validator.isNotNull(_navigation)) {
-			return _navigation;
-		}
-
-		_navigation = ParamUtil.getString(_httpServletRequest, "navigation");
-
-		return _navigation;
-	}
-
-	protected int getTotal() {
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		return LayoutSetPrototypeLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(), getActive());
 	}
 
 	private List<DropdownItem> _getFilterNavigationDropdownItems() {
@@ -360,6 +336,16 @@ public class LayoutSetPrototypeDisplayContext {
 		return _keywords;
 	}
 
+	private String _getNavigation() {
+		if (Validator.isNotNull(_navigation)) {
+			return _navigation;
+		}
+
+		_navigation = ParamUtil.getString(_httpServletRequest, "navigation");
+
+		return _navigation;
+	}
+
 	private List<DropdownItem> _getOrderByDropdownItems() {
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
@@ -370,6 +356,15 @@ public class LayoutSetPrototypeDisplayContext {
 					LanguageUtil.get(_httpServletRequest, "create-date"));
 			}
 		).build();
+	}
+
+	private int _getTotal() {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)_httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		return LayoutSetPrototypeLocalServiceUtil.searchCount(
+			themeDisplay.getCompanyId(), getActive());
 	}
 
 	private String _displayStyle;

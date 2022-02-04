@@ -142,6 +142,7 @@
 			<property name="category" value="Naming Conventions" />
 			<property name="description" value="Checks that method parameter names conform to a specified pattern." />
 			<property name="documentationLocation" value="config_naming.html#ParameterName" />
+			<property name="format" value="^[a-z][_a-zA-Z0-9]*$" />
 			<message key="name.invalidPattern" value="Parameter ''{0}'' must match pattern ''{1}''" />
 		</module>
 		<module name="RequireThisCheck">
@@ -788,6 +789,7 @@
 			<property name="category" value="Performance" />
 			<property name="description" value="Finds variables that are declared, but not used." />
 			<message key="variable.unused" value="Variable ''{0}'' is unused" />
+			<message key="variable.value.unused" value="Value of variable ''{0}'' is unused" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.UnwrappedVariableInfoCheck">
 			<property name="category" value="Bug Prevention" />

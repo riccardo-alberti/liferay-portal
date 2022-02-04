@@ -16,7 +16,6 @@ package com.liferay.jenkins.results.parser;
 
 import java.io.File;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -63,16 +62,6 @@ public class PortalAWSJob extends BaseJob implements PortalTestClassJob {
 			new File(
 				jenkinsGitWorkingDirectory.getWorkingDirectory(),
 				"commands/dependencies/test-aws-batch.properties"));
-
-		readJobProperties();
-	}
-
-	@Override
-	protected Set<String> getRawBatchNames() {
-		String environmentJobNames = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.names", getJobName());
-
-		return new HashSet<>(Arrays.asList(environmentJobNames.split(",")));
 	}
 
 	private final String _portalBranchName;

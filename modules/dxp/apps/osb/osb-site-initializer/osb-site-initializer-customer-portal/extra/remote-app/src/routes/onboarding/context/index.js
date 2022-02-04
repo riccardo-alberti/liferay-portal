@@ -1,41 +1,33 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import {createContext, useContext, useEffect, useReducer} from 'react';
 import client from '../../../apolloClient';
-import FormProvider from '../../../common/providers/FormProvider';
-import {LiferayTheme} from '../../../common/services/liferay';
+import {Liferay} from '../../../common/services/liferay';
 import {
 	addAccountFlag,
 	getAccountSubscriptionGroups,
 	getKoroneikiAccounts,
 	getUserAccount,
 } from '../../../common/services/liferay/graphql/queries';
+import {searchParams} from '../../../common/services/liferay/searchParams';
 import {
-	PARAMS_KEYS,
-	SearchParams,
-} from '../../../common/services/liferay/search-params';
-import {ROUTES} from '../../../common/utils/constants';
+	ROLE_TYPES,
+	ROUTE_TYPES,
+	SEARCH_PARAMS_KEYS,
+} from '../../../common/utils/constants';
 import {isValidPage} from '../../../common/utils/page.validation';
-import {PRODUCTS} from '../../customer-portal/utils/constants';
-import {
-	getInitialDxpAdmin,
-	getInitialInvite,
-	roles,
-	steps,
-} from '../utils/constants';
+import {PRODUCT_TYPES} from '../../customer-portal/utils/constants';
+import {ONBOARDING_STEP_TYPES} from '../utils/constants';
 import reducer, {actionTypes} from './reducer';
-
-const initialForm = {
-	dxp: {
-		admins: [getInitialDxpAdmin()],
-		dataCenterRegion: {},
-		disasterDataCenterRegion: {},
-		projectId: '',
-	},
-	invites: [
-		getInitialInvite(),
-		getInitialInvite(roles.MEMBER.key),
-		getInitialInvite(roles.MEMBER.key),
-	],
-};
 
 const AppContext = createContext();
 
@@ -44,27 +36,42 @@ const AppContextProvider = ({assetsPath, children}) => {
 		assetsPath,
 		koroneikiAccount: {},
 		project: undefined,
-		step: steps.welcome,
+		step: ONBOARDING_STEP_TYPES.welcome,
 		subscriptionGroups: undefined,
 		userAccount: undefined,
 	});
 
 	useEffect(() => {
-		const getUser = async () => {
+		const getUser = async (projectExternalReferenceCode) => {
 			const {data} = await client.query({
 				query: getUserAccount,
 				variables: {
-					id: LiferayTheme.getUserId(),
+					id: Liferay.ThemeDisplay.getUserId(),
 				},
 			});
 
 			if (data) {
+				const isAccountAdministrator = !!data.userAccount?.accountBriefs
+					?.find(
+						({externalReferenceCode}) =>
+							externalReferenceCode ===
+							projectExternalReferenceCode
+					)
+					?.roleBriefs?.find(
+						({name}) => name === ROLE_TYPES.admin.key
+					);
+
+				const userAccount = {
+					...data.userAccount,
+					isAdmin: isAccountAdministrator,
+				};
+
 				dispatch({
-					payload: data.userAccount,
+					payload: userAccount,
 					type: actionTypes.UPDATE_USER_ACCOUNT,
 				});
 
-				return data.userAccount;
+				return userAccount;
 			}
 		};
 
@@ -92,7 +99,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 			const {data} = await client.query({
 				query: getAccountSubscriptionGroups,
 				variables: {
-					filter: `(accountKey eq '${accountKey}') and (name eq '${PRODUCTS.dxp_cloud}')`,
+					filter: `(accountKey eq '${accountKey}') and (name eq '${PRODUCT_TYPES.dxpCloud}')`,
 				},
 			});
 
@@ -106,11 +113,11 @@ const AppContextProvider = ({assetsPath, children}) => {
 		};
 
 		const fetchData = async () => {
-			const user = await getUser();
-
-			const projectExternalReferenceCode = SearchParams.get(
-				PARAMS_KEYS.PROJECT_APPLICATION_EXTERNAL_REFERENCE_CODE
+			const projectExternalReferenceCode = searchParams.get(
+				SEARCH_PARAMS_KEYS.accountKey
 			);
+
+			const user = await getUser(projectExternalReferenceCode);
 
 			if (!user) {
 				return;
@@ -119,7 +126,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 			const isValid = await isValidPage(
 				user,
 				projectExternalReferenceCode,
-				ROUTES.ONBOARDING
+				ROUTE_TYPES.onboarding
 			);
 
 			if (user && isValid) {
@@ -138,9 +145,8 @@ const AppContextProvider = ({assetsPath, children}) => {
 						variables: {
 							accountFlag: {
 								accountKey: projectExternalReferenceCode,
-								name: ROUTES.ONBOARDING,
-								userUuid: user.externalReferenceCode,
-								value: 1,
+								finished: true,
+								name: ROUTE_TYPES.onboarding,
 							},
 						},
 					});
@@ -153,7 +159,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 
 	return (
 		<AppContext.Provider value={[state, dispatch]}>
-			<FormProvider initialValues={initialForm}>{children}</FormProvider>
+			{children}
 		</AppContext.Provider>
 	);
 };

@@ -204,6 +204,38 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-137055. The show only assets configuration should be unavailable to display page template."
+	@priority = "4"
+	test CannotViewShowOnlyAssetsConfigurationInDisplayPageTemplate {
+		task ("Add a display page template for Web Content Article and Basic Web Content") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+		}
+
+		task ("Add an Asset Publisher widget to display page template") {
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			PageEditor.addWidget(portletName = "Asset Publisher");
+		}
+
+		task ("Cannot view Show only assets with Display Page Name as its display page template. configuration in Asset Publisher") {
+			AssetPublisherPortlet.gotoConfigurationPG();
+
+			Navigator.gotoNavTab(navTab = "Display Settings");
+
+			Panel.expandPanel(panel = "Set and Enable");
+
+			AssertElementNotPresent(
+				checkboxName = "Show only assets with Display Page Name as its display page template.",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+	}
+
 	@description = "This is a test for LPS-132428. The user could configure Asset Publisher after adding the Kaleo Forms admin portlet to blacklist."
 	@priority = "4"
 	test ConfigureAssetPublisherAfterAddingKaleoFormsAdminPortletToBlackList {
@@ -759,7 +791,7 @@ definition {
 		}
 	}
 
-	@description = "Filter the displayed assets by categories when enable pagination."
+	@description = "This is a test for LPS-135460. Filter the displayed assets by categories when enable pagination."
 	@priority = "5"
 	test FilterAssetsByCategoriesWithPagination {
 		property portal.acceptance = "true";
@@ -791,7 +823,7 @@ definition {
 			JSONLayout.addWidgetToPublicLayout(
 				groupName = "Test Site Name",
 				layoutName = "Asset Publisher Page",
-				widgetName = "Categories Navigation");
+				widgetName = "Category Filter");
 		}
 
 		task ("Configure the pagination type to Regular") {
@@ -881,6 +913,20 @@ definition {
 				paginationNumber = "3",
 				paginationType = "Regular");
 		}
+
+		task ("Assert URL contains delta by click next pagination") {
+			AssertLocation.assertPartialLocation(value1 = "_delta");
+		}
+
+		task ("Assert URL contains delta by dropdown pagination") {
+			ClickNoError(
+				key_pageNumber = "2 of 2",
+				locator1 = "Pagination#PARTICULAR_PAGE");
+
+			SelectFrame(value1 = "relative=top");
+
+			AssertLocation.assertPartialLocation(value1 = "_delta");
+		}
 	}
 
 	@description = "This is a test for LPS-113996. The user could filter documents by field in Asset Publisher."
@@ -940,13 +986,13 @@ definition {
 			AssetListsAdmin.configureFilterByField(fieldName = "Select from List");
 
 			Select(
-				key_fieldFieldLabel = "Select from List",
-				locator1 = "APConfigurationFilterbyfield#SELECT_FROM_LIST",
+				key_fieldLabel = "Select from List",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Option 1");
 
 			AssertSelectedLabel(
-				key_fieldFieldLabel = "Select from List",
-				locator1 = "APConfigurationFilterbyfield#SELECT_FROM_LIST",
+				key_fieldLabel = "Select from List",
+				locator1 = "Select#GENERIC_SELECT_FIELD",
 				value1 = "Option 1");
 
 			Button.click(button = "Apply");
@@ -996,15 +1042,15 @@ definition {
 		task ("Stop and start com.liferay.layout.type.controller.portlet bundle via GogoShell") {
 			GogoShell.openGogoShellAdmin(siteURLKey = "test-site-name");
 
-			var moduleID = GogoShell.getModuleID(moduleName = "com.liferay.layout.type.controller.portlet");
+			var moduleId = GogoShell.getModuleID(moduleName = "com.liferay.layout.type.controller.portlet");
 
-			GogoShell.stopModule(moduleID = "${moduleID}");
+			GogoShell.stopModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
 				moduleName = "com.liferay.layout.type.controller.portlet",
 				moduleStatus = "Resolved");
 
-			GogoShell.startModule(moduleID = "${moduleID}");
+			GogoShell.startModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
 				moduleName = "com.liferay.layout.type.controller.portlet",
@@ -1200,6 +1246,51 @@ definition {
 
 		task ("View the web content shown in new folder") {
 			WebContent.viewTitle(webContentTitle = "Web Content Title");
+		}
+	}
+
+	@description = "The user could set as the Default Asset Publisher for This Page."
+	@priority = "5"
+	test SetAsDefaultAssetPublisherForThisPage {
+		property portal.acceptance = "true";
+		property testray.component.names = "Training,Web Content Administration";
+
+		task ("Set the Asset Publisher as default for this page") {
+			Navigator.gotoSitePage(
+				pageName = "Asset Publisher Page",
+				siteName = "Test Site Name");
+
+			AssetPublisherPortlet.configureDisplaySettings(displaySettings = "Set as the Default Asset Publisher for This Page");
+		}
+
+		task ("Add a web content") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title");
+		}
+
+		task ("Select a display page in web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.editDisplayPage(
+				pageName = "Asset Publisher Page",
+				pageType = "Public Pages",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("View web content is shown in Asset Publisher") {
+			Navigator.gotoSitePage(
+				pageName = "Asset Publisher Page",
+				siteName = "Test Site Name");
+
+			WebContent.viewPGViaAP(
+				webContentContent = "Web Content Content",
+				webContentTitle = "Web Content Title");
 		}
 	}
 
@@ -1427,7 +1518,9 @@ definition {
 				key_assetTitle = "Web Content Title",
 				locator1 = "AP#ASSET_DETAILS_LINK");
 
-			Click(locator1 = "APAsset#ASSET_BACK_TO_ICON");
+			Click(
+				key_text = "angle-left",
+				locator1 = "Icon#ANY");
 		}
 
 		task ("Change the display template of Asset Publisher to Full Content") {
@@ -1544,6 +1637,69 @@ definition {
 		}
 	}
 
+	@description = "LPS-103624 - URLs are not well formed when changing language in classic Display Pages."
+	@priority = "4"
+	test ViewInContextTranslatedWCWithFriendlyURL {
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Asset Publisher Page",
+			widgetName = "Language Selector");
+
+		Navigator.gotoSitePage(
+			pageName = "Asset Publisher Page",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.configureDisplaySettings(displaySettings = "Set as the Default Asset Publisher for This Page");
+
+		AssetPublisherPortlet.configureAssetLinkBehaviorPG(assetLinkBehavior = "View in Context");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "WC WebContent English Content",
+			webContentTitle = "WC WebContent English Title");
+
+		WebContent.editDisplayPage(
+			pageName = "Asset Publisher Page",
+			pageType = "Public Pages");
+
+		WebContent.editFriendlyURL(webContentFriendlyURL = "webcontentenglish");
+
+		PortletEntry.changeLocale(locale = "de-DE");
+
+		WebContent.addCP(
+			webContentContent = "WC WebContent German Content",
+			webContentTitle = "WC WebContent German Title");
+
+		WebContent.editFriendlyURL(webContentFriendlyURL = "webcontentgerman");
+
+		PortletEntry.publish();
+
+		Navigator.gotoSitePage(
+			pageName = "Asset Publisher Page",
+			siteName = "Test Site Name");
+
+		AssetPublisherPortlet.clickAssetTitle(assetTitle = "WC WebContent English Title");
+
+		AssetPublisherPortlet.viewAssetPG(
+			assetContent = "WC WebContent English Content",
+			assetTitle = "WC WebContent English Title");
+
+		AssertLocation.assertPartialLocation(value1 = "-/webcontentenglish");
+
+		LanguagePortlet.selectLanguagePG(
+			locale = "de-DE",
+			textIcon = "deutsch-Deutschland");
+
+		AssetPublisherPortlet.viewAssetPG(
+			assetContent = "WC WebContent German Content",
+			assetTitle = "WC WebContent German Title");
+
+		AssertLocation.assertPartialLocation(value1 = "-/webcontentgerman");
+	}
+
 	@description = "View localized web content with localized categories."
 	@priority = "3"
 	test ViewLocalizedWebContentWithLocalizedCategories {
@@ -1656,6 +1812,69 @@ definition {
 			Refresh();
 
 			AssertConsoleTextNotPresent(value1 = "NoSuchResourceActionException");
+		}
+	}
+
+	@description = "This is a use case for LPS-141570. The user could view non-searchable web content in Asset Publisher after disable search with index."
+	@priority = "4"
+	test ViewNonSearchableWebContentAfterDisableSearchWithIndex {
+		property test.name.skip.portal.instance = "AssetPublisherUseCase#ViewNonSearchableWebContentAfterDisableSearchWithIndex";
+
+		task ("Add a normal web content") {
+			JSONWebcontent.addWebContent(
+				content = "WC WebContent Content 1",
+				groupName = "Test Site Name",
+				title = "WC WebContent Title 1");
+		}
+
+		task ("Add a non-searchable web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC WebContent Content 2",
+				webContentTitle = "WC WebContent Title 2");
+
+			Panel.expandPanel(panel = "Search");
+
+			Uncheck.uncheckToggleSwitch(
+				key_toggleSwitchLabel = "Searchable",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			PortletEntry.publish();
+		}
+
+		task ("Assert both web contents are present in AP") {
+			Navigator.gotoSitePage(
+				pageName = "Asset Publisher Page",
+				siteName = "Test Site Name");
+
+			for (var i : list "1,2") {
+				AssetPublisherPortlet.viewAssetPG(
+					assetContent = "WC WebContent Content ${i}",
+					assetTitle = "WC WebContent Title ${i}");
+			}
+		}
+
+		task ("Disable Search with Index") {
+			APNavigator.openToConfigInSystemSettings(portlet = "Asset Publisher");
+
+			SystemSettings.configureSystemSetting(
+				enableSetting = "false",
+				settingFieldName = "Search with Index");
+		}
+
+		task ("Assert both web contents are present in AP") {
+			Navigator.gotoSitePage(
+				pageName = "Asset Publisher Page",
+				siteName = "Test Site Name");
+
+			for (var i : list "1,2") {
+				AssetPublisherPortlet.viewAssetPG(
+					assetContent = "WC WebContent Content ${i}",
+					assetTitle = "WC WebContent Title ${i}");
+			}
 		}
 	}
 
@@ -1839,7 +2058,7 @@ catch (Exception e) {
 			JSONLayout.addWidgetToPublicLayout(
 				groupName = "Test Site Name",
 				layoutName = "Asset Publisher Page",
-				widgetName = "Tags Navigation");
+				widgetName = "Tag Filter");
 		}
 
 		task ("Configure the Asset Publisher to display tags") {

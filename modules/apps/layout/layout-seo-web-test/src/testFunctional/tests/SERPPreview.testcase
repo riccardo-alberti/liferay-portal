@@ -167,7 +167,7 @@ definition {
 			htmlTitle = "Liferay Portal provides an excellent platform for building web applications - ${siteName}",
 			pageName = "Long Test Page Name To Check The Display Style Of The URL In The SERP Preview",
 			portalURL = "${portalURL}",
-			truncatedHTMLTitle = "true",
+			truncatedHtmlTitle = "true",
 			truncatedURL = "true");
 
 		Button.clickSave();
@@ -179,7 +179,7 @@ definition {
 			htmlTitle = "Liferay Portal provides an excellent platform for building web applications - ${siteName}",
 			pageName = "Long Test Page Name To Check The Display Style Of The URL In The SERP Preview",
 			portalURL = "${portalURL}",
-			truncatedHTMLTitle = "true",
+			truncatedHtmlTitle = "true",
 			truncatedURL = "true");
 	}
 

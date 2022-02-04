@@ -1,0 +1,47 @@
+@component-name = "portal-object"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Object";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			ObjectAdmin.deleteAllCustomObjectsViaAPI();
+		}
+	}
+
+	@description = "LPS-137871 - Verify it is not possible to select an unpublished Object for a Page Template"
+	@priority = "4"
+	test CannotSelectUnpublishedObjectForPageTemplate {
+		ObjectAdmin.addObjectViaAPI(
+			labelName = "Custom Object",
+			objectName = "CustomObject",
+			pluralLabelName = "Custom Objects");
+
+		DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "guest");
+
+		LexiconEntry.gotoAdd();
+
+		LexiconCard.clickCard(card = "Blank");
+
+		Click(locator1 = "VisualizeObjectDisplayPage#OBJECT_CONTENT_TYPE");
+
+		AssertElementNotPresent(
+			key_type = "Custom Object",
+			locator1 = "VisualizeObjectDisplayPage#CONTENT_TYPE_OPTION",
+			value1 = "Custom Object");
+	}
+
+}

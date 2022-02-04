@@ -207,41 +207,10 @@ public class JournalArticleAssetRenderer
 	public String getSummary(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
-		Locale locale = getLocale(portletRequest);
-
-		String summary = _article.getDescription(locale);
+		String summary = _article.getDescription(getLocale(portletRequest));
 
 		if (Validator.isNotNull(summary)) {
 			return HtmlUtil.render(HtmlUtil.stripHtml(summary));
-		}
-
-		try {
-			PortletRequestModel portletRequestModel = null;
-			ThemeDisplay themeDisplay = null;
-
-			if ((portletRequest != null) && (portletResponse != null)) {
-				portletRequestModel = new PortletRequestModel(
-					portletRequest, portletResponse);
-				themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-			}
-
-			String ddmTemplateKey = ParamUtil.getString(
-				portletRequest, "ddmTemplateKey");
-
-			JournalArticleDisplay articleDisplay =
-				JournalArticleLocalServiceUtil.getArticleDisplay(
-					_article, ddmTemplateKey, null,
-					LanguageUtil.getLanguageId(locale), 1, portletRequestModel,
-					themeDisplay);
-
-			summary = HtmlUtil.render(
-				HtmlUtil.stripHtml(articleDisplay.getContent()));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
-			}
 		}
 
 		return summary;
@@ -404,7 +373,7 @@ public class JournalArticleAssetRenderer
 		}
 
 		if (!_isShowDisplayPage(themeDisplay.getScopeGroupId(), _article)) {
-			return getHitLayoutURL(noSuchEntryRedirect, themeDisplay);
+			return _getHitLayoutURL(noSuchEntryRedirect, themeDisplay);
 		}
 
 		if (_assetDisplayPageFriendlyURLProvider != null) {
@@ -442,12 +411,12 @@ public class JournalArticleAssetRenderer
 
 	@Override
 	public long getUserId() {
-		return _article.getUserId();
+		return _article.getStatusByUserId();
 	}
 
 	@Override
 	public String getUserName() {
-		return _article.getUserName();
+		return _article.getStatusByUserName();
 	}
 
 	@Override
@@ -486,7 +455,7 @@ public class JournalArticleAssetRenderer
 
 		httpServletRequest.setAttribute(
 			WebKeys.JOURNAL_ARTICLE_DISPLAY,
-			getArticleDisplay(httpServletRequest, httpServletResponse));
+			_getArticleDisplay(httpServletRequest));
 
 		return super.include(httpServletRequest, httpServletResponse, template);
 	}
@@ -547,10 +516,9 @@ public class JournalArticleAssetRenderer
 		_journalConverter = journalConverter;
 	}
 
-	protected JournalArticleDisplay getArticleDisplay(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws PortalException {
+	private JournalArticleDisplay _getArticleDisplay(
+			HttpServletRequest httpServletRequest)
+		throws Exception {
 
 		boolean workflowAssetPreview = GetterUtil.getBoolean(
 			httpServletRequest.getAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW));
@@ -583,8 +551,8 @@ public class JournalArticleAssetRenderer
 		}
 
 		int articlePage = ParamUtil.getInteger(httpServletRequest, "page", 1);
-		PortletRequestModel portletRequestModel = getPortletRequestModel(
-			httpServletRequest, httpServletResponse);
+		PortletRequestModel portletRequestModel = _getPortletRequestModel(
+			httpServletRequest);
 
 		if (!workflowAssetPreview && _article.isApproved()) {
 			return _journalContent.getDisplay(
@@ -598,9 +566,9 @@ public class JournalArticleAssetRenderer
 			portletRequestModel, themeDisplay);
 	}
 
-	protected String getHitLayoutURL(
+	private String _getHitLayoutURL(
 			String noSuchEntryRedirect, ThemeDisplay themeDisplay)
-		throws PortalException {
+		throws Exception {
 
 		List<LayoutClassedModelUsage> layoutClassedModelUsages =
 			LayoutClassedModelUsageLocalServiceUtil.getLayoutClassedModelUsages(
@@ -625,9 +593,8 @@ public class JournalArticleAssetRenderer
 		return noSuchEntryRedirect;
 	}
 
-	protected PortletRequestModel getPortletRequestModel(
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
+	private PortletRequestModel _getPortletRequestModel(
+		HttpServletRequest httpServletRequest) {
 
 		PortletRequest portletRequest =
 			(PortletRequest)httpServletRequest.getAttribute(

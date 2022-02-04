@@ -81,11 +81,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Test Page Name");
 
-		Content.addPG(
-			assetTitle = "DHS Title",
-			webContentContent = "DHS Content");
+		WidgetPages.addRecentContent(assetTitle = "DHS Title");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "DHS Content",
 			webContentTitle = "DHS Title");
 

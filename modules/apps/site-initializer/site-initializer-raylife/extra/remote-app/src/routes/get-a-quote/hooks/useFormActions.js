@@ -1,117 +1,66 @@
-import {useEffect, useState} from 'react';
-import {useFormContext} from 'react-hook-form';
-import {LiferayService} from '../../../common/services/liferay';
-import {STORAGE_KEYS, Storage} from '../../../common/services/liferay/storage';
-import {clearExitAlert} from '../../../common/utils/exitAlert';
-import {smoothScroll} from '../../../common/utils/scroll';
-import {useStepWizard} from '../hooks/useStepWizard';
-import {verifyInputAgentPage} from '../utils/contact-agent';
-
-const liferaySiteName = LiferayService.getLiferaySiteName();
-
 /**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
- * @param {String} form <useWatch>
- * @param {String?} previousSection
- * @param {String?} nextSection
- * @param {String?} errorMessage
- * @returns
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  */
 
-const useFormActions = (form, previousSection, nextSection, errorMessage) => {
-	const [applicationId, setApplicationId] = useState();
-	const {setError, setValue} = useFormContext();
-	const {setSection} = useStepWizard();
+import {useContext} from 'react';
+import {STORAGE_KEYS} from '../../../common/services/liferay/storage';
+import {DEVICES, RAYLIFE_PAGES} from '../../../common/utils/constants';
+import {clearExitAlert} from '../../../common/utils/exitAlert';
+import {redirectTo} from '../../../common/utils/liferay';
+import {AppContext} from '../context/AppContextProvider';
+import useFormActionsDefault from './useFormActionsDefault';
+import useFormActionsMobile from './useFormActionsMobile';
 
-	/**
-	 * @description When the application is created, we set the value to Form Context
-	 * We tried to use setValue directly on goToPrevious and goToNextForm
-	 * and for reasons unknowns, the section is not called.
-	 */
+const redirectToHomePage = () => {
+	clearExitAlert();
 
-	useEffect(() => {
-		if (applicationId) {
-			setValue('basics.applicationId', applicationId);
+	redirectTo(RAYLIFE_PAGES.HOME);
 
-			Storage.setItem(STORAGE_KEYS.APPLICATION_ID, applicationId);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [applicationId]);
+	Storage.removeItem(STORAGE_KEYS.BACK_TO_EDIT);
+};
 
-	useEffect(() => {
-		Storage.setItem(STORAGE_KEYS.APPLICATION_FORM, JSON.stringify(form));
-	}, [form]);
+const useFormActions = (params) => {
+	const {
+		state: {
+			dimensions: {deviceSize},
+			selectedStep: {index: currentStepIndex = 0},
+		},
+	} = useContext(AppContext);
 
-	const _onValidation = () => {
-		const phraseAgentPage = verifyInputAgentPage(form, nextSection);
-		let validated = true;
+	const formActionsDefault = useFormActionsDefault(params);
+	const formActionsMobile = useFormActionsMobile(
+		formActionsDefault,
+		redirectToHomePage
+	);
 
-		if (phraseAgentPage) {
-			Storage.setItem(STORAGE_KEYS.CONTEXTUAL_MESSAGE, phraseAgentPage);
-			window.location.href = `${liferaySiteName}/get-in-touch`;
-			validated = false;
-		} else {
-			Storage.removeItem(STORAGE_KEYS.CONTEXTUAL_MESSAGE);
-		}
+	const isMobileDevice = deviceSize === DEVICES.PHONE;
 
-		return validated;
-	};
+	if (isMobileDevice) {
+		return formActionsMobile;
+	}
 
-	const onSave = async () => {
-		setError('continueButton', {});
+	// Tablet | Desktop Screen Actions
 
-		try {
-			const response = await LiferayService.createOrUpdateRaylifeApplication(
-				form
-			);
-
-			setApplicationId(response.data.id);
-
-			return response;
-		} catch (error) {
-			setError('continueButton', {
-				message:
-					errorMessage ||
-					'There was an error processing your request. Please try again.',
-				type: 'manual',
-			});
-			throw error;
-		}
-	};
-
-	const onPrevious = async () => {
-		await onSave();
-
-		if (previousSection) {
-			setSection(previousSection);
-		}
-
-		smoothScroll();
-	};
-
-	/**
-	 * @state disabled for now
-	 * @param {*} data
-	 */
-	const onNext = async () => {
-		await onSave();
-
-		clearExitAlert();
-
-		const validated = _onValidation();
-
-		if (validated) {
-			if (nextSection) {
-				setSection(nextSection);
-
-				return smoothScroll();
+	return {
+		...formActionsDefault,
+		onPrevious: () => {
+			if (currentStepIndex !== 0) {
+				return formActionsDefault.onPrevious();
 			}
 
-			window.location.href = `${liferaySiteName}/hang-tight`;
-		}
+			redirectToHomePage();
+		},
 	};
-
-	return {onNext, onPrevious, onSave};
 };
 
 export default useFormActions;

@@ -17,7 +17,7 @@ import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import parseFile from '../../../src/main/resources/META-INF/resources/js/FileParsers';
-import FileUpload from '../../../src/main/resources/META-INF/resources/js/FileUpload';
+import FileUpload from '../../../src/main/resources/META-INF/resources/js/components/FileUpload';
 import {FILE_SCHEMA_EVENT} from '../../../src/main/resources/META-INF/resources/js/constants';
 
 jest.mock('../../../src/main/resources/META-INF/resources/js/FileParsers');
@@ -48,10 +48,10 @@ describe('FileUpload', () => {
 			onComplete(fileSchema)
 		);
 
-		const {getByRole} = render(<FileUpload portletNamespace="test" />);
+		const {getByLabelText} = render(<FileUpload portletNamespace="test" />);
 
 		act(() => {
-			fireEvent.change(getByRole('textbox'), {target: {files: [file]}});
+			fireEvent.change(getByLabelText('file'), {target: {files: [file]}});
 		});
 
 		expect(mockFileSchemaListener.mock.calls[0][0].schema).toStrictEqual(

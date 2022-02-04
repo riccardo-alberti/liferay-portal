@@ -2,6 +2,8 @@
 definition {
 
 	property custom.properties = "minifier.enabled=true";
+	property osgi.module.configuration.file.names = "com.liferay.frontend.js.loader.modules.extender.internal.configuration.Details.config";
+	property osgi.module.configurations = "waitTimeout=&quot;15&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Forms";
@@ -38,7 +40,7 @@ definition {
 	@description = "Verify that the backspace function can delete all entries in the Calculator"
 	@priority = "5"
 	test BackspaceCanDeleteAllEntriesInCalculator {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -122,7 +124,7 @@ definition {
 	@description = "Verify that a Rule Action can be deleted"
 	@priority = "5"
 	test CanBeDeleted {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -197,7 +199,7 @@ definition {
 	@description = "Verify that a Rule Action can be edited"
 	@priority = "5"
 	test CanBeEdited {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -274,7 +276,6 @@ definition {
 	@description = "LPS-71592 - Verify that a Rule with 'Calculate' action can be created"
 	@priority = "5"
 	test CanCreateACalculateRule {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsRulesActions#CanCreateACalculateRule";
@@ -359,7 +360,7 @@ definition {
 	@description = "Verify that a Rule with 'Jump to page' action can be created"
 	@priority = "4"
 	test CanCreateAJumpToPageRule {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -431,7 +432,7 @@ definition {
 	@description = "Verify that a Rule with 'Enable' action can be created"
 	@priority = "4"
 	test CanCreateAnEnableRule {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -493,7 +494,6 @@ definition {
 	@description = "Verify that a Rule with 'Require' action can be created"
 	@priority = "4"
 	test CanCreateARequireRule {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsRulesActions#CanCreateARequireRule";
@@ -560,7 +560,7 @@ definition {
 	@description = "Verify that a Rule with more than one Action can be created"
 	@priority = "5"
 	test CanCreateARuleWithMoreThanOneAction {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -641,7 +641,7 @@ definition {
 	@description = "Verify that a Rule with 'Show' action can be created"
 	@priority = "5"
 	test CanCreateAShowRule {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -703,7 +703,7 @@ definition {
 	@description = "Verify that a Calculate Rule can be created using the decimal point"
 	@priority = "5"
 	test CanIncludeDecimalPointInCalculations {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -774,7 +774,7 @@ definition {
 	@description = "Verify that a Calculate Rule can be created using Numeric Fields in the calculation"
 	@priority = "5"
 	test CanIncludeNumericFieldsInCalculations {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -848,7 +848,7 @@ definition {
 	@description = "Verify that a Calculate Rule can be created using all operators (+, -, *, /)"
 	@priority = "5"
 	test CanIncludeOperatorsInCalculations {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -932,7 +932,7 @@ definition {
 	@description = "Verify that a Calculate Rule can be created using the parenthesis"
 	@priority = "5"
 	test CanIncludeParenthesisInCalculations {
-		property forms.functional = "true";
+		property portal.acceptance = "true";
 
 		FormsAdmin.addForm();
 
@@ -1012,7 +1012,6 @@ definition {
 	@description = "LPS-102616 Configure data providers in both input and output fields in autofill rule"
 	@priority = "5"
 	test CanUtilizeDataProvidersInAutofillRule {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsRulesActions#CanUtilizeDataProvidersInAutofillRule";
@@ -1118,7 +1117,6 @@ definition {
 	@description = "LPS-70446 - Verify that a Rule with 'Autofill' action can be created with Data Providers"
 	@priority = "5"
 	test CanUtilizeDataProvidersToCreateAnAutofillRule {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsRulesActions#CanUtilizeDataProvidersToCreateAnAutofillRule";
@@ -1236,7 +1234,6 @@ definition {
 	@description = "LPS-75495 - Verify that the 'Show' action is not triggered when typing into an unrelated field"
 	@priority = "3"
 	test ShowDoesNotTriggerWhenTypingIntoUnrelatedField {
-		property forms.functional = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
 		property test.name.skip.portal.instance = "FormsRulesActions#ShowDoesNotTriggerWhenTypingIntoUnrelatedField";

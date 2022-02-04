@@ -15,11 +15,10 @@
 package com.liferay.translation.web.internal.portlet.action;
 
 import com.liferay.document.library.kernel.exception.FileSizeException;
+import com.liferay.info.exception.InfoItemPermissionException;
 import com.liferay.info.item.InfoItemFieldValues;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.InfoItemServiceTracker;
-import com.liferay.info.item.provider.InfoItemObjectProvider;
-import com.liferay.info.item.provider.InfoItemPermissionProvider;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
@@ -27,9 +26,6 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.servlet.MultiSessionMessages;
@@ -100,20 +96,6 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
-			String title = ParamUtil.getString(actionRequest, "title");
-
-			TranslationRequestHelper translationRequestHelper =
-				new TranslationRequestHelper(
-					_infoItemServiceTracker, actionRequest);
-
-			InfoItemObjectProvider<Object> infoItemObjectProvider =
-				_infoItemServiceTracker.getFirstInfoItemService(
-					InfoItemObjectProvider.class,
-					translationRequestHelper.getModelClassName());
-
-			Object object = infoItemObjectProvider.getInfoItem(
-				translationRequestHelper.getModelClassPK());
-
 			UploadPortletRequest uploadPortletRequest =
 				_portal.getUploadPortletRequest(actionRequest);
 
@@ -121,14 +103,11 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 
 			_checkContentType(uploadPortletRequest.getContentType("file"));
 
-			_checkPermission(
-				translationRequestHelper.getModelClassName(),
-				translationRequestHelper.getModelClassPK(), object,
-				themeDisplay.getPermissionChecker());
-
+			TranslationRequestHelper translationRequestHelper =
+				new TranslationRequestHelper(
+					_infoItemServiceTracker, actionRequest);
 			Map<String, String> failureMessages = new HashMap<>();
 			List<String> successMessages = new ArrayList<>();
-
 			String fileName = uploadPortletRequest.getFileName("file");
 
 			_processUploadedFile(
@@ -147,6 +126,8 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 				MultiSessionMessages.add(
 					actionRequest, portletResource + "requestProcessed");
 			}
+
+			String title = ParamUtil.getString(actionRequest, "title");
 
 			actionRequest.setAttribute(
 				WebKeys.REDIRECT,
@@ -261,23 +242,6 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
-	private void _checkPermission(
-			String className, long classPK, Object object,
-			PermissionChecker permissionChecker)
-		throws PortalException {
-
-		InfoItemPermissionProvider<Object> infoItemPermissionProvider =
-			_infoItemServiceTracker.getFirstInfoItemService(
-				InfoItemPermissionProvider.class, className);
-
-		if (!infoItemPermissionProvider.hasPermission(
-				permissionChecker, object, ActionKeys.UPDATE)) {
-
-			throw new PrincipalException.MustHavePermission(
-				permissionChecker, className, classPK, ActionKeys.UPDATE);
-		}
-	}
-
 	private InfoItemReference _getInfoItemReference(
 		String className, long classPK) {
 
@@ -301,11 +265,17 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 		InfoItemFieldValues infoItemFieldValues =
 			translationSnapshot.getInfoItemFieldValues();
 
-		_translationEntryService.addOrUpdateTranslationEntry(
-			groupId,
-			_language.getLanguageId(translationSnapshot.getTargetLocale()),
-			infoItemFieldValues.getInfoItemReference(), infoItemFieldValues,
-			ServiceContextFactory.getInstance(actionRequest));
+		try {
+			_translationEntryService.addOrUpdateTranslationEntry(
+				groupId,
+				_language.getLanguageId(translationSnapshot.getTargetLocale()),
+				infoItemFieldValues.getInfoItemReference(), infoItemFieldValues,
+				ServiceContextFactory.getInstance(actionRequest));
+		}
+		catch (InfoItemPermissionException infoItemPermissionException) {
+			throw new XLIFFFileException.MustHaveValidModel(
+				infoItemPermissionException.getMessage());
+		}
 	}
 
 	private void _processUploadedFile(
@@ -372,7 +342,9 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 				locale, getClass());
 
 			Function<String, String> exceptionMessageFunction =
-				_exceptionMessageFunctions.get(xliffFileException.getClass());
+				_exceptionMessageFunctions.getOrDefault(
+					xliffFileException.getClass(),
+					s -> "the-xliff-file-is-invalid");
 
 			failureMessages.put(
 				fileName,
@@ -405,6 +377,11 @@ public class ImportTranslationMVCActionCommand extends BaseMVCActionCommand {
 						XLIFFFileException.MustHaveValidId.class,
 						ImportTranslationMVCActionCommand::
 							_getMustHaveValidIdMessage
+					).put(
+						XLIFFFileException.MustHaveValidModel.class,
+						s ->
+							"the-xliff-file-contains-a-translation-for-an-" +
+								"invalid-model"
 					).put(
 						XLIFFFileException.MustHaveValidParameter.class,
 						s -> "the-xliff-file-has-invalid-parameters"

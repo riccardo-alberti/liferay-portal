@@ -150,6 +150,24 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	}
 
 	@Override
+	public UserGroup fetchUserGroupByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws PortalException {
+
+		UserGroup userGroup =
+			userGroupLocalService.fetchUserGroupByExternalReferenceCode(
+				companyId, externalReferenceCode);
+
+		if (userGroup != null) {
+			UserGroupPermissionUtil.check(
+				getPermissionChecker(), userGroup.getUserGroupId(),
+				ActionKeys.VIEW);
+		}
+
+		return userGroup;
+	}
+
+	@Override
 	public List<UserGroup> getGtUserGroups(
 		long gtUserGroupId, long companyId, long parentUserGroupId, int size) {
 
@@ -448,6 +466,19 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 			getPermissionChecker(), teamId, ActionKeys.ASSIGN_MEMBERS);
 
 		userGroupLocalService.unsetTeamUserGroups(teamId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
+		throws PortalException {
+
+		UserGroupPermissionUtil.check(
+			getPermissionChecker(), userGroup.getUserGroupId(),
+			ActionKeys.UPDATE);
+
+		return userGroupLocalService.updateExternalReferenceCode(
+			userGroup, externalReferenceCode);
 	}
 
 	/**

@@ -45,7 +45,7 @@ definition {
 	macro addObjectField {
 		var portalURL = JSONCompany.getPortalURL();
 
-		var objectID = JSONObject.getObjectId(
+		var objectId = JSONObject.getObjectId(
 			objectName = "${objectName}",
 			userEmailAddress = "${userEmailAddress}",
 			userPassword = "${userPassword}");
@@ -77,10 +77,11 @@ definition {
 		}
 
 		var curl = '''
-			${portalURL}/o/object-admin/v1.0/object-definitions/${objectID}/object-fields \
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/object-fields \
 			-H 'Content-Type: application/json' \
 			-u ${userEmailAddress}:${userPassword} \
 			-d '{
+			"DBType": "${fieldType}",
 			"indexed": ${indexed},
 			"indexedAsKeyword": ${indexedAsKeyword},
 			"label": {
@@ -88,8 +89,7 @@ definition {
 			},
 			"listTypeDefinitionId": ${picklistId},
 			"name": "${fieldName}",
-			"required": ${isRequired},
-			"type": "${fieldType}"
+			"required": ${isRequired}
 			}'
 		''';
 
@@ -100,7 +100,7 @@ definition {
 	macro addObjectLayout {
 		var portalURL = JSONCompany.getPortalURL();
 
-		var objectID = JSONObject.getObjectId(
+		var objectId = JSONObject.getObjectId(
 			objectName = "${objectName}",
 			userEmailAddress = "${userEmailAddress}",
 			userPassword = "${userPassword}");
@@ -114,7 +114,7 @@ definition {
 		}
 
 		var curl = '''
-			${portalURL}/o/object-admin/v1.0/object-definitions/${objectID}/object-layouts \
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/object-layouts \
 			-H 'Content-Type: application/json' \
 			-u ${userEmailAddress}:${userPassword} \
 			-d '{
@@ -122,7 +122,7 @@ definition {
 			"name": {
 				"en_US": "${layoutName}"
 			},
-			"objectDefinitionId": ${objectID}
+			"objectDefinitionId": ${objectId}
 			}'
 		''';
 
@@ -177,6 +177,32 @@ definition {
 
 	@summary = "This calls the JSON WS API to add a single field entry in an object"
 	macro addObjectSingleFieldEntry {
+		var portalURL = JSONCompany.getPortalURL();
+
+		if (!(isSet(userEmailAddress))) {
+			var userEmailAddress = "test@liferay.com";
+		}
+
+		if (!(isSet(userPassword))) {
+			var userPassword = "test";
+		}
+
+		var objectName = StringUtil.toLowerCase("${objectName}");
+
+		var curl = '''
+			${portalURL}/o/c/${objectName}s \
+			-H 'Content-Type: application/json' \
+			-u ${userEmailAddress}:${userPassword} \
+			-d '{
+			"${fieldName}": "${value}"
+			}'
+		''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
+	@summary = "This calls the JSON WS API to add a single field numeric and boolean entry in an object"
+	macro addObjectSingleFieldNumericAndBooleanEntry {
 		var portalURL = JSONCompany.getPortalURL();
 
 		if (!(isSet(userEmailAddress))) {
@@ -325,7 +351,7 @@ definition {
 	macro deleteObject {
 		var portalURL = JSONCompany.getPortalURL();
 
-		var objectID = JSONObject.getObjectId(
+		var objectId = JSONObject.getObjectId(
 			objectName = "${objectName}",
 			userEmailAddress = "${userEmailAddress}",
 			userPassword = "${userPassword}");
@@ -339,7 +365,7 @@ definition {
 		}
 
 		var curl = '''
-			${portalURL}/o/object-admin/v1.0/object-definitions/${objectID} \
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId} \
 			-u ${userEmailAddress}:${userPassword}
 		''';
 
@@ -487,7 +513,7 @@ definition {
 	macro publishObject {
 		var portalURL = JSONCompany.getPortalURL();
 
-		var objectID = JSONObject.getObjectId(
+		var objectId = JSONObject.getObjectId(
 			objectName = "${objectName}",
 			userEmailAddress = "${userEmailAddress}",
 			userPassword = "${userPassword}");
@@ -501,7 +527,7 @@ definition {
 		}
 
 		var curl = '''
-			${portalURL}/o/object-admin/v1.0/object-definitions/${objectID}/publish \
+			${portalURL}/o/object-admin/v1.0/object-definitions/${objectId}/publish \
 			-H 'Content-Type: application/json' \
 			-u ${userEmailAddress}:${userPassword}
 		''';

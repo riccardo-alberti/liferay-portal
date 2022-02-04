@@ -40,8 +40,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.display.template.PortletDisplayTemplate;
 
-import java.util.List;
-
 import javax.portlet.PortletURL;
 
 /**
@@ -143,8 +141,37 @@ public class DLViewFileEntryMetadataSetsDisplayContext {
 				getOrderByCol(), getOrderByType()));
 		structureSearch.setOrderByType(getOrderByType());
 
-		setDDMStructureSearchResults(structureSearch);
-		setDDMStructureSearchTotal(structureSearch);
+		StructureSearchTerms searchTerms =
+			(StructureSearchTerms)structureSearch.getSearchTerms();
+
+		if (searchTerms.isSearchRestriction()) {
+			structureSearch.setResultsAndTotal(
+				() -> _ddmStructureLinkLocalService.getStructureLinkStructures(
+					_getSearchRestrictionClassNameId(),
+					_getSearchRestrictionClassPK(), structureSearch.getStart(),
+					structureSearch.getEnd()),
+				_ddmStructureLinkLocalService.getStructureLinksCount(
+					_getSearchRestrictionClassNameId(),
+					_getSearchRestrictionClassPK()));
+		}
+		else {
+			long[] groupIds = _portal.getCurrentAndAncestorSiteGroupIds(
+				_portal.getScopeGroupId(
+					_dlRequestHelper.getRequest(),
+					DLPortletKeys.DOCUMENT_LIBRARY, true));
+
+			structureSearch.setResultsAndTotal(
+				() -> _ddmStructureService.getStructures(
+					_dlRequestHelper.getCompanyId(), groupIds,
+					getStructureClassNameId(), searchTerms.getKeywords(),
+					searchTerms.getStatus(), structureSearch.getStart(),
+					structureSearch.getEnd(),
+					structureSearch.getOrderByComparator()),
+				_ddmStructureService.getStructuresCount(
+					_dlRequestHelper.getCompanyId(), groupIds,
+					getStructureClassNameId(), searchTerms.getKeywords(),
+					searchTerms.getStatus()));
+		}
 
 		return structureSearch;
 	}
@@ -216,7 +243,7 @@ public class DLViewFileEntryMetadataSetsDisplayContext {
 			portletURL.setParameter("classPK", String.valueOf(classPK));
 		}
 
-		long resourceClassNameId = getResourceClassNameId();
+		long resourceClassNameId = _getResourceClassNameId();
 
 		if (resourceClassNameId != 0) {
 			portletURL.setParameter(
@@ -257,95 +284,8 @@ public class DLViewFileEntryMetadataSetsDisplayContext {
 		return portletURL;
 	}
 
-	protected long getResourceClassNameId() {
-		long resourceClassNameId = ParamUtil.getLong(
-			_liferayPortletRequest, "resourceClassNameId");
-
-		if (resourceClassNameId == 0) {
-			resourceClassNameId = _portal.getClassNameId(
-				PortletDisplayTemplate.class);
-		}
-
-		return resourceClassNameId;
-	}
-
-	protected long getSearchRestrictionClassNameId() {
-		return ParamUtil.getLong(
-			_dlRequestHelper.getRequest(), "searchRestrictionClassNameId");
-	}
-
-	protected long getSearchRestrictionClassPK() {
-		return ParamUtil.getLong(
-			_dlRequestHelper.getRequest(), "searchRestrictionClassPK");
-	}
-
 	protected long getStructureClassNameId() {
 		return _portal.getClassNameId(DLFileEntryMetadata.class.getName());
-	}
-
-	protected void setDDMStructureSearchResults(StructureSearch structureSearch)
-		throws Exception {
-
-		StructureSearchTerms searchTerms =
-			(StructureSearchTerms)structureSearch.getSearchTerms();
-
-		List<DDMStructure> results = null;
-
-		if (searchTerms.isSearchRestriction()) {
-			results = _ddmStructureLinkLocalService.getStructureLinkStructures(
-				getSearchRestrictionClassNameId(),
-				getSearchRestrictionClassPK(), structureSearch.getStart(),
-				structureSearch.getEnd());
-		}
-		else {
-			long[] groupIds = {
-				_portal.getScopeGroupId(
-					_dlRequestHelper.getRequest(),
-					DLPortletKeys.DOCUMENT_LIBRARY, true)
-			};
-
-			groupIds = _portal.getCurrentAndAncestorSiteGroupIds(groupIds);
-
-			results = _ddmStructureService.getStructures(
-				_dlRequestHelper.getCompanyId(), groupIds,
-				getStructureClassNameId(), searchTerms.getKeywords(),
-				searchTerms.getStatus(), structureSearch.getStart(),
-				structureSearch.getEnd(),
-				structureSearch.getOrderByComparator());
-		}
-
-		structureSearch.setResults(results);
-	}
-
-	protected void setDDMStructureSearchTotal(StructureSearch structureSearch)
-		throws Exception {
-
-		StructureSearchTerms searchTerms =
-			(StructureSearchTerms)structureSearch.getSearchTerms();
-
-		int total = 0;
-
-		if (searchTerms.isSearchRestriction()) {
-			total = _ddmStructureLinkLocalService.getStructureLinksCount(
-				getSearchRestrictionClassNameId(),
-				getSearchRestrictionClassPK());
-		}
-		else {
-			long[] groupIds = {
-				_portal.getScopeGroupId(
-					_dlRequestHelper.getRequest(),
-					DLPortletKeys.DOCUMENT_LIBRARY, true)
-			};
-
-			groupIds = _portal.getCurrentAndAncestorSiteGroupIds(groupIds);
-
-			total = _ddmStructureService.getStructuresCount(
-				_dlRequestHelper.getCompanyId(), groupIds,
-				getStructureClassNameId(), searchTerms.getKeywords(),
-				searchTerms.getStatus());
-		}
-
-		structureSearch.setTotal(total);
 	}
 
 	private PortletURL _getDeleteDataDefinitionPortletURL(
@@ -382,6 +322,28 @@ public class DLViewFileEntryMetadataSetsDisplayContext {
 				WebKeys.THEME_DISPLAY);
 
 		return themeDisplay.getURLCurrent();
+	}
+
+	private long _getResourceClassNameId() {
+		long resourceClassNameId = ParamUtil.getLong(
+			_liferayPortletRequest, "resourceClassNameId");
+
+		if (resourceClassNameId == 0) {
+			resourceClassNameId = _portal.getClassNameId(
+				PortletDisplayTemplate.class);
+		}
+
+		return resourceClassNameId;
+	}
+
+	private long _getSearchRestrictionClassNameId() {
+		return ParamUtil.getLong(
+			_dlRequestHelper.getRequest(), "searchRestrictionClassNameId");
+	}
+
+	private long _getSearchRestrictionClassPK() {
+		return ParamUtil.getLong(
+			_dlRequestHelper.getRequest(), "searchRestrictionClassPK");
 	}
 
 	private final DDMStructureLinkLocalService _ddmStructureLinkLocalService;

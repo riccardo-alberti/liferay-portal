@@ -35,7 +35,7 @@ definition {
 
 	@summary = "Helper function to add a WC Article via JSON"
 	macro _addWebContent {
-		Variables.assertDefined(parameterList = "${groupId},${folderId},${titleMap},${descriptionMap},${contentXML},${serviceContext}");
+		Variables.assertDefined(parameterList = "${groupId},${folderId},${titleMap},${descriptionMap},${contentXml},${serviceContext}");
 
 		var portalURL = JSONCompany.getPortalURL();
 
@@ -55,7 +55,7 @@ definition {
 				-d folderId=${folderId} \
 				-d titleMap=${titleMap} \
 				-d descriptionMap=${descriptionMap} \
-				-d content=${contentXML} \
+				-d content=${contentXml} \
 				-d ddmStructureKey=BASIC-WEB-CONTENT \
 				-d ddmTemplateKey=BASIC-WEB-CONTENT \
 				-d serviceContext=${serviceContext}

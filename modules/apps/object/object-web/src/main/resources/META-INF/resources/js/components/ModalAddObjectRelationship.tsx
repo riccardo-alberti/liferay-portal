@@ -24,15 +24,14 @@ import CustomSelect from './form/CustomSelect/CustomSelect';
 import Input from './form/Input';
 import Select from './form/Select';
 
-const objectRelationshipTypes = [
-
-	/* {
+let objectRelationshipTypes = [
+	{
 		description: Liferay.Language.get(
 			"one-object's-entry-interacts-only-with-one-other-object's-entry"
 		),
 		label: Liferay.Language.get('one-to-one'),
 		value: 'oneToOne',
-	},*/
+	},
 	{
 		description: Liferay.Language.get(
 			"one-object's-entry-interacts-with-many-others-object's-entries"
@@ -58,6 +57,8 @@ const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const ModalAddObjectRelationship: React.FC<IProps> = ({
 	apiURL,
+	ffOneToOneRelationshipConfigurationEnabled,
+	objectDefinitionId,
 	observer,
 	onClose,
 }) => {
@@ -71,6 +72,12 @@ const ModalAddObjectRelationship: React.FC<IProps> = ({
 		objectDefinitionId2: 0,
 		type: {label: '', value: ''},
 	};
+
+	if (!ffOneToOneRelationshipConfigurationEnabled) {
+		objectRelationshipTypes = objectRelationshipTypes.filter(
+			(relationshipType) => relationshipType.value !== 'oneToOne'
+		);
+	}
 
 	const onSubmit = async ({
 		label,
@@ -136,29 +143,38 @@ const ModalAddObjectRelationship: React.FC<IProps> = ({
 		validate,
 	});
 
+	const makeRequest = async () => {
+		const result = await Liferay.Util.fetch(
+			'/o/object-admin/v1.0/object-definitions?page=-1',
+			{
+				headers,
+				method: 'GET',
+			}
+		);
+
+		const {items = []} = await result.json();
+
+		const objectDefinitions = items
+			.map(({id, name, system}: TObjectDefinition) => ({
+				id,
+				name,
+				system,
+			}))
+			.filter(({system}: TObjectDefinition) => !system);
+
+		setObjectDefinitions(objectDefinitions);
+	};
+
+	const handleChangeManyToMany = () => {
+		const newObjectDefinitions = objectDefinitions.filter(
+			(objectDefinition) =>
+				objectDefinition.id !== Number(objectDefinitionId)
+		);
+
+		setObjectDefinitions(newObjectDefinitions);
+	};
+
 	useEffect(() => {
-		const makeRequest = async () => {
-			const result = await Liferay.Util.fetch(
-				'/o/object-admin/v1.0/object-definitions?page=-1',
-				{
-					headers,
-					method: 'GET',
-				}
-			);
-
-			const {items = []} = await result.json();
-
-			const objectDefinitions = items
-				.map(({id, name, system}: TObjectDefinition) => ({
-					id,
-					name,
-					system,
-				}))
-				.filter(({system}: TObjectDefinition) => !system);
-
-			setObjectDefinitions(objectDefinitions);
-		};
-
 		makeRequest();
 	}, []);
 
@@ -204,6 +220,10 @@ const ModalAddObjectRelationship: React.FC<IProps> = ({
 									value: type,
 								},
 							} as any);
+
+							type.value === 'manyToMany'
+								? handleChangeManyToMany()
+								: makeRequest();
 						}}
 						options={objectRelationshipTypes}
 						required
@@ -261,12 +281,14 @@ const ModalAddObjectRelationship: React.FC<IProps> = ({
 
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
+	ffOneToOneRelationshipConfigurationEnabled: boolean;
+	objectDefinitionId: number;
 	observer: any;
 	onClose: () => void;
 }
 
 type TObjectDefinition = {
-	id: string;
+	id: number;
 	name: string;
 	system: boolean;
 };
@@ -281,7 +303,11 @@ type TInitialValues = {
 	};
 };
 
-const ModalWithProvider: React.FC<IProps> = ({apiURL}) => {
+const ModalWithProvider: React.FC<IProps> = ({
+	apiURL,
+	ffOneToOneRelationshipConfigurationEnabled,
+	objectDefinitionId,
+}) => {
 	const [visibleModal, setVisibleModal] = useState<boolean>(false);
 	const {observer, onClose} = useModal({
 		onClose: () => setVisibleModal(false),
@@ -300,6 +326,10 @@ const ModalWithProvider: React.FC<IProps> = ({apiURL}) => {
 			{visibleModal && (
 				<ModalAddObjectRelationship
 					apiURL={apiURL}
+					ffOneToOneRelationshipConfigurationEnabled={
+						ffOneToOneRelationshipConfigurationEnabled
+					}
+					objectDefinitionId={objectDefinitionId}
 					observer={observer}
 					onClose={onClose}
 				/>

@@ -61,7 +61,7 @@ definition {
 		Accounts.addBusinessAccount(
 			accountDescription = "${accountDescription}",
 			accountName = "${accountName}",
-			accountTaxID = "${accountTaxID}");
+			accountTaxId = "${accountTaxId}");
 
 		Accounts.openAccountsAdmin();
 
@@ -1580,7 +1580,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "This is a Text field Edit",
 			webContentTitle = "Web Content Title Edit");
 
@@ -1608,7 +1608,7 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "This is a Text field Edit",
 			webContentTitle = "Web Content Title Edit");
 
@@ -2136,7 +2136,7 @@ definition {
 
 		ProductMenu.gotoStagingSite(site = "Staging Site");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
@@ -2146,7 +2146,7 @@ definition {
 
 		ProductMenu.gotoLiveSite(site = "Staging Site");
 
-		WebContent.viewPGViaWCD(
+		WebContentDisplayPortlet.viewContent(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 	}
@@ -3298,7 +3298,7 @@ definition {
 	macro viewAndEditOpenGraph {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
+		var siteId = JSONGroupSetter.setGroupId(groupName = "Test Site Name");
 
 		Navigator.openToGroupPagesPortlet(
 			groupName = "Test Site Name",
@@ -3318,7 +3318,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title","og:description" content="This is a custom description","og:image" content="${portalURL}/documents/${siteID}/0/Document_1.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title","og:description" content="This is a custom description","og:image" content="${portalURL}/documents/${siteId}/0/Document_1.jpg''');
 
 		User.loginUserPG(
 			password = "test",
@@ -3349,7 +3349,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title edit","og:description" content="This is a custom description edit","og:image" content="${portalURL}/documents/${siteID}/0/Document_2.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:title" content="This is a custom title edit","og:description" content="This is a custom description edit","og:image" content="${portalURL}/documents/${siteId}/0/Document_2.jpg''');
 
 		User.loginUserPG(
 			password = "test",
@@ -3383,7 +3383,7 @@ definition {
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/test-page-name");
 
-		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteID}/0/Document_3.jpg''');
+		OpenGraph.viewOpenGraphProperties(ogPropertyList = '''"og:image" content="${portalURL}/documents/${siteId}/0/Document_3.jpg''');
 	}
 
 	macro viewAndEditSERPPreview {
@@ -4229,7 +4229,7 @@ definition {
 	macro viewDocuments {
 		var portalURL = PropsUtil.get("portal.url");
 
-		var siteID = JSONGroupAPI._getGroupIdByName(
+		var siteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
 
@@ -4276,7 +4276,7 @@ definition {
 			dmDocumentFileName = "DM Document Video.mp4",
 			dmDocumentTitle = "DM Document Video");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/DM Document Video.mp4");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/DM Document Video.mp4");
 
 		DownloadTempFile();
 
@@ -4300,7 +4300,7 @@ definition {
 			dmDocumentFileName = "DM Document JPG.jpg",
 			dmDocumentTitle = "DM Document JPG");
 
-		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteID}/0/DM Document JPG");
+		Navigator.openSpecificURL(url = "${portalURL}/documents/${siteId}/0/DM Document JPG");
 
 		DownloadTempFile();
 
@@ -5013,7 +5013,9 @@ definition {
 			pageName = "Web Content Page",
 			siteName = "Site Name 1");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Navigator.openSpecificURL(url = "http://localhost:8080/web/site-name-2/blogs-page");
 
@@ -5033,7 +5035,7 @@ definition {
 			pageName = "Wiki Page",
 			siteName = "Site Name 2");
 
-		Portlet.viewPortletOptions(OptionsName = "Configuration");
+		Portlet.viewPortletOptions(optionsName = "Configuration");
 
 		Navigator.gotoSitePage(
 			pageName = "Documents and Media Page",
@@ -5045,7 +5047,7 @@ definition {
 			pageName = "Documents and Media Page",
 			siteName = "Site Name 2");
 
-		Portlet.viewPortletOptions(OptionsName = "Permissions");
+		Portlet.viewPortletOptions(optionsName = "Permissions");
 
 		Navigator.gotoSitePage(
 			pageName = "Blogs Page",
@@ -5551,7 +5553,9 @@ definition {
 	macro viewUpgrade {
 		Navigator.gotoPage(pageName = "Web Content");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Navigator.gotoPage(pageName = "Document");
 
@@ -5631,7 +5635,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		Navigator.gotoPage(pageName = "Document");
 
@@ -5824,13 +5830,13 @@ definition {
 				webContentDate = "01/29/2021",
 				webContentDecimal = "0.5",
 				webContentDocumentsAndMedia = "DM Document Title",
-				webContentHTML = "This is a HTML field",
+				webContentHtml = "This is a HTML field",
 				webContentImage = "Document_1.jpg",
 				webContentInteger = "9",
 				webContentNumber = "-1",
 				webContentRadio = "option 1",
 				webContentSelect = "option 2",
-				webContentSelectWCFile = "WC WebContent 1 Title",
+				webContentSelectWcFile = "WC WebContent 1 Title",
 				webContentText = "This is a Text field",
 				webContentTextBox = "This is a Text Box field",
 				webContentTitle = "Web Content Title");
@@ -5846,14 +5852,14 @@ definition {
 				webContentDate = "01/29/2021",
 				webContentDecimal = "0.5",
 				webContentDocumentsAndMedia = "DM Document Title",
-				webContentHTML = "This is a HTML field",
+				webContentHtml = "This is a HTML field",
 				webContentImage = "Document_1.jpg",
 				webContentImageDescription = "Image Description",
 				webContentInteger = "9",
 				webContentNumber = "-1",
 				webContentRadio = "option 1",
 				webContentSelect = "option 2",
-				webContentSelectWCFile = "WC WebContent 1 Title",
+				webContentSelectWcFile = "WC WebContent 1 Title",
 				webContentText = "This is a Text field",
 				webContentTextBox = "This is a Text Box field",
 				webContentTitle = "Web Content Title");
@@ -5881,7 +5887,9 @@ definition {
 
 		Navigator.gotoPage(pageName = "Web Content Display");
 
-		WebContent.viewPGViaWCD(webContentContent = "This is a Text Box field");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "This is a Text Box field",
+			webContentTitle = "Web Content Title");
 
 		Navigator.gotoPage(pageName = "Asset Publisher");
 
@@ -5998,18 +6006,23 @@ definition {
 			locator1 = "TextInput#TITLE",
 			value1 = "Image Web Content");
 
-		var imageFieldValue = selenium.getElementValue("//label[normalize-space(text())='Image']/following-sibling::div//div[contains(@class,'input-group')]//input[contains(@type,'text')]");
+		var imageFieldValue = selenium.getElementValue("//label[contains(@class,'ddm-label')][normalize-space(text())='Image']/following-sibling::div//div[contains(@class,'input-group')]//input[contains(@type,'text')]");
 
 		TestUtils.assertNotEquals(
 			actual = "${imageFieldValue}",
 			expected = "");
+
+		AssertElementPresent(
+			key_fieldFieldLabel = "Image",
+			key_image = "/documents/",
+			locator1 = "WCEditWebContent#IMAGE_PICKER_PREVIEW");
 
 		Click(
 			fieldLabel = "Image",
 			locator1 = "Button#BUTTON_LABEL",
 			text = "Clear");
 
-		AssertElementPresent(
+		AssertElementNotPresent(
 			key_fieldFieldLabel = "Image",
 			key_image = "/documents/",
 			locator1 = "WCEditWebContent#IMAGE_PICKER_PREVIEW");

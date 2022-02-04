@@ -31,7 +31,7 @@ definition {
 			for (var count : list "1,2") {
 				OAuth2.addAndEditExternalApplication(
 					applicationName = "My Application${count}",
-					callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
+					callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
 					checkboxCheckList = "Remember Device",
 					clientId = "default${count}",
 					clientProfile = "Web Application",
@@ -83,12 +83,13 @@ definition {
 	@description = "This is a use case for LPS-126597. User can authorize external application multiple times with remember device option. After the first authorization flow login is not needed."
 	@priority = "5"
 	test ApplicationCanBeAuthorizedWithRememberDeviceEnabled {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAuthorizedAndRememberDeviceShouldBeEnabled";
 
 		task ("Add and edit an external application with remember device enabled") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "Third-party Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
 				checkboxCheckList = "Remember Device",
 				clientId = "abc123",
 				clientProfile = "Web Application",
@@ -131,7 +132,7 @@ definition {
 
 			OAuth2.addApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com");
+				callbackUri = "http://www.liferay.com");
 		}
 
 		task ("Verify Analytics and portal services are present in scopes on the first portal") {
@@ -187,12 +188,13 @@ definition {
 	@description = "This is a use case for LPS-129397 TC-1: User can revoke authorization via kebab menu on	the OAuth 2 administration page."
 	@priority = "5"
 	test AuthorizationCanBeRevokedViaKebabMenu {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OAuth2#AuthorizationCanBeRevokedViaKebabMenu";
 
 		task ("Add and edit an external application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "My Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
 				clientId = "default",
 				clientProfile = "Web Application",
 				clientSecret = "defaultsecret",
@@ -242,7 +244,7 @@ definition {
 		task ("Add and edit an external application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "My Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
 				checkboxCheckList = "Trusted Application",
 				clientId = "default",
 				clientProfile = "Web Application",
@@ -482,6 +484,7 @@ definition {
 	@description = "This is a use case for LPS-105158. Configuring the settings on system level will set the same settings on the Instance level."
 	@priority = "5"
 	test ConfigureOnSystemLevelShouldApplyToInstanceLevel {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OAuth2#ConfigureOnSystemLevelShouldApplyToInstanceLevel";
 
 		task ("Delete OSGi JAX-RS Default configuration") {
@@ -552,7 +555,7 @@ definition {
 	test EditApplicationScopesAndViewLanguageKeys {
 		property osgi.module.configuration.file.names = "com.liferay.oauth2.provider.scope.internal.configuration.ConfigurableScopeMapperConfiguration~default.config";
 		property osgi.module.configurations = "mapping=[&quot;example-scope-1,example-scope-2\=everything&quot;]${line.separator}osgi.jaxrs.name=&quot;liferay-oauth2-scope-sample-qa-app&quot;${line.separator}passthrough=&quot;true&quot;";
-		property portal.upstream = "true";
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "OAuth2#EditApplicationScopesAndViewLanguageKeys";
 
 		FileInstall.deployFileOnServer(jarFile = "com.liferay.oauth2.provider.scope.sample.qa.jar");
@@ -665,7 +668,7 @@ definition {
 
 			OAuth2.addApplication(
 				applicationName = "Test Expired Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''');
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''');
 		}
 
 		task ("Edit scopes") {
@@ -733,6 +736,7 @@ definition {
 	test ExternalApplicationCanBeAddedAndEdited {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAddedAndEdited";
 
 		task ("Add a new OAuth 2 application") {
@@ -742,7 +746,7 @@ definition {
 
 			OAuth2.addApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				clientProfile = "Web Application",
 				websiteURL = "http://www.liferay.com");
 		}
@@ -768,7 +772,7 @@ definition {
 		task ("Check OAuth application informations") {
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com",
+				callbackUri = "http://www.liferay.com",
 				checkboxCheckList = "Authorization Code,Client Credentials,Refresh Token,Resource Owner Password Credentials",
 				clientId = "${generatedClientId}",
 				clientProfile = "Web Application",
@@ -781,7 +785,7 @@ definition {
 		task ("Edit all application values") {
 			OAuth2.editApplication(
 				applicationName = "OAuth Application",
-				callbackURI = "http://www.liferay.com/callback",
+				callbackUri = "http://www.liferay.com/callback",
 				checkboxCheckList = "Token Introspection",
 				checkboxUncheckList = "Refresh Token,Resource Owner Password Credentials",
 				clientId = "abcd1234",
@@ -803,7 +807,7 @@ definition {
 
 			OAuth2.viewApplication(
 				applicationName = "OAuth Application Edited",
-				callbackURI = "http://www.liferay.com/callback",
+				callbackUri = "http://www.liferay.com/callback",
 				checkboxCheckList = "Token Introspection",
 				clientId = "abcd1234",
 				clientProfile = "Native Application",
@@ -835,12 +839,13 @@ definition {
 	@description = "This is a use case for LRQA-47381. User can authorize external applications."
 	test ExternalApplicationCanBeAuthorized {
 		property custom.properties = "virtual.hosts.default.site.name=Guest";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "OAuth2#ExternalApplicationCanBeAuthorized";
 
 		task ("Add and edit an external application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "Third-party Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
 				clientId = "abc123",
 				clientProfile = "Web Application",
 				clientSecret = "abc123");
@@ -866,7 +871,7 @@ definition {
 		task ("Add and edit an external trusted application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "Third-party Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
 				checkboxCheckList = "Trusted Application",
 				clientId = "abc123",
 				clientProfile = "Web Application",
@@ -892,6 +897,7 @@ definition {
 		property environment.acceptance = "true";
 		property portal.acceptance = "true";
 		property portal.upstream = "true";
+		property test.name.skip.portal.instance = "OAuth2#GrantedAuthorizationsCanBeRevoked";
 
 		task ("Add a new external application") {
 			var portalURL = PropsUtil.get("portal.url");
@@ -1038,11 +1044,9 @@ definition {
 				enabled = "false",
 				policyName = "OAUTH2_read.portalversion");
 
-			var portalVersionOutput = JSONCurlUtil.post("${portalVersionCurl}");
+			Navigator.openSpecificURL(url = "http://localhost:8080/api/jsonws/portal/get-version");
 
-			OAuth2.checkIfMessageNotDenied(
-				msg = "Access denied to com.liferay.portal.kernel.service.PortalService#getVersion",
-				portalVersionOutput = "${portalVersionOutput}");
+			AssertTextPresent(value1 = "You do not have permission to access the requested resource.");
 		}
 
 		task ("View OAuth 2 application scope") {
@@ -1148,7 +1152,7 @@ definition {
 		task ("Add and edit an external application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "Third-party Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=abc123''',
 				clientId = "abc123",
 				clientProfile = "Web Application",
 				clientSecret = "abc123");
@@ -1186,7 +1190,7 @@ definition {
 
 			OAuth2.addApplication(
 				applicationName = "Remember Device Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
 				checkboxCheckList = "Remember Device",
 				clientProfile = "Web Application");
 		}
@@ -1209,7 +1213,7 @@ definition {
 			for (var count : list "1,2") {
 				OAuth2.addAndEditExternalApplication(
 					applicationName = "My Application${count}",
-					callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
+					callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default${count}''',
 					checkboxCheckList = "Remember Device",
 					clientId = "default${count}",
 					clientProfile = "Web Application",
@@ -1264,7 +1268,7 @@ definition {
 		task ("Add and edit an external application") {
 			OAuth2.addAndEditExternalApplication(
 				applicationName = "My Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=default''',
 				checkboxCheckList = "Remember Device",
 				clientId = "default",
 				clientProfile = "Web Application",
@@ -1459,7 +1463,7 @@ definition {
 
 			OAuth2.addApplication(
 				applicationName = "Trusted Application",
-				callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+				callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
 				checkboxCheckList = "Trusted Application",
 				clientProfile = "Web Application");
 		}

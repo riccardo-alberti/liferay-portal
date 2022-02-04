@@ -22,12 +22,15 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
@@ -47,6 +50,7 @@ import java.io.InputStream;
 
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.portlet.PortletException;
 import javax.portlet.ResourceRequest;
@@ -92,10 +96,12 @@ public class ExportTranslationMVCResourceCommand implements MVCResourceCommand {
 
 			ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
 
-			for (long classPK :
-					translationRequestHelper.getClassPKs(
-						segmentsExperienceIds)) {
+			Set<Long> classPKs = SetUtil.fromArray(
+				_getClassPKs(
+					className, segmentsExperienceIds,
+					translationRequestHelper));
 
+			for (long classPK : classPKs) {
 				if ((classPK == SegmentsExperienceConstants.ID_DEFAULT) &&
 					className.equals(SegmentsExperience.class.getName())) {
 
@@ -121,6 +127,10 @@ public class ExportTranslationMVCResourceCommand implements MVCResourceCommand {
 					_getZipFileName(
 						translationRequestHelper.getModelClassName(),
 						translationRequestHelper.getModelClassPK(),
+						LanguageUtil.get(
+							_portal.getLocale(resourceRequest),
+							"model.resource." + className),
+						_isMultipleModels(classPKs, segmentsExperienceIds),
 						sourceLanguageId, _portal.getLocale(resourceRequest)),
 					inputStream, ContentTypes.APPLICATION_ZIP);
 			}
@@ -184,6 +194,57 @@ public class ExportTranslationMVCResourceCommand implements MVCResourceCommand {
 		}
 	}
 
+	private long[] _getClassPKs(
+			String className, long[] segmentsExperienceIds,
+			TranslationRequestHelper translationRequestHelper)
+		throws PortalException {
+
+		if (!className.equals(Layout.class.getName())) {
+			return translationRequestHelper.getClassPKs(segmentsExperienceIds);
+		}
+
+		long[] classPKs = translationRequestHelper.getClassPKs(
+			segmentsExperienceIds);
+
+		long[] replacementClassPKs = new long[classPKs.length];
+
+		for (int i = 0; i < classPKs.length; i++) {
+			replacementClassPKs[i] = _getDraftLayoutPlid(classPKs[i]);
+		}
+
+		return replacementClassPKs;
+	}
+
+	private long _getDraftLayoutPlid(long plid) {
+		Layout layout = _layoutLocalService.fetchLayout(plid);
+
+		if ((layout == null) || layout.isDraftLayout()) {
+			return plid;
+		}
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		if (draftLayout == null) {
+			return plid;
+		}
+
+		return draftLayout.getPlid();
+	}
+
+	private String _getPrefixName(
+		long classPK, String classNameTitle,
+		Optional<String> infoItemTitleOptional, boolean multipleModels,
+		Locale locale) {
+
+		if (multipleModels) {
+			return classNameTitle + StringPool.SPACE +
+				LanguageUtil.get(locale, "translations");
+		}
+
+		return infoItemTitleOptional.orElseGet(
+			() -> classNameTitle + StringPool.SPACE + classPK);
+	}
+
 	private String _getXLIFFFileName(
 			String title, String sourceLanguageId, String targetLanguageId)
 		throws PortalException {
@@ -196,8 +257,8 @@ public class ExportTranslationMVCResourceCommand implements MVCResourceCommand {
 	}
 
 	private String _getZipFileName(
-			String className, long classPK, String sourceLanguageId,
-			Locale locale)
+			String className, long classPK, String classNameTitle,
+			boolean multipleModels, String sourceLanguageId, Locale locale)
 		throws NoSuchInfoItemException {
 
 		InfoItemHelper infoItemHelper = new InfoItemHelper(
@@ -206,20 +267,31 @@ public class ExportTranslationMVCResourceCommand implements MVCResourceCommand {
 		Optional<String> infoItemTitleOptional =
 			infoItemHelper.getInfoItemTitleOptional(classPK, locale);
 
-		String infoItemTitle = infoItemTitleOptional.orElseGet(
-			() ->
-				LanguageUtil.get(locale, "model.resource." + className) +
-					StringPool.SPACE + classPK);
-
-		String escapedTitle = StringUtil.removeSubstrings(
-			infoItemTitle, PropsValues.DL_CHAR_BLACKLIST);
+		String prefixName = _getPrefixName(
+			classPK, classNameTitle, infoItemTitleOptional, multipleModels,
+			locale);
 
 		return StringBundler.concat(
-			escapedTitle, StringPool.DASH, sourceLanguageId, ".zip");
+			StringUtil.removeSubstrings(
+				prefixName, PropsValues.DL_CHAR_BLACKLIST),
+			StringPool.DASH, sourceLanguageId, ".zip");
+	}
+
+	private boolean _isMultipleModels(
+		Set<Long> classPKs, long[] segmentsExperienceIds) {
+
+		if ((segmentsExperienceIds.length < 1) && (classPKs.size() > 1)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private Portal _portal;

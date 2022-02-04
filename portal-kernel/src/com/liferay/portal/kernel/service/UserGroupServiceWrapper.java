@@ -110,6 +110,15 @@ public class UserGroupServiceWrapper
 	}
 
 	@Override
+	public UserGroup fetchUserGroupByExternalReferenceCode(
+			long companyId, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupService.fetchUserGroupByExternalReferenceCode(
+			companyId, externalReferenceCode);
+	}
+
+	@Override
 	public java.util.List<UserGroup> getGtUserGroups(
 		long gtUserGroupId, long companyId, long parentUserGroupId, int size) {
 
@@ -335,6 +344,15 @@ public class UserGroupServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_userGroupService.unsetTeamUserGroups(teamId, userGroupIds);
+	}
+
+	@Override
+	public UserGroup updateExternalReferenceCode(
+			UserGroup userGroup, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _userGroupService.updateExternalReferenceCode(
+			userGroup, externalReferenceCode);
 	}
 
 	/**

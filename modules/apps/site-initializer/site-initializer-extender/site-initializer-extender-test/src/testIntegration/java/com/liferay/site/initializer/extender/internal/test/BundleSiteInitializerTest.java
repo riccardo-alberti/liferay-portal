@@ -44,6 +44,13 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentEntryLocalService;
+import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition;
+import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeEntry;
+import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionResource;
+import com.liferay.headless.admin.user.dto.v1_0.Account;
+import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
+import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalArticleLocalService;
@@ -64,6 +71,8 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Theme;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
@@ -83,10 +92,14 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.security.service.access.policy.model.SAPEntry;
+import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.pagination.Page;
+import com.liferay.remote.app.model.RemoteAppEntry;
+import com.liferay.remote.app.service.RemoteAppEntryLocalService;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.site.initializer.SiteInitializerRegistry;
 import com.liferay.site.navigation.menu.item.layout.constants.SiteNavigationMenuItemTypeConstants;
@@ -151,6 +164,7 @@ public class BundleSiteInitializerTest {
 
 		try {
 			siteInitializer.initialize(group.getGroupId());
+			_assertAccounts(serviceContext);
 			_assertAssetListEntries(group);
 			_assertAssetVocabularies(group);
 			_assertCommerceCatalogs(group);
@@ -165,10 +179,14 @@ public class BundleSiteInitializerTest {
 			_assertLayoutPageTemplateEntry(group);
 			_assertLayouts(group);
 			_assertLayoutSets(group);
+			_assertListTypeDefinitions(serviceContext);
 			_assertObjectDefinitions(group, serviceContext);
 			_assertPermissions(group);
+			_assertRemoteApp(group);
+			_assertSAPEntries(group);
 			_assertSiteNavigationMenu(group);
 			_assertStyleBookEntry(group);
+			_assertUserRoles(group);
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
@@ -210,6 +228,52 @@ public class BundleSiteInitializerTest {
 
 			bundle.uninstall();
 		}
+	}
+
+	private void _assertAccounts(ServiceContext serviceContext)
+		throws Exception {
+
+		AccountResource.Builder accountResourceBuilder =
+			_accountResourceFactory.create();
+
+		AccountResource accountResource = accountResourceBuilder.user(
+			serviceContext.fetchUser()
+		).build();
+
+		UserAccountResource.Builder userAccountResourceBuilder =
+			_userAccountResourceFactory.create();
+
+		UserAccountResource userAccountResource =
+			userAccountResourceBuilder.user(
+				serviceContext.fetchUser()
+			).build();
+
+		Account account1 = accountResource.getAccountByExternalReferenceCode(
+			"TESTACC0001");
+
+		Assert.assertNotNull(account1);
+		Assert.assertEquals("Test Account 1", account1.getName());
+		Assert.assertEquals("business", account1.getTypeAsString());
+
+		_assertUserAccounts(account1.getId(), 1, userAccountResource);
+
+		Account account2 = accountResource.getAccountByExternalReferenceCode(
+			"TESTACC0002");
+
+		Assert.assertNotNull(account2);
+		Assert.assertEquals("Test Account 2", account2.getName());
+		Assert.assertEquals("guest", account2.getTypeAsString());
+
+		_assertUserAccounts(account2.getId(), 1, userAccountResource);
+
+		Account account3 = accountResource.getAccountByExternalReferenceCode(
+			"TESTACC0003");
+
+		Assert.assertNotNull(account3);
+		Assert.assertEquals("Test Account 3", account3.getName());
+		Assert.assertEquals("person", account3.getTypeAsString());
+
+		_assertUserAccounts(account3.getId(), 0, userAccountResource);
 	}
 
 	private void _assertAssetCategories(Group group) throws Exception {
@@ -594,6 +658,43 @@ public class BundleSiteInitializerTest {
 					"lfr-theme:regular:show-header")));
 	}
 
+	private void _assertListTypeDefinitions(ServiceContext serviceContext)
+		throws Exception {
+
+		ListTypeDefinitionResource.Builder listTypeDefinitionResourceBuilder =
+			_listTypeDefinitionResourceFactory.create();
+
+		ListTypeDefinitionResource listTypeDefinitionResource =
+			listTypeDefinitionResourceBuilder.user(
+				serviceContext.fetchUser()
+			).build();
+
+		Page<ListTypeDefinition> listTypeDefinitionsPage =
+			listTypeDefinitionResource.getListTypeDefinitionsPage(
+				null, null,
+				listTypeDefinitionResource.toFilter(
+					"name eq 'Test List Type Definition'"),
+				null, null);
+
+		ListTypeDefinition listTypeDefinition =
+			listTypeDefinitionsPage.fetchFirstItem();
+
+		Assert.assertNotNull(listTypeDefinition);
+
+		ListTypeEntry[] listTypeEntries =
+			listTypeDefinition.getListTypeEntries();
+
+		ListTypeEntry listTypeEntry1 = listTypeEntries[0];
+
+		Assert.assertNotNull(listTypeEntry1);
+		Assert.assertEquals("testlisttypeentry1", listTypeEntry1.getKey());
+
+		ListTypeEntry listTypeEntry2 = listTypeEntries[1];
+
+		Assert.assertNotNull(listTypeEntry2);
+		Assert.assertEquals("testlisttypeentry2", listTypeEntry2.getKey());
+	}
+
 	private void _assertObjectDefinitions(
 			Group group, ServiceContext serviceContext)
 		throws Exception {
@@ -606,7 +707,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition1.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
-		_assertObjectEntries(0, group.getGroupId(), objectDefinition1);
+		_assertObjectEntries(group.getGroupId(), objectDefinition1, 0);
 		_assertObjectRelationships(objectDefinition1, serviceContext);
 
 		ObjectDefinition objectDefinition2 =
@@ -617,7 +718,7 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition2.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
-		_assertObjectEntries(0, group.getGroupId(), objectDefinition2);
+		_assertObjectEntries(group.getGroupId(), objectDefinition2, 0);
 
 		ObjectDefinition objectDefinition3 =
 			_objectDefinitionLocalService.fetchObjectDefinition(
@@ -630,15 +731,16 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			objectDefinition3.getStatus(), WorkflowConstants.STATUS_APPROVED);
 
-		_assertObjectEntries(5, 0, objectDefinition3);
+		_assertObjectEntries(0, objectDefinition3, 5);
 	}
 
 	private void _assertObjectEntries(
-			int expected, long groupId, ObjectDefinition objectDefinition)
+			long groupId, ObjectDefinition objectDefinition,
+			int objectEntriesCount)
 		throws Exception {
 
 		Assert.assertEquals(
-			expected,
+			objectEntriesCount,
 			_objectEntryLocalService.getObjectEntriesCount(
 				groupId, objectDefinition.getObjectDefinitionId()));
 	}
@@ -702,14 +804,37 @@ public class BundleSiteInitializerTest {
 		_assertResourcePermission(group);
 	}
 
+	private void _assertRemoteApp(Group group) throws Exception {
+		RemoteAppEntry remoteAppEntry =
+			_remoteAppEntryLocalService.
+				fetchRemoteAppEntryByExternalReferenceCode(
+					group.getCompanyId(), "ERC001");
+
+		Assert.assertNotNull(remoteAppEntry);
+		Assert.assertEquals(
+			"category.remote-apps", remoteAppEntry.getPortletCategoryName());
+		Assert.assertEquals(
+			"liferay-test-remote-app",
+			remoteAppEntry.getCustomElementHTMLElementName());
+	}
+
 	private void _assertResourcePermission(Group group) throws Exception {
 		Role role = _roleLocalService.fetchRole(
 			group.getCompanyId(), "Test Role 1");
 
 		ResourcePermission resourcePermission =
 			_resourcePermissionLocalService.fetchResourcePermission(
-				group.getCompanyId(), "com.liferay.commerce.product", 3, "0",
-				role.getRoleId());
+				group.getCompanyId(), "com.liferay.commerce.product", 1,
+				String.valueOf(group.getCompanyId()), role.getRoleId());
+
+		Assert.assertNotNull(resourcePermission);
+
+		role = _roleLocalService.fetchRole(group.getCompanyId(), "Test Role 2");
+
+		resourcePermission =
+			_resourcePermissionLocalService.fetchResourcePermission(
+				group.getCompanyId(), "com.liferay.commerce.product", 2,
+				String.valueOf(group.getGroupId()), role.getRoleId());
 
 		Assert.assertNotNull(resourcePermission);
 	}
@@ -740,6 +865,36 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(2, role4.getType());
 	}
 
+	private void _assertSAPEntries(Group group) {
+		SAPEntry sapEntry1 = _sapEntryLocalService.fetchSAPEntry(
+			group.getCompanyId(), "TEST_SAP_ENTRY_1");
+
+		Assert.assertNotNull(sapEntry1);
+		Assert.assertTrue(sapEntry1.isDefaultSAPEntry());
+		Assert.assertTrue(sapEntry1.isEnabled());
+
+		List<String> allowedServiceSignaturesList1 =
+			sapEntry1.getAllowedServiceSignaturesList();
+
+		Assert.assertEquals(
+			allowedServiceSignaturesList1.toString(), 3,
+			allowedServiceSignaturesList1.size());
+
+		SAPEntry sapEntry2 = _sapEntryLocalService.fetchSAPEntry(
+			group.getCompanyId(), "TEST_SAP_ENTRY_2");
+
+		Assert.assertNotNull(sapEntry2);
+		Assert.assertFalse(sapEntry2.isDefaultSAPEntry());
+		Assert.assertTrue(sapEntry2.isEnabled());
+
+		List<String> allowedServiceSignaturesList2 =
+			sapEntry2.getAllowedServiceSignaturesList();
+
+		Assert.assertEquals(
+			allowedServiceSignaturesList2.toString(), 5,
+			allowedServiceSignaturesList2.size());
+	}
+
 	private void _assertSiteNavigationMenu(Group group) {
 		SiteNavigationMenu siteNavigationMenu =
 			_siteNavigationMenuLocalService.fetchSiteNavigationMenuByName(
@@ -749,10 +904,10 @@ public class BundleSiteInitializerTest {
 
 		List<SiteNavigationMenuItem> siteNavigationMenuItems =
 			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
-				siteNavigationMenu.getSiteNavigationMenuId());
+				siteNavigationMenu.getSiteNavigationMenuId(), 0);
 
 		Assert.assertEquals(
-			siteNavigationMenuItems.toString(), 4,
+			siteNavigationMenuItems.toString(), 7,
 			siteNavigationMenuItems.size());
 
 		SiteNavigationMenuItem siteNavigationMenuItem1 =
@@ -765,6 +920,7 @@ public class BundleSiteInitializerTest {
 		SiteNavigationMenuItem siteNavigationMenuItem2 =
 			siteNavigationMenuItems.get(1);
 
+		Assert.assertEquals("Test URL", siteNavigationMenuItem2.getName());
 		Assert.assertEquals(
 			SiteNavigationMenuItemTypeConstants.URL,
 			siteNavigationMenuItem2.getType());
@@ -772,9 +928,36 @@ public class BundleSiteInitializerTest {
 		SiteNavigationMenuItem siteNavigationMenuItem3 =
 			siteNavigationMenuItems.get(2);
 
+		Assert.assertEquals("Other Links", siteNavigationMenuItem3.getName());
 		Assert.assertEquals(
 			SiteNavigationMenuItemTypeConstants.NODE,
 			siteNavigationMenuItem3.getType());
+
+		SiteNavigationMenuItem siteNavigationMenuItem4 =
+			siteNavigationMenuItems.get(3);
+
+		Assert.assertEquals(
+			AssetCategory.class.getName(), siteNavigationMenuItem4.getType());
+
+		SiteNavigationMenuItem siteNavigationMenuItem5 =
+			siteNavigationMenuItems.get(4);
+
+		Assert.assertEquals(
+			JournalArticle.class.getName(), siteNavigationMenuItem5.getType());
+
+		SiteNavigationMenuItem siteNavigationMenuItem6 =
+			siteNavigationMenuItems.get(5);
+
+		Assert.assertEquals(
+			FileEntry.class.getName(), siteNavigationMenuItem6.getType());
+
+		SiteNavigationMenuItem siteNavigationMenuItem7 =
+			siteNavigationMenuItems.get(6);
+
+		String type = siteNavigationMenuItem7.getType();
+
+		Assert.assertTrue(
+			type.startsWith("com.liferay.object.model.ObjectDefinition#"));
 	}
 
 	private void _assertStyleBookEntry(Group group) {
@@ -790,6 +973,54 @@ public class BundleSiteInitializerTest {
 			frontendTokensValues.contains("blockquote-small-color"));
 	}
 
+	private void _assertUserAccounts(
+			Long accountId, int totalCount,
+			UserAccountResource userAccountResource)
+		throws Exception {
+
+		Page<UserAccount> page = userAccountResource.getAccountUserAccountsPage(
+			accountId, null, null, null, null);
+
+		Assert.assertNotNull(page);
+		Assert.assertEquals(totalCount, page.getTotalCount());
+	}
+
+	private void _assertUserRoles(Group group) throws Exception {
+		User user = _userLocalService.fetchUserByEmailAddress(
+			group.getCompanyId(), "test.user1@liferay.com");
+
+		List<Role> roles = user.getRoles();
+
+		Assert.assertEquals(roles.toString(), 3, roles.size());
+
+		Role role = roles.get(0);
+
+		Assert.assertEquals(RoleConstants.USER, role.getName());
+
+		role = roles.get(1);
+
+		Assert.assertEquals("Test Role 1", role.getName());
+
+		role = roles.get(2);
+
+		Assert.assertEquals("Test Role 2", role.getName());
+
+		user = _userLocalService.fetchUserByEmailAddress(
+			group.getCompanyId(), "test.user2@liferay.com");
+
+		roles = user.getRoles();
+
+		Assert.assertEquals(roles.toString(), 2, roles.size());
+
+		role = roles.get(0);
+
+		Assert.assertEquals(RoleConstants.USER, role.getName());
+
+		role = roles.get(1);
+
+		Assert.assertEquals("Test Role 3", role.getName());
+	}
+
 	private Bundle _installBundle(BundleContext bundleContext, String location)
 		throws Exception {
 
@@ -799,6 +1030,9 @@ public class BundleSiteInitializerTest {
 			return bundleContext.installBundle(location, inputStream);
 		}
 	}
+
+	@Inject
+	private AccountResource.Factory _accountResourceFactory;
 
 	@Inject
 	private AssetCategoryLocalService _assetCategoryLocalService;
@@ -861,6 +1095,10 @@ public class BundleSiteInitializerTest {
 	private LayoutSetLocalService _layoutSetLocalService;
 
 	@Inject
+	private ListTypeDefinitionResource.Factory
+		_listTypeDefinitionResourceFactory;
+
+	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Inject
@@ -874,10 +1112,16 @@ public class BundleSiteInitializerTest {
 	private Portal _portal;
 
 	@Inject
+	private RemoteAppEntryLocalService _remoteAppEntryLocalService;
+
+	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private SAPEntryLocalService _sapEntryLocalService;
 
 	@Inject
 	private ServletContext _servletContext;
@@ -894,6 +1138,9 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private StyleBookEntryLocalService _styleBookEntryLocalService;
+
+	@Inject
+	private UserAccountResource.Factory _userAccountResourceFactory;
 
 	@Inject
 	private UserLocalService _userLocalService;

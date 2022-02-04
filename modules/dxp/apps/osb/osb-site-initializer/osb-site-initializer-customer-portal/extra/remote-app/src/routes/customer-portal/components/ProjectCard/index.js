@@ -1,17 +1,28 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import ClayCard from '@clayui/card';
 import classNames from 'classnames';
-import {status as statusProject} from '../../utils/constants';
-import getDateCustomFormat from '../../utils/dateCustomFormat';
+import {STATUS_TAG_TYPES} from '../../utils/constants';
+import getDateCustomFormat from '../../utils/getDateCustomFormat';
 import StatusTag from '../StatusTag';
 import ProjectCardSkeleton from './Skeleton';
 
 const ProjectCard = ({code, isSmall, onClick, region, sla, status, title}) => {
 	const getStatusMessage = (currentStatus) => {
-		if (currentStatus === statusProject.active) {
+		if (currentStatus === STATUS_TAG_TYPES.active) {
 			return 'Ends on ';
 		}
 
-		if (currentStatus === statusProject.expired) {
+		if (currentStatus === STATUS_TAG_TYPES.expired) {
 			return 'Ended on ';
 		}
 
@@ -21,8 +32,8 @@ const ProjectCard = ({code, isSmall, onClick, region, sla, status, title}) => {
 	return (
 		<ClayCard
 			className={classNames('m-0', {
-				'project-card': !isSmall,
-				'project-card-sm': isSmall,
+				'cp-project-card': !isSmall,
+				'cp-project-card-sm': isSmall,
 			})}
 			onClick={() => onClick()}
 		>

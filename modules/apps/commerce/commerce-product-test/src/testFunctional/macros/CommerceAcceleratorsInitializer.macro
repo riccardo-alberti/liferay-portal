@@ -172,6 +172,12 @@ definition {
 		Button.click(button = "Create New Order");
 	}
 
+	macro createNewOrderFromPendingOrders {
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Pending Orders");
+
+		Button.click(button = "Add Order");
+	}
+
 	macro deactivateCommerceAccountViaFront {
 		Accounts.deactivateAccount(accountName = "${accountName}");
 	}
@@ -202,7 +208,7 @@ definition {
 
 		AssertTextEquals(
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_SKU",
-			value1 = "${productSKU}");
+			value1 = "${productSku}");
 
 		AssertTextEquals(
 			locator1 = "CommerceAccelerators#ORDER_DETAILS_NAME",

@@ -14,6 +14,8 @@
 
 package com.liferay.document.library.item.selector.web.internal.folder;
 
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryService;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.item.selector.web.internal.configuration.FFFolderItemSelectorGroupSelectorConfiguration;
 import com.liferay.document.library.item.selector.web.internal.constants.DLItemSelectorViewConstants;
@@ -26,9 +28,13 @@ import com.liferay.item.selector.PortletItemSelectorView;
 import com.liferay.item.selector.criteria.FolderItemSelectorReturnType;
 import com.liferay.item.selector.criteria.folder.criterion.FolderItemSelectorCriterion;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.resource.bundle.ResourceBundleLoader;
+import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -53,6 +59,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -116,9 +123,39 @@ public class DLFolderItemSelectorView
 			(HttpServletRequest)servletRequest, "folderId",
 			itemSelectorCriterion.getFolderId());
 
-		if (repositoryId != itemSelectorCriterion.getRepositoryId()) {
+		long itemSelectorCriterionRepositoryId =
+			itemSelectorCriterion.getRepositoryId();
+
+		Folder folder = _fetchFolder(folderId);
+
+		if ((folder != null) &&
+			(folder.getRepositoryId() !=
+				itemSelectorCriterion.getRepositoryId())) {
+
+			itemSelectorCriterionRepositoryId = folder.getRepositoryId();
+		}
+
+		if (repositoryId != itemSelectorCriterionRepositoryId) {
 			folderId = ParamUtil.getLong(
 				(HttpServletRequest)servletRequest, "folderId");
+
+			folder = _fetchFolder(folderId);
+
+			if (folder != null) {
+				repositoryId = folder.getRepositoryId();
+			}
+		}
+
+		Group group = _getGroup(repositoryId);
+
+		if ((group != null) && group.isDepot()) {
+			List<Long> groupConnectedDepotEntries =
+				_getGroupConnectedDepotEntries(themeDisplay);
+
+			if (!groupConnectedDepotEntries.contains(repositoryId)) {
+				folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+				repositoryId = themeDisplay.getRefererGroupId();
+			}
 		}
 
 		servletRequest.setAttribute(
@@ -133,6 +170,7 @@ public class DLFolderItemSelectorView
 		requestDispatcher.include(servletRequest, servletResponse);
 	}
 
+	@Activate
 	protected void activate(Map<String, Object> properties) {
 		_ffFolderItemSelectorGroupSelectorConfiguration =
 			ConfigurableUtil.createConfigurable(
@@ -153,6 +191,30 @@ public class DLFolderItemSelectorView
 		}
 	}
 
+	private Group _getGroup(long groupId) {
+		try {
+			return _groupService.getGroup(groupId);
+		}
+		catch (Exception exception) {
+			return null;
+		}
+	}
+
+	private List<Long> _getGroupConnectedDepotEntries(
+		ThemeDisplay themeDisplay) {
+
+		try {
+			return ListUtil.toList(
+				_depotEntryService.getGroupConnectedDepotEntries(
+					themeDisplay.getRefererGroupId(), QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS),
+				DepotEntry::getGroupId);
+		}
+		catch (Exception exception) {
+			return Collections.emptyList();
+		}
+	}
+
 	private boolean _isShowGroupSelector(
 		FolderItemSelectorCriterion itemSelectorCriterion) {
 
@@ -170,10 +232,16 @@ public class DLFolderItemSelectorView
 			new FolderItemSelectorReturnType());
 
 	@Reference
+	private DepotEntryService _depotEntryService;
+
+	@Reference
 	private DLAppService _dlAppService;
 
 	private volatile FFFolderItemSelectorGroupSelectorConfiguration
 		_ffFolderItemSelectorGroupSelectorConfiguration;
+
+	@Reference
+	private GroupService _groupService;
 
 	@Reference
 	private Portal _portal;

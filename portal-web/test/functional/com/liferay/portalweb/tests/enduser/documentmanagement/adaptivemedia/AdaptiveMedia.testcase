@@ -1,6 +1,7 @@
 @component-name = "portal-collaboration"
 definition {
 
+	property portal.acceptance = "true";
 	property custom.properties = "default.layout.template.id=1_column";
 	property portal.release = "true";
 	property portal.upstream = "true";
@@ -44,8 +45,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanAdaptImageInWebContent {
-		property portal.acceptance = "true";
-
 		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "Adaptive Media Image Description",
 			dmDocumentTitle = "high_resolution_photo.jpg",
@@ -75,8 +74,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanAdaptSVGImageInBlogsEntry {
-		property portal.acceptance = "true";
-
 		JSONDocument.addFileWithUploadedFile(
 			dmDocumentDescription = "Adaptive Media Image Description",
 			dmDocumentTitle = "Document_1.svg",
@@ -103,8 +100,6 @@ definition {
 	@refactordone
 	@uitest
 	test CanAddEntryWithHighDensityResolution {
-		property portal.acceptance = "true";
-
 		ApplicationsMenu.gotoPortlet(
 			category = "Configuration",
 			panel = "Control Panel",
@@ -254,16 +249,18 @@ definition {
 
 		AdaptiveMedia.gotoImageVariantEntry(imageName = "Small Image Variant");
 
-		AdaptiveMedia.viewImageVariantID(imageVariantID = "small-image-variant");
+		AdaptiveMedia.viewImageVariantID(imageVariantId = "small-image-variant");
 	}
 
 	@priority = "4"
 	@refactordone
 	test CannotAddDuplicateImageResolution {
+		property portal.acceptance = "false";
+
 		AdaptiveMedia.openToAddImageResolution();
 
 		AdaptiveMedia.addImageResolution(
-			customID = "custom-id",
+			customId = "custom-id",
 			imageName = "Image Variant With Custom ID",
 			maxHeight = "350",
 			maxWidth = "450");
@@ -271,7 +268,7 @@ definition {
 		AdaptiveMedia.openToAddImageResolution();
 
 		AdaptiveMedia.addImageResolution(
-			customID = "custom-id",
+			customId = "custom-id",
 			duplicate = "true",
 			imageName = "Image Variant With Duplicate Custom ID",
 			maxHeight = "350",

@@ -1018,11 +1018,9 @@ definition {
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
-		WebContent.viewPGViaWCD(
-			image = "true",
-			key_image = "Document_1.png",
-			webContentContent = "Web Content Content",
-			webContentTitle = "Web Content Title");
+		WebContentDisplayPortlet.viewContent(
+			imageFileName = "Document_1.png",
+			webContentTitle = "WC WebContent Title");
 	}
 
 	@priority = "5"
@@ -2449,13 +2447,13 @@ definition {
 			dmDocumentFile = "Document_1.jpg",
 			dmDocumentTitle = "DM Document Title");
 
-		var dmFileEntryID = JSONDocument.getFileEntryId(
+		var dmFileEntryId = JSONDocument.getFileEntryId(
 			dmDocumentTitle = "DM Document Title",
 			groupName = "Guest");
 
 		User.logoutPG();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/guest/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/guest/d/${dmFileEntryId}");
 
 		AssertTextEquals(
 			key_dmDocumentTitle = "DM Document Title",
@@ -2476,13 +2474,13 @@ definition {
 
 		User.logoutPG();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/guest/d/${dmFileEntryID}");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/guest/d/${dmFileEntryId}");
 
 		AssertElementNotPresent(
 			key_dmDocumentTitle = "DM Document Title",
 			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE");
 
-		User.viewLoginPG(loginPG = "Full Screen");
+		User.viewLoginPG(loginPg = "Full Screen");
 	}
 
 	@description = "This ensures that the user can create document viewable only by the owner."

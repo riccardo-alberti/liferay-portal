@@ -11,7 +11,7 @@ definition {
 
 		OAuth2.addApplication(
 			applicationName = "${applicationName}",
-			callbackURI = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+			callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
 			clientProfile = "Web Application");
 
 		if (isSet(checkboxCheckList)) {
@@ -43,7 +43,7 @@ definition {
 
 		OAuth2.inputApplicationValues(
 			applicationName = "${applicationName}",
-			callbackURI = "${callbackURI}",
+			callbackUri = "${callbackUri}",
 			checkboxCheckList = "${checkboxCheckList}",
 			checkboxUncheckList = "${checkboxUncheckList}",
 			clientProfile = "${clientProfile}",
@@ -220,12 +220,6 @@ definition {
 		Button.click(button = "Obtain OAuth2 Access");
 	}
 
-	macro checkIfMessageNotDenied {
-		if (!(contains("${portalVersionOutput}", "${msg}"))) {
-			fail("Access denied message was not returned");
-		}
-	}
-
 	macro deleteApplication {
 		LexiconEntry.gotoEntryMenuItemNoError(
 			menuItem = "Delete",
@@ -245,7 +239,7 @@ definition {
 
 		var newGeneratedClientSecret = OAuth2.inputApplicationValues(
 			applicationName = "${newApplicationName}",
-			callbackURI = "${callbackURI}",
+			callbackUri = "${callbackUri}",
 			checkboxCheckList = "${checkboxCheckList}",
 			checkboxUncheckList = "${checkboxUncheckList}",
 			clientId = "${clientId}",
@@ -465,10 +459,10 @@ definition {
 			PortletEntry.inputDescription(description = "${description}");
 		}
 
-		if (isSet(callbackURI)) {
+		if (isSet(callbackUri)) {
 			PortletEntry.inputTextArea(
 				fieldId = "redirectURIs",
-				text = "${callbackURI}");
+				text = "${callbackUri}");
 		}
 
 		if (isSet(privacyPolicyURL)) {
@@ -679,11 +673,11 @@ definition {
 				value1 = "${privacyPolicyURL}");
 		}
 
-		if (isSet(callbackURI)) {
+		if (isSet(callbackUri)) {
 			AssertTextEquals.assertPartialText(
 				key_text = "redirectURIs",
 				locator1 = "TextArea#ANY",
-				value1 = "${callbackURI}");
+				value1 = "${callbackUri}");
 		}
 
 		if (isSet(clientProfile)) {

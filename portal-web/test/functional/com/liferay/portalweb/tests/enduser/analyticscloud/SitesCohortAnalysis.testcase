@@ -52,12 +52,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8327 | Test Summary: Assert Sites Cohort Analysis sort Anonymous Visitors"
 	@priority = "3"
 	test AssertSitesCohortAnalysisSortAnonymousVisitors {
-		property portal.upstream = "quarantine";
-
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Logout from DXP") {
 			User.logoutPG();
 		}
@@ -75,7 +69,7 @@ definition {
 		task ("Switch the property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Assert that the cohort analysis card shows anonymous visitors after their first views") {
@@ -92,12 +86,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8326 | Test Summary: Site overview cohort analysis card shows which individuals are returning after their first views"
 	@priority = "5"
 	test ShowsIndividualsReturningAfterFirstViews {
-		property portal.upstream = "quarantine";
-
-		task ("Get site assigned property name") {
-			var propertyName = ACDXPSettings.getAssignedPropertyName(siteName = "Site Name");
-		}
-
 		task ("Add a new user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -127,7 +115,7 @@ definition {
 		task ("Switch the property in AC") {
 			ACUtils.launchAC();
 
-			ACProperties.switchProperty(propertyName = "${propertyName}");
+			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
 		task ("Assert that the cohort analysis card shows which individuals are returning after their first views") {

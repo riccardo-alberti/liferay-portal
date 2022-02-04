@@ -245,10 +245,10 @@ definition {
 			User.changeProfileImage(imageName = "${accountLogo}");
 		}
 
-		if (isSet(accountTaxID)) {
+		if (isSet(accountTaxId)) {
 			PortletEntry.inputText(
 				fieldLabel = "Tax ID",
-				text = "${accountTaxID}");
+				text = "${accountTaxId}");
 		}
 
 		if (isSet(externalReferenceCode)) {
@@ -587,10 +587,10 @@ definition {
 			User.changeProfileImage(imageName = "${accountLogo}");
 		}
 
-		if (isSet(accountTaxID)) {
+		if (isSet(accountTaxId)) {
 			PortletEntry.inputText(
 				fieldLabel = "Tax ID",
-				text = "${accountTaxID}");
+				text = "${accountTaxId}");
 		}
 
 		Button.clickSave();
@@ -1026,6 +1026,14 @@ definition {
 			value1 = "Edit ${accountName}");
 	}
 
+	macro goToEntryMenuItem {
+		Click(
+			key_rowEntry = "${rowEntry}",
+			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
+
+		MenuItem.clickNoError(menuItem = "${menuItem}");
+	}
+
 	macro openAccountsAdmin {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_account_admin_web_internal_portlet_AccountEntriesAdminPortlet");
 	}
@@ -1273,11 +1281,11 @@ definition {
 			key_selectFieldLabel = "Type",
 			locator1 = "TextInput#ANY_DISABLED");
 
-		if (isSet(accountTaxID)) {
+		if (isSet(accountTaxId)) {
 			AssertTextEquals(
 				key_fieldLabel = "Tax ID",
 				locator1 = "TextInput#GENERIC_TEXT_INPUT",
-				value1 = "${accountTaxID}");
+				value1 = "${accountTaxId}");
 		}
 
 		AssertTextEquals(

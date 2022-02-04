@@ -16,7 +16,17 @@ package com.liferay.headless.admin.user.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.admin.user.client.dto.v1_0.UserGroup;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.test.rule.Inject;
 
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -24,6 +34,46 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
+
+	@Override
+	@Test
+	public void testDeleteUserGroupUsers() throws Exception {
+		UserGroup userGroup = testDeleteUserGroupUsers_addUserGroup();
+
+		User user = UserTestUtil.addUser();
+
+		_userLocalService.addUserGroupUser(userGroup.getId(), user.getUserId());
+
+		List<User> users = _userLocalService.getUserGroupUsers(
+			userGroup.getId());
+
+		Assert.assertTrue(users.contains(user));
+
+		userGroupResource.deleteUserGroupUsers(
+			userGroup.getId(), new Long[] {user.getUserId()});
+
+		users = _userLocalService.getUserGroupUsers(userGroup.getId());
+
+		Assert.assertFalse(users.contains(user));
+	}
+
+	@Override
+	@Test
+	public void testPostUserGroupUsers() throws Exception {
+		UserGroup userGroup = _postUserGroup();
+
+		Assert.assertEquals(0, (int)userGroup.getUsersCount());
+
+		User user = UserTestUtil.addUser();
+
+		Long[] userIds = {user.getUserId()};
+
+		userGroupResource.postUserGroupUsers(userGroup.getId(), userIds);
+
+		Assert.assertArrayEquals(
+			_userGroupLocalService.getUserPrimaryKeys(userGroup.getId()),
+			ArrayUtil.toArray(userIds));
+	}
 
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
@@ -36,7 +86,29 @@ public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
 	}
 
 	@Override
+	protected UserGroup
+			testDeleteUserGroupByExternalReferenceCode_addUserGroup()
+		throws Exception {
+
+		return _postUserGroup();
+	}
+
+	@Override
+	protected UserGroup testDeleteUserGroupUsers_addUserGroup()
+		throws Exception {
+
+		return _postUserGroup();
+	}
+
+	@Override
 	protected UserGroup testGetUserGroup_addUserGroup() throws Exception {
+		return _postUserGroup();
+	}
+
+	@Override
+	protected UserGroup testGetUserGroupByExternalReferenceCode_addUserGroup()
+		throws Exception {
+
 		return _postUserGroup();
 	}
 
@@ -58,6 +130,11 @@ public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
 	}
 
 	@Override
+	protected UserGroup testPostUserGroupUsers_addUserGroup() throws Exception {
+		return _postUserGroup();
+	}
+
+	@Override
 	protected UserGroup testPutUserGroup_addUserGroup() throws Exception {
 		return _postUserGroup();
 	}
@@ -69,5 +146,11 @@ public class UserGroupResourceTest extends BaseUserGroupResourceTestCase {
 	private UserGroup _postUserGroup(UserGroup userGroup) throws Exception {
 		return userGroupResource.postUserGroup(userGroup);
 	}
+
+	@Inject
+	private UserGroupLocalService _userGroupLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

@@ -1,41 +1,50 @@
-import React, {useEffect} from 'react';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import React, {useContext, useEffect} from 'react';
 import {useFormContext} from 'react-hook-form';
 import {NumberControlledInput} from '../../../../../common/components/connectors/Controlled/Input/Number';
 import {PercentageControlledInput} from '../../../../../common/components/connectors/Controlled/Input/WithMask/Percentage';
 import {LegalEntityControlledSelect} from '../../../../../common/components/connectors/Controlled/Select/LegalEntity';
 import {ControlledSwitch} from '../../../../../common/components/connectors/Controlled/Switch';
-import {CardFormActions} from '../../../../../common/components/fragments/Card/FormActions';
-import FormCard from '../../../../../common/components/fragments/Card/FormCard';
 import {TIP_EVENT} from '../../../../../common/utils/events';
 import {PERCENTAGE_REGEX_MAX_100} from '../../../../../common/utils/patterns';
-import useFormActions from '../../../hooks/useFormActions';
-import {useStepWizard} from '../../../hooks/useStepWizard';
+import {ActionTypes, AppContext} from '../../../context/AppContextProvider';
+import useMobileContainer from '../../../hooks/useMobileContainer';
 import {useTriggerContext} from '../../../hooks/useTriggerContext';
 import {
 	validateOverallSales,
 	validateOwnBrandLabel,
 	validatePercentSales,
 } from '../../../utils/businessFields';
-import {AVAILABLE_STEPS} from '../../../utils/constants';
+import {SUBSECTION_KEYS} from '../../../utils/constants';
+import MobileContainer from '../../mobile/MobileContainer';
 
 const setFormPath = (value) => `business.${value}`;
 
 export function FormBusiness({form}) {
-	const {selectedStep} = useStepWizard();
-	const {
-		control,
-		formState: {isValid},
-		getValues,
-		setValue,
-	} = useFormContext();
-
-	const {onNext, onPrevious, onSave} = useFormActions(
-		form,
-		AVAILABLE_STEPS.BASICS_BUSINESS_INFORMATION,
-		AVAILABLE_STEPS.EMPLOYEES
-	);
-
 	const {isSelected, updateState} = useTriggerContext();
+	const {control, getValues, setValue} = useFormContext();
+
+	const {dispatch} = useContext(AppContext);
+
+	const properties = form?.basics?.properties;
+	const {
+		getMobileSubSection,
+		mobileContainerProps,
+		nextStep,
+	} = useMobileContainer();
 
 	const forceValidation = () => {
 		setValue(
@@ -50,9 +59,41 @@ export function FormBusiness({form}) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	/**
+	 * @description useEffect used to disable some mobileSubSections
+	 */
+
+	useEffect(() => {
+		const getPropertyNameIfNotValid = (isValid, propertyName) =>
+			isValid ? '' : propertyName;
+
+		dispatch({
+			payload: [
+				getPropertyNameIfNotValid(
+					validatePercentSales(properties?.naics),
+					SUBSECTION_KEYS.PERCENT_OF_SALES_FROM_MERCHANDISE
+				),
+				getPropertyNameIfNotValid(
+					validateOwnBrandLabel(properties?.naics),
+					SUBSECTION_KEYS.DO_YOU_SELL_PRODUCTS_UNDER_OWN_BRAND
+				),
+				getPropertyNameIfNotValid(
+					validateOverallSales(properties?.segment),
+					SUBSECTION_KEYS.WHAT_PERCENTAGE_OF_OVERALL_INVOLVE_DELIVERY
+				),
+			].filter(Boolean),
+			type: ActionTypes.SET_MOBILE_SUBSECTION_DISABLE,
+		});
+	}, [dispatch, properties]);
+
 	return (
-		<FormCard>
-			<div className="card-content">
+		<div className="card-content">
+			<MobileContainer
+				{...mobileContainerProps}
+				mobileSubSection={getMobileSubSection(
+					SUBSECTION_KEYS.YEAR_OF_INDUSTRY_EXPERIENCE
+				)}
+			>
 				<NumberControlledInput
 					control={control}
 					label="Years of industry experience?"
@@ -63,7 +104,6 @@ export function FormBusiness({form}) {
 						selected: isSelected(setFormPath('yearsOfExperience')),
 						value: {
 							inputName: setFormPath('yearsOfExperience'),
-							step: selectedStep,
 							templateName: 'years-of-industry-experience',
 							value: form?.business?.yearsOfExperience,
 						},
@@ -77,21 +117,44 @@ export function FormBusiness({form}) {
 						required: 'This field is required',
 					}}
 				/>
+			</MobileContainer>
 
+			<MobileContainer
+				{...mobileContainerProps}
+				mobileSubSection={getMobileSubSection(
+					SUBSECTION_KEYS.DO_YOU_STORE_PERSONALITY_IDENTIFIABLE
+				)}
+			>
 				<ControlledSwitch
 					control={control}
 					label="Do you store personally identifiable information about your customers?"
 					name={setFormPath('hasStoredCustomerInformation')}
+					onSelect={nextStep}
 					rules={{required: true}}
 				/>
+			</MobileContainer>
 
+			<MobileContainer
+				{...mobileContainerProps}
+				mobileSubSection={getMobileSubSection(
+					SUBSECTION_KEYS.DO_YOU_HAVE_RAYLIFE_POLICY
+				)}
+			>
 				<ControlledSwitch
 					control={control}
 					label="Do you have a Raylife Auto policy?"
 					name={setFormPath('hasAutoPolicy')}
+					onSelect={nextStep}
 					rules={{required: true}}
 				/>
+			</MobileContainer>
 
+			<MobileContainer
+				{...mobileContainerProps}
+				mobileSubSection={getMobileSubSection(
+					SUBSECTION_KEYS.LEGAL_ENTITY
+				)}
+			>
 				<LegalEntityControlledSelect
 					control={control}
 					inputProps={{className: 'mb-5'}}
@@ -101,8 +164,15 @@ export function FormBusiness({form}) {
 						required: 'This field is required.',
 					}}
 				/>
+			</MobileContainer>
 
-				{validatePercentSales(form?.basics?.properties?.naics) && (
+			{validatePercentSales(form?.basics?.properties?.naics) && (
+				<MobileContainer
+					{...mobileContainerProps}
+					mobileSubSection={getMobileSubSection(
+						SUBSECTION_KEYS.PERCENT_OF_SALES_FROM_MERCHANDISE
+					)}
+				>
 					<PercentageControlledInput
 						control={control}
 						label="Percent of sales from used merchandise?"
@@ -115,7 +185,6 @@ export function FormBusiness({form}) {
 							),
 							value: {
 								inputName: setFormPath('salesMerchandise'),
-								step: selectedStep,
 								templateName:
 									'percent-of-sales-from-used-merchandise',
 								value: form?.business?.salesMerchandise,
@@ -130,18 +199,33 @@ export function FormBusiness({form}) {
 							required: 'Percent of sales is required.',
 						}}
 					/>
-				)}
+				</MobileContainer>
+			)}
 
-				{validateOwnBrandLabel(form?.basics?.properties?.naics) && (
+			{validateOwnBrandLabel(form?.basics?.properties?.naics) && (
+				<MobileContainer
+					{...mobileContainerProps}
+					mobileSubSection={getMobileSubSection(
+						SUBSECTION_KEYS.DO_YOU_SELL_PRODUCTS_UNDER_OWN_BRAND
+					)}
+				>
 					<ControlledSwitch
 						control={control}
 						label="Do you sell products under your own brand or label?"
 						name={setFormPath('hasSellProductsUnderOwnBrand')}
+						onSelect={nextStep}
 						rules={{required: true}}
 					/>
-				)}
+				</MobileContainer>
+			)}
 
-				{validateOverallSales(form?.basics?.properties?.segment) && (
+			{validateOverallSales(form?.basics?.properties?.segment) && (
+				<MobileContainer
+					{...mobileContainerProps}
+					mobileSubSection={getMobileSubSection(
+						SUBSECTION_KEYS.WHAT_PERCENTAGE_OF_OVERALL_INVOLVE_DELIVERY
+					)}
+				>
 					<PercentageControlledInput
 						control={control}
 						label="What percentage of overall sales involve delivery?"
@@ -154,15 +238,8 @@ export function FormBusiness({form}) {
 							required: 'Percent of overall sales is required.',
 						}}
 					/>
-				)}
-			</div>
-
-			<CardFormActions
-				isValid={isValid}
-				onNext={onNext}
-				onPrevious={onPrevious}
-				onSave={onSave}
-			/>
-		</FormCard>
+				</MobileContainer>
+			)}
+		</div>
 	);
 }

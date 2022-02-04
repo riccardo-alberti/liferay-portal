@@ -12,12 +12,12 @@
  * details.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom/extend-expect';
 
-import SelectFileExtension from '../../../src/main/resources/META-INF/resources/js/SelectFileExtension';
+import SelectFileExtension from '../../../src/main/resources/META-INF/resources/js/components/SelectFileExtension';
 
 const mockProps = {
 	fileExtensionGroups: [
@@ -78,8 +78,6 @@ const mockProps = {
 
 describe('SelectFileExtension', () => {
 	beforeEach(() => {
-		cleanup();
-
 		window.Liferay.Util.getOpener = jest.fn().mockReturnValue({
 			Liferay: {
 				fire: jest.fn(),

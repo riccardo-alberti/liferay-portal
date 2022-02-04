@@ -13,7 +13,7 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import SegmentEdit from '../../../../src/main/resources/META-INF/resources/js/components/segment_edit/SegmentEdit.es';
@@ -41,7 +41,17 @@ const CONTRIBUTORS = [
 	{
 		conjunctionId: 'and',
 		conjunctionInputId: 'conjunction-input-1',
-		initialQuery: "(value eq 'value')",
+		initialQuery: {
+			conjunctionName: 'and',
+			groupId: 'group_01',
+			items: [
+				{
+					operatorName: 'eq',
+					propertyName: 'value',
+					value: 'value',
+				},
+			],
+		},
 		inputId: 'input-id-for-backend-form',
 		propertyKey: 'first-test-values-group',
 	},
@@ -74,8 +84,6 @@ function _renderSegmentEditComponent({
 }
 
 describe('SegmentEdit', () => {
-	afterEach(cleanup);
-
 	it('renders', () => {
 		const {asFragment} = _renderSegmentEditComponent();
 
@@ -124,7 +132,7 @@ describe('SegmentEdit', () => {
 		);
 
 		expect(getByTestId(CONTRIBUTORS[0].inputId).value).toBe(
-			CONTRIBUTORS[0].initialQuery
+			"(value eq 'value')"
 		);
 
 		expect(asFragment()).toMatchSnapshot();
@@ -174,7 +182,7 @@ describe('SegmentEdit', () => {
 
 		fireEvent.change(localizedInput, {target: {value: 'A'}});
 
-		wait(() => expect(localizedInput.value).toBe('A')).then(() => {
+		waitFor(() => expect(localizedInput.value).toBe('A')).then(() => {
 			expect(cancelButton).not.toBe(null);
 
 			fireEvent.click(cancelButton);

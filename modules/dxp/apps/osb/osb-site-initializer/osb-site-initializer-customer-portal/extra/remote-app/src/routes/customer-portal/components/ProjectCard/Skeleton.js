@@ -1,9 +1,20 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * The contents of this file are subject to the terms of the Liferay Enterprise
+ * Subscription License ("License"). You may not use this file except in
+ * compliance with the License. You can obtain a copy of the License by
+ * contacting Liferay, Inc. See the License for the specific language governing
+ * permissions and limitations under the License, including but not limited to
+ * distribution rights of the Software.
+ */
+
 import ClayCard from '@clayui/card';
-import Skeleton from '../../../../common/components/Skeleton';
+import {Skeleton} from '../../../../common/components';
 
 const ProjectCardSkeleton = () => {
 	return (
-		<ClayCard className="m-0 project-card">
+		<ClayCard className="cp-project-card m-0">
 			<ClayCard.Body className="d-flex flex-column h-100 justify-content-between">
 				<ClayCard.Description displayType="title" tag="div">
 					<Skeleton height={32} width={136} />

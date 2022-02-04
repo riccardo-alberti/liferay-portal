@@ -35,6 +35,9 @@ import com.liferay.portal.kernel.model.LayoutFriendlyURL;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.VirtualLayoutConstants;
 import com.liferay.portal.kernel.portlet.LayoutFriendlyURLSeparatorComposite;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -42,6 +45,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.servlet.InactiveRequestHandler;
 import com.liferay.portal.kernel.servlet.PortalMessages;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
@@ -176,6 +180,18 @@ public class FriendlyURLServlet extends HttpServlet {
 
 			Layout layout = layoutFriendlyURLSeparatorComposite.getLayout();
 
+			if (layout != null) {
+				PermissionChecker permissionChecker =
+					PermissionCheckerFactoryUtil.create(
+						_getUser(httpServletRequest));
+
+				if (!LayoutPermissionUtil.contains(
+						permissionChecker, layout, ActionKeys.VIEW)) {
+
+					throw new NoSuchLayoutException();
+				}
+			}
+
 			defaultLayout = layout;
 
 			httpServletRequest.setAttribute(WebKeys.LAYOUT, layout);
@@ -225,7 +241,7 @@ public class FriendlyURLServlet extends HttpServlet {
 						layoutFriendlyURLSeparatorCompositeFriendlyURL, layout,
 						locale)) {
 
-					Locale originalLocale = setAlternativeLayoutFriendlyURL(
+					Locale originalLocale = _setAlternativeLayoutFriendlyURL(
 						httpServletRequest, layout,
 						layoutFriendlyURLSeparatorCompositeFriendlyURL,
 						alternativeSiteFriendlyURL);
@@ -392,7 +408,7 @@ public class FriendlyURLServlet extends HttpServlet {
 
 		// Do not set the entire full main path. See LEP-456.
 
-		String pathInfo = getPathInfo(httpServletRequest);
+		String pathInfo = _getPathInfo(httpServletRequest);
 
 		Redirect redirect = null;
 
@@ -403,7 +419,7 @@ public class FriendlyURLServlet extends HttpServlet {
 			if (httpServletRequest.getAttribute(WebKeys.LAST_PATH) == null) {
 				httpServletRequest.setAttribute(
 					WebKeys.LAST_PATH,
-					getLastPath(httpServletRequest, pathInfo));
+					_getLastPath(httpServletRequest, pathInfo));
 			}
 		}
 		catch (PortalException portalException) {
@@ -567,78 +583,6 @@ public class FriendlyURLServlet extends HttpServlet {
 
 	}
 
-	protected LastPath getLastPath(
-		HttpServletRequest httpServletRequest, String pathInfo) {
-
-		String lifecycle = ParamUtil.getString(
-			httpServletRequest, "p_p_lifecycle");
-
-		if (lifecycle.equals("1")) {
-			return new LastPath(_friendlyURLPathPrefix, pathInfo);
-		}
-
-		return new LastPath(
-			_friendlyURLPathPrefix, pathInfo,
-			HttpUtil.parameterMapToString(
-				httpServletRequest.getParameterMap()));
-	}
-
-	protected String getPathInfo(HttpServletRequest httpServletRequest) {
-		String requestURI = httpServletRequest.getRequestURI();
-
-		int pos = requestURI.indexOf(Portal.JSESSIONID);
-
-		if (pos == -1) {
-			return requestURI.substring(_pathInfoOffset);
-		}
-
-		return requestURI.substring(_pathInfoOffset, pos);
-	}
-
-	protected Locale setAlternativeLayoutFriendlyURL(
-		HttpServletRequest httpServletRequest, Layout layout,
-		String friendlyURL, SiteFriendlyURL siteFriendlyURL) {
-
-		List<LayoutFriendlyURL> layoutFriendlyURLs =
-			layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
-				layout.getPlid(), friendlyURL, 0, 1);
-
-		if (layoutFriendlyURLs.isEmpty()) {
-			return null;
-		}
-
-		LayoutFriendlyURL layoutFriendlyURL = layoutFriendlyURLs.get(0);
-
-		Locale locale = LocaleUtil.fromLanguageId(
-			layoutFriendlyURL.getLanguageId());
-
-		if (!LanguageUtil.isAvailableLocale(layout.getGroupId(), locale)) {
-			return LocaleUtil.fromLanguageId(
-				(String)httpServletRequest.getAttribute(
-					WebKeys.I18N_LANGUAGE_ID));
-		}
-
-		Locale groupLocale = locale;
-
-		if (siteFriendlyURL != null) {
-			groupLocale = LocaleUtil.fromLanguageId(
-				siteFriendlyURL.getLanguageId());
-		}
-
-		String alternativeLayoutFriendlyURL = portal.getLocalizedFriendlyURL(
-			httpServletRequest, layout, groupLocale, locale);
-
-		SessionMessages.add(
-			httpServletRequest, "alternativeLayoutFriendlyURL",
-			alternativeLayoutFriendlyURL);
-
-		PortalMessages.add(
-			httpServletRequest, PortalMessages.KEY_JSP_PATH,
-			"/html/common/themes/layout_friendly_url_redirect.jsp");
-
-		return groupLocale;
-	}
-
 	@Reference
 	protected GroupLocalService groupLocalService;
 
@@ -756,6 +700,47 @@ public class FriendlyURLServlet extends HttpServlet {
 		return group;
 	}
 
+	private LastPath _getLastPath(
+		HttpServletRequest httpServletRequest, String pathInfo) {
+
+		String lifecycle = ParamUtil.getString(
+			httpServletRequest, "p_p_lifecycle");
+
+		if (lifecycle.equals("1")) {
+			return new LastPath(_friendlyURLPathPrefix, pathInfo);
+		}
+
+		return new LastPath(
+			_friendlyURLPathPrefix, pathInfo,
+			HttpUtil.parameterMapToString(
+				httpServletRequest.getParameterMap()));
+	}
+
+	private String _getPathInfo(HttpServletRequest httpServletRequest) {
+		String requestURI = httpServletRequest.getRequestURI();
+
+		int pos = requestURI.indexOf(Portal.JSESSIONID);
+
+		if (pos == -1) {
+			return requestURI.substring(_pathInfoOffset);
+		}
+
+		return requestURI.substring(_pathInfoOffset, pos);
+	}
+
+	private User _getUser(HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		User user = portal.getUser(httpServletRequest);
+
+		if (user == null) {
+			user = userLocalService.getDefaultUser(
+				portal.getCompanyId(httpServletRequest));
+		}
+
+		return user;
+	}
+
 	private boolean _isImpersonated(
 		HttpServletRequest httpServletRequest, long userId) {
 
@@ -778,6 +763,50 @@ public class FriendlyURLServlet extends HttpServlet {
 		}
 
 		return friendlyURL;
+	}
+
+	private Locale _setAlternativeLayoutFriendlyURL(
+		HttpServletRequest httpServletRequest, Layout layout,
+		String friendlyURL, SiteFriendlyURL siteFriendlyURL) {
+
+		List<LayoutFriendlyURL> layoutFriendlyURLs =
+			layoutFriendlyURLLocalService.getLayoutFriendlyURLs(
+				layout.getPlid(), friendlyURL, 0, 1);
+
+		if (layoutFriendlyURLs.isEmpty()) {
+			return null;
+		}
+
+		LayoutFriendlyURL layoutFriendlyURL = layoutFriendlyURLs.get(0);
+
+		Locale locale = LocaleUtil.fromLanguageId(
+			layoutFriendlyURL.getLanguageId());
+
+		if (!LanguageUtil.isAvailableLocale(layout.getGroupId(), locale)) {
+			return LocaleUtil.fromLanguageId(
+				(String)httpServletRequest.getAttribute(
+					WebKeys.I18N_LANGUAGE_ID));
+		}
+
+		Locale groupLocale = locale;
+
+		if (siteFriendlyURL != null) {
+			groupLocale = LocaleUtil.fromLanguageId(
+				siteFriendlyURL.getLanguageId());
+		}
+
+		String alternativeLayoutFriendlyURL = portal.getLocalizedFriendlyURL(
+			httpServletRequest, layout, groupLocale, locale);
+
+		SessionMessages.add(
+			httpServletRequest, "alternativeLayoutFriendlyURL",
+			alternativeLayoutFriendlyURL);
+
+		PortalMessages.add(
+			httpServletRequest, PortalMessages.KEY_JSP_PATH,
+			"/html/common/themes/layout_friendly_url_redirect.jsp");
+
+		return groupLocale;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

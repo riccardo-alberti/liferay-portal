@@ -828,7 +828,9 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContent.viewPGViaWCD(webContentContent = "Web Content Content");
+		WebContentDisplayPortlet.viewContent(
+			webContentContent = "Web Content Content",
+			webContentTitle = "Web Content Title");
 
 		User.logoutAndLoginPG(
 			userLoginEmailAddress = "contentapprover@liferay.com",
@@ -889,7 +891,7 @@ definition {
 
 		Navigator.openStagingSiteURL(siteName = "Site Name");
 
-		Portlet.addPG(portletName = "Navigation Menu");
+		Portlet.addPG(portletName = "Menu Display");
 
 		Staging.markAsReadyForPublication();
 
@@ -909,7 +911,7 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		Portlet.viewPG(portletName = "Navigation Menu");
+		Portlet.viewPG(portletName = "Menu Display");
 
 		Navigator.gotoSitePage(
 			pageName = "Wiki",

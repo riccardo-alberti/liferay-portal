@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {useContext, useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 import {useCustomEvent} from '../../../common/hooks/useCustomEvent';
@@ -16,13 +30,15 @@ export function useStepWizard() {
 	const [dispatchEvent] = useCustomEvent(TIP_EVENT);
 	const {dispatch, state} = useContext(AppContext);
 	const {applicationId, backToEdit} = getLoadedContentFlag();
+	const currentPercentage = state.percentage;
+	const selectedStep = state.steps.find(({active}) => active);
 
 	const loadInitialData = applicationId || backToEdit;
 
-	const dispatchSelectedStep = (payload) => {
+	const dispatchPercentage = (payload) => {
 		dispatch({
 			payload,
-			type: ActionTypes.SET_SELECTED_STEP,
+			type: ActionTypes.SET_PERCENTAGE,
 		});
 	};
 
@@ -40,7 +56,7 @@ export function useStepWizard() {
 			hide: true,
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.selectedStep.section]);
+	}, [selectedStep.section]);
 
 	useEffect(() => {
 		if (loadInitialData) {
@@ -50,9 +66,10 @@ export function useStepWizard() {
 	}, [loadInitialData]);
 
 	const calculateAllSteps = () => {
-		const stepName = Object.keys(form)[
-			Object.keys(form).length - 1
-		]?.toLowerCase();
+		const formKeys = Object.keys(form).filter(
+			(section) => section !== 'raylife-form-input'
+		);
+		const stepName = formKeys[formKeys.length - 1]?.toLowerCase();
 
 		switch (stepName) {
 			case AVAILABLE_STEPS.BUSINESS.section:
@@ -82,11 +99,11 @@ export function useStepWizard() {
 	};
 
 	const _updateStepPercentage = () => {
-		switch (state.selectedStep.section) {
+		switch (selectedStep.section) {
 			case AVAILABLE_STEPS.BASICS_BUSINESS_TYPE.section:
 				if (loadInitialData) {
 					if (
-						state.selectedStep.subsection ===
+						selectedStep.subsection ===
 						AVAILABLE_STEPS.BASICS_BUSINESS_INFORMATION.subsection
 					) {
 						return setPercentage(
@@ -104,7 +121,7 @@ export function useStepWizard() {
 						!form?.basics?.businessCategoryId
 					) {
 						return setPercentage(
-							state.selectedStep.percentage.basics,
+							currentPercentage.basics,
 							AVAILABLE_STEPS.BASICS_BUSINESS_TYPE.section
 						);
 					}
@@ -117,7 +134,7 @@ export function useStepWizard() {
 						}
 
 						return setPercentage(
-							state.selectedStep.percentage.basics,
+							currentPercentage.basics,
 							AVAILABLE_STEPS.BASICS_BUSINESS_TYPE.section
 						);
 					}
@@ -172,36 +189,34 @@ export function useStepWizard() {
 		}
 	};
 
-	const setSection = (step) =>
-		dispatchSelectedStep({
-			...state.selectedStep,
-			...step,
+	const setSection = (step) => {
+		dispatch({
+			payload: step,
+			type: ActionTypes.SET_STEP_ACTIVE,
 		});
+	};
 
 	const setPercentage = (
 		percentage = 0,
 		step = AVAILABLE_STEPS.BASICS_BUSINESS_TYPE.section
 	) => {
-		dispatchSelectedStep({
-			...state.selectedStep,
-			percentage: {
-				...state.selectedStep.percentage,
-				[step]: percentage,
-			},
+		dispatchPercentage({
+			...currentPercentage,
+			[step]: percentage,
 		});
 	};
 
 	const setAllPercentages = (
 		step = {basics: 0, business: 0, employees: 0, property: 0}
 	) => {
-		dispatchSelectedStep({
-			...state.selectedStep,
-			percentage: step,
+		dispatchPercentage({
+			...currentPercentage,
+			...step,
 		});
 	};
 
 	return {
-		selectedStep: state.selectedStep,
+		selectedStep,
 		setPercentage,
 		setSection,
 	};

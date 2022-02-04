@@ -22,12 +22,12 @@ definition {
 			configurationName = "OneDrive",
 			configurationScope = "Virtual Instance Scope");
 
-		var oneDriveClientID = PropsUtil.get("onedrive.client.id");
+		var oneDriveClientId = PropsUtil.get("onedrive.client.id");
 
 		Type(
 			key_text = "clientId",
 			locator1 = "TextArea#ANY",
-			value1 = "${oneDriveClientID}");
+			value1 = "${oneDriveClientId}");
 
 		var oneDriveClientSecret = PropsUtil.get("onedrive.client.secret");
 

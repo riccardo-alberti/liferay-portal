@@ -266,7 +266,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			boolean manageSubgroups = ParamUtil.getBoolean(
 				actionRequest, "manageSubgroups");
 
-			updateAction(
+			_updateAction(
 				_roleLocalService.getRole(roleId),
 				themeDisplay.getScopeGroupId(), Group.class.getName(),
 				ActionKeys.MANAGE_SUBGROUPS, manageSubgroups,
@@ -373,7 +373,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException, PortletException {
 
-		setAttributes(resourceRequest);
+		_setAttributes(resourceRequest);
 
 		super.serveResource(resourceRequest, resourceResponse);
 	}
@@ -479,14 +479,14 @@ public class RolesAdminPortlet extends MVCPortlet {
 					}
 				}
 
-				updateAction(
+				_updateAction(
 					role, themeDisplay.getScopeGroupId(), selResource, actionId,
 					selected, scope, groupIds);
 
 				if (selected &&
 					actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 
-					updateViewControlPanelPermission(
+					_updateViewControlPanelPermission(
 						role, themeDisplay.getScopeGroupId(), selResource,
 						scope, groupIds);
 
@@ -499,7 +499,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		// LPS-38031
 
 		if (rootResourceGroupIds != null) {
-			updateViewRootResourcePermission(
+			_updateViewRootResourcePermission(
 				role, themeDisplay.getScopeGroupId(), portletResource,
 				rootResourceScope, rootResourceGroupIds);
 		}
@@ -547,7 +547,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		setAttributes(renderRequest);
+		_setAttributes(renderRequest);
 
 		long roleId = ParamUtil.getLong(renderRequest, "roleId");
 
@@ -615,7 +615,97 @@ public class RolesAdminPortlet extends MVCPortlet {
 		return false;
 	}
 
-	protected void setAttributes(PortletRequest portletRequest) {
+	@Reference(unbind = "-")
+	protected void setGroupService(GroupService groupService) {
+		_groupService = groupService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setPanelAppRegistry(PanelAppRegistry panelAppRegistry) {
+		_panelAppRegistry = panelAppRegistry;
+	}
+
+	@Reference(unbind = "-")
+	protected void setPanelCategoryRegistry(
+		PanelCategoryRegistry panelCategoryRegistry) {
+
+		_panelCategoryRegistry = panelCategoryRegistry;
+	}
+
+	@Reference(unbind = "-")
+	protected void setResourcePermissionService(
+		ResourcePermissionService resourcePermissionService) {
+
+		_resourcePermissionService = resourcePermissionService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setRoleLocalService(RoleLocalService roleLocalService) {
+		_roleLocalService = roleLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setRoleService(RoleService roleService) {
+		_roleService = roleService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setUserService(UserService userService) {
+		_userService = userService;
+	}
+
+	private String[] _getExcludedPanelAppKeys(Role role) {
+		Set<String> panelAppKeys = new HashSet<>();
+
+		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
+				_panelCategoryRoleTypeMapperServiceTrackerList) {
+
+			if (ArrayUtil.contains(
+					panelCategoryRoleTypeMapper.getRoleTypes(),
+					role.getType())) {
+
+				Collections.addAll(
+					panelAppKeys,
+					panelCategoryRoleTypeMapper.getExcludedPanelAppKeys(role));
+			}
+		}
+
+		return panelAppKeys.toArray(new String[0]);
+	}
+
+	private String[] _getPanelCategoryKeys(int type) {
+		Set<String> panelCategoryKeys = new HashSet<>();
+
+		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
+				_panelCategoryRoleTypeMapperServiceTrackerList) {
+
+			if (ArrayUtil.contains(
+					panelCategoryRoleTypeMapper.getRoleTypes(), type)) {
+
+				panelCategoryKeys.add(
+					panelCategoryRoleTypeMapper.getPanelCategoryKey());
+			}
+		}
+
+		return panelCategoryKeys.toArray(new String[0]);
+	}
+
+	private boolean _isDepotGroup(long groupId) {
+		try {
+			Group group = _groupService.getGroup(groupId);
+
+			if (group.isDepot()) {
+				return true;
+			}
+
+			return false;
+		}
+		catch (PortalException portalException) {
+			return ReflectionUtil.throwException(portalException);
+		}
+	}
+
+	private void _setAttributes(PortletRequest portletRequest) {
 		portletRequest.setAttribute(
 			ApplicationListWebKeys.PANEL_APP_REGISTRY, _panelAppRegistry);
 
@@ -659,51 +749,15 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		if (mvcPath.equals("/edit_role_permissions.jsp")) {
 			portletRequest.setAttribute(
+				RolesAdminWebKeys.EXCLUDED_PANEL_APP_KEYS,
+				_getExcludedPanelAppKeys(role));
+			portletRequest.setAttribute(
 				RolesAdminWebKeys.PANEL_CATEGORY_KEYS,
 				_getPanelCategoryKeys(type));
 		}
 	}
 
-	@Reference(unbind = "-")
-	protected void setGroupService(GroupService groupService) {
-		_groupService = groupService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setPanelAppRegistry(PanelAppRegistry panelAppRegistry) {
-		_panelAppRegistry = panelAppRegistry;
-	}
-
-	@Reference(unbind = "-")
-	protected void setPanelCategoryRegistry(
-		PanelCategoryRegistry panelCategoryRegistry) {
-
-		_panelCategoryRegistry = panelCategoryRegistry;
-	}
-
-	@Reference(unbind = "-")
-	protected void setResourcePermissionService(
-		ResourcePermissionService resourcePermissionService) {
-
-		_resourcePermissionService = resourcePermissionService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setRoleLocalService(RoleLocalService roleLocalService) {
-		_roleLocalService = roleLocalService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setRoleService(RoleService roleService) {
-		_roleService = roleService;
-	}
-
-	@Reference(unbind = "-")
-	protected void setUserService(UserService userService) {
-		_userService = userService;
-	}
-
-	protected void updateAction(
+	private void _updateAction(
 			Role role, long groupId, String selResource, String actionId,
 			boolean selected, int scope, String[] groupIds)
 		throws Exception {
@@ -755,7 +809,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		}
 	}
 
-	protected void updateViewControlPanelPermission(
+	private void _updateViewControlPanelPermission(
 			Role role, long scopeGroupId, String portletId, int scope,
 			String[] groupIds)
 		throws Exception {
@@ -778,7 +832,7 @@ public class RolesAdminPortlet extends MVCPortlet {
 		else if (panelCategoryHelper.containsPortlet(
 					portletId, PanelCategoryKeys.SITE_ADMINISTRATION)) {
 
-			updateAction(
+			_updateAction(
 				role, scopeGroupId, DepotEntry.class.getName(),
 				ActionKeys.VIEW_SITE_ADMINISTRATION, true, scope,
 				ArrayUtil.filter(
@@ -790,13 +844,13 @@ public class RolesAdminPortlet extends MVCPortlet {
 		}
 
 		if (selResource != null) {
-			updateAction(
+			_updateAction(
 				role, scopeGroupId, selResource, actionId, true, scope,
 				groupIds);
 		}
 	}
 
-	protected void updateViewRootResourcePermission(
+	private void _updateViewRootResourcePermission(
 			Role role, long scopeGroupId, String portletId, int scope,
 			String[] groupIds)
 		throws Exception {
@@ -809,42 +863,10 @@ public class RolesAdminPortlet extends MVCPortlet {
 				modelResource);
 
 			if (actions.contains(ActionKeys.VIEW)) {
-				updateAction(
+				_updateAction(
 					role, scopeGroupId, modelResource, ActionKeys.VIEW, true,
 					scope, groupIds);
 			}
-		}
-	}
-
-	private String[] _getPanelCategoryKeys(int type) {
-		Set<String> panelCategoryKeys = new HashSet<>();
-
-		for (PanelCategoryRoleTypeMapper panelCategoryRoleTypeMapper :
-				_panelCategoryRoleTypeMapperServiceTrackerList) {
-
-			if (ArrayUtil.contains(
-					panelCategoryRoleTypeMapper.getRoleTypes(), type)) {
-
-				panelCategoryKeys.add(
-					panelCategoryRoleTypeMapper.getPanelCategoryKey());
-			}
-		}
-
-		return panelCategoryKeys.toArray(new String[0]);
-	}
-
-	private boolean _isDepotGroup(long groupId) {
-		try {
-			Group group = _groupService.getGroup(groupId);
-
-			if (group.isDepot()) {
-				return true;
-			}
-
-			return false;
-		}
-		catch (PortalException portalException) {
-			return ReflectionUtil.throwException(portalException);
 		}
 	}
 

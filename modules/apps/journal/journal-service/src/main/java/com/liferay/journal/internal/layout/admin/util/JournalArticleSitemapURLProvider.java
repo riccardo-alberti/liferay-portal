@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -282,7 +283,15 @@ public class JournalArticleSitemapURLProvider implements SitemapURLProvider {
 			}
 
 			sb.append(groupFriendlyURL);
-			sb.append(JournalArticleConstants.CANONICAL_URL_SEPARATOR);
+
+			if (Validator.isNotNull(journalArticle.getLayoutUuid())) {
+				sb.append(JournalArticleConstants.CANONICAL_URL_SEPARATOR);
+			}
+			else {
+				sb.append(
+					FriendlyURLResolverConstants.URL_SEPARATOR_JOURNAL_ARTICLE);
+			}
+
 			sb.append(journalArticle.getUrlTitle());
 
 			String articleURL = _portal.getCanonicalURL(

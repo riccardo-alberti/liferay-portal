@@ -1,11 +1,11 @@
 definition {
 
 	macro addCustomElementRemoteAppAllFields {
-		Variables.assertDefined(parameterList = "${customElementCSSURL},${customElementHTMLName},${customElementName},${customElementProperties},${customElementURL}");
+		Variables.assertDefined(parameterList = "${customElementCssurl},${customElementHtmlName},${customElementName},${customElementProperties},${customElementURL}");
 
 		var response = JSONRemoteAppAPI._addCustomElementRemoteAppAllFields(
-			customElementCSSURL = "${customElementCSSURL}",
-			customElementHTMLName = "${customElementHTMLName}",
+			customElementCssurl = "${customElementCssurl}",
+			customElementHtmlName = "${customElementHtmlName}",
 			customElementName = "${customElementName}",
 			customElementProperties = "${customElementProperties}",
 			customElementURL = "${customElementURL}");
@@ -14,10 +14,10 @@ definition {
 	}
 
 	macro addCustomElementRemoteAppEntry {
-		Variables.assertDefined(parameterList = "${customElementName},${customElementHTMLName},${customElementURL}");
+		Variables.assertDefined(parameterList = "${customElementName},${customElementHtmlName},${customElementURL}");
 
 		var response = JSONRemoteAppAPI._addCustomElementRemoteAppEntry(
-			customElementHTMLName = "${customElementHTMLName}",
+			customElementHtmlName = "${customElementHtmlName}",
 			customElementName = "${customElementName}",
 			customElementURL = "${customElementURL}");
 

@@ -37,9 +37,6 @@
 
 	<propertycopy from="operating.system.${operating.system.type}.version" name="operating.system.version" />
 
-	<property location="${project.dir}/tools/putty/plink.exe" name="plink.executable" />
-	<property location="${project.dir}/tools/putty/pscp.exe" name="pscp.executable" />
-
 	<macrodef name="apply-portal-ext-properties">
 		<sequential>
 			<if>
@@ -1752,6 +1749,9 @@ war.path=${app.server.portal.dir}/</echo>
 					</not>
 					<not>
 						<contains string="${patch.requirements}" substring="base-" />
+					</not>
+					<not>
+						<matches pattern="sp\d+" string="${patch.requirements}" />
 					</not>
 				</and>
 				<then>
@@ -3701,8 +3701,12 @@ tell application "Safari" to quit
 
 			<beanshell>
 				<![CDATA[
+					import com.liferay.jenkins.results.parser.GitWorkingDirectory;
+					import com.liferay.jenkins.results.parser.GitWorkingDirectoryFactory;
+					import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
 					import com.liferay.jenkins.results.parser.Job;
 					import com.liferay.jenkins.results.parser.JobFactory;
+					import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
 					import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 					import com.liferay.jenkins.results.parser.test.clazz.group.JUnitBatchTestClassGroup;
 					import com.liferay.jenkins.results.parser.test.clazz.group.NPMTestBatchTestClassGroup;
@@ -3718,8 +3722,34 @@ tell application "Safari" to quit
 						return Job.BuildProfile.PORTAL;
 					}
 
+					public GitWorkingDirectory getPortalGitWorkingDirectory() {
+						File gitWorkingDir = JenkinsResultsParserUtil.getGitWorkingDir(new File(project.getProperty("project.dir")));
+
+						GitWorkingDirectory gitWorkingDirectory = GitWorkingDirectoryFactory.newGitWorkingDirectory(getUpstreamBranchName(), gitWorkingDir, getRepositoryName());
+
+						if (gitWorkingDirectory instanceof PortalGitWorkingDirectory) {
+							return (PortalGitWorkingDirectory)gitWorkingDirectory;
+						}
+
+						return null;
+					}
+
+					public String getRepositoryName() {
+						String upstreamBranchName = getUpstreamBranchName();
+
+						if (upstreamBranchName.equals("master")) {
+							return "liferay-portal";
+						}
+
+						return "liferay-portal-ee";
+					}
+
+					public String getUpstreamBranchName() {
+						return project.getProperty("git.working.branch.name");
+					}
+
 					try {
-						Job job = JobFactory.newJob(project.getProperty("top.level.job.name"), null, null, null, getBuildProfile());
+						Job job = JobFactory.newJob(project.getProperty("top.level.job.name"), null, getUpstreamBranchName(), getRepositoryName(), getBuildProfile(), getPortalGitWorkingDirectory());
 
 						BatchTestClassGroup batchTestClassGroup = TestClassGroupFactory.newBatchTestClassGroup(project.getProperty("test.batch.name"), job);
 
@@ -4444,6 +4474,7 @@ go</echo>
 			<var name="app.server.tomcat.classes.portal.dir" value="${app.server.parent.dir}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/classes" />
 			<var name="app.server.tomcat.lib.global.dir" value="${app.server.parent.dir}/tomcat-${app.server.tomcat.version}/lib/ext" />
 			<var name="app.server.tomcat.lib.portal.dir" value="${app.server.parent.dir}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/lib" />
+			<var name="app.server.tomcat.shielded-container-lib.portal.dir" value="${app.server.parent.dir}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/shielded-container-lib" />
 			<var name="app.server.tomcat.zip.name" value="apache-tomcat-${app.server.tomcat.version}.zip" />
 
 			<propertyregex
@@ -4464,6 +4495,7 @@ go</echo>
 				app.server.tomcat.classes.portal.dir=${app.server.tomcat.classes.portal.dir}
 				app.server.tomcat.lib.global.dir=${app.server.tomcat.lib.global.dir}
 				app.server.tomcat.lib.portal.dir=${app.server.tomcat.lib.portal.dir}
+				app.server.tomcat.shielded-container-lib.portal.dir=${app.server.tomcat.shielded-container-lib.portal.dir}
 				app.server.tomcat.version=${app.server.tomcat.version}
 				app.server.tomcat.zip.name=${app.server.tomcat.zip.name}
 				app.server.tomcat.zip.url=${app.server.tomcat.zip.url}
@@ -6767,7 +6799,10 @@ go</echo>
 				<and>
 					<equals arg1="${database.type}" arg2="mariadb" />
 					<not>
-						<available file="${test.app.server.lib.portal.dir}/${jdbc.mariadb.driver}" />
+						<or>
+							<available file="${app.server.lib.global.dir}/${jdbc.mariadb.driver}" />
+							<available file="${test.app.server.lib.portal.dir}/${jdbc.mariadb.driver}" />
+						</or>
 					</not>
 				</and>
 				<then>
@@ -6785,7 +6820,10 @@ go</echo>
 				<and>
 					<equals arg1="${database.type}" arg2="mysql" />
 					<not>
-						<available file="${test.app.server.lib.portal.dir}/${jdbc.mysql.driver}" />
+						<or>
+							<available file="${app.server.lib.global.dir}/${jdbc.mysql.driver}" />
+							<available file="${test.app.server.lib.portal.dir}/${jdbc.mysql.driver}" />
+						</or>
 					</not>
 				</and>
 				<then>
@@ -6821,7 +6859,10 @@ go</echo>
 				<and>
 					<equals arg1="${database.type}" arg2="postgresql" />
 					<not>
-						<available file="${test.app.server.lib.portal.dir}/${jdbc.postgresql.driver}" />
+						<or>
+							<available file="${app.server.lib.global.dir}/${jdbc.postgresql.driver}" />
+							<available file="${test.app.server.lib.portal.dir}/${jdbc.postgresql.driver}" />
+						</or>
 					</not>
 				</and>
 				<then>
@@ -8971,6 +9012,24 @@ session.cookie.use.full.hostname=true
 				<echo append="true" file="portal-impl/src/portal-ext.properties">
 
 include-and-override=${liferay.home}/portal-setup-wizard.properties</echo>
+			</then>
+		</if>
+
+		<if>
+			<matches pattern="https?://.*" string="${test.build.fix.pack.zip.url}" />
+			<then>
+				<local name="patch.requirements" />
+
+				<get-patch-requirements patch.file.zip.url="${test.build.fix.pack.zip.url}" />
+
+				<if>
+					<matches pattern="sp\d+" string="${patch.requirements}" />
+					<then>
+						<echo append="true" file="portal-impl/src/portal-ext.properties">
+							verify.patch.levels.disabled=true
+						</echo>
+					</then>
+				</if>
 			</then>
 		</if>
 
@@ -12446,6 +12505,84 @@ if (ppstate.equals("normal")) {
 		<record-git-commit-portal />
 	</target>
 
+	<target name="record-job-summary">
+		<fail message="Please set the property ${test.suite.name}." unless="test.suite.name" />
+
+		<condition else="test-portal-acceptance-pullrequest(${git.working.branch.name})" property="job.name" value="${job.name}">
+			<isset property="job.name" />
+		</condition>
+
+		<beanshell>
+			<![CDATA[
+				import com.liferay.jenkins.results.parser.CIJobSummaryReportUtil;
+				import com.liferay.jenkins.results.parser.GitWorkingDirectory;
+				import com.liferay.jenkins.results.parser.GitWorkingDirectoryFactory;
+				import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+				import com.liferay.jenkins.results.parser.Job;
+				import com.liferay.jenkins.results.parser.JobFactory;
+				import com.liferay.jenkins.results.parser.PortalGitWorkingDirectory;
+
+				public Job.BuildProfile getBuildProfile() {
+					String testPortalBuildProfile = project.getProperty("build.profile");
+
+					if ((testPortalBuildProfile != null) && testPortalBuildProfile.equals("dxp")) {
+						return Job.BuildProfile.DXP;
+					}
+
+					return Job.BuildProfile.PORTAL;
+				}
+
+				public String getJobName() {
+					return project.getProperty("job.name");
+				}
+
+				public GitWorkingDirectory getPortalGitWorkingDirectory() {
+					File gitWorkingDir = JenkinsResultsParserUtil.getGitWorkingDir(new File(project.getProperty("project.dir")));
+
+					GitWorkingDirectory gitWorkingDirectory = GitWorkingDirectoryFactory.newGitWorkingDirectory(getUpstreamBranchName(), gitWorkingDir, getRepositoryName());
+
+					if (gitWorkingDirectory instanceof PortalGitWorkingDirectory) {
+						return (PortalGitWorkingDirectory)gitWorkingDirectory;
+					}
+
+					return null;
+				}
+
+				public String getRepositoryName() {
+					String upstreamBranchName = getUpstreamBranchName();
+
+					if (upstreamBranchName.equals("master")) {
+						return "liferay-portal";
+					}
+
+					return "liferay-portal-ee";
+				}
+
+				public File getSummaryDir() {
+					File summaryDir = new File("job/summary");
+
+					summaryDir.mkdirs();
+
+					return JenkinsResultsParserUtil.getCanonicalFile(summaryDir);
+				}
+
+				public String getTestSuiteName() {
+					return project.getProperty("test.suite.name");
+				}
+
+				public String getUpstreamBranchName() {
+					return project.getProperty("git.working.branch.name");
+				}
+
+				Job job = JobFactory.newJob(getJobName(), getTestSuiteName(), getUpstreamBranchName(), getRepositoryName(), getBuildProfile(), getPortalGitWorkingDirectory());
+
+				CIJobSummaryReportUtil.writeJobSummaryReport(getSummaryDir(), job);
+
+				System.out.println("Generated job summary file " + new File(getSummaryDir(), "index.html"));
+			]]>
+		</beanshell>
+	</target>
+
 	<target name="record-test-case-method-names">
 		<setup-libs />
 
@@ -13143,11 +13280,13 @@ module.framework.properties.blacklist.portal.profile.names=${blacklist.portal.pr
 
 		<get-testcase-property property.name="apacheds.blank.user.password.enabled" />
 		<get-testcase-property property.name="apacheds.enabled" />
+		<get-testcase-property property.name="apacheds.multiple.users.enabled" />
 
 		<if>
 			<or>
 				<equals arg1="${apacheds.blank.user.password.enabled}" arg2="true" />
 				<equals arg1="${apacheds.enabled}" arg2="true" />
+				<equals arg1="${apacheds.multiple.users.enabled}" arg2="true" />
 			</or>
 			<then>
 				<ant antfile="build-test-apacheds.xml" target="start-apacheds" />

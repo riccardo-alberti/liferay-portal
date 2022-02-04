@@ -30,19 +30,27 @@ const KEY_CODE = {
 	RIGTH: 39,
 };
 
+const noop = () => {};
+
+const itemIsImage = ({mimeType, type}) =>
+	type === 'image' || Boolean(mimeType?.match(/image.*/));
+
 const ItemSelectorPreview = ({
 	container,
 	currentIndex = 0,
 	editImageURL,
+	handleClose = noop,
 	handleSelectedItem,
 	headerTitle,
 	itemReturnType,
 	items,
+	reloadOnHide: initialReloadOnHide = false,
 }) => {
 	const [currentItemIndex, setCurrentItemIndex] = useState(currentIndex);
 	const [isEditing, setIsEditing] = useState();
+	const [isImage, setIsImage] = useState(itemIsImage(items[currentIndex]));
 	const [itemList, setItemList] = useState(items);
-	const [reloadOnHide, setReloadOnHide] = useState(false);
+	const [reloadOnHide, setReloadOnHide] = useState(initialReloadOnHide);
 
 	const currentItem = itemList[currentItemIndex];
 
@@ -51,8 +59,12 @@ const ItemSelectorPreview = ({
 	const isMounted = useIsMounted();
 
 	const close = useCallback(() => {
-		ReactDOM.unmountComponentAtNode(container);
-	}, [container]);
+		handleClose();
+
+		if (container) {
+			ReactDOM.unmountComponentAtNode(container);
+		}
+	}, [container, handleClose]);
 
 	const handleCancelEditing = () => {
 		setIsEditing(false);
@@ -71,11 +83,6 @@ const ItemSelectorPreview = ({
 	};
 
 	const handleClickDone = () => {
-
-		// LPS-120692
-
-		close();
-
 		handleSelectedItem(currentItem);
 	};
 
@@ -212,7 +219,15 @@ const ItemSelectorPreview = ({
 				width: '320px',
 			});
 		}
+
+		return () => {
+			Liferay.SideNavigation.destroy(sidenavToggle);
+		};
 	}, [infoButtonRef]);
+
+	useEffect(() => {
+		setIsImage(itemIsImage(currentItem));
+	}, [currentItem]);
 
 	return (
 		<div className="fullscreen item-selector-preview">
@@ -223,7 +238,7 @@ const ItemSelectorPreview = ({
 				handleClickEdit={handleClickEdit}
 				headerTitle={headerTitle}
 				infoButtonRef={infoButtonRef}
-				showEditIcon={true}
+				showEditIcon={isImage}
 				showInfoIcon={!!currentItem.metadata}
 				showNavbar={!isEditing}
 			/>
@@ -243,6 +258,7 @@ const ItemSelectorPreview = ({
 						currentItem={currentItem}
 						handleClickNext={handleClickNext}
 						handleClickPrevious={handleClickPrevious}
+						isImage={isImage}
 						showArrows={itemList.length > 1}
 					/>
 
@@ -258,14 +274,16 @@ const ItemSelectorPreview = ({
 };
 
 ItemSelectorPreview.propTypes = {
-	container: PropTypes.instanceOf(Element).isRequired,
+	container: PropTypes.instanceOf(Element),
 	currentIndex: PropTypes.number,
-	editItemURL: PropTypes.string,
+	editImageURL: PropTypes.string,
 	handleSelectedItem: PropTypes.func.isRequired,
 	headerTitle: PropTypes.string.isRequired,
+	itemReturnType: PropTypes.string,
 	items: PropTypes.arrayOf(
 		PropTypes.shape({
 			base64: PropTypes.string,
+			fileEntryId: PropTypes.string,
 			metadata: PropTypes.string,
 			returntype: PropTypes.string.isRequired,
 			title: PropTypes.string.isRequired,

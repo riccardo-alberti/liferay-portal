@@ -1,6 +1,7 @@
 @component-name = "portal-lol"
 definition {
 
+	property osgi.modules.includes = "site-initializer-team-extranet";
 	property database.types = "mysql";
 	property liferay.online.properties = "true";
 	property portal.release = "true";
@@ -22,6 +23,8 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
+			PortalSettings.tearDownCP();
+
 			PagesAdmin.tearDownCP();
 
 			WebContent.tearDownCP();
@@ -31,18 +34,17 @@ definition {
 	}
 
 	@description = "This is a test for LPS-135077. I can create a Virtual Instance with Default Initializer"
-	@priority = "4"
+	@priority = "5"
 	test AddVirtualInstanceWithDefaultInitializer {
+		property portal.acceptance = "true";
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.baker.com";
 		property test.name.skip.portal.instance = "LiferayOnline#AddVirtualInstanceWithDefaultInitializer";
 
 		task ("Add virtual instance able.com with a blank Initializer") {
-			PortalInstances.openVirtualInstancesAdmin();
-
-			LiferayOnline.addVirtualInstanceWithInitializer(
-				mailDomain = "www.baker.com",
-				virtualHost = "www.baker.com",
-				webId = "www.baker.com");
+			HeadlessPortalInstanceAPI.addPortalInstance(
+				domain = "www.baker.com",
+				portalInstanceId = "www.baker.com",
+				virtualHost = "www.baker.com");
 		}
 
 		task ("Go to the new Virtual Instance") {
@@ -60,17 +62,16 @@ definition {
 	@description = "This is a test for LPS-135077. I can create a New Virtual Instance with the initializer"
 	@priority = "5"
 	test AddVirtualInstanceWithInitializer {
+		property portal.acceptance = "true";
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
 		property test.name.skip.portal.instance = "LiferayOnline#AddVirtualInstanceWithInitializer";
 
 		task ("Add virtual instance raylife.com with the Raylife Initializer") {
-			PortalInstances.openVirtualInstancesAdmin();
-
-			LiferayOnline.addVirtualInstanceWithInitializer(
-				initializerName = "Raylife",
-				mailDomain = "www.able.com",
-				virtualHost = "www.able.com",
-				webId = "www.able.com");
+			HeadlessPortalInstanceAPI.addPortalInstanceWithVirtualInstanceInitializer(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				siteInitializerKey = "com.liferay.site.initializer.raylife",
+				virtualHost = "www.able.com");
 		}
 
 		task ("Go to the new Virtual Instance") {
@@ -91,9 +92,9 @@ definition {
 		task ("Go to Gogo Shell Admin and Stop Raylife Module") {
 			GogoShell.openGogoShellAdmin();
 
-			var moduleID = GogoShell.getModuleID(moduleName = "com.liferay.site.initializer.raylife");
+			var moduleId = GogoShell.getModuleID(moduleName = "com.liferay.site.initializer.raylife");
 
-			GogoShell.stopModule(moduleID = "${moduleID}");
+			GogoShell.stopModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
 				moduleName = "com.liferay.site.initializer.raylife",
@@ -119,11 +120,34 @@ definition {
 		task ("Go to Gogo Shell Admin and Start Raylife Module") {
 			GogoShell.openGogoShellAdmin();
 
-			GogoShell.startModule(moduleID = "${moduleID}");
+			GogoShell.startModule(moduleId = "${moduleId}");
 
 			GogoShell.viewModuleStatus(
 				moduleName = "com.liferay.site.initializer.raylife",
 				moduleStatus = "Active");
+		}
+	}
+
+	@description = "This is a test for LPS-143786. Create a Team Extranet Virtual Instance by API"
+	@priority = "4"
+	test CreateTeamExtranetVirtualInstanceByAPI {
+		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+		property test.name.skip.portal.instance = "LiferayOnline#CreateTeamExtranetVirtualInstanceByAPI";
+
+		task ("Create Virtual Instance by Json") {
+			HeadlessPortalInstanceAPI.addPortalInstanceWithVirtualInstanceInitializer(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				siteInitializerKey = "com.liferay.site.initializer.team.extranet",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Go to the Virtual Instance Created and Assert the Team Extranet Logo") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+			AssertElementPresent(
+				key_title = "Welcome to the team!",
+				locator1 = "TeamExtranet#FRAGMENT_HEADER");
 		}
 	}
 
@@ -136,7 +160,7 @@ definition {
 
 		task ("Go to Add and Create a New Remote App") {
 			RemoteApps.addCustomElement(
-				entryHTMLName = "vanilla-counter",
+				entryHtmlName = "vanilla-counter",
 				entryName = "Vanilla Counter",
 				entryURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
 		}
@@ -184,7 +208,7 @@ definition {
 			RemoteApps.goToRemoteAppsPortlet();
 
 			RemoteApps.addCustomElement(
-				entryHTMLName = "vanilla-counter",
+				entryHtmlName = "vanilla-counter",
 				entryName = "Vanilla Counter",
 				entryURL = "http://remote-component-test.wincent.com/packages/vanilla-counter/index.js");
 		}
@@ -209,6 +233,7 @@ definition {
 	@priority = "5"
 	test Smoke {
 		property liferay.online.smoke = "true";
+		property portal.acceptance = "true";
 
 		AssertConsoleTextPresent(value1 = "Stopping blacklisted bundle");
 
@@ -332,6 +357,8 @@ definition {
 	@description = "This is a test for LPS-143786. Verify Remote Apps presence in Liferay Online"
 	@priority = "5"
 	test VerifyRemoteAppsInLiferayOnline {
+		property portal.acceptance = "true";
+
 		task ("Go to Remote Apps Portlet") {
 			RemoteApps.goToRemoteAppsPortlet();
 		}

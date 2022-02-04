@@ -63,7 +63,7 @@ public class LayoutPortletsDisplayContext {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		initPortlets(themeDisplay.getCompanyId());
+		_initPortlets(themeDisplay.getCompanyId());
 	}
 
 	public String getDisplayStyle() {
@@ -130,17 +130,17 @@ public class LayoutPortletsDisplayContext {
 		searchContainer.setId("layoutPortlets");
 		searchContainer.setOrderByCol(getOrderByCol());
 		searchContainer.setOrderByType(getOrderByType());
-		searchContainer.setResults(
-			ListUtil.subList(
+		searchContainer.setResultsAndTotal(
+			() -> ListUtil.subList(
 				ListUtil.sort(
 					_layoutPortlets, searchContainer.getOrderByComparator()),
-				searchContainer.getStart(), searchContainer.getEnd()));
-		searchContainer.setTotal(_layoutPortlets.size());
+				searchContainer.getStart(), searchContainer.getEnd()),
+			_layoutPortlets.size());
 
 		return searchContainer;
 	}
 
-	protected void initPortlets(long companyId) {
+	private void _initPortlets(long companyId) {
 		PortletCategory portletCategory = (PortletCategory)WebAppPool.get(
 			companyId, WebKeys.PORTLET_CATEGORY);
 

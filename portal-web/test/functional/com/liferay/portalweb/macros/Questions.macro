@@ -163,13 +163,13 @@ definition {
 	}
 
 	macro assertCanonicalURL {
-		var HTML = '''<link href="''';
+		var html = '''<link href="''';
 
-		var HTML2 = '''" rel="canonical" data-react-helmet="true">''';
+		var html2 = '''" rel="canonical" data-react-helmet="true">''';
 		var portalURL = "${portalURL}/web/guest";
 		var pageName = StringUtil.lowerCase("${pageName}");
 		var pageNameURL = StringUtil.replace("${pageName}", " ", "-");
-		var pageSource = StringUtil.add("${HTML}", "${portalURL}/${pageNameURL}/questions/${category}/${title}${HTML2}", "");
+		var pageSource = StringUtil.add("${html}", "${portalURL}/${pageNameURL}/questions/${category}/${title}${html2}", "");
 
 		AssertHTMLSourceTextPresent(value1 = "${pageSource}");
 	}

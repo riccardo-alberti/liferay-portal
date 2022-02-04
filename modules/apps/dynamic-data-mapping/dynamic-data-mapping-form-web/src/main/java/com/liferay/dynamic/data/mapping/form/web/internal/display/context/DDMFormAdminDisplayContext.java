@@ -36,6 +36,7 @@ import com.liferay.dynamic.data.mapping.form.web.internal.configuration.activato
 import com.liferay.dynamic.data.mapping.form.web.internal.constants.DDMFormWebKeys;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.helper.DDMFormAdminRequestHelper;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.helper.FormInstancePermissionCheckerHelper;
+import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormAdminActionDropdownItemsProvider;
 import com.liferay.dynamic.data.mapping.form.web.internal.instance.lifecycle.AddDefaultSharedFormLayoutPortalInstanceLifecycleListener;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.DDMFormInstanceRowChecker;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.DDMFormInstanceSearch;
@@ -219,6 +220,34 @@ public class DDMFormAdminDisplayContext {
 
 		_formInstancePermissionCheckerHelper =
 			new FormInstancePermissionCheckerHelper(ddmFormAdminRequestHelper);
+	}
+
+	public List<DropdownItem> getActionDropdownItems(
+			DDMFormInstance ddmFormInstance)
+		throws PortalException {
+
+		boolean invalidDDMFormInstance = false;
+
+		if (!hasValidDDMFormFields(ddmFormInstance) ||
+			!hasValidStorageType(ddmFormInstance)) {
+
+			invalidDDMFormInstance = true;
+		}
+
+		DDMFormAdminActionDropdownItemsProvider
+			ddmFormAdminActionDropdownItemsProvider =
+				new DDMFormAdminActionDropdownItemsProvider(
+					getAutocompleteUserURL(), ddmFormInstance,
+					_formInstancePermissionCheckerHelper,
+					isFormPublished(ddmFormInstance),
+					ddmFormAdminRequestHelper.getRequest(),
+					invalidDDMFormInstance,
+					getFormLocalizedNameJSONObject(ddmFormInstance),
+					getPublishedFormURL(ddmFormInstance), renderResponse,
+					getScopeGroupId(),
+					getShareFormInstanceURL(ddmFormInstance));
+
+		return ddmFormAdminActionDropdownItemsProvider.getActionDropdownItems();
 	}
 
 	public List<DropdownItem> getActionItemsDropdownItems() {
@@ -479,7 +508,7 @@ public class DDMFormAdminDisplayContext {
 		DDMFormLayout ddmFormLayout = DDMFormLayoutFactory.create(
 			DDMFormInstanceSettings.class);
 
-		_removeSubmissionsSettings(ddmFormLayout.getDDMFormLayoutPages());
+		_removeExpirationDateSetting(ddmFormLayout.getDDMFormLayoutPages());
 
 		ddmFormLayout.setPaginationMode(DDMFormLayout.TABBED_MODE);
 
@@ -621,11 +650,9 @@ public class DDMFormAdminDisplayContext {
 	public String getEmptyResultsMessage() {
 		SearchContainer<?> search = getSearch();
 
-		HttpServletRequest httpServletRequest =
-			ddmFormAdminRequestHelper.getRequest();
-
 		return LanguageUtil.get(
-			httpServletRequest, search.getEmptyResultsMessage());
+			ddmFormAdminRequestHelper.getRequest(),
+			search.getEmptyResultsMessage());
 	}
 
 	public String getFieldSetDefinitionURL() throws PortalException {
@@ -1073,11 +1100,18 @@ public class DDMFormAdminDisplayContext {
 			_getDDMFormInstanceOrderByComparator(
 				getOrderByCol(), getOrderByType()));
 		ddmFormInstanceSearch.setOrderByType(getOrderByType());
+		ddmFormInstanceSearch.setResultsAndTotal(
+			() -> _ddmFormInstanceService.search(
+				ddmFormAdminRequestHelper.getCompanyId(),
+				ddmFormAdminRequestHelper.getScopeGroupId(), getKeywords(),
+				ddmFormInstanceSearch.getStart(),
+				ddmFormInstanceSearch.getEnd(),
+				ddmFormInstanceSearch.getOrderByComparator()),
+			_ddmFormInstanceService.searchCount(
+				ddmFormAdminRequestHelper.getCompanyId(),
+				ddmFormAdminRequestHelper.getScopeGroupId(), getKeywords()));
 		ddmFormInstanceSearch.setRowChecker(
 			new DDMFormInstanceRowChecker(renderResponse));
-
-		_setDDMFormInstanceSearchResults(ddmFormInstanceSearch);
-		_setDDMFormInstanceSearchTotal(ddmFormInstanceSearch);
 
 		return ddmFormInstanceSearch;
 	}
@@ -1541,17 +1575,12 @@ public class DDMFormAdminDisplayContext {
 
 		ThemeDisplay themeDisplay = ddmFormAdminRequestHelper.getThemeDisplay();
 
-		long fieldSetClassNameId = PortalUtil.getClassNameId(
-			DDMFormInstance.class);
-
-		DDMFormBuilderSettingsRequest ddmFormBuilderSettingsRequest =
-			DDMFormBuilderSettingsRequest.with(
-				themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
-				fieldSetClassNameId, getDDMForm(), themeDisplay.getLocale());
-
 		_ddmFormBuilderSettingsResponse =
 			_ddmFormBuilderSettingsRetriever.getSettings(
-				ddmFormBuilderSettingsRequest);
+				DDMFormBuilderSettingsRequest.with(
+					themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
+					PortalUtil.getClassNameId(DDMFormInstance.class),
+					getDDMForm(), themeDisplay.getLocale()));
 
 		return _ddmFormBuilderSettingsResponse;
 	}
@@ -1728,8 +1757,14 @@ public class DDMFormAdminDisplayContext {
 		);
 	}
 
-	private void _removeSubmissionsSettings(
+	private void _removeExpirationDateSetting(
 		List<DDMFormLayoutPage> ddmFormLayoutPages) {
+
+		if (_ffSubmissionsSettingsConfigurationActivator.
+				expirationDateEnabled()) {
+
+			return;
+		}
 
 		DDMFormLayoutPage ddmFormLayoutPage = ddmFormLayoutPages.get(3);
 
@@ -1742,28 +1777,8 @@ public class DDMFormAdminDisplayContext {
 		List<String> ddmFormFieldNames =
 			ddmFormLayoutColumn.getDDMFormFieldNames();
 
-		if (!_ffSubmissionsSettingsConfigurationActivator.
-				expirationDateEnabled()) {
-
-			ddmFormFieldNames.remove("expirationDate");
-			ddmFormFieldNames.remove("neverExpire");
-		}
-
-		if (!_ffSubmissionsSettingsConfigurationActivator.
-				limitToOneSubmissionEnabled()) {
-
-			ddmFormFieldNames.remove("limitToOneSubmissionPerUser");
-		}
-
-		if (!_ffSubmissionsSettingsConfigurationActivator.
-				showPartialResultsEnabled()) {
-
-			ddmFormFieldNames.remove("showPartialResultsToRespondents");
-		}
-
-		if (ddmFormFieldNames.isEmpty()) {
-			ddmFormLayoutPages.remove(3);
-		}
+		ddmFormFieldNames.remove("expirationDate");
+		ddmFormFieldNames.remove("neverExpire");
 	}
 
 	private String _serialize(List<DDMFormFieldType> ddmFormFieldTypes) {
@@ -1776,28 +1791,6 @@ public class DDMFormAdminDisplayContext {
 				_ddmFormFieldTypesSerializer.serialize(builder.build());
 
 		return ddmFormFieldTypesSerializerSerializeResponse.getContent();
-	}
-
-	private void _setDDMFormInstanceSearchResults(
-		DDMFormInstanceSearch ddmFormInstanceSearch) {
-
-		List<DDMFormInstance> results = _ddmFormInstanceService.search(
-			ddmFormAdminRequestHelper.getCompanyId(),
-			ddmFormAdminRequestHelper.getScopeGroupId(), getKeywords(),
-			ddmFormInstanceSearch.getStart(), ddmFormInstanceSearch.getEnd(),
-			ddmFormInstanceSearch.getOrderByComparator());
-
-		ddmFormInstanceSearch.setResults(results);
-	}
-
-	private void _setDDMFormInstanceSearchTotal(
-		DDMFormInstanceSearch ddmFormInstanceSearch) {
-
-		int total = _ddmFormInstanceService.searchCount(
-			ddmFormAdminRequestHelper.getCompanyId(),
-			ddmFormAdminRequestHelper.getScopeGroupId(), getKeywords());
-
-		ddmFormInstanceSearch.setTotal(total);
 	}
 
 	private static final String[] _DISPLAY_VIEWS = {"descriptive", "list"};

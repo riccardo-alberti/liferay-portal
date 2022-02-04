@@ -1202,6 +1202,21 @@ public class Mutation {
 	}
 
 	@GraphQLField
+	public boolean deleteUserGroupByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource ->
+				userGroupResource.deleteUserGroupByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField
 	public boolean deleteUserGroup(@GraphQLName("userGroupId") Long userGroupId)
 		throws Exception {
 
@@ -1264,6 +1279,36 @@ public class Mutation {
 			this::_populateResourceContext,
 			userGroupResource -> userGroupResource.putUserGroupBatch(
 				callbackURL, object));
+	}
+
+	@GraphQLField
+	public boolean deleteUserGroupUsers(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.deleteUserGroupUsers(
+				userGroupId, longs));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createUserGroupUsers(
+			@GraphQLName("userGroupId") Long userGroupId,
+			@GraphQLName("longs") Long[] longs)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_userGroupResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			userGroupResource -> userGroupResource.postUserGroupUsers(
+				userGroupId, longs));
+
+		return true;
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R

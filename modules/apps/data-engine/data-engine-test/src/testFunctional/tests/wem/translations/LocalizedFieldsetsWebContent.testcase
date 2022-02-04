@@ -414,7 +414,7 @@ definition {
 				webContentTitle = "Web Content Title");
 
 			WebContent.viewWithStructureCP(
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentDate = "23/02/2021",
 				webContentDateFieldLabel = "Date pt-BR",
 				webContentLocaleFieldLabel = "pt-BR",

@@ -202,14 +202,20 @@ public class ObjectDefinitionLocalServiceImpl
 			if (oldObjectField == null) {
 				_objectFieldLocalService.addSystemObjectField(
 					userId, objectDefinition.getObjectDefinitionId(),
-					newObjectField.getDBColumnName(), false, false, "",
+					newObjectField.getBusinessType(),
+					newObjectField.getDBColumnName(),
+					newObjectField.getDBType(), false, false, "",
 					newObjectField.getLabelMap(), newObjectField.getName(),
-					newObjectField.isRequired(), newObjectField.getType());
+					newObjectField.isRequired());
 			}
 			else {
-				if (!Objects.equals(oldObjectField, newObjectField.getType())) {
+				if (!Objects.equals(
+						oldObjectField, newObjectField.getDBType())) {
+
+					oldObjectField.setBusinessType(
+						newObjectField.getBusinessType());
+					oldObjectField.setDBType(newObjectField.getDBType());
 					oldObjectField.setRequired(newObjectField.isRequired());
-					oldObjectField.setType(newObjectField.getType());
 
 					_objectFieldPersistence.update(oldObjectField);
 				}
@@ -545,7 +551,7 @@ public class ObjectDefinitionLocalServiceImpl
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public ObjectDefinition updateCustomObjectDefinition(
-			Long objectDefinitionId, long descriptionObjectFieldId,
+			long objectDefinitionId, long descriptionObjectFieldId,
 			long titleObjectFieldId, boolean active,
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
@@ -564,6 +570,20 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinition, descriptionObjectFieldId, titleObjectFieldId,
 			active, null, labelMap, name, panelAppOrder, panelCategoryKey,
 			portlet, null, null, pluralLabelMap, scope);
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public ObjectDefinition updateTitleObjectFieldId(
+			long objectDefinitionId, long titleObjectFieldId)
+		throws PortalException {
+
+		ObjectDefinition objectDefinition =
+			objectDefinitionPersistence.fetchByPrimaryKey(objectDefinitionId);
+
+		objectDefinition.setTitleObjectFieldId(titleObjectFieldId);
+
+		return objectDefinitionPersistence.update(objectDefinition);
 	}
 
 	@Activate
@@ -669,21 +689,24 @@ public class ObjectDefinitionLocalServiceImpl
 				if (system) {
 					_objectFieldLocalService.addSystemObjectField(
 						userId, objectDefinition.getObjectDefinitionId(),
-						objectField.getDBColumnName(), objectField.isIndexed(),
+						objectField.getBusinessType(),
+						objectField.getDBColumnName(), objectField.getDBType(),
+						objectField.isIndexed(),
 						objectField.isIndexedAsKeyword(),
 						objectField.getIndexedLanguageId(),
 						objectField.getLabelMap(), objectField.getName(),
-						objectField.isRequired(), objectField.getType());
+						objectField.isRequired());
 				}
 				else {
 					_objectFieldLocalService.addCustomObjectField(
 						userId, objectField.getListTypeDefinitionId(),
 						objectDefinition.getObjectDefinitionId(),
+						objectField.getBusinessType(), objectField.getDBType(),
 						objectField.isIndexed(),
 						objectField.isIndexedAsKeyword(),
 						objectField.getIndexedLanguageId(),
 						objectField.getLabelMap(), objectField.getName(),
-						objectField.isRequired(), objectField.getType());
+						objectField.isRequired());
 				}
 			}
 		}

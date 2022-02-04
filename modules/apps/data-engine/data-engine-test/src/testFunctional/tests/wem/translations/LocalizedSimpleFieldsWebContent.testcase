@@ -219,7 +219,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentMultipleSelection = "Option 2 - pt-BR edited",
 			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
@@ -269,7 +269,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentMultipleSelection = "Option 1 - pt-BR edited",
 			webContentMultipleSelectionFieldLabel = "Multiple Selection - pt-BR edited",
@@ -658,7 +658,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentLocaleFieldLabel = "pt-BR",
 			webContentNumeric = "28",
@@ -694,7 +694,7 @@ definition {
 		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentDateFieldLabel = "Date - pt-BR",
 			webContentLocaleFieldLabel = "pt-BR",
@@ -721,7 +721,7 @@ definition {
 			webContentTitle = "Web Content Title - en-US");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentDateFieldLabel = "Date - pt-BR",
 			webContentLocaleFieldLabel = "pt-BR",
@@ -1060,7 +1060,7 @@ definition {
 			WebContent.viewWithStructureCP(
 				column = "1",
 				row = "${index}",
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentGrid = "true",
 				webContentTitle = "Web Content Title");
 		}
@@ -1071,7 +1071,7 @@ definition {
 			WebContent.viewWithStructureCP(
 				column = "2",
 				row = "${index}",
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentGrid = "true",
 				webContentGridFieldLabel = "Grid - ca-ES",
 				webContentTitle = "Web Content Title - ca-ES");
@@ -1094,7 +1094,7 @@ definition {
 			WebContent.viewWithStructureCP(
 				column = "3",
 				row = "${index}",
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentGrid = "true",
 				webContentTitle = "Web Content Title");
 		}
@@ -1105,7 +1105,7 @@ definition {
 			WebContent.viewWithStructureCP(
 				column = "2",
 				row = "${index}",
-				skipGotoEditCP = "true",
+				skipGotoEditCp = "true",
 				webContentGrid = "true",
 				webContentGridFieldLabel = "Grid - ca-ES",
 				webContentTitle = "Web Content Title - ca-ES");
@@ -1182,7 +1182,7 @@ definition {
 			webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentLocaleFieldLabel = "ca-ES",
 			webContentNumeric = "28",
@@ -1218,7 +1218,7 @@ definition {
 		WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentDateFieldLabel = "Date - ca-ES",
 			webContentLocaleFieldLabel = "ca-ES",
@@ -1245,7 +1245,7 @@ definition {
 			webContentTitle = "Web Content Title - pt-BR");
 
 		WebContent.viewWithStructureCP(
-			skipGotoEditCP = "true",
+			skipGotoEditCp = "true",
 			webContentDate = "12/04/2021",
 			webContentDateFieldLabel = "Date - ca-ES",
 			webContentLocaleFieldLabel = "ca-ES",
