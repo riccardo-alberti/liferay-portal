@@ -556,7 +556,7 @@ definition {
 			pageName = "Page Name 2",
 			siteName = "Site Name");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "WC WebContent Content",
 			webContentTitle = "WC WebContent Title");
 
@@ -749,9 +749,13 @@ definition {
 
 		WidgetPages.addRecentContent(assetTitle = "The SPACE Family");
 
-		Portlet.configureApplicationDecorator(
-			decorator = "Barebone",
-			portletName = "Web Content Display");
+		Portlet.gotoPortletOptions(
+			portletName = "Web Content Display",
+			portletOption = "Look and Feel Configuration");
+
+		IFrame.selectConfigurationFrame();
+
+		Portlet.configureGeneralViaLookAndFeelPG(applicationDecorators = "Barebone");
 
 		Navigator.gotoStagedSitePage(
 			pageName = "Home",
@@ -1619,7 +1623,7 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 

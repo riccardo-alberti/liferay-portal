@@ -60,7 +60,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.CP_ASSET_CATEGORIES_NAVIGATION,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user"
+		"javax.portlet.security-role-ref=power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = {CPAssetCategoriesNavigationPortlet.class, Portlet.class}
 )
@@ -85,7 +86,7 @@ public class CPAssetCategoriesNavigationPortlet extends MVCPortlet {
 				cpAssetCategoryNavigationDisplayContext);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		super.render(renderRequest, renderResponse);

@@ -255,16 +255,6 @@ public class PortalUtil {
 	}
 
 	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public static void addUserLocaleOptionsMessage(
-		HttpServletRequest httpServletRequest) {
-
-		_portal.addUserLocaleOptionsMessage(httpServletRequest);
-	}
-
-	/**
 	 * Clears the render parameters in the request if the portlet is in the
 	 * action phase.
 	 *
@@ -954,18 +944,6 @@ public class PortalUtil {
 		throws PortalException {
 
 		return _portal.getGoogleGadgetURL(portlet, themeDisplay);
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 * #getGroupFriendlyURL(LayoutSet, ThemeDisplay, boolean, boolean)}
-	 */
-	@Deprecated
-	public static String getGroupFriendlyURL(
-			LayoutSet layoutSet, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return _portal.getGroupFriendlyURL(layoutSet, themeDisplay);
 	}
 
 	public static String getGroupFriendlyURL(
@@ -1805,15 +1783,6 @@ public class PortalUtil {
 		throws PortalException {
 
 		return _portal.getValidUserId(companyId, userId);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #getVirtualHostnames(LayoutSet)}
-	 */
-	@Deprecated
-	public static String getVirtualHostname(LayoutSet layoutSet) {
-		return _portal.getVirtualHostname(layoutSet);
 	}
 
 	public static TreeMap<String, String> getVirtualHostnames(

@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.internal.order.test;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.commerce.account.constants.CommerceAccountConstants;
 import com.liferay.commerce.account.model.CommerceAccount;
@@ -184,7 +185,7 @@ public class CommerceOrderTest {
 			commerceContext instanceof TestCustomCommerceContextHttp);
 
 		CommerceOrder commerceOrder = CommerceTestUtil.addB2CCommerceOrder(
-			_user.getUserId(), _group.getGroupId(),
+			_user.getUserId(), _commerceChannel.getGroupId(),
 			commerceContext.getCommerceCurrency());
 
 		Assert.assertEquals(
@@ -1060,7 +1061,7 @@ public class CommerceOrderTest {
 		}
 
 		return _commerceAddressLocalService.addCommerceAddress(
-			CommerceAccount.class.getName(), commerceAccountId,
+			AccountEntry.class.getName(), commerceAccountId,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),

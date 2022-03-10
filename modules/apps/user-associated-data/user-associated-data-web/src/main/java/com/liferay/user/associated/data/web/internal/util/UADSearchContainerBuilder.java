@@ -15,6 +15,7 @@
 package com.liferay.user.associated.data.web.internal.util;
 
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
@@ -184,7 +185,7 @@ public class UADSearchContainerBuilder {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			searchContainer.setResultsAndTotal(Collections::emptyList, 0);
@@ -236,7 +237,7 @@ public class UADSearchContainerBuilder {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			searchContainer.setResultsAndTotal(Collections::emptyList, 0);
@@ -340,7 +341,7 @@ public class UADSearchContainerBuilder {
 
 		String orderByCol = SearchOrderByUtil.getOrderByCol(
 			renderRequest, UserAssociatedDataPortletKeys.USER_ASSOCIATED_DATA,
-			null);
+			StringPool.BLANK);
 
 		if (!ArrayUtil.contains(sortingFieldNames, orderByCol)) {
 			orderByCol = defaultOrderByCol;
@@ -406,8 +407,7 @@ public class UADSearchContainerBuilder {
 					}
 					catch (NumberFormatException numberFormatException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(
-								numberFormatException, numberFormatException);
+							_log.debug(numberFormatException);
 						}
 
 						return 0L;

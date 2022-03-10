@@ -14,6 +14,7 @@
 
 import ClayButton from '@clayui/button';
 import {useModal} from '@clayui/modal';
+import {openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
 
@@ -21,17 +22,40 @@ import ImportModal from './ImportModal';
 
 function ImportSubmit({
 	disabled,
+	evaluateForm,
+	fieldsSelections,
+	fileContent,
+	fileFields,
 	formDataQuerySelector,
 	formImportURL,
+	formIsValid,
+	formIsVisible,
 	portletNamespace,
+	setFileContent,
 }) {
-	const [visible, setVisible] = useState(false);
+	const [visibleModalPreview, setVisibleModalPreview] = useState(undefined);
+	const [startImport, setStartImport] = useState(undefined);
+
 	const {observer, onClose} = useModal({
-		onClose: () => setVisible(false),
+		onClose: () => setVisibleModalPreview(false),
 	});
-	const onButtonClick = useCallback(() => {
-		setVisible(true);
-	}, [setVisible]);
+
+	const showPreviewModal = useCallback(() => {
+		evaluateForm(true);
+
+		if (!formIsVisible) {
+			openToast({
+				message: Liferay.Language.get(
+					'please-upload-a-file-and-select-the-required-columns-before-saving-a-template'
+				),
+				type: 'danger',
+			});
+		}
+
+		if (formIsValid) {
+			setVisibleModalPreview(true);
+		}
+	}, [evaluateForm, formIsValid, formIsVisible]);
 
 	return (
 		<span className="mr-3">
@@ -39,19 +63,25 @@ function ImportSubmit({
 				disabled={disabled}
 				displayType="primary"
 				id={`${portletNamespace}-import-submit`}
-				onClick={onButtonClick}
+				onClick={() => showPreviewModal()}
 				type="button"
 			>
-				{Liferay.Language.get('import')}
+				{Liferay.Language.get('next')}
 			</ClayButton>
 
-			{visible && (
+			{visibleModalPreview && (
 				<ImportModal
 					closeModal={onClose}
+					fieldsSelections={fieldsSelections}
+					fileContent={fileContent}
+					fileFields={fileFields}
 					formDataQuerySelector={formDataQuerySelector}
 					formSubmitURL={formImportURL}
 					namespace={portletNamespace}
 					observer={observer}
+					setFileContent={setFileContent}
+					setStartImport={setStartImport}
+					startImport={startImport}
 				/>
 			)}
 		</span>
@@ -59,7 +89,6 @@ function ImportSubmit({
 }
 
 ImportSubmit.propTypes = {
-	disabled: PropTypes.bool.isRequired,
 	formDataQuerySelector: PropTypes.string.isRequired,
 	formImportURL: PropTypes.string.isRequired,
 	portletNamespace: PropTypes.string.isRequired,

@@ -30,10 +30,12 @@ import com.liferay.info.list.renderer.DefaultInfoListRendererContext;
 import com.liferay.info.list.renderer.InfoListRenderer;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
+import com.liferay.layout.helper.CollectionPaginationHelper;
 import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
 import com.liferay.layout.taglib.internal.display.context.RenderCollectionLayoutStructureItemDisplayContext;
 import com.liferay.layout.taglib.internal.display.context.RenderLayoutStructureDisplayContext;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
+import com.liferay.layout.taglib.internal.util.FFLayoutTaglibConfigurationUtil;
 import com.liferay.layout.util.constants.LayoutStructureConstants;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.ColumnLayoutStructureItem;
@@ -318,8 +320,7 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 		if (Objects.equals(
 				collectionStyledLayoutStructureItem.getPaginationType(),
-				RenderCollectionLayoutStructureItemDisplayContext.
-					PAGINATION_TYPE_NUMERIC)) {
+				CollectionPaginationHelper.PAGINATION_TYPE_NUMERIC)) {
 
 			PaginationBarTag paginationBarTag = new PaginationBarTag();
 
@@ -346,8 +347,7 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 		if (Objects.equals(
 				collectionStyledLayoutStructureItem.getPaginationType(),
-				RenderCollectionLayoutStructureItemDisplayContext.
-					PAGINATION_TYPE_SIMPLE)) {
+				CollectionPaginationHelper.PAGINATION_TYPE_SIMPLE)) {
 
 			jspWriter.write("<div class=\"d-flex flex-grow-1 h-100 ");
 			jspWriter.write("justify-content-center py-3\" ");
@@ -481,7 +481,17 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			jspWriter.write("\">");
 		}
 
-		jspWriter.write("<div class=\"");
+		String htmlTag = containerStyledLayoutStructureItem.getHtmlTag();
+
+		if (!FFLayoutTaglibConfigurationUtil.fragmentAdvancedOptionsEnabled() ||
+			Validator.isNull(htmlTag)) {
+
+			htmlTag = "div";
+		}
+
+		jspWriter.write(StringPool.LESS_THAN);
+		jspWriter.write(htmlTag);
+		jspWriter.write(" class=\"");
 		jspWriter.write(
 			renderLayoutStructureDisplayContext.getCssClass(
 				containerStyledLayoutStructureItem));
@@ -495,7 +505,9 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			layoutStructureItem.getChildrenItemIds(),
 			renderLayoutStructureDisplayContext);
 
-		jspWriter.write("</div>");
+		jspWriter.write("</");
+		jspWriter.write(htmlTag);
+		jspWriter.write(StringPool.GREATER_THAN);
 
 		if (Validator.isNotNull(containerLinkHref)) {
 			jspWriter.write("</a>");

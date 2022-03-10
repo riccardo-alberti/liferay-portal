@@ -62,17 +62,13 @@ public class ContainerStyledLayoutStructureItem
 		return super.equals(object);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getWidthType()}
-	 */
-	@Deprecated
-	public String getContainerType() {
-		return _widthType;
-	}
-
 	@Override
 	public String getContentDisplay() {
 		return _contentDisplay;
+	}
+
+	public String getHtmlTag() {
+		return _htmlTag;
 	}
 
 	@Override
@@ -83,6 +79,8 @@ public class ContainerStyledLayoutStructureItem
 			"align", _align
 		).put(
 			"contentDisplay", _contentDisplay
+		).put(
+			"htmlTag", _htmlTag
 		).put(
 			"justify", _justify
 		).put(
@@ -101,15 +99,6 @@ public class ContainerStyledLayoutStructureItem
 		return _linkJSONObject;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getPaddingLeft()} and {@link #getPaddingRight()}
-	 */
-	@Deprecated
-	public int getPaddingHorizontal() {
-		return 0;
-	}
-
 	public String getWidthType() {
 		return _widthType;
 	}
@@ -123,53 +112,12 @@ public class ContainerStyledLayoutStructureItem
 		_align = align;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBackgroundColorCssClass(String backgroundColorCssClass) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBackgroundImageJSONObject(
-		JSONObject backgroundImageJSONObject) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderColor(String borderColor) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderRadius(String borderRadius) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setBorderWidth(int borderWidth) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setWidthType(String)}
-	 */
-	@Deprecated
-	public void setContainerType(String containerType) {
-		_widthType = containerType;
-	}
-
 	public void setContentDisplay(String contentDisplay) {
 		_contentDisplay = contentDisplay;
+	}
+
+	public void setHtmlTag(String htmlTag) {
+		_htmlTag = htmlTag;
 	}
 
 	public void setJustify(String justify) {
@@ -178,84 +126,6 @@ public class ContainerStyledLayoutStructureItem
 
 	public void setLinkJSONObject(JSONObject linkJSONObject) {
 		_linkJSONObject = linkJSONObject;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginBottom(int marginBottom) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginLeft(int marginLeft) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginRight(int marginRight) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setMarginTop(int marginTop) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setOpacity(int opacity) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingBottom(int paddingBottom) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setPaddingLeft(int)} and {@link #setPaddingRight(int)}
-	 */
-	@Deprecated
-	public void setPaddingHorizontal(int paddingHorizontal) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingLeft(int paddingLeft) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingRight(int paddingRight) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setPaddingTop(int paddingTop) {
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setShadow(String shadow) {
 	}
 
 	public void setWidthType(String widthType) {
@@ -274,6 +144,10 @@ public class ContainerStyledLayoutStructureItem
 
 		if (itemConfigJSONObject.has("contentDisplay")) {
 			setContentDisplay(itemConfigJSONObject.getString("contentDisplay"));
+		}
+
+		if (itemConfigJSONObject.has("htmlTag")) {
+			setHtmlTag(itemConfigJSONObject.getString("htmlTag"));
 		}
 
 		if (itemConfigJSONObject.has("justify")) {
@@ -380,6 +254,7 @@ public class ContainerStyledLayoutStructureItem
 
 	private String _align = "";
 	private String _contentDisplay = "";
+	private String _htmlTag = "div";
 	private String _justify = "";
 	private JSONObject _linkJSONObject;
 	private String _widthType = "fluid";

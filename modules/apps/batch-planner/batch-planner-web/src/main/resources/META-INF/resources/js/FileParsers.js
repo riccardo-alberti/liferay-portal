@@ -14,37 +14,124 @@
 
 import {
 	CSV_FORMAT,
+	FILE_FORMATTED_CONTENT,
 	JSONL_FORMAT,
 	JSON_FORMAT,
 	PARSE_FILE_CHUNK_SIZE,
 } from './constants';
 
-export function extractFieldsFromCSV(content, fieldSeparator = ',') {
-	if (content.indexOf('\n') > -1) {
-		const splitLines = content.split('\n');
+export function parseCSV(content, separator) {
+	const objPattern = new RegExp(
+		'(\\' +
+			separator +
+			'|\\r?\\n|\\r|^)' +
+			'(?:"([^"]*(?:""[^"]*)*)"|' +
+			'([^"\\' +
+			separator +
+			'\\r\\n]*))',
+		'gi'
+	);
 
-		const firstNoEmptyLine = splitLines.find((line) => line.length > 0);
+	const arrData = [[]];
+	let arrMatches = objPattern.exec(content);
 
-		return firstNoEmptyLine.split(fieldSeparator);
+	while (arrMatches) {
+		const strMatchedDelimiter = arrMatches[1];
+
+		if (strMatchedDelimiter.length && strMatchedDelimiter !== separator) {
+			arrData.push([]);
+		}
+
+		const strMatchedValue = arrMatches[2]
+			? arrMatches[2].replace(new RegExp('""', 'g'), '"')
+			: arrMatches[3];
+
+		arrData[arrData.length - 1].push(strMatchedValue);
+
+		arrMatches = objPattern.exec(content);
+	}
+
+	return arrData;
+}
+
+export function getItemDetails(itemData, headers) {
+	return itemData.reduce(
+		(data, value, index) => ({
+			...data,
+			[headers[index]]: value,
+		}),
+		{}
+	);
+}
+
+export function extractFieldsFromCSV(
+	content,
+	{csvContainsHeaders, csvSeparator}
+) {
+	const splitLines = content.split('\n');
+	const newLineFound = content.indexOf('\n') > -1;
+	const contentItemDetails = parseCSV(content, csvSeparator).slice(
+		1,
+		content.length
+	);
+
+	if (csvContainsHeaders && splitLines.length > 2) {
+		const [schema, firstItemData] = parseCSV(content, csvSeparator);
+		const contentLineColumns = parseCSV(content, csvSeparator).slice(
+			1,
+			content.length
+		);
+
+		Liferay.fire(FILE_FORMATTED_CONTENT, {
+			fileContent: contentLineColumns,
+		});
+
+		return {
+			contentItemDetails,
+			firstItemDetails: getItemDetails(firstItemData, schema),
+			schema,
+		};
+	}
+
+	if (!csvContainsHeaders && newLineFound) {
+		const [firstItemData] = parseCSV(splitLines[0], csvSeparator);
+
+		const schema = new Array(firstItemData.length)
+			.fill()
+			.map((_, index) => index);
+
+		return {
+			contentItemDetails,
+			firstItemDetails: getItemDetails(firstItemData, schema),
+			schema,
+		};
 	}
 }
 
 export function extractFieldsFromJSONL(content) {
-	let contentToParse;
+	const contentLines = content.replace(/\r?\n/g, ',');
+	const jsonStringContent = '[' + contentLines + ']';
 
-	if (content.indexOf('\n') > -1) {
-		const splitLines = content.split('\n');
-
-		contentToParse = splitLines.find((line) => line.length > 0);
-	}
-	else {
-		contentToParse = content;
-	}
+	const jsonContent = JSON.parse(jsonStringContent);
 
 	try {
-		const data = JSON.parse(contentToParse);
+		const data = Object.keys(jsonContent[0]);
 
-		return Object.keys(data);
+		const schema = Object.values(data);
+
+		Liferay.fire(FILE_FORMATTED_CONTENT, {
+			fileContent: jsonContent
+				.map((row) => Object.values(row))
+				.slice(1, content.length),
+		});
+
+		return {
+			contentItemDetails: jsonContent
+				.map((row) => Object.values(row))
+				.slice(1, content.length),
+			firstItemDetails: getItemDetails(Object.values(data), schema),
+			schema,
+		};
 	}
 	catch (error) {
 		console.error(error);
@@ -55,18 +142,33 @@ export function extractFieldsFromJSONL(content) {
 
 export function extractFieldsFromJSON(content) {
 	const jsonArray = content.split('');
-	let parsedJSON;
-
 	jsonArray.shift();
+
+	const jsonfile = JSON.parse(content);
+	const contentLineColumns = jsonfile
+		.map((row) => Object.values(row))
+		.slice(1, content.length);
+
+	Liferay.fire(FILE_FORMATTED_CONTENT, {
+		fileContent: contentLineColumns,
+	});
 
 	for (let index = 0; index < jsonArray.length - 1; index++) {
 		if (jsonArray[index] === '}') {
 			const partialJson = jsonArray.slice(0, index + 1).join('');
 
 			try {
-				parsedJSON = JSON.parse(partialJson);
+				const parsedJSON = JSON.parse(partialJson);
 
-				return Object.keys(parsedJSON);
+				const schema = Object.keys(parsedJSON);
+
+				return {
+					firstItemDetails: getItemDetails(
+						Object.values(parsedJSON),
+						schema
+					),
+					schema,
+				};
 			}
 			catch (error) {
 				console.error(error);
@@ -103,10 +205,14 @@ function parseInChunk({
 
 		offset += event.target.result.length;
 
-		const schema = chunkParser(event.target.result, options);
+		const parsedData = chunkParser(event.target.result, options);
 
-		if (schema) {
-			return onComplete({extension, schema});
+		if (parsedData) {
+			return onComplete({
+				extension,
+				firstItemDetails: parsedData.firstItemDetails,
+				schema: parsedData.schema,
+			});
 		}
 		else if (offset >= fileSize) {
 			return onError();
@@ -128,11 +234,13 @@ const parseOperators = {
 	[JSONL_FORMAT]: extractFieldsFromJSONL,
 };
 
-export default function parseFile({file, onComplete, onError, options}) {
-	const extension = file.name
-		.substring(file.name.lastIndexOf('.') + 1)
-		.toLowerCase();
-
+export default function parseFile({
+	extension,
+	file,
+	onComplete,
+	onError,
+	options,
+}) {
 	parseInChunk({
 		chunkParser: parseOperators[extension],
 		extension,

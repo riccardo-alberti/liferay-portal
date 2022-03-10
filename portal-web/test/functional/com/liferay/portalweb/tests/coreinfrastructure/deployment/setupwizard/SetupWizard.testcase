@@ -9,7 +9,8 @@ definition {
 	@description = "This is a use case for LPS-107347. It asserts that an admin is still required to change password with Setup Wizard disabled."
 	@priority = "4"
 	test AdminIsRequiredToChangePasswordWithSetupWizardDisabled {
-		property custom.properties = "passwords.default.policy.changeable=true${line.separator}setup.wizard.enabled=false";
+		property custom.properties = "setup.wizard.enabled=false${line.separator}passwords.default.policy.change.required=true";
+		property test.prepare.bundle.properties = "true";
 		property database.types = "mysql";
 		property testray.main.component.name = "Users and Organizations";
 
@@ -29,6 +30,8 @@ definition {
 			User._clickSignInButton();
 
 			SignIn.agreeToTermsOfUse();
+
+			User.answerPasswordReminder();
 		}
 
 		task ("Then the admin is still required to reset its password") {
@@ -42,7 +45,7 @@ definition {
 
 			Button.clickSubmitButton();
 
-			SignIn.setPasswordReminder();
+			User.answerPasswordReminder();
 
 			AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
 		}

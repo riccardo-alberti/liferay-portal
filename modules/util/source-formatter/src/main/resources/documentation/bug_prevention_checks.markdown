@@ -28,6 +28,8 @@ ConsumerTypeAnnotationCheck | .java | Performs several checks on classes with @C
 DTOEnumCreationCheck | .java | Checks the creation of DTO enum. |
 DeprecatedAPICheck | .java | Finds calls to deprecated classes, constructors, fields or methods. |
 EmptyConstructorCheck | .java | Finds unnecessary empty constructors. |
+ExceptionMapperAnnotationCheck | .java | Performs several checks on classes with @Reference annotation. |
+ExceptionPrintStackTraceCheck | .java | Avoid using printStackTrace. |
 FactoryCheck | .java, .jsp, .jspf, .jspx, .tag, .tpl or .vm | Finds cases where `*Factory` should be used when creating new instances of an object. |
 FilterStringWhitespaceCheck | .java | Finds missing and unnecessary whitespace in the value of the filter string in `ServiceTrackerFactory.open` or `WaiterUtil.waitForFilter`. |
 [GenericTypeCheck](check/generic_type_check.markdown#generictypecheck) | .java, .jsp, .jspf, .jspx, .tag, .tpl or .vm | Checks that generics are always specified to provide compile-time checking and removing the risk of `ClassCastException` during runtime. |
@@ -157,6 +159,7 @@ PropertiesVerifyPropertiesCheck | .eslintignore, .prettierignore or .properties 
 ReferenceAnnotationCheck | .java | Performs several checks on classes with @Reference annotation. |
 [RequireThisCheck](https://checkstyle.sourceforge.io/config_coding.html#RequireThis) | .java | Checks that references to instance variables and methods of the present object are explicitly of the form 'this.varName' or 'this.methodName(args)' and that those references don't rely on the default behavior when 'this.' is absent. |
 [ResourceBundleCheck](check/resource_bundle_check.markdown#resourcebundlecheck) | .java, .jsp, .jspf, .jspx, .tag, .tpl or .vm | Checks that there are no calls to `java.util.ResourceBundle.getBundle`. |
+ResourceImplCheck | .java | Performs several checks on `*ResourceImpl` classes (except `Base*ResourceImpl` classes). |
 [SQLLongNamesCheck](check/sql_long_names_check.markdown#sqllongnamescheck) | .sql | Checks for table and column names that exceed 30 characters. |
 SelfReferenceCheck | .java | Finds cases of unnecessary reference to its own class. |
 [StaticBlockCheck](check/static_block_check.markdown#staticblockcheck) | .java | Performs several checks on static blocks. |

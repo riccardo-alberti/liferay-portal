@@ -14,6 +14,10 @@
 
 import {gql} from '@apollo/client';
 
+import {testrayBuildFragment} from '../fragments/testrayBuild';
+import {TestrayProject} from './testrayProject';
+import {TestrayRoutine} from './testrayRoutine';
+
 export type TestrayBuild = {
 	dateCreated: string;
 	description: string;
@@ -21,6 +25,8 @@ export type TestrayBuild = {
 	gitHash: string;
 	name: string;
 	promoted: boolean;
+	testrayProject?: TestrayProject;
+	testrayRoutine?: TestrayRoutine;
 };
 
 export const getTestrayBuilds = gql`
@@ -28,43 +34,39 @@ export const getTestrayBuilds = gql`
 		$filter: String
 		$page: Int = 1
 		$pageSize: Int = 20
-		$scopeKey: String
 	) {
-		c {
-			testrayBuilds(
-				filter: $filter
-				page: $page
-				pageSize: $pageSize
-				scopeKey: $scopeKey
+		testrayBuilds(filter: $filter, page: $page, pageSize: $pageSize)
+			@rest(
+				type: "C_TestrayBuild"
+				path: "testraybuilds?page={args.page}&pageSize={args.pageSize}&nestedFields=testrayProductVersion"
 			) {
-				items {
-					dateCreated
-					description
-					dueStatus
-					gitHash
-					name
-					promoted
-					testrayBuildId
-				}
-				lastPage
-				page
-				pageSize
-				totalCount
-			}
-		}
-	}
-`;
-
-export const getTestrayBuild = gql`
-	query getTestrayBuild($testrayBuildId: Long!) {
-		c {
-			testrayBuild(testrayBuildId: $testrayBuildId) {
+			items {
 				dateCreated
 				description
 				dueStatus
 				gitHash
 				name
 				promoted
+				testrayBuildId: id
+				testrayProductVersion: r_buildProductVersion_c_testrayProductVersion {
+					name
+				}
+			}
+			lastPage
+			page
+			pageSize
+			totalCount
+		}
+	}
+`;
+
+export const getTestrayBuild = gql`
+	${testrayBuildFragment}
+
+	query getTestrayBuild($testrayBuildId: Long!) {
+		c {
+			testrayBuild(testrayBuildId: $testrayBuildId) {
+				...TestrayBuildFragment
 			}
 		}
 	}

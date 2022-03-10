@@ -13,42 +13,79 @@
  * details.
  */
 
-import {Link} from 'react-router-dom';
-
 import {AvatarGroup} from '../../components/Avatar';
 import Container from '../../components/Layout/Container';
+import ListView from '../../components/ListView/ListView';
 import ProgressBar from '../../components/ProgressBar/';
-import Table from '../../components/Table';
-import {routines} from '../../util/mock';
+import StatusBadge from '../../components/StatusBadge';
+import {getTestrayTasks} from '../../graphql/queries/testrayTask';
+import i18n from '../../i18n';
+import {TEST_STATUS_LABEL} from '../../util/constants';
 
-const TestFlow = () => {
-	return (
-		<Container title="Tasks">
-			<Table
-				columns={[
+const TestFlow = () => (
+	<Container title={i18n.translate('tasks')}>
+		<ListView
+			query={getTestrayTasks}
+			tableProps={{
+				columns: [
 					{
-						key: 'status',
-						render: (value: string) => (
-							<Link
-								to={`/testflow/${value
-									.toLowerCase()
-									.replace(' ', '_')}`}
-							>
-								<span className="label label-inverse-secondary">
-									{value}
-								</span>
-							</Link>
+						clickable: true,
+						key: 'dueStatus',
+						render: (status: number) => (
+							<StatusBadge type="failed">
+								{TEST_STATUS_LABEL[status]}
+							</StatusBadge>
 						),
-						value: 'Status',
+						value: i18n.translate('status'),
 					},
-					{key: 'startDate', value: 'Start Date'},
-					{key: 'task', value: 'Task'},
-					{key: 'projectName', value: 'Project Name'},
-					{key: 'routineName', value: 'Routine Name'},
-					{key: 'buildName', value: 'Build Name'},
+					{
+						clickable: true,
+						key: 'dueDate',
+						render: (_, testrayTask) =>
+							testrayTask?.testrayBuild?.dueDate,
+						value: i18n.translate('start-date'),
+					},
+					{
+						clickable: true,
+						key: 'name',
+						size: 'sm',
+						value: i18n.translate('task'),
+					},
+					{
+						clickable: true,
+						key: 'projectName',
+						render: (_, testrayTask) => {
+							return testrayTask?.testrayBuild?.testrayProject
+								?.name;
+						},
+						value: i18n.translate('project-name'),
+					},
+					{
+						clickable: true,
+						key: 'routineName',
+						render: (_, testrayTask) => {
+							return testrayTask?.testrayBuild?.testrayRoutine
+								?.name;
+						},
+						value: i18n.translate('routine-name'),
+					},
+					{
+						clickable: true,
+						key: 'buildName',
+						render: (_, testrayTask) => {
+							return testrayTask?.testrayBuild?.name;
+						},
+						value: i18n.translate('build-name'),
+					},
 					{
 						key: 'score',
-						render: ({incomplete, other, self}: any) => {
+						render: (score: any) => {
+							if (!score) {
+								return;
+							}
+
+							const {incomplete, other, self} = score || {};
+
 							const total = self + other + incomplete;
 							const passed = self + other;
 
@@ -56,28 +93,32 @@ const TestFlow = () => {
 								(passed * 100) / total
 							)}%`;
 						},
-						value: 'Score',
+						value: i18n.translate('score'),
 					},
 					{
-						key: 'score',
-						render: (score: any) => <ProgressBar items={score} />,
-						value: 'Progress',
+						key: 'progress',
+						render: (progress: any) =>
+							progress && <ProgressBar items={progress} />,
+						size: 'sm',
+						value: i18n.translate('progress'),
 					},
 					{
 						key: 'assigned',
-						render: (assigned: any) => (
-							<AvatarGroup
-								assignedUsers={assigned}
-								groupSize={3}
-							/>
-						),
-						value: 'Assigned',
+						render: (assigned: any) =>
+							assigned && (
+								<AvatarGroup
+									assignedUsers={assigned}
+									groupSize={3}
+								/>
+							),
+						value: i18n.translate('assigned'),
 					},
-				]}
-				items={routines}
-			/>
-		</Container>
-	);
-};
+				],
+				navigateTo: (item) => `/testflow/${item.id}`,
+			}}
+			transformData={(data) => data?.testrayTasks || {}}
+		/>
+	</Container>
+);
 
 export default TestFlow;

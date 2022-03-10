@@ -11,6 +11,7 @@
 
 import ClayForm, {ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 import {useField} from 'formik';
 import {Badge} from '../..';
 import {required, validate} from '../../../utils/validations.form';
@@ -36,20 +37,18 @@ const Select = ({
 
 	const getStyleStatus = () => {
 		if (meta.touched) {
-			return meta.error ? ' has-error' : ' has-success';
+			return meta.error ? 'has-error' : 'has-success';
 		}
 
-		return '';
+		return;
 	};
 
 	return (
 		<ClayForm.Group
-			className={`w-100${getStyleStatus()} ${
-				groupStyle ? groupStyle : ''
-			}`}
+			className={classNames('w-100', getStyleStatus(), groupStyle)}
 		>
 			<label>
-				{`${label} `}
+				{label}
 
 				{props.required && (
 					<span className="inline-item-after reference-mark text-warning">
@@ -73,13 +72,19 @@ const Select = ({
 				</div>
 			</label>
 
-			{meta.touched && meta.error && props.required && (
-				<Badge>
-					<span className="pl-1">{meta.error}</span>
-				</Badge>
-			)}
+			{meta.touched &&
+				meta.error &&
+				props.required(
+					<Badge>
+						<span className="pl-1">{meta.error}</span>
+					</Badge>
+				)}
 
-			{helper && <div>{helper}</div>}
+			{helper && (
+				<div className="ml-3 pl-3 text-neutral-6 text-paragraph-sm">
+					{helper}
+				</div>
+			)}
 		</ClayForm.Group>
 	);
 };

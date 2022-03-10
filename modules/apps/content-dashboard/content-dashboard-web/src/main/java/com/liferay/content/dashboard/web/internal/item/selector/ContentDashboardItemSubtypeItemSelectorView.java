@@ -228,6 +228,26 @@ public class ContentDashboardItemSubtypeItemSelectorView
 				infoItemClassDetails.getClassName());
 
 		if (infoItemFormVariationsProvider == null) {
+			contentDashboardItemTypesJSONArray.put(
+				JSONUtil.put(
+					"entryClassName", className
+				).put(
+					"icon", _getIcon(className)
+				).put(
+					"itemSubtypes", JSONFactoryUtil.createJSONArray()
+				).put(
+					"label",
+					() -> {
+						InfoLocalizedValue<String>
+							infoItemClassDetailsLabelInfoLocalizedValue =
+								infoItemClassDetails.
+									getLabelInfoLocalizedValue();
+
+						return infoItemClassDetailsLabelInfoLocalizedValue.
+							getValue(themeDisplay.getLocale());
+					}
+				));
+
 			return;
 		}
 
@@ -274,6 +294,8 @@ public class ContentDashboardItemSubtypeItemSelectorView
 						"classPK",
 						String.valueOf(infoItemFormVariation.getKey())
 					).put(
+						"entryClassName", className
+					).put(
 						"label",
 						_getInfoItemFormVariationLabel(
 							infoItemFormVariation, themeDisplay.getLocale())
@@ -284,7 +306,7 @@ public class ContentDashboardItemSubtypeItemSelectorView
 					));
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 

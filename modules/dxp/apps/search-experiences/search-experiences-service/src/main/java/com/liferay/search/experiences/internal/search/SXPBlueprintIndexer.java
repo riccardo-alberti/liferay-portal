@@ -138,11 +138,15 @@ public class SXPBlueprintIndexer extends BaseIndexer<SXPBlueprint> {
 
 			String languageId = LocaleUtil.toLanguageId(locale);
 
+			document.addKeyword(
+				Field.getSortableFieldName(
+					LocalizationUtil.getLocalizedName(Field.TITLE, languageId)),
+				sxpBlueprint.getTitle(locale), true);
 			document.addText(
 				LocalizationUtil.getLocalizedName(
 					Field.DESCRIPTION, languageId),
 				sxpBlueprint.getDescription(locale));
-			document.addTextSortable(
+			document.addText(
 				LocalizationUtil.getLocalizedName(Field.TITLE, languageId),
 				sxpBlueprint.getTitle(locale));
 		}
@@ -196,7 +200,7 @@ public class SXPBlueprintIndexer extends BaseIndexer<SXPBlueprint> {
 				}
 				catch (PortalException portalException) {
 					if (_log.isWarnEnabled()) {
-						_log.warn(portalException, portalException);
+						_log.warn(portalException);
 					}
 				}
 			});

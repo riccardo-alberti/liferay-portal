@@ -20,7 +20,6 @@ import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
-import com.liferay.dynamic.data.mapping.form.web.internal.configuration.activator.FFSubmissionsSettingsConfigurationActivator;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormGuestUploadFieldUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormInstanceStagingUtil;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.util.DDMFormInstanceSubmissionLimitStatusUtil;
@@ -125,8 +124,6 @@ public class DDMFormDisplayContext {
 		DDMFormValuesMerger ddmFormValuesMerger,
 		DDMFormWebConfiguration ddmFormWebConfiguration,
 		DDMStorageAdapterTracker ddmStorageAdapterTracker,
-		FFSubmissionsSettingsConfigurationActivator
-			ffSubmissionsSettingsConfigurationActivator,
 		GroupLocalService groupLocalService, JSONFactory jsonFactory,
 		ObjectFieldLocalService objectFieldLocalService,
 		ObjectRelationshipLocalService objectRelationshipLocalService,
@@ -148,8 +145,6 @@ public class DDMFormDisplayContext {
 		_ddmFormValuesMerger = ddmFormValuesMerger;
 		_ddmFormWebConfiguration = ddmFormWebConfiguration;
 		_ddmStorageAdapterTracker = ddmStorageAdapterTracker;
-		_ffSubmissionsSettingsConfigurationActivator =
-			ffSubmissionsSettingsConfigurationActivator;
 		_groupLocalService = groupLocalService;
 		_jsonFactory = jsonFactory;
 		_objectFieldLocalService = objectFieldLocalService;
@@ -349,7 +344,7 @@ public class DDMFormDisplayContext {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return null;
@@ -385,7 +380,7 @@ public class DDMFormDisplayContext {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -517,7 +512,7 @@ public class DDMFormDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -565,11 +560,6 @@ public class DDMFormDisplayContext {
 		}
 
 		return _autosaveEnabled;
-	}
-
-	public boolean isExpirationDateEnabled() {
-		return _ffSubmissionsSettingsConfigurationActivator.
-			expirationDateEnabled();
 	}
 
 	public boolean isFormAvailable() throws PortalException {
@@ -1067,7 +1057,7 @@ public class DDMFormDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return StringPool.BLANK;
@@ -1133,8 +1123,6 @@ public class DDMFormDisplayContext {
 	private final DDMFormValuesMerger _ddmFormValuesMerger;
 	private final DDMFormWebConfiguration _ddmFormWebConfiguration;
 	private final DDMStorageAdapterTracker _ddmStorageAdapterTracker;
-	private final FFSubmissionsSettingsConfigurationActivator
-		_ffSubmissionsSettingsConfigurationActivator;
 	private final GroupLocalService _groupLocalService;
 	private Boolean _hasAddFormInstanceRecordPermission;
 	private Boolean _hasViewPermission;

@@ -19,20 +19,17 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.content.dashboard.item.action.ContentDashboardItemAction;
 import com.liferay.content.dashboard.item.action.exception.ContentDashboardItemActionException;
 import com.liferay.content.dashboard.item.action.provider.ContentDashboardItemActionProvider;
+import com.liferay.content.dashboard.web.internal.info.item.provider.util.InfoItemFieldValuesProviderUtil;
 import com.liferay.content.dashboard.web.internal.item.action.ContentDashboardItemActionProviderTracker;
 import com.liferay.content.dashboard.web.internal.item.type.ContentDashboardItemSubtype;
 import com.liferay.content.dashboard.web.internal.util.ContentDashboardGroupUtil;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.util.DLURLHelper;
-import com.liferay.info.field.InfoFieldValue;
 import com.liferay.info.item.InfoItemClassDetails;
-import com.liferay.info.item.InfoItemFieldValues;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -43,6 +40,7 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -51,7 +49,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -69,7 +66,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author Alejandro Tardín
  */
 public class FileEntryContentDashboardItem
-	extends BaseContentDashboardItem<FileEntry> {
+	implements ContentDashboardItem<FileEntry> {
 
 	public FileEntryContentDashboardItem(
 		List<AssetCategory> assetCategories, List<AssetTag> assetTags,
@@ -130,15 +127,12 @@ public class FileEntryContentDashboardItem
 
 	@Override
 	public List<Locale> getAvailableLocales() {
-		try {
-			return Arrays.asList(
-				_portal.getSiteDefaultLocale(_fileEntry.getGroupId()));
-		}
-		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+		return Collections.emptyList();
+	}
 
-			return Collections.emptyList();
-		}
+	@Override
+	public Clipboard getClipboard() {
+		return new Clipboard(_getFileName(), _getClipboardURL());
 	}
 
 	@Override
@@ -166,9 +160,7 @@ public class FileEntryContentDashboardItem
 				catch (ContentDashboardItemActionException
 							contentDashboardItemActionException) {
 
-					_log.error(
-						contentDashboardItemActionException,
-						contentDashboardItemActionException);
+					_log.error(contentDashboardItemActionException);
 				}
 
 				return Optional.<ContentDashboardItemAction>empty();
@@ -190,11 +182,6 @@ public class FileEntryContentDashboardItem
 	@Override
 	public Date getCreateDate() {
 		return _fileEntry.getCreateDate();
-	}
-
-	@Override
-	public Map<String, Object> getData(Locale locale) {
-		return Collections.emptyMap();
 	}
 
 	@Override
@@ -268,33 +255,16 @@ public class FileEntryContentDashboardItem
 			return _portal.getSiteDefaultLocale(_fileEntry.getGroupId());
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return LocaleUtil.getDefault();
 		}
 	}
 
 	@Override
-	public Object getDisplayFieldValue(String fieldName, Locale locale) {
-		InfoFieldValue<Object> infoFieldValue =
-			_infoItemFieldValuesProvider.getInfoFieldValue(
-				_fileEntry, fieldName);
-
-		if (infoFieldValue == null) {
-			return null;
-		}
-
-		return infoFieldValue.getValue(locale);
-	}
-
-	@Override
-	public FileEntry getInfoItem() {
-		return _fileEntry;
-	}
-
-	@Override
-	public InfoItemFieldValuesProvider getInfoItemFieldValuesProvider() {
-		return _infoItemFieldValuesProvider;
+	public String getDescription(Locale locale) {
+		return InfoItemFieldValuesProviderUtil.getStringValue(
+			_fileEntry, _infoItemFieldValuesProvider, "description");
 	}
 
 	@Override
@@ -306,6 +276,11 @@ public class FileEntryContentDashboardItem
 	@Override
 	public Date getModifiedDate() {
 		return _fileEntry.getModifiedDate();
+	}
+
+	public Preview getPreview() {
+		return new Preview(
+			_getDownloadURL(), _getPreviewImageURL(), _getViewURL());
 	}
 
 	@Override
@@ -320,24 +295,12 @@ public class FileEntryContentDashboardItem
 	}
 
 	@Override
-	public JSONObject getSpecificInformationJSONObject(Locale locale) {
-		return JSONUtil.put(
-			"description", getDescription(locale)
-		).put(
-			"downloadURL", _getDownloadURL()
-		).put(
+	public Map<String, Object> getSpecificInformation(Locale locale) {
+		return HashMapBuilder.<String, Object>put(
 			"extension", _getExtension()
 		).put(
-			"fileName", _getFileName()
-		).put(
-			"previewImageURL", _getPreviewImageURL()
-		).put(
-			"previewURL", _getPreviewURL()
-		).put(
 			"size", _getSize(locale)
-		).put(
-			"viewURL", _getViewURL()
-		);
+		).build();
 	}
 
 	@Override
@@ -393,7 +356,7 @@ public class FileEntryContentDashboardItem
 			);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 
 			return Collections.emptyList();
 		}
@@ -424,36 +387,62 @@ public class FileEntryContentDashboardItem
 		);
 	}
 
+	private String _getClipboardURL() {
+		return Optional.ofNullable(
+			ServiceContextThreadLocal.getServiceContext()
+		).map(
+			ServiceContext::getLiferayPortletRequest
+		).map(
+			portletRequest -> {
+				List<ContentDashboardItemAction> contentDashboardItemActions =
+					getContentDashboardItemActions(
+						_portal.getHttpServletRequest(portletRequest),
+						ContentDashboardItemAction.Type.PREVIEW);
+
+				if (!contentDashboardItemActions.isEmpty()) {
+					ContentDashboardItemAction contentDashboardItemAction =
+						contentDashboardItemActions.get(0);
+
+					return contentDashboardItemAction.getURL();
+				}
+
+				return null;
+			}
+		).orElse(
+			null
+		);
+	}
+
 	private String _getDownloadURL() {
-		InfoItemFieldValues infoItemFieldValues =
-			_infoItemFieldValuesProvider.getInfoItemFieldValues(_fileEntry);
+		return Optional.ofNullable(
+			ServiceContextThreadLocal.getServiceContext()
+		).map(
+			ServiceContext::getLiferayPortletRequest
+		).map(
+			portletRequest -> {
+				List<ContentDashboardItemAction> contentDashboardItemActions =
+					getContentDashboardItemActions(
+						_portal.getHttpServletRequest(portletRequest),
+						ContentDashboardItemAction.Type.DOWNLOAD);
 
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue("downloadURL");
+				if (!contentDashboardItemActions.isEmpty()) {
+					ContentDashboardItemAction contentDashboardItemAction =
+						contentDashboardItemActions.get(0);
 
-		if (infoFieldValue == null) {
-			return StringPool.BLANK;
-		}
+					return contentDashboardItemAction.getURL();
+				}
 
-		Object downloadURL = infoFieldValue.getValue();
-
-		return downloadURL.toString();
+				return null;
+			}
+		).orElse(
+			null
+		);
 	}
 
 	private String _getExtension() {
-		InfoItemFieldValues infoItemFieldValues =
-			_infoItemFieldValuesProvider.getInfoItemFieldValues(_fileEntry);
-
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue("fileName");
-
-		if (infoFieldValue == null) {
-			return StringPool.BLANK;
-		}
-
-		Object fileName = infoFieldValue.getValue();
-
-		return FileUtil.getExtension(fileName.toString());
+		return FileUtil.getExtension(
+			InfoItemFieldValuesProviderUtil.getStringValue(
+				_fileEntry, _infoItemFieldValuesProvider, "fileName"));
 	}
 
 	private String _getFileName() {
@@ -467,31 +456,30 @@ public class FileEntryContentDashboardItem
 	}
 
 	private String _getPreviewImageURL() {
-		InfoItemFieldValues infoItemFieldValues =
-			_infoItemFieldValuesProvider.getInfoItemFieldValues(_fileEntry);
+		return Optional.ofNullable(
+			ServiceContextThreadLocal.getServiceContext()
+		).map(
+			ServiceContext::getLiferayPortletRequest
+		).map(
+			portletRequest -> {
+				List<ContentDashboardItemAction> contentDashboardItemActions =
+					getContentDashboardItemActions(
+						_portal.getHttpServletRequest(portletRequest),
+						ContentDashboardItemAction.Type.PREVIEW_IMAGE);
 
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue("previewImage");
+				Stream<ContentDashboardItemAction> stream =
+					contentDashboardItemActions.stream();
 
-		if (infoFieldValue == null) {
-			return StringPool.BLANK;
-		}
-
-		return String.valueOf(infoFieldValue.getValue());
-	}
-
-	private String _getPreviewURL() {
-		InfoItemFieldValues infoItemFieldValues =
-			_infoItemFieldValuesProvider.getInfoItemFieldValues(_fileEntry);
-
-		InfoFieldValue<Object> infoFieldValue =
-			infoItemFieldValues.getInfoFieldValue("previewURL");
-
-		if (infoFieldValue == null) {
-			return StringPool.BLANK;
-		}
-
-		return String.valueOf(infoFieldValue.getValue());
+				return stream.findAny(
+				).map(
+					ContentDashboardItemAction::getURL
+				).orElse(
+					null
+				);
+			}
+		).orElse(
+			null
+		);
 	}
 
 	private String _getSize(Locale locale) {
@@ -518,7 +506,7 @@ public class FileEntryContentDashboardItem
 						portletNamespace + "redirect", backURL);
 				}
 				catch (PortalException portalException) {
-					_log.error(portalException, portalException);
+					_log.error(portalException);
 
 					return null;
 				}
@@ -539,9 +527,7 @@ public class FileEntryContentDashboardItem
 		catch (ContentDashboardItemActionException
 					contentDashboardItemActionException) {
 
-			_log.error(
-				contentDashboardItemActionException,
-				contentDashboardItemActionException);
+			_log.error(contentDashboardItemActionException);
 
 			return null;
 		}

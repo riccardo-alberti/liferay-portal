@@ -13,24 +13,21 @@
  */
 
 import ClayIcon from '@clayui/icon';
-import {Link} from 'react-router-dom';
 
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
 import {getTestrayRequirements} from '../../../graphql/queries';
-import {Liferay} from '../../../services/liferay/liferay';
+import i18n from '../../../i18n';
 
 const Requirements = () => (
-	<Container title="Requirements">
+	<Container title={i18n.translate('requirements')}>
 		<ListView
 			query={getTestrayRequirements}
 			tableProps={{
 				columns: [
 					{
+						clickable: true,
 						key: 'key',
-						render: (key: string, {testrayRequirementId}: any) => (
-							<Link to={`${testrayRequirementId}`}>{key}</Link>
-						),
 						value: 'Key',
 					},
 					{
@@ -51,15 +48,21 @@ const Requirements = () => (
 						),
 						value: 'Link',
 					},
-					{key: 'team', value: 'Team'},
-					{key: 'component', value: 'Component'},
-					{key: 'components', value: 'Jira Components'},
-					{key: 'summary', value: 'Summary'},
-					{key: 'description', value: 'Description'},
+					{key: 'team', value: i18n.translate('team')},
+					{key: 'component', value: i18n.translate('component')},
+					{
+						key: 'components',
+						value: i18n.translate('jira-components'),
+					},
+					{
+						key: 'summary',
+						size: 'md',
+						value: i18n.translate('summary'),
+					},
 				],
+				navigateTo: ({id}) => id?.toString(),
 			}}
 			transformData={(data) => data?.c?.testrayRequirements}
-			variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
 		/>
 	</Container>
 );

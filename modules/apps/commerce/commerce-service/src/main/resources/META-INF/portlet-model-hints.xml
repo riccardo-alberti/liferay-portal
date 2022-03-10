@@ -102,6 +102,18 @@
 		<field name="purchaseOrderNumber" type="String" />
 		<field name="couponCode" type="String" />
 		<field name="lastPriceUpdateDate" type="Date" />
+		<field name="deliveryCommerceTermEntryId" type="long" />
+		<field name="deliveryCommerceTermEntryDescription" type="String">
+			<hint-collection name="CLOB" />
+			<sanitize content-type="text/plain" modes="ALL" />
+		</field>
+		<field name="deliveryCommerceTermEntryName" type="String" />
+		<field name="paymentCommerceTermEntryId" type="long" />
+		<field name="paymentCommerceTermEntryDescription" type="String">
+			<hint-collection name="CLOB" />
+			<sanitize content-type="text/plain" modes="ALL" />
+		</field>
+		<field name="paymentCommerceTermEntryName" type="String" />
 		<field name="subtotal" type="BigDecimal" />
 		<field name="subtotalDiscountAmount" type="BigDecimal" />
 		<field name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
@@ -288,6 +300,7 @@
 	</model>
 	<model name="com.liferay.commerce.model.CommerceShipment">
 		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="commerceShipmentId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -309,6 +322,7 @@
 	</model>
 	<model name="com.liferay.commerce.model.CommerceShipmentItem">
 		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="commerceShipmentItemId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />

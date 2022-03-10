@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -88,7 +89,9 @@ public class TermResourceTest extends BaseTermResourceTestCase {
 				id = RandomTestUtil.nextLong();
 				label = LanguageUtils.getLanguageIdMap(
 					RandomTestUtil.randomLocaleStringMap());
-				name = RandomTestUtil.randomString();
+				name = FriendlyURLNormalizerUtil.normalize(
+					RandomTestUtil.randomString());
+				priority = RandomTestUtil.randomDouble();
 				type = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
 		};
@@ -184,6 +187,7 @@ public class TermResourceTest extends BaseTermResourceTestCase {
 				id = commerceTermEntry.getCommerceTermEntryId();
 				label = commerceTermEntry.getLanguageIdToLabelMap();
 				name = commerceTermEntry.getName();
+				priority = commerceTermEntry.getPriority();
 				type = commerceTermEntry.getType();
 			}
 		};

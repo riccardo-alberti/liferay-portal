@@ -343,6 +343,14 @@ definition {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
+		if ("${portlet}" == "AWS Translator") {
+			var portletId = "com.liferay.translation.translator.aws.internal.configuration.AWSTranslatorConfiguration";
+		}
+
+		if ("${portlet}" == "Azure Translator") {
+			var portletId = "com.liferay.translation.translator.azure.internal.configuration.AzureTranslatorConfiguration";
+		}
+
 		if ("${portlet}" == "File Entries") {
 			var portletId = "com.liferay.document.library.configuration.DLFileEntryConfiguration";
 		}
@@ -357,6 +365,14 @@ definition {
 
 		if ("${portlet}" == "Google Cloud Translator") {
 			var portletId = "com.liferay.translation.translator.google.cloud.internal.configuration.GoogleCloudTranslatorConfiguration";
+		}
+
+		if ("${portlet}" == "Google Drive") {
+			var portletId = "com.liferay.document.library.google.drive.configuration.DLGoogleDriveCompanyConfiguration";
+		}
+
+		if ("${portlet}" == "One Drive") {
+			var portletId = "com.liferay.document.library.opener.onedrive.web.internal.configuration.DLOneDriveCompanyConfiguration";
 		}
 
 		if ("${portlet}" == "Service") {

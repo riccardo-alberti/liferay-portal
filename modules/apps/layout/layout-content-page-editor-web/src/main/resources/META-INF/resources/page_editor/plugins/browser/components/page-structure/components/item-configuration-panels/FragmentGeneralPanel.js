@@ -17,14 +17,15 @@ import React, {useCallback} from 'react';
 
 import {COMMON_STYLES_ROLES} from '../../../../../../app/config/constants/commonStylesRoles';
 import {FRAGMENT_CONFIGURATION_ROLES} from '../../../../../../app/config/constants/fragmentConfigurationRoles';
-import {FREEMARKER_FRAGMENT_ENTRY_PROCESSOR} from '../../../../../../app/config/constants/freemarkerFragmentEntryProcessor';
 import {VIEWPORT_SIZES} from '../../../../../../app/config/constants/viewportSizes';
+import {config} from '../../../../../../app/config/index';
 import {
 	useDispatch,
 	useSelector,
 	useSelectorCallback,
 } from '../../../../../../app/contexts/StoreContext';
 import selectLanguageId from '../../../../../../app/selectors/selectLanguageId';
+import getFragmentConfigurationValues from '../../../../../../app/utils/getFragmentConfigurationValues';
 import {getResponsiveConfig} from '../../../../../../app/utils/getResponsiveConfig';
 import updateConfigurationValue from '../../../../../../app/utils/updateConfigurationValue';
 import {getLayoutDataItemPropTypes} from '../../../../../../prop-types/index';
@@ -47,11 +48,11 @@ export function FragmentGeneralPanel({item}) {
 
 	const fieldSets = fragmentEntryLink.configuration?.fieldSets.filter(
 		(fieldSet) =>
-			fieldSet.configurationRole !== FRAGMENT_CONFIGURATION_ROLES.style
+			config.fragmentAdvancedOptionsEnabled
+				? !fieldSet.configurationRole
+				: fieldSet.configurationRole !==
+				  FRAGMENT_CONFIGURATION_ROLES.style
 	);
-
-	const defaultConfigurationValues =
-		fragmentEntryLink.defaultConfigurationValues;
 
 	const itemConfig = getResponsiveConfig(item.config, selectedViewportSize);
 
@@ -71,31 +72,28 @@ export function FragmentGeneralPanel({item}) {
 
 	return (
 		<>
+			{selectedViewportSize === VIEWPORT_SIZES.desktop &&
+				fieldSets.map((fieldSet, index) => {
+					return (
+						<div className="mb-1" key={index}>
+							<FieldSet
+								fields={fieldSet.fields}
+								label={fieldSet.label}
+								languageId={languageId}
+								onValueSelect={onValueSelect}
+								values={getFragmentConfigurationValues(
+									fragmentEntryLink
+								)}
+							/>
+						</div>
+					);
+				})}
+
 			<CommonStyles
 				commonStylesValues={itemConfig.styles}
 				item={item}
 				role={COMMON_STYLES_ROLES.general}
 			/>
-
-			{selectedViewportSize === VIEWPORT_SIZES.desktop && (
-				<div className="page-editor__item-general-configuration">
-					{fieldSets.map((fieldSet, index) => {
-						return (
-							<FieldSet
-								fields={fieldSet.fields}
-								key={index}
-								label={fieldSet.label}
-								languageId={languageId}
-								onValueSelect={onValueSelect}
-								values={getConfigurationValues(
-									defaultConfigurationValues,
-									fragmentEntryLink
-								)}
-							/>
-						);
-					})}
-				</div>
-			)}
 		</>
 	);
 }
@@ -107,12 +105,3 @@ FragmentGeneralPanel.propTypes = {
 		}).isRequired,
 	}),
 };
-
-function getConfigurationValues(defaultConfigurationValues, fragmentEntryLink) {
-	return {
-		...defaultConfigurationValues,
-		...(fragmentEntryLink.editableValues[
-			FREEMARKER_FRAGMENT_ENTRY_PROCESSOR
-		] || {}),
-	};
-}

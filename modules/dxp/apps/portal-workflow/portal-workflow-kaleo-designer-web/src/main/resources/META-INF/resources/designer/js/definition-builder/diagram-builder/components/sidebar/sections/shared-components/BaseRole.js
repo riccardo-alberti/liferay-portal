@@ -69,20 +69,15 @@ export default function BaseRole({
 	const handleItemClick = (item) => {
 		setFieldValues({id: item.id, name: item.name});
 		setActive(false);
-		if (updateSelectedItem) {
-			updateSelectedItem(item);
-		}
+
+		updateSelectedItem(item);
 	};
 
 	return (
 		<>
 			<ClayForm.Group>
 				<ClayAutocomplete>
-					<label htmlFor="role-name">
-						{selectLabel}
-
-						<span className="ml-1 mr-1 text-warning">*</span>
-					</label>
+					<label htmlFor="role-name">{selectLabel}</label>
 
 					<ClayAutocomplete.Input
 						autoComplete="off"

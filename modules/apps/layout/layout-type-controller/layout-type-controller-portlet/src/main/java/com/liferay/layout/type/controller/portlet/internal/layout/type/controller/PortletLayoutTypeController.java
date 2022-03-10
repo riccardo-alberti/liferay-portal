@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.service.PortletLocalService;
-import com.liferay.portal.kernel.servlet.DirectRequestDispatcherFactoryUtil;
+import com.liferay.portal.kernel.servlet.DirectRequestDispatcherFactory;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.servlet.TransferHeadersHelperUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -67,7 +67,7 @@ public class PortletLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 		RequestDispatcher requestDispatcher =
 			TransferHeadersHelperUtil.getTransferHeadersRequestDispatcher(
-				DirectRequestDispatcherFactoryUtil.getRequestDispatcher(
+				_directRequestDispatcherFactory.getRequestDispatcher(
 					servletContext, getEditPage()));
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
@@ -88,7 +88,7 @@ public class PortletLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 		RequestDispatcher requestDispatcher =
 			TransferHeadersHelperUtil.getTransferHeadersRequestDispatcher(
-				DirectRequestDispatcherFactoryUtil.getRequestDispatcher(
+				_directRequestDispatcherFactory.getRequestDispatcher(
 					servletContext, getViewPage()));
 
 		HttpServletRequest originalHttpServletRequest =
@@ -169,22 +169,6 @@ public class PortletLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			httpServletResponse, unsyncStringWriter);
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #createServletResponse(HttpServletResponse,
-	 *             UnsyncStringWriter)}
-	 */
-	@Deprecated
-	@Override
-	protected ServletResponse createServletResponse(
-		HttpServletResponse httpServletResponse,
-		com.liferay.portal.kernel.io.unsync.UnsyncStringWriter
-			unsyncStringWriter) {
-
-		return new PipingServletResponse(
-			httpServletResponse, unsyncStringWriter);
-	}
-
 	@Override
 	protected String getEditPage() {
 		return _EDIT_PAGE;
@@ -210,6 +194,9 @@ public class PortletLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			"p_v_l_s_g_id=${liferay:pvlsgid}";
 
 	private static final String _VIEW_PAGE = "/layout/view/portlet.jsp";
+
+	@Reference
+	private DirectRequestDispatcherFactory _directRequestDispatcherFactory;
 
 	@Reference
 	private LayoutPageTemplateEntryLocalService

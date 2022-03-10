@@ -12,40 +12,35 @@
  * details.
  */
 
-import {Link} from 'react-router-dom';
-
 import Container from '../../components/Layout/Container';
 import ListView from '../../components/ListView/ListView';
 import {initialState} from '../../context/HeaderContext';
 import {getTestrayProjects} from '../../graphql/queries';
 import useHeader from '../../hooks/useHeader';
-import {Liferay} from '../../services/liferay/liferay';
+import i18n from '../../i18n';
 
 const Home = () => {
 	useHeader({useHeading: initialState.heading});
 
 	return (
-		<Container title="Projects">
+		<Container title={i18n.translate('projects')}>
 			<ListView
 				query={getTestrayProjects}
 				tableProps={{
 					columns: [
 						{
+							clickable: true,
 							key: 'name',
-							render: (value: string, item: any) => (
-								<Link
-									to={`/project/${item.testrayProjectId}/routines`}
-								>
-									{value}
-								</Link>
-							),
-							value: 'Project',
+							value: i18n.translate('project'),
 						},
-						{key: 'description', value: 'Description'},
+						{
+							key: 'description',
+							value: i18n.translate('description'),
+						},
 					],
+					navigateTo: (project) => `/project/${project.id}/routines`,
 				}}
 				transformData={(data) => data?.c?.testrayProjects}
-				variables={{scopeKey: Liferay.ThemeDisplay.getSiteGroupId()}}
 			/>
 		</Container>
 	);

@@ -65,7 +65,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/search_results/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.CP_SEARCH_RESULTS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -97,7 +98,7 @@ public class CPSearchResultsPortlet extends MVCPortlet {
 				CPContentWebKeys.CP_CONTENT_HELPER, _cpContentHelper);
 		}
 		catch (ConfigurationException configurationException) {
-			_log.error(configurationException, configurationException);
+			_log.error(configurationException);
 		}
 
 		super.render(renderRequest, renderResponse);

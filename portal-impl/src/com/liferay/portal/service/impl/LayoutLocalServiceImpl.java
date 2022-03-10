@@ -422,10 +422,8 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 
 		// Draft layout
 
-		if (!system &&
-			(Objects.equals(type, LayoutConstants.TYPE_COLLECTION) ||
-			 Objects.equals(type, LayoutConstants.TYPE_CONTENT) ||
-			 layout.isTypeAssetDisplay())) {
+		if (!layout.isDraftLayout() &&
+			(layout.isTypeAssetDisplay() || layout.isTypeContent())) {
 
 			serviceContext.setModifiedDate(date);
 
@@ -2250,7 +2248,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchLayoutException, noSuchLayoutException);
+				_log.debug(noSuchLayoutException);
 			}
 		}
 
@@ -3631,7 +3629,7 @@ public class LayoutLocalServiceImpl extends LayoutLocalServiceBaseImpl {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchLayoutException, noSuchLayoutException);
+					_log.debug(noSuchLayoutException);
 				}
 			}
 		}

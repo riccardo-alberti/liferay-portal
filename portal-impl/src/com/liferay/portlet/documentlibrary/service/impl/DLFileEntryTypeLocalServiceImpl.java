@@ -621,7 +621,7 @@ public class DLFileEntryTypeLocalServiceImpl
 
 		return _dlFileEntryLocalService.updateFileEntry(
 			serviceContext.getUserId(), dlFileEntry.getFileEntryId(), null,
-			null, null, null, null,
+			null, null, null, null, null,
 			DLVersionNumberIncrease.fromMajorVersion(false),
 			getDefaultFileEntryTypeId(folderId), null, null, null, 0, null,
 			null, serviceContext);
@@ -1059,8 +1059,7 @@ public class DLFileEntryTypeLocalServiceImpl
 		}
 		catch (StructureDefinitionException structureDefinitionException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(
-					structureDefinitionException, structureDefinitionException);
+				_log.warn(structureDefinitionException);
 			}
 
 			if (ddmStructure != null) {

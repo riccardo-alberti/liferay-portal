@@ -94,7 +94,7 @@ public class PublishLayoutPageTemplateEntryMVCActionCommandTest {
 				layoutPageTemplateCollection.
 					getLayoutPageTemplateCollectionId(),
 				RandomTestUtil.randomString(),
-				LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT,
+				LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT, 0,
 				WorkflowConstants.STATUS_DRAFT, _serviceContext);
 
 		Layout layout = _layoutLocalService.fetchLayout(
@@ -157,7 +157,7 @@ public class PublishLayoutPageTemplateEntryMVCActionCommandTest {
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
-					_group.getGroupId(), layout.getPlid(), true);
+					_group.getGroupId(), layout.getPlid());
 
 		return LayoutStructure.of(layoutPageTemplateStructure.getData(0));
 	}

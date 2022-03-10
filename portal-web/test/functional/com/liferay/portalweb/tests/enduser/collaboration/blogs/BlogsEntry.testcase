@@ -1,6 +1,7 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Blogs";
@@ -351,7 +352,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanAddWithEmbeddedVideo {
-		property portal.acceptance = "true";
 		property testray.component.names = "WYSIWYG";
 
 		JSONLayout.addPublicLayout(
@@ -647,8 +647,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanDeleteMultipleEntriesSequentially {
-		property portal.acceptance = "true";
-
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
@@ -812,8 +810,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanManuallySaveAsDraft {
-		property portal.acceptance = "true";
-
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
 
 		Blogs.addDraft(
@@ -917,6 +913,36 @@ definition {
 		BlogsEntry.viewDefaultCP(entryTitle = "");
 	}
 
+	@description = "This is a test for LPS-147320. It checks that Javascript cannot be executed in the code view."
+	@priority = "4"
+	test CannotExecuteXSSInCodeView {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
+
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addEntryContentViaCodeView(entryContent = '''<p><img src="xss" onerror="alert(1)" /></p>''');
+
+		Button.clickPublish();
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		AssertAlertNotPresent();
+	}
+
 	@description = "This is a test for LPS-136764. It checks that Javascript cannot be executed in the content field."
 	@priority = "3"
 	test CannotExecuteXSSInContent {
@@ -1007,6 +1033,43 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		AssertAlertNotPresent();
+	}
+
+	@description = "This is a use case for LPS-82204. View blogs entry with XSS custom abstract."
+	@priority = "5"
+	test CannotExecuteXSSInCustomAbstractViaAP {
+		property testray.component.names = "Security";
+
+		var entryAbstractDescription = '''<script>alert(123)</script>''';
+		var key_entryAbstractDescription = "${entryAbstractDescription}";
+
+		task ("Add public layout") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Blogs Page");
+		}
+
+		task ("Add page") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Blogs Page",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Add custom abstract") {
+			JSONBlog.addEntry(
+				entryAbstractDescription = "${entryAbstractDescription}",
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title");
+		}
+
+		task ("Assert abstract added successfully") {
+			Navigator.gotoPage(pageName = "Blogs Page");
+
+			AssertAlertNotPresent();
+
+			Blogs.viewContentAbstractDescription(descriptionValue = "${entryAbstractDescription}");
+		}
 	}
 
 	@description = "This is a test for LPS-136788. It checks that a user cannot rate a post when it is disabled in the configuration."
@@ -1188,12 +1251,12 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		BlogsEntry.viewAbstractDisplay(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsNavigator.gotoEntryWithAbstractPG(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsEntry.viewEntryPG(

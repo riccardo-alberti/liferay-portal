@@ -14,6 +14,8 @@
 
 package com.liferay.object.service.impl;
 
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.exception.ObjectDefinitionStatusException;
 import com.liferay.object.exception.ObjectFieldBusinessTypeException;
 import com.liferay.object.exception.ObjectFieldDBTypeException;
@@ -25,15 +27,24 @@ import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeServicesTracker;
 import com.liferay.object.internal.petra.sql.dsl.DynamicObjectDefinitionTable;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectFieldSetting;
+import com.liferay.object.service.ObjectFieldSettingLocalService;
+import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.object.service.base.ObjectFieldLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
+import com.liferay.object.service.persistence.ObjectEntryPersistence;
+import com.liferay.object.service.persistence.ObjectFieldSettingPersistence;
 import com.liferay.object.service.persistence.ObjectLayoutColumnPersistence;
 import com.liferay.object.service.persistence.ObjectViewColumnPersistence;
 import com.liferay.object.service.persistence.ObjectViewPersistence;
+import com.liferay.object.service.persistence.ObjectViewSortColumnPersistence;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
@@ -46,6 +57,8 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.io.Serializable;
 
 import java.util.List;
 import java.util.Locale;
@@ -73,7 +86,8 @@ public class ObjectFieldLocalServiceImpl
 			long userId, long listTypeDefinitionId, long objectDefinitionId,
 			String businessType, String dbType, boolean indexed,
 			boolean indexedAsKeyword, String indexedLanguageId,
-			Map<Locale, String> labelMap, String name, boolean required)
+			Map<Locale, String> labelMap, String name, boolean required,
+			List<ObjectFieldSetting> objectFieldSettings)
 		throws PortalException {
 
 		name = StringUtil.trim(name);
@@ -96,6 +110,13 @@ public class ObjectFieldLocalServiceImpl
 			runSQL(
 				DynamicObjectDefinitionTable.getAlterTableAddColumnSQL(
 					dbTableName, objectField.getDBColumnName(), dbType));
+		}
+
+		for (ObjectFieldSetting objectFieldSetting : objectFieldSettings) {
+			_objectFieldSettingLocalService.addObjectFieldSetting(
+				userId, objectField.getObjectFieldId(),
+				objectFieldSetting.getName(), objectFieldSetting.isRequired(),
+				objectFieldSetting.getValue());
 		}
 
 		return objectField;
@@ -174,6 +195,19 @@ public class ObjectFieldLocalServiceImpl
 	}
 
 	@Override
+	public ObjectField getObjectField(long objectFieldId)
+		throws PortalException {
+
+		ObjectField objectField = objectFieldPersistence.findByPrimaryKey(
+			objectFieldId);
+
+		objectField.setObjectFieldSettings(
+			_objectFieldSettingPersistence.findByObjectFieldId(objectFieldId));
+
+		return objectField;
+	}
+
+	@Override
 	public ObjectField getObjectField(long objectDefinitionId, String name)
 		throws PortalException {
 
@@ -214,7 +248,7 @@ public class ObjectFieldLocalServiceImpl
 			long objectFieldId, long listTypeDefinitionId, String businessType,
 			String dbType, boolean indexed, boolean indexedAsKeyword,
 			String indexedLanguageId, Map<Locale, String> labelMap, String name,
-			boolean required)
+			boolean required, List<ObjectFieldSetting> objectFieldSettings)
 		throws PortalException {
 
 		ObjectField objectField = objectFieldPersistence.findByPrimaryKey(
@@ -261,7 +295,13 @@ public class ObjectFieldLocalServiceImpl
 		objectField.setName(name);
 		objectField.setRequired(required);
 
-		return objectFieldPersistence.update(objectField);
+		objectField = objectFieldPersistence.update(objectField);
+
+		_addObjectFieldSettings(
+			objectField.getUserId(), objectField.getObjectFieldId(),
+			objectFieldSettings);
+
+		return objectField;
 	}
 
 	private ObjectField _addObjectField(
@@ -305,6 +345,80 @@ public class ObjectFieldLocalServiceImpl
 		return objectFieldPersistence.update(objectField);
 	}
 
+	private void _addObjectFieldSettings(
+			long userId, long objectFieldId,
+			List<ObjectFieldSetting> newObjectFieldSettings)
+		throws PortalException {
+
+		List<ObjectFieldSetting> oldObjectFieldSettings =
+			_objectFieldSettingPersistence.findByObjectFieldId(objectFieldId);
+
+		for (ObjectFieldSetting oldObjectFieldSetting :
+				oldObjectFieldSettings) {
+
+			boolean removeOldObjectFieldSetting = true;
+
+			for (ObjectFieldSetting newObjectFieldSetting :
+					newObjectFieldSettings) {
+
+				if (Objects.equals(
+						newObjectFieldSetting.getName(),
+						oldObjectFieldSetting.getName())) {
+
+					removeOldObjectFieldSetting = false;
+
+					break;
+				}
+			}
+
+			if (removeOldObjectFieldSetting) {
+				_objectFieldSettingPersistence.remove(oldObjectFieldSetting);
+			}
+		}
+
+		for (ObjectFieldSetting newObjectFieldSetting :
+				newObjectFieldSettings) {
+
+			ObjectFieldSetting oldObjectFieldSetting =
+				_objectFieldSettingPersistence.fetchByOFI_N(
+					objectFieldId, newObjectFieldSetting.getName());
+
+			if (oldObjectFieldSetting == null) {
+				_objectFieldSettingLocalService.addObjectFieldSetting(
+					userId, objectFieldId, newObjectFieldSetting.getName(),
+					newObjectFieldSetting.isRequired(),
+					newObjectFieldSetting.getValue());
+			}
+			else {
+				_objectFieldSettingLocalService.updateObjectFieldSetting(
+					oldObjectFieldSetting.getObjectFieldSettingId(),
+					newObjectFieldSetting.getValue());
+			}
+		}
+	}
+
+	private void _deleteFileEntries(
+		long objectDefinitionId, String objectFieldName) {
+
+		List<ObjectEntry> objectEntries =
+			_objectEntryPersistence.findByObjectDefinitionId(
+				objectDefinitionId);
+
+		for (ObjectEntry objectEntry : objectEntries) {
+			Map<String, Serializable> values = objectEntry.getValues();
+
+			try {
+				_dlFileEntryLocalService.deleteFileEntry(
+					GetterUtil.getLong(values.get(objectFieldName)));
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(portalException);
+				}
+			}
+		}
+	}
+
 	private ObjectField _deleteObjectField(ObjectField objectField)
 		throws PortalException {
 
@@ -322,12 +436,25 @@ public class ObjectFieldLocalServiceImpl
 
 		objectField = objectFieldPersistence.remove(objectField);
 
+		_objectFieldSettingPersistence.removeByObjectFieldId(
+			objectField.getObjectFieldId());
+
 		_objectLayoutColumnPersistence.removeByObjectFieldId(
 			objectField.getObjectFieldId());
+
+		_objectViewLocalService.unassociateObjectField(objectField);
 
 		if (Objects.equals(
 				objectDefinition.getExtensionDBTableName(),
 				objectField.getDBTableName())) {
+
+			if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
+
+				_deleteFileEntries(
+					objectField.getObjectDefinitionId(), objectField.getName());
+			}
 
 			runSQL(
 				DynamicObjectDefinitionTable.getAlterTableDropColumnSQL(
@@ -440,8 +567,13 @@ public class ObjectFieldLocalServiceImpl
 		}
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		ObjectFieldLocalServiceImpl.class);
+
 	private final Map<String, String> _businessTypes = HashMapBuilder.put(
 		"BigDecimal", "PrecisionDecimal"
+	).put(
+		"Blob", "LargeFile"
 	).put(
 		"Boolean", "Boolean"
 	).put(
@@ -459,11 +591,23 @@ public class ObjectFieldLocalServiceImpl
 	).build();
 
 	@Reference
+	private DLFileEntryLocalService _dlFileEntryLocalService;
+
+	@Reference
 	private ObjectDefinitionPersistence _objectDefinitionPersistence;
+
+	@Reference
+	private ObjectEntryPersistence _objectEntryPersistence;
 
 	@Reference
 	private ObjectFieldBusinessTypeServicesTracker
 		_objectFieldBusinessTypeServicesTracker;
+
+	@Reference
+	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
+
+	@Reference
+	private ObjectFieldSettingPersistence _objectFieldSettingPersistence;
 
 	@Reference
 	private ObjectLayoutColumnPersistence _objectLayoutColumnPersistence;
@@ -472,7 +616,13 @@ public class ObjectFieldLocalServiceImpl
 	private ObjectViewColumnPersistence _objectViewColumnPersistence;
 
 	@Reference
+	private ObjectViewLocalService _objectViewLocalService;
+
+	@Reference
 	private ObjectViewPersistence _objectViewPersistence;
+
+	@Reference
+	private ObjectViewSortColumnPersistence _objectViewSortColumnPersistence;
 
 	private final Set<String> _reservedNames = SetUtil.fromArray(
 		"actions", "companyid", "createdate", "creator", "datecreated",

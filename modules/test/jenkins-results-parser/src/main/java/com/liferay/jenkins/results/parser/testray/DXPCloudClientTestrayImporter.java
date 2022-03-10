@@ -57,7 +57,7 @@ public class DXPCloudClientTestrayImporter {
 				_getTestCasePropertiesElement(testCaseResultElement));
 		}
 
-		if (!_isGoogleApplicationCredentialsSet()) {
+		if (!TestrayS3Bucket.googleCredentialsAvailable()) {
 			JenkinsResultsParserUtil.HTTPAuthorization httpAuthorization = null;
 
 			if (!JenkinsResultsParserUtil.isNullOrEmpty(_testrayUserName) &&
@@ -188,7 +188,7 @@ public class DXPCloudClientTestrayImporter {
 
 		Element attachmentsElement = Dom4JUtil.getNewElement("attachments");
 
-		if (!_isGoogleApplicationCredentialsSet()) {
+		if (!TestrayS3Bucket.googleCredentialsAvailable()) {
 			return attachmentsElement;
 		}
 
@@ -334,7 +334,7 @@ public class DXPCloudClientTestrayImporter {
 		}
 
 		TestrayServer testrayServer = TestrayFactory.newTestrayServer(
-			_testrayServerURL, "S3");
+			_testrayServerURL);
 
 		TestrayProject testrayProject = testrayServer.getTestrayProjectByName(
 			_testrayProjectName);
@@ -407,11 +407,9 @@ public class DXPCloudClientTestrayImporter {
 	private static void _initEnvironmentVariables() {
 		String projectDirPath = _getEnvVarValue("projectDir");
 
-		if (JenkinsResultsParserUtil.isNullOrEmpty(projectDirPath)) {
-			throw new RuntimeException("Please set 'projectDir'");
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(projectDirPath)) {
+			_projectDir = new File(projectDirPath);
 		}
-
-		_projectDir = new File(projectDirPath);
 
 		if (!_projectDir.exists()) {
 			throw new RuntimeException(
@@ -503,19 +501,6 @@ public class DXPCloudClientTestrayImporter {
 		}
 	}
 
-	private static boolean _isGoogleApplicationCredentialsSet() {
-		String googleApplicationCredentials = System.getenv(
-			"GOOGLE_APPLICATION_CREDENTIALS");
-
-		if (!JenkinsResultsParserUtil.isNullOrEmpty(
-				googleApplicationCredentials)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
 	private static void _removeUnreferencedImages(File htmlFile) {
 		if (!htmlFile.exists()) {
 			return;
@@ -551,7 +536,7 @@ public class DXPCloudClientTestrayImporter {
 	private static final LocalDate _localDate = LocalDate.now();
 	private static final Pattern _pattern = Pattern.compile(
 		"test\\[(?<testName>[^\\]]{1,150})[^\\]]*\\]");
-	private static File _projectDir;
+	private static File _projectDir = new File(".");
 	private static String _relativeURLPath;
 	private static TestrayBuild _testrayBuild;
 	private static String _testrayBuildName =

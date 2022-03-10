@@ -8,7 +8,7 @@
  * permissions and limitations under the License, including but not limited to
  * distribution rights of the Software.
  */
-
+import ClayAlert from '@clayui/alert';
 import {ButtonWithIcon} from '@clayui/core';
 import {useModal} from '@clayui/modal';
 import {ClayTooltipProvider} from '@clayui/tooltip';
@@ -18,6 +18,10 @@ import Table from '../../../../common/components/Table';
 import {useApplicationProvider} from '../../../../common/context/AppPropertiesProvider';
 import {getActivationLicenseKey} from '../../../../common/services/liferay/rest/raysource/LicenseKeys';
 import {useCustomerPortal} from '../../context';
+import {ALERT_DOWNLOAD_TYPE} from '../../utils/constants/alertDownloadType';
+import {AUTO_CLOSE_ALERT_TIME} from '../../utils/constants/autoCloseAlertTime';
+import {ALERT_ACTIVATION_AGGREGATED_KEYS_DOWNLOAD_TEXT} from '../DXPActivationKeysTable/utils/constants/alertAggregateKeysDownloadText';
+import {getActivationKeyDownload} from '../DXPActivationKeysTable/utils/getActivationKeyDownload';
 import DXPActivationKeysTableHeader from './components/Header';
 import ModalKeyDetails from './components/ModalKeyDetails';
 import {
@@ -46,7 +50,7 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 	const [statusBar, setStatusBar] = useState({});
 
 	const [activationKeysFiltered, setActivationKeysFiltered] = useState([]);
-	const [totalCount, setTotalCount] = useState(5);
+	const [totalCount, setTotalCount] = useState(0);
 	const [activationKeysChecked, setActivationKeysChecked] = useState([]);
 
 	const [filterStatusBar, setFilterStatusBar] = useState('all');
@@ -62,6 +66,10 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 	const {observer, onClose} = useModal({
 		onClose: () => setIsVisibleModal(false),
 	});
+	const [
+		activationKeysDownloadStatus,
+		setActivationKeysDownloadStatus,
+	] = useState('');
 
 	useEffect(() => {
 		if (activationKeysFiltered.length) {
@@ -88,24 +96,6 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 			);
 			if (items) {
 				setActivationKeys(items);
-				setStatusBar({
-					activatedTotalCount: items.filter((activationKey) =>
-						ACTIVATION_KEYS_LICENSE_FILTER_TYPES.activated(
-							activationKey
-						)
-					).length,
-					allTotalCount: items.length,
-					expiredTotalCount: items.filter((activationKey) =>
-						ACTIVATION_KEYS_LICENSE_FILTER_TYPES.expired(
-							activationKey
-						)
-					).length,
-					notActiveTotalCount: items.filter((activationKey) =>
-						ACTIVATION_KEYS_LICENSE_FILTER_TYPES.notActivated(
-							activationKey
-						)
-					).length,
-				});
 			}
 
 			setIsLoadingActivationKeys(false);
@@ -113,6 +103,27 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 
 		fetchActivationKeysData();
 	}, [licenseKeyDownloadURL, project, sessionId]);
+
+	useEffect(() => {
+		if (activationKeys.length) {
+			setStatusBar({
+				activatedTotalCount: activationKeys.filter((activationKey) =>
+					ACTIVATION_KEYS_LICENSE_FILTER_TYPES.activated(
+						activationKey
+					)
+				).length,
+				allTotalCount: activationKeys.length,
+				expiredTotalCount: activationKeys.filter((activationKey) =>
+					ACTIVATION_KEYS_LICENSE_FILTER_TYPES.expired(activationKey)
+				).length,
+				notActiveTotalCount: activationKeys.filter((activationKey) =>
+					ACTIVATION_KEYS_LICENSE_FILTER_TYPES.notActivated(
+						activationKey
+					)
+				).length,
+			});
+		}
+	}, [activationKeys]);
 
 	useEffect(() => {
 		if (activationKeys.length) {
@@ -125,7 +136,7 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 						: Boolean
 			);
 
-			setTotalCount(activationKeysFilterData?.length || 5);
+			setTotalCount(activationKeysFilterData?.length || 0);
 
 			const activationKeysFilterByPage = activationKeysFilterData?.slice(
 				itemsPerPage * activePage - itemsPerPage,
@@ -171,6 +182,14 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 		totalCount,
 	};
 
+	const handleAlertStatus = (hasSuccessfullyDownloadedKeys) => {
+		setActivationKeysDownloadStatus(
+			hasSuccessfullyDownloadedKeys
+				? ALERT_DOWNLOAD_TYPE.success
+				: ALERT_DOWNLOAD_TYPE.danger
+		);
+	};
+
 	return (
 		<>
 			{isVisibleModal && (
@@ -182,6 +201,7 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 					licenseKeyDownloadURL={licenseKeyDownloadURL}
 					observer={observer}
 					onClose={onClose}
+					project={project}
 					sessionId={sessionId}
 				/>
 			)}
@@ -206,8 +226,10 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 							accountKey={project.accountKey}
 							activationKeys={activationKeysFiltered}
 							licenseKeyDownloadURL={licenseKeyDownloadURL}
+							project={project}
 							selectedKeys={activationKeysChecked}
 							sessionId={sessionId}
+							setActivationKeys={setActivationKeys}
 						/>
 					</div>
 
@@ -231,10 +253,14 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 								<ButtonWithIcon
 									displayType="null"
 									onClick={() =>
-										downloadActivationLicenseKey(
+										getActivationKeyDownload(
 											activationKey.id,
 											licenseKeyDownloadURL,
-											sessionId
+											sessionId,
+											handleAlertStatus,
+											activationKey.productName,
+											activationKey.productVersion,
+											project.name
 										)
 									}
 									small
@@ -281,6 +307,26 @@ const DXPActivationKeysTable = ({project, sessionId}) => {
 					/>
 				</div>
 			</ClayTooltipProvider>
+			{activationKeysDownloadStatus && (
+				<ClayAlert.ToastContainer>
+					<ClayAlert
+						autoClose={
+							AUTO_CLOSE_ALERT_TIME[activationKeysDownloadStatus]
+						}
+						className="cp-activation-key-download-alert"
+						displayType={
+							ALERT_DOWNLOAD_TYPE[activationKeysDownloadStatus]
+						}
+						onClose={() => setActivationKeysDownloadStatus('')}
+					>
+						{
+							ALERT_ACTIVATION_AGGREGATED_KEYS_DOWNLOAD_TEXT[
+								activationKeysDownloadStatus
+							]
+						}
+					</ClayAlert>
+				</ClayAlert.ToastContainer>
+			)}
 		</>
 	);
 };

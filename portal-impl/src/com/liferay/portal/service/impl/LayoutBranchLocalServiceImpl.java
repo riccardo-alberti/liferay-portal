@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.model.LayoutBranchConstants;
 import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.LayoutRevisionConstants;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.RecentLayoutBranchLocalService;
@@ -137,6 +138,11 @@ public class LayoutBranchLocalServiceImpl
 		_recentLayoutBranchLocalService.deleteRecentLayoutBranches(
 			layoutBranch.getLayoutBranchId());
 
+		_resourceLocalService.deleteResource(
+			layoutBranch.getCompanyId(), LayoutBranch.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			layoutBranch.getLayoutBranchId());
+
 		return deleteLayoutBranch(layoutBranch);
 	}
 
@@ -242,8 +248,7 @@ public class LayoutBranchLocalServiceImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					noSuchLayoutBranchException, noSuchLayoutBranchException);
+				_log.debug(noSuchLayoutBranchException);
 			}
 		}
 	}

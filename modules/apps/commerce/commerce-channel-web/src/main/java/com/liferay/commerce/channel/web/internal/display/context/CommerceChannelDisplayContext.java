@@ -24,7 +24,6 @@ import com.liferay.commerce.currency.model.CommerceCurrency;
 import com.liferay.commerce.currency.service.CommerceCurrencyService;
 import com.liferay.commerce.frontend.model.HeaderActionModel;
 import com.liferay.commerce.model.CommerceOrder;
-import com.liferay.commerce.payment.method.CommercePaymentMethodRegistry;
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.product.channel.CommerceChannelHealthStatus;
 import com.liferay.commerce.product.channel.CommerceChannelHealthStatusRegistry;
@@ -96,7 +95,6 @@ public class CommerceChannelDisplayContext
 		CommerceChannelService commerceChannelService,
 		CommerceChannelTypeRegistry commerceChannelTypeRegistry,
 		CommerceCurrencyService commerceCurrencyService,
-		CommercePaymentMethodRegistry commercePaymentMethodRegistry,
 		ConfigurationProvider configurationProvider,
 		CPTaxCategoryLocalService cpTaxCategoryLocalService,
 		DLAppLocalService dlAppLocalService,
@@ -114,7 +112,6 @@ public class CommerceChannelDisplayContext
 		_commerceChannelService = commerceChannelService;
 		_commerceChannelTypeRegistry = commerceChannelTypeRegistry;
 		_commerceCurrencyService = commerceCurrencyService;
-		_commercePaymentMethodRegistry = commercePaymentMethodRegistry;
 		_configurationProvider = configurationProvider;
 		_cpTaxCategoryLocalService = cpTaxCategoryLocalService;
 		_dlAppLocalService = dlAppLocalService;
@@ -381,9 +378,7 @@ public class CommerceChannelDisplayContext
 					noSuchWorkflowDefinitionLinkException) {
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					noSuchWorkflowDefinitionLinkException,
-					noSuchWorkflowDefinitionLinkException);
+				_log.debug(noSuchWorkflowDefinitionLinkException);
 			}
 		}
 
@@ -530,7 +525,6 @@ public class CommerceChannelDisplayContext
 	private final CommerceChannelTypeRegistry _commerceChannelTypeRegistry;
 	private final CommerceCurrencyService _commerceCurrencyService;
 	private CommerceOrderFieldsConfiguration _commerceOrderFieldsConfiguration;
-	private final CommercePaymentMethodRegistry _commercePaymentMethodRegistry;
 	private final ConfigurationProvider _configurationProvider;
 	private final CPTaxCategoryLocalService _cpTaxCategoryLocalService;
 	private final DLAppLocalService _dlAppLocalService;

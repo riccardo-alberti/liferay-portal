@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -335,6 +335,16 @@ definition {
 		AdaptiveMedia.openAdaptiveMediaAdmin();
 
 		AdaptiveMedia.viewNoImageResolution(imageName = "testResolutionEdit");
+	}
+
+	@description = "This is a test for LPS-78626. It ensures that a reloaded image can be viewed after changing the screen resolution."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanRenderImageAfterChangingScreenResolution {
+		property portal.acceptance = "false";
+
+		// TODO LPS-78626 CanRenderImageAfterChangingScreenResolution pending implementation
+
 	}
 
 	@priority = "5"

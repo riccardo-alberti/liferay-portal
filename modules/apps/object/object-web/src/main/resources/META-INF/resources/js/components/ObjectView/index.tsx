@@ -17,8 +17,9 @@ import ClayTabs from '@clayui/tabs';
 import React, {useContext, useEffect, useState} from 'react';
 
 import SidePanelContent from '../SidePanelContent';
-import BasicInfoScreen from './BasicInfoScreen';
-import ViewBuilderScreen from './ViewBuilderScreen';
+import BasicInfoScreen from './BasicInfoScreen/BasicInfoScreen';
+import {DefaultSortScreen} from './DefaultSortScreen/DefaultSortScreen';
+import ViewBuilderScreen from './ViewBuilderScreen/ViewBuilderScreen';
 import ViewContext, {TYPES, ViewContextProvider} from './context';
 import {TObjectField, TObjectView} from './types';
 
@@ -39,9 +40,24 @@ const HEADERS = new Headers({
 });
 
 const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
-	const [{isViewOnly, objectView, objectViewId}, dispatch] = useContext(
-		ViewContext
-	);
+	const [
+		{
+			isFFObjectViewSortColumnConfigurationEnabled,
+			isViewOnly,
+			objectView,
+			objectViewId,
+		},
+		dispatch,
+	] = useContext(ViewContext);
+
+	if (isFFObjectViewSortColumnConfigurationEnabled) {
+		if (TABS.length !== 3) {
+			TABS.push({
+				Component: DefaultSortScreen,
+				label: Liferay.Language.get('default-sort'),
+			});
+		}
+	}
 
 	const [activeIndex, setActiveIndex] = useState<number>(0);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -67,6 +83,7 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				name,
 				objectDefinitionId,
 				objectViewColumns,
+				objectViewSortColumns,
 			} = await objectViewResponse.json();
 
 			const objectFieldsResponse = await Liferay.Util.fetch(
@@ -82,6 +99,7 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				name,
 				objectDefinitionId,
 				objectViewColumns,
+				objectViewSortColumns,
 			};
 
 			dispatch({
@@ -97,6 +115,7 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 
 			dispatch({
 				payload: {
+					isFFObjectViewSortColumnConfigurationEnabled,
 					objectFields,
 					objectView,
 				},
@@ -107,10 +126,12 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 		};
 
 		makeFetch();
-	}, [objectViewId, dispatch]);
+	}, [dispatch, isFFObjectViewSortColumnConfigurationEnabled, objectViewId]);
 
-	const removeLabelFromObjectView = (objectView: TObjectView) => {
-		const {objectViewColumns} = objectView;
+	const removeUnnecessaryPropertiesFromObjectView = (
+		objectView: TObjectView
+	) => {
+		const {objectViewColumns, objectViewSortColumns} = objectView;
 
 		const newObjectViewColumns = objectViewColumns.map((viewColumn) => {
 			return {
@@ -118,6 +139,26 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 				priority: viewColumn.priority,
 			};
 		});
+
+		if (isFFObjectViewSortColumnConfigurationEnabled) {
+			const newObjectViewSortColumns = objectViewSortColumns.map(
+				(sortColumn) => {
+					return {
+						objectFieldName: sortColumn.objectFieldName,
+						priority: sortColumn.priority,
+						sortOrder: sortColumn.sortOrder,
+					};
+				}
+			);
+
+			const newObjectView = {
+				...objectView,
+				objectViewColumns: newObjectViewColumns,
+				objectViewSortColumns: newObjectViewSortColumns,
+			};
+
+			return newObjectView;
+		}
 
 		const newObjectView = {
 			...objectView,
@@ -128,40 +169,54 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 	};
 
 	const handleSaveObjectView = async () => {
-		const newObjectView = removeLabelFromObjectView(objectView);
-
-		const response = await Liferay.Util.fetch(
-			`/o/object-admin/v1.0/object-views/${objectViewId}`,
-			{
-				body: JSON.stringify(newObjectView),
-				headers: HEADERS,
-				method: 'PUT',
-			}
+		const newObjectView = removeUnnecessaryPropertiesFromObjectView(
+			objectView
 		);
 
-		if (response.status === 401) {
-			window.location.reload();
-		}
-		else if (response.ok) {
-			Liferay.Util.openToast({
-				message: Liferay.Language.get(
-					'modifications-saved-successfully'
-				),
-				type: 'success',
-			});
+		const {objectViewColumns} = newObjectView;
 
-			setTimeout(() => {
-				const parentWindow = Liferay.Util.getOpener();
-				parentWindow.Liferay.fire('close-side-panel');
-			}, 1500);
+		if (!objectView.defaultObjectView || objectViewColumns.length !== 0) {
+			const response = await Liferay.Util.fetch(
+				`/o/object-admin/v1.0/object-views/${objectViewId}`,
+				{
+					body: JSON.stringify(newObjectView),
+					headers: HEADERS,
+					method: 'PUT',
+				}
+			);
+
+			if (response.status === 401) {
+				window.location.reload();
+			}
+			else if (response.ok) {
+				Liferay.Util.openToast({
+					message: Liferay.Language.get(
+						'modifications-saved-successfully'
+					),
+					type: 'success',
+				});
+
+				setTimeout(() => {
+					const parentWindow = Liferay.Util.getOpener();
+					parentWindow.Liferay.fire('close-side-panel');
+				}, 1500);
+			}
+			else {
+				const {
+					title = Liferay.Language.get('an-error-occurred'),
+				} = await response.json();
+
+				Liferay.Util.openToast({
+					message: title,
+					type: 'danger',
+				});
+			}
 		}
 		else {
-			const {
-				title = Liferay.Language.get('an-error-occurred'),
-			} = await response.json();
-
 			Liferay.Util.openToast({
-				message: title,
+				message: Liferay.Language.get(
+					'default-view-must-have-at-least-one-column'
+				),
 				type: 'danger',
 			});
 		}
@@ -215,17 +270,25 @@ const CustomView: React.FC<React.HTMLAttributes<HTMLElement>> = () => {
 		</>
 	);
 };
-interface ICustonViewWrapperProps extends React.HTMLAttributes<HTMLElement> {
+interface ICustomViewWrapperProps extends React.HTMLAttributes<HTMLElement> {
+	isFFObjectViewSortColumnConfigurationEnabled: boolean;
 	isViewOnly: boolean;
 	objectViewId: string;
 }
 
-const CustomViewWrapper: React.FC<ICustonViewWrapperProps> = ({
+const CustomViewWrapper: React.FC<ICustomViewWrapperProps> = ({
+	isFFObjectViewSortColumnConfigurationEnabled,
 	isViewOnly,
 	objectViewId,
 }) => {
 	return (
-		<ViewContextProvider value={{isViewOnly, objectViewId}}>
+		<ViewContextProvider
+			value={{
+				isFFObjectViewSortColumnConfigurationEnabled,
+				isViewOnly,
+				objectViewId,
+			}}
+		>
 			<CustomView />
 		</ViewContextProvider>
 	);

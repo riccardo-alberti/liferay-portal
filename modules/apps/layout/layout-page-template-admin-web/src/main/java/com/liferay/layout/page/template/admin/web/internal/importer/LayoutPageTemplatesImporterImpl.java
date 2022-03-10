@@ -91,6 +91,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalService;
 
@@ -150,7 +151,7 @@ public class LayoutPageTemplatesImporterImpl
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 
 				throw portalException;
 			}
@@ -172,7 +173,7 @@ public class LayoutPageTemplatesImporterImpl
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		};
@@ -198,7 +199,7 @@ public class LayoutPageTemplatesImporterImpl
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		};
@@ -1036,16 +1037,14 @@ public class LayoutPageTemplatesImporterImpl
 					dropzoneLayoutStructureItemException) {
 
 			if (_log.isWarnEnabled()) {
-				_log.warn(
-					dropzoneLayoutStructureItemException,
-					dropzoneLayoutStructureItemException);
+				_log.warn(dropzoneLayoutStructureItemException);
 			}
 
 			throw new PortalException();
 		}
 		catch (PortalException portalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(portalException, portalException);
+				_log.warn(portalException);
 			}
 
 			_layoutPageTemplatesImporterResultEntries.add(
@@ -1286,7 +1285,7 @@ public class LayoutPageTemplatesImporterImpl
 
 		_layoutPageTemplateStructureLocalService.addLayoutPageTemplateStructure(
 			layout.getUserId(), layout.getGroupId(), layout.getPlid(),
-			jsonObject.toString(),
+			SegmentsExperienceConstants.ID_DEFAULT, jsonObject.toString(),
 			ServiceContextThreadLocal.getServiceContext());
 	}
 

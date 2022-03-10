@@ -13,7 +13,8 @@
  */
 
 import {useQuery} from '@apollo/client';
-import {useEffect} from 'react';
+import ClayChart from '@clayui/charts';
+import {useEffect, useRef} from 'react';
 import {
 	Outlet,
 	useLocation,
@@ -21,127 +22,161 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import BarChartComponent from '../../../../components/Charts/BarChart';
-import PieChartComponent from '../../../../components/Charts/PieChart';
 import Container from '../../../../components/Layout/Container';
 import QATable from '../../../../components/Table/QATable';
+import useTotalTestCases from '../../../../data/useTotalTestCases';
 import {
 	CType,
 	TestrayBuild,
 	getTestrayBuild,
 } from '../../../../graphql/queries';
 import useHeader from '../../../../hooks/useHeader';
-import {DATA_COLORS} from '../../../../util/constants';
-import {runs} from '../../../../util/mock';
+import i18n from '../../../../i18n';
+import {getDonutLegend} from '../../../../util/graph';
+import {TotalTestCases} from '../../../../util/mock';
 
 type BuildOverviewProps = {
 	testrayBuild: TestrayBuild;
 };
 
 const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
+	const ref = useRef<any>();
+
+	const totalTestCases = useTotalTestCases();
+
 	return (
 		<>
-			<Container title="Details">
+			<Container title={i18n.translate('details')}>
 				<QATable
 					items={[
-						{title: 'product version', value: '7.0.x'},
 						{
-							title: 'description',
+							title: i18n.translate('product-version'),
+							value: '7.0.x',
+						},
+						{
+							title: i18n.translate('description'),
 							value: testrayBuild.description,
 						},
 						{
-							title: 'git hash',
+							title: i18n.translate('git-hash'),
 							value:
 								testrayBuild.gitHash ||
 								'c33e85e8b067d805a45956c76ad053ca98ffcc8a',
 						},
-						{title: 'create date', value: testrayBuild.dateCreated},
-						{title: 'created by', value: 'John Doe'},
-						{title: 'all issues found', value: '-'},
+						{
+							title: i18n.translate('create-date'),
+							value: testrayBuild.dateCreated,
+						},
+						{
+							title: i18n.translate('created-by'),
+							value: 'John Doe',
+						},
+						{title: i18n.translate('all-issues-found'), value: '-'},
 					]}
 				/>
 
 				<div className="d-flex mt-4">
 					<dl>
-						<dd>0 minutes</dd>
+						<dd>{i18n.sub('x-minutes', '0')}</dd>
 
-						<dd className="small-heading">TOTAL ESTIMATED TIME</dd>
+						<dd className="small-heading">
+							{i18n.translate('total-estimated-time')}
+						</dd>
 					</dl>
 
 					<dl className="ml-3">
-						<dd>0 minutes</dd>
+						<dd>{i18n.sub('x-minutes', '0')}</dd>
 
-						<dd className="small-heading">REMAINING ESTIMATED</dd>
+						<dd className="small-heading">
+							{i18n.translate('total-estimated-time')}
+						</dd>
 					</dl>
 
 					<dl className="ml-3">
-						<dd>0 minutes</dd>
+						<dd>{i18n.sub('x-minutes', '0')}</dd>
 
-						<dd className="small-heading">TIME 0 TOTAL ISSUES</dd>
+						<dd className="small-heading">
+							{i18n.sub('time-x-total-issues', '0')}
+						</dd>
 					</dl>
 				</div>
 			</Container>
 
 			<Container className="mt-4" title="Total Test Cases">
 				<div className="row">
-					<div className="col-3">
-						<PieChartComponent
-							data={[
-								{
-									color: DATA_COLORS['metrics.passed'],
-									name: 'passed',
-									value: 30529,
+					<div className="col-2">
+						<ClayChart
+							data={{
+								colors: totalTestCases.colors,
+								columns: totalTestCases.donut.columns,
+								type: 'donut',
+							}}
+							donut={{
+								expand: false,
+								label: {
+									show: false,
 								},
-								{
-									color: DATA_COLORS['metrics.failed'],
-									name: 'failed',
-									value: 5374,
+								legend: {
+									show: false,
 								},
-								{
-									color: DATA_COLORS['metrics.blocked'],
-									name: 'blocked',
-									value: 0,
-								},
-								{
-									color: DATA_COLORS['metrics.test-fix'],
-									name: 'test fix',
-									value: 0,
-								},
-								{
-									color: DATA_COLORS['metrics.incomplete'],
-									name: 'incomplete',
-									value: 21,
-								},
-							]}
-							pieProps={{dataKey: 'value'}}
+								title: totalTestCases.donut.total.toString(),
+								width: 15,
+							}}
+							legend={{show: false}}
+							onafterinit={() => {
+								getDonutLegend(ref.current, {
+									data: TotalTestCases.map(([name]) => name),
+									elementId: 'testrayTotalMetricsGraphLegend',
+									total: totalTestCases.donut.total as number,
+								});
+							}}
+							ref={ref}
+							size={{
+								height: 200,
+							}}
 						/>
 					</div>
 
-					<div className="col-8 ml-6">
-						<BarChartComponent
-							bars={[
-								{
-									dataKey: 'failed',
-									fill: DATA_COLORS['metrics.failed'],
+					<div className="col-2">
+						<div id="testrayTotalMetricsGraphLegend" />
+					</div>
+
+					<div className="col-8">
+						<ClayChart
+							axis={{
+								y: {
+									label: {
+										position: 'outer-middle',
+										text: i18n
+											.translate('tests')
+											.toUpperCase(),
+									},
 								},
-								{
-									dataKey: 'incomplete',
-									fill: DATA_COLORS['metrics.incomplete'],
+							}}
+							bar={{
+								width: {
+									max: 30,
 								},
-								{
-									dataKey: 'test_fix',
-									fill: DATA_COLORS['metrics.test-fix'],
+							}}
+							data={{
+								colors: totalTestCases.colors,
+								columns: totalTestCases.barChart.columns,
+								groups: [totalTestCases.statuses],
+								type: 'bar',
+							}}
+							legend={{
+								inset: {
+									anchor: 'top-right',
+									step: 1,
+									x: 10,
+									y: -20,
 								},
-								{
-									dataKey: 'blocked',
-									fill: DATA_COLORS['metrics.blocked'],
-								},
-								{
-									dataKey: 'passed',
-									fill: DATA_COLORS['metrics.passed'],
-								},
-							]}
-							data={runs}
+								position: 'inset',
+							}}
+							padding={{
+								bottom: 5,
+								top: 20,
+							}}
 						/>
 					</div>
 				</div>
@@ -150,7 +185,11 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 	);
 };
 
-const BuildOutlet = () => {
+type BuildOutletProps = {
+	ignorePath: string;
+};
+
+const BuildOutlet: React.FC<BuildOutletProps> = ({ignorePath}) => {
 	const {pathname} = useLocation();
 	const {projectId, routineId, testrayBuildId} = useParams();
 	const {testrayProject, testrayRoutine}: any = useOutletContext();
@@ -163,55 +202,71 @@ const BuildOutlet = () => {
 		}
 	);
 
+	const isCurrentPathIgnored = pathname.includes(ignorePath);
+
 	const testrayBuild = data?.c?.testrayBuild;
 
 	const basePath = `/project/${projectId}/routines/${routineId}/build/${testrayBuildId}`;
 
-	const {setHeading} = useHeader({
-		timeout: 5,
-		useTabs: [
-			{
-				active: pathname === basePath,
-				path: basePath,
-				title: 'Results',
-			},
-			{
-				active: pathname === `${basePath}/runs`,
-				path: `${basePath}/runs`,
-				title: 'Runs',
-			},
-			{
-				active: pathname === `${basePath}/teams`,
-				path: `${basePath}/teams`,
-				title: 'Teams',
-			},
-			{
-				active: pathname === `${basePath}/components`,
-				path: `${basePath}/components`,
-				title: 'Components',
-			},
-			{
-				active: pathname === `${basePath}/case-types`,
-				path: `${basePath}/case-types`,
-				title: 'Case Types',
-			},
-		],
-	});
+	const {setHeading, setTabs} = useHeader({shouldUpdate: false});
 
 	useEffect(() => {
-		if (testrayProject && testrayRoutine && testrayBuild) {
-			setHeading([
-				{category: 'PROJECT', title: testrayProject.name},
-				{category: 'ROUTINE', title: testrayRoutine.name},
-				{category: 'BUILD', title: testrayBuild.name},
-			]);
+		if (testrayBuild) {
+			setTimeout(() => {
+				setHeading(
+					[
+						{
+							category: 'BUILD',
+							path: basePath,
+							title: testrayBuild.name,
+						},
+					],
+					true
+				);
+			}, 0);
 		}
-	}, [setHeading, testrayProject, testrayRoutine, testrayBuild]);
+	}, [basePath, setHeading, testrayBuild]);
+
+	useEffect(() => {
+		if (!isCurrentPathIgnored) {
+			setTimeout(() => {
+				setTabs([
+					{
+						active: pathname === basePath,
+						path: basePath,
+						title: i18n.translate('results'),
+					},
+					{
+						active: pathname === `${basePath}/runs`,
+						path: `${basePath}/runs`,
+						title: i18n.translate('runs'),
+					},
+					{
+						active: pathname === `${basePath}/teams`,
+						path: `${basePath}/teams`,
+						title: i18n.translate('teams'),
+					},
+					{
+						active: pathname === `${basePath}/components`,
+						path: `${basePath}/components`,
+						title: i18n.translate('components'),
+					},
+					{
+						active: pathname === `${basePath}/case-types`,
+						path: `${basePath}/case-types`,
+						title: i18n.translate('case-types'),
+					},
+				]);
+			}, 5);
+		}
+	}, [basePath, isCurrentPathIgnored, pathname, setTabs]);
 
 	if (testrayProject && testrayRoutine && testrayBuild) {
 		return (
 			<>
-				<BuildOverview testrayBuild={testrayBuild} />
+				{!isCurrentPathIgnored && (
+					<BuildOverview testrayBuild={testrayBuild} />
+				)}
 
 				<Outlet />
 			</>

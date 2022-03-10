@@ -12,78 +12,99 @@
  * details.
  */
 
-import {Link} from 'react-router-dom';
+import ClayChart from '@clayui/charts';
 
-import Chart from '../../../components/Charts';
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
 import ProgressBar from '../../../components/ProgressBar';
 import {getTestrayBuilds} from '../../../graphql/queries';
-import {Liferay} from '../../../services/liferay/liferay';
+import i18n from '../../../i18n';
+import {DATA_COLORS} from '../../../util/constants';
+import {getRandomMaximumValue} from '../../../util/mock';
 
-const getRandom = (max = 50) => Math.ceil(Math.random() * max);
+const Routine = () => (
+	<Container title={i18n.translate('build-history')}>
+		<ClayChart
+			axis={{
+				y: {
+					label: {
+						position: 'outer-middle',
+						text: i18n.translate('tests').toUpperCase(),
+					},
+				},
+			}}
+			data={{
+				colors: {
+					blocked: DATA_COLORS['metrics.blocked'],
+					failed: DATA_COLORS['metrics.failed'],
+					incomplete: DATA_COLORS['metrics.incomplete'],
+					passed: DATA_COLORS['metrics.passed'],
+					test_fix: DATA_COLORS['metrics.test-fix'],
+				},
+				columns: [
+					['passed', ...getRandomMaximumValue(20, 1500)],
+					['failed', ...getRandomMaximumValue(20, 100)],
+					['blocked', ...getRandomMaximumValue(20, 100)],
+					['incomplete', ...getRandomMaximumValue(20, 100)],
+					['test_fix', ...getRandomMaximumValue(20, 100)],
+				],
+				stack: {
+					normalize: true,
+				},
+				type: 'area',
+			}}
+			legend={{position: 'top-right'}}
+		/>
 
-const testrayData = [...new Array(20)].map((value, index) => ({
-	blocked: getRandom(),
-	create_date: new Date(2022, 1, index + 10).toLocaleString(),
-	failed: getRandom(20),
-	git_hash: '51bde0fe',
-	incomplete: getRandom(10),
-	name: `acceptance-pullrequest(7.0.x) - ${index}`,
-	passed: getRandom(200),
-	product_version: '7.0.x',
-	test_fix: getRandom(10),
-}));
-
-const Routine = () => {
-	return (
-		<Container title="Build History">
-			<Chart data={testrayData} />
-
-			<ListView
-				query={getTestrayBuilds}
-				tableProps={{
-					columns: [
-						{
-							key: 'name',
-							render: (
-								name: string,
-								{testrayBuildId}: {testrayBuildId: number}
-							) => (
-								<Link to={`build/${testrayBuildId}`}>
-									{name}
-								</Link>
-							),
-							value: 'Build',
-						},
-						{key: 'dateCreated', value: 'Create Date'},
-						{key: 'gitHash', value: 'Git Hash'},
-						{key: 'product_version', value: 'Product Version'},
-						{key: 'failed', value: 'Failed'},
-						{key: 'blocked', value: 'Blocked'},
-						{key: 'test_fix', value: 'Test Fix'},
-						{
-							key: 'metrics',
-							render: () => (
-								<ProgressBar
-									items={{
-										blocked: 0,
-										failed: 2,
-										incomplete: 0,
-										passed: 30,
-										test_fix: 0,
-									}}
-								/>
-							),
-							value: 'Metrics',
-						},
-					],
-				}}
-				transformData={(data) => data?.c?.testrayBuilds}
-				variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
-			/>
-		</Container>
-	);
-};
+		<ListView
+			query={getTestrayBuilds}
+			tableProps={{
+				columns: [
+					{key: 'dateCreated', size: 'sm', value: 'Create Date'},
+					{key: 'gitHash', value: 'Git Hash'},
+					{
+						key: 'product_version',
+						render: (_, {testrayProductVersion}) =>
+							testrayProductVersion?.name,
+						value: 'Product Version',
+					},
+					{
+						key: 'dateCreated',
+						size: 'sm',
+						value: i18n.translate('create-date'),
+					},
+					{key: 'gitHash', value: i18n.translate('git-hash')},
+					{
+						clickable: true,
+						key: 'name',
+						size: 'md',
+						value: i18n.translate('build'),
+					},
+					{key: 'failed', value: i18n.translate('failed')},
+					{key: 'blocked', value: i18n.translate('blocked')},
+					{key: 'test_fix', value: i18n.translate('test-fix')},
+					{
+						key: 'metrics',
+						render: () => (
+							<ProgressBar
+								items={{
+									blocked: 0,
+									failed: 2,
+									incomplete: 0,
+									passed: 30,
+									test_fix: 0,
+								}}
+							/>
+						),
+						size: 'md',
+						value: i18n.translate('metrics'),
+					},
+				],
+				navigateTo: ({testrayBuildId}) => `build/${testrayBuildId}`,
+			}}
+			transformData={(data) => data?.testrayBuilds || {}}
+		/>
+	</Container>
+);
 
 export default Routine;

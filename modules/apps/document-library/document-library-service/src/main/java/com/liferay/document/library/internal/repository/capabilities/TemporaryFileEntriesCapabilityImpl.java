@@ -87,7 +87,7 @@ public class TemporaryFileEntriesCapabilityImpl
 
 			return _documentRepository.addFileEntry(
 				null, temporaryFileEntriesScope.getUserId(),
-				folder.getFolderId(), fileName, mimeType, fileName,
+				folder.getFolderId(), fileName, mimeType, fileName, fileName,
 				StringPool.BLANK, StringPool.BLANK, file, null, null,
 				serviceContext);
 		}
@@ -143,7 +143,7 @@ public class TemporaryFileEntriesCapabilityImpl
 					// LPS-52675
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(noSuchModelException, noSuchModelException);
+						_log.debug(noSuchModelException);
 					}
 				}
 
@@ -168,7 +168,7 @@ public class TemporaryFileEntriesCapabilityImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchModelException, noSuchModelException);
+				_log.debug(noSuchModelException);
 			}
 
 			return Collections.emptyList();
@@ -227,7 +227,7 @@ public class TemporaryFileEntriesCapabilityImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchFolderException, noSuchFolderException);
+				_log.debug(noSuchFolderException);
 			}
 
 			return _documentRepository.addFolder(

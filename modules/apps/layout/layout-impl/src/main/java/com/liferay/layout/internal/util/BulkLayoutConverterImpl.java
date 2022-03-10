@@ -57,6 +57,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,14 +115,6 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		}
 
 		return ArrayUtil.toLongArray(convertedLayoutPlids);
-	}
-
-	@Override
-	public Layout generatePreviewLayout(long plid) throws Exception {
-		LayoutConversionResult layoutConversionResult = generatePreviewLayout(
-			plid, LocaleUtil.getSiteDefault());
-
-		return layoutConversionResult.getDraftLayout();
 	}
 
 	@Override
@@ -224,21 +217,21 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 		LayoutPageTemplateStructure layoutPageTemplateStructure =
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
-					layout.getGroupId(), _portal.getClassNameId(Layout.class),
-					layout.getPlid());
+					layout.getGroupId(), layout.getPlid());
 
 		if (layoutPageTemplateStructure == null) {
 			return _layoutPageTemplateStructureLocalService.
 				addLayoutPageTemplateStructure(
 					serviceContext.getUserId(), layout.getGroupId(),
-					_portal.getClassNameId(Layout.class), layout.getPlid(),
+					layout.getPlid(), SegmentsExperienceConstants.ID_DEFAULT,
 					layoutDataJSONObject.toString(), serviceContext);
 		}
 
 		return _layoutPageTemplateStructureLocalService.
-			updateLayoutPageTemplateStructure(
-				layout.getGroupId(), _portal.getClassNameId(Layout.class),
-				layout.getPlid(), layoutDataJSONObject.toString());
+			updateLayoutPageTemplateStructureData(
+				layout.getGroupId(), layout.getPlid(),
+				SegmentsExperienceConstants.ID_DEFAULT,
+				layoutDataJSONObject.toString());
 	}
 
 	private Layout _convertLayout(long plid) throws PortalException {

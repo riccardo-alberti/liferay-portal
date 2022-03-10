@@ -15,7 +15,7 @@ import {isEdge} from 'react-flow-renderer';
 import {defaultLanguageId} from '../constants';
 import {removeNewLine, replaceTabSpaces} from '../util/utils';
 import {DEFAULT_LANGUAGE} from './constants';
-import parseAssignments from './utils';
+import {parseActions, parseAssignments, parseNotifications} from './utils';
 import XMLDefinition from './xmlDefinition';
 
 export default function DeserializeUtil(content) {
@@ -32,8 +32,23 @@ DeserializeUtil.prototype = {
 
 		const elements = [];
 
+		const transitionsIDs = [];
+
+		const nodesIDs = [];
+
+		instance.definition.forEachField((_, fieldData) => {
+			fieldData.results.forEach((node) => {
+				nodesIDs.push(node.name);
+			});
+		});
+
 		instance.definition.forEachField((tagName, fieldData) => {
 			fieldData.results.forEach((node) => {
+				if (node.actions && node.actions[0].template) {
+					node.notifications = node.actions;
+					node.actions = null;
+				}
+
 				const position = {};
 				let type = tagName;
 
@@ -77,6 +92,11 @@ DeserializeUtil.prototype = {
 					data.scriptLanguage =
 						node.scriptLanguage || DEFAULT_LANGUAGE;
 				}
+
+				data.actions = node.actions && parseActions(node);
+
+				data.notifications =
+					node.notifications && parseNotifications(node);
 
 				let nodeId;
 
@@ -126,6 +146,16 @@ DeserializeUtil.prototype = {
 						}
 						else {
 							return;
+						}
+
+						if (
+							transitionsIDs.includes(transitionId) ||
+							nodesIDs.includes(transitionId)
+						) {
+							transitionId = `${nodeId}_${transitionId}_${transition.target}`;
+						}
+						else {
+							transitionsIDs.push(transitionId);
 						}
 
 						const hasDefaultEdge = elements.find(

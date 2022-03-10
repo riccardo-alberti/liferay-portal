@@ -15,6 +15,7 @@
 package com.liferay.commerce.order.content.web.internal.frontend.taglib.clay.data.set.provider;
 
 import com.liferay.commerce.currency.model.CommerceMoney;
+import com.liferay.commerce.currency.util.CommercePriceFormatter;
 import com.liferay.commerce.order.CommerceOrderValidatorRegistry;
 import com.liferay.commerce.order.content.web.internal.frontend.constants.CommerceOrderDataSetConstants;
 import com.liferay.commerce.order.content.web.internal.model.PreviewOrderItem;
@@ -41,6 +42,8 @@ import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.vulcan.util.TransformUtil;
+
+import java.math.BigDecimal;
 
 import java.util.Collections;
 import java.util.List;
@@ -104,7 +107,9 @@ public class PreviewCommerceOrderItemDataSetDataProvider
 					commerceOrderImporterItem.getReplacingSKU(),
 					integerWrapper.increment(),
 					commerceOrderImporterItem.getSKU(),
-					_formatFinalPrice(commerceOrderItemPrice, locale),
+					_formatFinalPrice(
+						commerceOrderItemPrice,
+						commerceOrderImporterItem.getQuantity(), locale),
 					_formatUnitPrice(commerceOrderItemPrice, locale));
 			});
 	}
@@ -126,22 +131,30 @@ public class PreviewCommerceOrderItemDataSetDataProvider
 	}
 
 	private String _formatFinalPrice(
-		CommerceOrderItemPrice commerceOrderItemPrice, Locale locale) {
+		CommerceOrderItemPrice commerceOrderItemPrice, int quantity,
+		Locale locale) {
 
 		if ((commerceOrderItemPrice == null) ||
-			(commerceOrderItemPrice.getFinalPrice() == null)) {
+			(commerceOrderItemPrice.getUnitPrice() == null)) {
 
 			return StringPool.BLANK;
 		}
 
-		CommerceMoney finalPriceCommerceMoney =
-			commerceOrderItemPrice.getFinalPrice();
+		CommerceMoney unitPriceCommerceMoney =
+			commerceOrderItemPrice.getUnitPrice();
+
+		BigDecimal unitPrice = unitPriceCommerceMoney.getPrice();
+
+		BigDecimal finalPrice = unitPrice.multiply(
+			BigDecimal.valueOf(quantity));
 
 		try {
-			return finalPriceCommerceMoney.format(locale);
+			return _commercePriceFormatter.format(
+				unitPriceCommerceMoney.getCommerceCurrency(), finalPrice,
+				locale);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return StringPool.BLANK;
@@ -163,7 +176,7 @@ public class PreviewCommerceOrderItemDataSetDataProvider
 			return unitPriceCommerceMoney.format(locale);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return StringPool.BLANK;
@@ -207,7 +220,7 @@ public class PreviewCommerceOrderItemDataSetDataProvider
 				commerceOrderImporterItem);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return null;
@@ -262,6 +275,9 @@ public class PreviewCommerceOrderItemDataSetDataProvider
 
 	@Reference
 	private CommerceOrderValidatorRegistry _commerceOrderValidatorRegistry;
+
+	@Reference
+	private CommercePriceFormatter _commercePriceFormatter;
 
 	@Reference
 	private CPInstanceHelper _cpInstanceHelper;

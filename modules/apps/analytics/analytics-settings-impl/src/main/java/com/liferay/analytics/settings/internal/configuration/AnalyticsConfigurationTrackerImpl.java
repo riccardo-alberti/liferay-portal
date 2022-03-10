@@ -109,7 +109,7 @@ public class AnalyticsConfigurationTrackerImpl
 
 	@Override
 	public AnalyticsConfiguration getAnalyticsConfiguration(String pid) {
-		Long companyId = _pidCompanyIdMapping.get(pid);
+		Long companyId = _companyIds.get(pid);
 
 		if (companyId == null) {
 			return _systemAnalyticsConfiguration;
@@ -126,7 +126,7 @@ public class AnalyticsConfigurationTrackerImpl
 			return null;
 		}
 
-		Set<Map.Entry<String, Long>> entries = _pidCompanyIdMapping.entrySet();
+		Set<Map.Entry<String, Long>> entries = _companyIds.entrySet();
 
 		Stream<Map.Entry<String, Long>> stream = entries.stream();
 
@@ -167,7 +167,7 @@ public class AnalyticsConfigurationTrackerImpl
 
 	@Override
 	public long getCompanyId(String pid) {
-		return _pidCompanyIdMapping.getOrDefault(pid, CompanyConstants.SYSTEM);
+		return _companyIds.getOrDefault(pid, CompanyConstants.SYSTEM);
 	}
 
 	@Override
@@ -196,12 +196,11 @@ public class AnalyticsConfigurationTrackerImpl
 			dictionary.get("companyId"), CompanyConstants.SYSTEM);
 
 		if (companyId != CompanyConstants.SYSTEM) {
-			_pidCompanyIdMapping.put(pid, companyId);
-
 			_analyticsConfigurations.put(
 				companyId,
 				ConfigurableUtil.createConfigurable(
 					AnalyticsConfiguration.class, dictionary));
+			_companyIds.put(pid, companyId);
 		}
 
 		if (!_initializedCompanyIds.contains(companyId)) {
@@ -333,7 +332,7 @@ public class AnalyticsConfigurationTrackerImpl
 						entityModelListener.getModelClassName(), membershipIds);
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 
@@ -384,7 +383,7 @@ public class AnalyticsConfigurationTrackerImpl
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -396,7 +395,7 @@ public class AnalyticsConfigurationTrackerImpl
 			_addSAPEntry(companyId);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -445,7 +444,7 @@ public class AnalyticsConfigurationTrackerImpl
 						(Long)dictionary.get("companyId"));
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 		}
@@ -664,7 +663,7 @@ public class AnalyticsConfigurationTrackerImpl
 	}
 
 	private void _unmapPid(String pid) {
-		Long companyId = _pidCompanyIdMapping.remove(pid);
+		Long companyId = _companyIds.remove(pid);
 
 		if (companyId != null) {
 			_analyticsConfigurations.remove(companyId);
@@ -788,6 +787,8 @@ public class AnalyticsConfigurationTrackerImpl
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
 
+	private final Map<String, Long> _companyIds = new ConcurrentHashMap<>();
+
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
@@ -804,9 +805,6 @@ public class AnalyticsConfigurationTrackerImpl
 
 	@Reference
 	private MessageBus _messageBus;
-
-	private final Map<String, Long> _pidCompanyIdMapping =
-		new ConcurrentHashMap<>();
 
 	@Reference
 	private RoleLocalService _roleLocalService;

@@ -775,6 +775,14 @@
 					"title": "The collectionConfig Schema",
 					"type": "object"
 				},
+				"displayAllItems": {
+					"title": "The displayAllItems Schema",
+					"type": "boolean"
+				},
+				"displayAllPages": {
+					"title": "The displayAllPages Schema",
+					"type": "boolean"
+				},
 				"fragmentStyle": {
 					"$ref": "#/definitions/FragmentStyle"
 				},
@@ -806,6 +814,11 @@
 				"numberOfItemsPerPage": {
 					"minimum": 0,
 					"title": "The numberOfItemsPerPage Schema",
+					"type": "integer"
+				},
+				"numberOfPages": {
+					"minimum": 0,
+					"title": "The numberOfPages Schema",
 					"type": "integer"
 				},
 				"paginationType": {
@@ -1393,6 +1406,20 @@
 								"FlexRow"
 							],
 							"title": "The contentDisplay Schema",
+							"type": "string"
+						},
+						"htmlTag": {
+							"enum": [
+								"Article",
+								"Aside",
+								"Div",
+								"Footer",
+								"Header",
+								"Main",
+								"Nav",
+								"Section"
+							],
+							"title": "The htmlTag Schema",
 							"type": "string"
 						},
 						"justify": {

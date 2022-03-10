@@ -14,84 +14,83 @@
 
 import {Avatar} from '../../../../components/Avatar';
 import AssignToMe from '../../../../components/Avatar/AssigneToMe';
+import Code from '../../../../components/Code';
 import Container from '../../../../components/Layout/Container';
 import ListView from '../../../../components/ListView/ListView';
 import StatusBadge from '../../../../components/StatusBadge';
 import {getTestrayCases} from '../../../../graphql/queries';
-import {Liferay} from '../../../../services/liferay/liferay';
+import i18n from '../../../../i18n';
 import {getStatusLabel} from '../../../../util/constants';
 
-const Build = () => {
-	return (
-		<Container className="mt-4" title="Tests">
-			<ListView
-				query={getTestrayCases}
-				tableProps={{
-					columns: [
-						{
-							clickable: true,
-							key: 'priority',
-							value: 'Priority',
-						},
-						{
-							key: 'component',
-							value: 'Component',
-						},
-						{
-							clickable: true,
-							key: 'name',
-							value: 'Case',
-						},
-						{
-							key: 'run',
-							render: () => '01',
-							value: 'Run',
-						},
-						{
-							key: 'assignee',
-							render: (_: any, {testrayCaseResult}: any) =>
-								testrayCaseResult?.assignedUserId ? (
-									<Avatar />
-								) : (
-									<AssignToMe></AssignToMe>
-								),
-							value: 'Assignee',
-						},
-						{
-							key: 'status',
-							render: (_: any, {testrayCaseResult}: any) =>
-								testrayCaseResult?.dueStatus && (
-									<StatusBadge
-										type={getStatusLabel(
-											testrayCaseResult?.dueStatus
-										)?.toLowerCase()}
-									>
-										{getStatusLabel(
-											testrayCaseResult?.dueStatus
-										)}
-									</StatusBadge>
-								),
-							value: 'Status',
-						},
-						{
-							key: 'issues',
-							value: 'Issues',
-						},
-						{
-							key: 'error',
-							render: (_: any, {testrayCaseResult}: any) => (
-								<code>{testrayCaseResult?.errors}</code>
+const Build = () => (
+	<Container className="mt-4" title={i18n.translate('tests')}>
+		<ListView
+			query={getTestrayCases}
+			tableProps={{
+				columns: [
+					{
+						clickable: true,
+						key: 'priority',
+						value: i18n.translate('priority'),
+					},
+					{
+						key: 'component',
+						value: i18n.translate('component'),
+					},
+					{
+						clickable: true,
+						key: 'name',
+						value: i18n.translate('case'),
+					},
+					{
+						key: 'run',
+						render: () => '01',
+						value: i18n.translate('run'),
+					},
+					{
+						key: 'assignee',
+						render: (_: any, {testrayCaseResult}: any) =>
+							testrayCaseResult?.assignedUserId ? (
+								<Avatar />
+							) : (
+								<AssignToMe />
 							),
-							value: 'Errors',
-						},
-					],
-					navigateTo: (item) => `case/${item.testrayCaseId}`,
-				}}
-				transformData={(data) => data?.c?.testrayCases}
-				variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
-			/>
-		</Container>
-	);
-};
+						value: i18n.translate('assignee'),
+					},
+					{
+						key: 'status',
+						render: (_: any, {testrayCaseResult}: any) =>
+							testrayCaseResult?.dueStatus && (
+								<StatusBadge
+									type={getStatusLabel(
+										testrayCaseResult?.dueStatus
+									)?.toLowerCase()}
+								>
+									{getStatusLabel(
+										testrayCaseResult?.dueStatus
+									)}
+								</StatusBadge>
+							),
+						value: i18n.translate('status'),
+					},
+					{
+						key: 'issues',
+						value: i18n.translate('issues'),
+					},
+					{
+						key: 'error',
+						render: (_: any, {testrayCaseResult}: any) =>
+							testrayCaseResult?.errors && (
+								<Code>{testrayCaseResult.errors}</Code>
+							),
+						value: i18n.translate('errors'),
+					},
+				],
+				navigateTo: (item) => `case-result/${item.testrayCaseId}`,
+			}}
+			transformData={(data) => data?.c?.testrayCases}
+		/>
+	</Container>
+);
 
 export default Build;

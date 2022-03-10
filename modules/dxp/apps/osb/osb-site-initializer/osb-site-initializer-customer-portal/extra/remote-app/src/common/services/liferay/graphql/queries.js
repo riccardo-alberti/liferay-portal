@@ -210,6 +210,24 @@ export const addTeamMembersInvitation = gql`
 	}
 `;
 
+export const associateUserAccountWithAccountAndAccountRole = gql`
+	mutation associateUserAccountWithAccountAndAccountRole(
+		$emailAddress: String!
+		$accountKey: String!
+		$accountRoleId: Long!
+	) {
+		createAccountUserAccountByExternalReferenceCodeByEmailAddress(
+			emailAddress: $emailAddress
+			externalReferenceCode: $accountKey
+		)
+		createAccountByExternalReferenceCodeAccountRoleUserAccountByEmailAddress(
+			accountRoleId: $accountRoleId
+			emailAddress: $emailAddress
+			externalReferenceCode: $accountKey
+		)
+	}
+`;
+
 export const getAccountFlags = gql`
 	query getAccountFlags($filter: String) {
 		c {
@@ -307,7 +325,7 @@ export const getListTypeDefinitions = gql`
 `;
 
 export const getAccounts = gql`
-	query getAccounts($pageSize: Int) {
+	query getAccounts($pageSize: Int = 20) {
 		accounts(pageSize: $pageSize) {
 			items {
 				externalReferenceCode
@@ -324,6 +342,32 @@ export const getAccountByExternalReferenceCode = gql`
 		) {
 			id
 			name
+		}
+	}
+`;
+
+export const getAccountUserAccountsByExternalReferenceCode = gql`
+	query getAccountUserAccountsByExternalReferenceCode(
+		$externalReferenceCode: String!
+		$pageSize: Int = 20
+	) {
+		accountUserAccountsByExternalReferenceCode(
+			externalReferenceCode: $externalReferenceCode
+			pageSize: $pageSize
+		) {
+			items {
+				id
+				emailAddress
+				lastLoginDate
+				name
+				accountBriefs {
+					name
+					externalReferenceCode
+					roleBriefs {
+						name
+					}
+				}
+			}
 		}
 	}
 `;

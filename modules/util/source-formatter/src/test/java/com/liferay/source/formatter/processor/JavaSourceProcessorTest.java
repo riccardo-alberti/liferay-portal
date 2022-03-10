@@ -140,6 +140,13 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testExceptionPrintStackTrace() throws Exception {
+		test(
+			"ExceptionPrintStackTrace.testjava",
+			"Avoid using method 'printStackTrace'" ,31);
+	}
+
+	@Test
 	public void testFormatAnnotations() throws Exception {
 		test("FormatAnnotations1.testjava");
 		test("FormatAnnotations2.testjava");
@@ -513,6 +520,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"Method '_getString' is unused"
 			},
 			new Integer[] {33, 41});
+	}
+	
+	
+	@Test
+	public void testExceptionMapper() throws Exception {
+		test(
+			"ExceptionMapperService.testjava",
+			new String[] {
+				"The value of 'osgi.jaxrs.name' should end with " +
+					"'ExceptionMapper'"
+			},
+			new Integer[] {30});
 	}
 
 	@Test

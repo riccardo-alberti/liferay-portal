@@ -49,14 +49,22 @@ export function CommonStyles({
 	);
 
 	if (item.type === LAYOUT_DATA_ITEM_TYPES.collection) {
-		styles = styles.filter((fieldSet) =>
-			fieldSet.styles.find((field) => field.name === 'display')
-		);
+		styles = styles
+			.filter((fieldSet) =>
+				fieldSet.styles.find((field) => field.name === 'display')
+			)
+			.map((fieldSet) => {
+				return {
+					...fieldSet,
+					styles: fieldSet.styles.filter(
+						(field) => field.name === 'display'
+					),
+				};
+			});
 	}
 
 	return (
 		<>
-			<h1 className="sr-only">{Liferay.Language.get('common-styles')}</h1>
 			<div
 				className={classNames('page-editor__common-styles', className)}
 			>

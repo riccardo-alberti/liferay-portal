@@ -11,19 +11,19 @@
 
 import {createContext, useContext, useEffect, useReducer} from 'react';
 import client from '../../../apolloClient';
+import {useApplicationProvider} from '../../../common/context/AppPropertiesProvider';
 import {Liferay} from '../../../common/services/liferay';
 import {
 	addAccountFlag,
 	getAccountSubscriptionGroups,
+	getAccountUserAccountsByExternalReferenceCode,
+	getDXPCloudEnvironment,
 	getKoroneikiAccounts,
 	getUserAccount,
 } from '../../../common/services/liferay/graphql/queries';
-import {searchParams} from '../../../common/services/liferay/searchParams';
-import {
-	ROLE_TYPES,
-	ROUTE_TYPES,
-	SEARCH_PARAMS_KEYS,
-} from '../../../common/utils/constants';
+import {getCurrentSession} from '../../../common/services/okta/rest/sessions';
+import {ROLE_TYPES, ROUTE_TYPES} from '../../../common/utils/constants';
+import {getAccountKey} from '../../../common/utils/getAccountKey';
 import {isValidPage} from '../../../common/utils/page.validation';
 import {PRODUCT_TYPES} from '../../customer-portal/utils/constants';
 import {ONBOARDING_STEP_TYPES} from '../utils/constants';
@@ -31,13 +31,19 @@ import reducer, {actionTypes} from './reducer';
 
 const AppContext = createContext();
 
+const MAX_PAGE_SIZE = 9999;
+
 const AppContextProvider = ({assetsPath, children}) => {
+	const {oktaSessionURL} = useApplicationProvider();
 	const [state, dispatch] = useReducer(reducer, {
 		assetsPath,
+		dxpCloudActivationSubmittedStatus: undefined,
 		koroneikiAccount: {},
 		project: undefined,
+		sessionId: '',
 		step: ONBOARDING_STEP_TYPES.welcome,
 		subscriptionGroups: undefined,
+		totalAdministratorAccounts: 0,
 		userAccount: undefined,
 	});
 
@@ -61,9 +67,14 @@ const AppContextProvider = ({assetsPath, children}) => {
 						({name}) => name === ROLE_TYPES.admin.key
 					);
 
+				const isStaff = data.userAccount?.roleBriefs?.some(
+					(role) => role.name === 'Administrator'
+				);
+
 				const userAccount = {
 					...data.userAccount,
 					isAdmin: isAccountAdministrator,
+					isStaff,
 				};
 
 				dispatch({
@@ -75,6 +86,49 @@ const AppContextProvider = ({assetsPath, children}) => {
 			}
 		};
 
+		const getTotalAdministratorAccounts = async (
+			projectExternalReferenceCode
+		) => {
+			const {data} = await client.query({
+				query: getAccountUserAccountsByExternalReferenceCode,
+				variables: {
+					externalReferenceCode: projectExternalReferenceCode,
+					pageSize: MAX_PAGE_SIZE,
+				},
+			});
+
+			if (data) {
+				const totalAdministratorAccounts = data.accountUserAccountsByExternalReferenceCode?.items?.reduce(
+					(totalAdministrators, userAccount) => {
+						const currentAccountBrief = userAccount.accountBriefs?.find(
+							(accountBrief) =>
+								accountBrief.externalReferenceCode ===
+								projectExternalReferenceCode
+						);
+						if (currentAccountBrief) {
+							const isAdmin = currentAccountBrief?.roleBriefs?.some(
+								(role) => role.name === ROLE_TYPES.admin.key
+							);
+							const isRequester = currentAccountBrief?.roleBriefs?.some(
+								(role) => role.name === ROLE_TYPES.requester.key
+							);
+
+							if (isAdmin || isRequester) {
+								return ++totalAdministrators;
+							}
+						}
+
+						return totalAdministrators;
+					},
+					0
+				);
+
+				dispatch({
+					payload: totalAdministratorAccounts,
+					type: actionTypes.UPDATE_CURRENT_TOTAL_ADMINISTRATORS,
+				});
+			}
+		};
 		const getProject = async (externalReferenceCode, accountBrief) => {
 			const {data: projects} = await client.query({
 				query: getKoroneikiAccounts,
@@ -91,6 +145,17 @@ const AppContextProvider = ({assetsPath, children}) => {
 						name: accountBrief.name,
 					},
 					type: actionTypes.UPDATE_PROJECT,
+				});
+			}
+		};
+
+		const getSessionId = async () => {
+			const session = await getCurrentSession(oktaSessionURL);
+
+			if (session) {
+				dispatch({
+					payload: session.id,
+					type: actionTypes.UPDATE_SESSION_ID,
 				});
 			}
 		};
@@ -112,10 +177,28 @@ const AppContextProvider = ({assetsPath, children}) => {
 			}
 		};
 
+		const getDXPCloudActivationStatus = async (accountKey) => {
+			const {data} = await client.query({
+				query: getDXPCloudEnvironment,
+				variables: {
+					filter: `accountKey eq '${accountKey}'`,
+					scopeKey: Liferay.ThemeDisplay.getScopeGroupId(),
+				},
+			});
+
+			if (data) {
+				const status = !!data.c?.dXPCloudEnvironments?.items?.length;
+
+				dispatch({
+					payload: status,
+					type:
+						actionTypes.UPDATE_DXP_CLOUD_ACTIVATION_SUBMITTED_STATUS,
+				});
+			}
+		};
+
 		const fetchData = async () => {
-			const projectExternalReferenceCode = searchParams.get(
-				SEARCH_PARAMS_KEYS.accountKey
-			);
+			const projectExternalReferenceCode = getAccountKey();
 
 			const user = await getUser(projectExternalReferenceCode);
 
@@ -139,6 +222,9 @@ const AppContextProvider = ({assetsPath, children}) => {
 				if (accountBrief) {
 					getProject(projectExternalReferenceCode, accountBrief);
 					getSubscriptionGroups(projectExternalReferenceCode);
+					getDXPCloudActivationStatus(projectExternalReferenceCode);
+					getSessionId();
+					getTotalAdministratorAccounts(projectExternalReferenceCode);
 
 					client.mutate({
 						mutation: addAccountFlag,
@@ -155,7 +241,7 @@ const AppContextProvider = ({assetsPath, children}) => {
 		};
 
 		fetchData();
-	}, []);
+	}, [oktaSessionURL]);
 
 	return (
 		<AppContext.Provider value={[state, dispatch]}>

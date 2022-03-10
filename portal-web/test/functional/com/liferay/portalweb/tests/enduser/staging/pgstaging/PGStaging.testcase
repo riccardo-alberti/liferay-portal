@@ -244,7 +244,7 @@ definition {
 
 		Portlet.addPG(portletName = "Web Content Display");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 
@@ -371,9 +371,7 @@ definition {
 
 		ClickNoError(locator1 = "Staging#STAGING_PUBLISH_TO_LIVE_BUTTON");
 
-		Pause(locator1 = "3000");
-
-		AssertTextEquals(
+		WaitForElementPresent(
 			locator1 = "Staging#PROCESS_SUCCESSFUL",
 			value1 = "Successful");
 
@@ -781,7 +779,7 @@ definition {
 			pageName = "Staging Test Page",
 			siteName = "Site Name");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "Web Content Content",
 			webContentTitle = "Web Content Title");
 

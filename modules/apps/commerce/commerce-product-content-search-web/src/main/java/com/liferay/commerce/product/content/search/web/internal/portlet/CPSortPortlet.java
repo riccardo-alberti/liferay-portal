@@ -62,7 +62,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/sort/view.jsp",
 		"javax.portlet.name=" + CPPortletKeys.CP_SORT,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -91,7 +92,7 @@ public class CPSortPortlet extends MVCPortlet {
 				WebKeys.PORTLET_DISPLAY_CONTEXT, cpSearchResultsDisplayContext);
 		}
 		catch (ConfigurationException configurationException) {
-			_log.error(configurationException, configurationException);
+			_log.error(configurationException);
 		}
 
 		super.render(renderRequest, renderResponse);

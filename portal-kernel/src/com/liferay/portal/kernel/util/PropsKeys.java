@@ -151,9 +151,6 @@ public interface PropsKeys {
 	public static final String ASSET_BROWSER_SEARCH_WITH_DATABASE =
 		"asset.browser.search.with.database";
 
-	public static final String ASSET_CATEGORIES_PROPERTIES_DEFAULT =
-		"asset.categories.properties.default";
-
 	public static final String ASSET_CATEGORIES_SEARCH_HIERARCHICAL =
 		"asset.categories.search.hierarchical";
 
@@ -268,21 +265,6 @@ public interface PropsKeys {
 	public static final String AUTO_DEPLOY_TOMCAT_CONF_DIR =
 		"auto.deploy.tomcat.conf.dir";
 
-	public static final String
-		AUTO_DEPLOY_WEBSPHERE_WSADMIN_APP_MANAGER_INSTALL_OPTIONS =
-			"auto.deploy.websphere.wsadmin.app.manager.install.options";
-
-	public static final String
-		AUTO_DEPLOY_WEBSPHERE_WSADMIN_APP_MANAGER_LIST_OPTIONS =
-			"auto.deploy.websphere.wsadmin.app.manager.list.options";
-
-	public static final String AUTO_DEPLOY_WEBSPHERE_WSADMIN_APP_MANAGER_QUERY =
-		"auto.deploy.websphere.wsadmin.app.manager.query";
-
-	public static final String
-		AUTO_DEPLOY_WEBSPHERE_WSADMIN_APP_MANAGER_UPDATE_OPTIONS =
-			"auto.deploy.websphere.wsadmin.app.manager.update.options";
-
 	public static final String AUTO_LOGIN_HOOKS = "auto.login.hooks";
 
 	public static final String AUTO_LOGIN_IGNORE_HOSTS =
@@ -290,10 +272,6 @@ public interface PropsKeys {
 
 	public static final String AUTO_LOGIN_IGNORE_PATHS =
 		"auto.login.ignore.paths";
-
-	public static final String AXIS_SERVLET_ENABLED = "axis.servlet.enabled";
-
-	public static final String AXIS_SERVLET_MAPPING = "axis.servlet.mapping";
 
 	public static final String BASIC_AUTH_PASSWORD_REQUIRED =
 		"basic.auth.password.required";
@@ -374,9 +352,6 @@ public interface PropsKeys {
 	public static final String BROWSER_CACHE_SIGNED_IN_DISABLED =
 		"browser.cache.signed.in.disabled";
 
-	public static final String BROWSER_COMPATIBILITY_IE_VERSIONS =
-		"browser.compatibility.ie.versions";
-
 	public static final String BROWSER_LAUNCHER_URL = "browser.launcher.url";
 
 	/**
@@ -441,9 +416,6 @@ public interface PropsKeys {
 
 	public static final String CALENDAR_EVENT_TYPES = "calendar.event.types";
 
-	public static final String CALENDAR_PUBLISH_TO_LIVE_BY_DEFAULT =
-		"calendar.publish.to.live.by.default";
-
 	public static final String CDN_DYNAMIC_RESOURCES_ENABLED =
 		"cdn.dynamic.resources.enabled";
 
@@ -476,9 +448,6 @@ public interface PropsKeys {
 		"cluster.link.channel.system.properties";
 
 	public static final String CLUSTER_LINK_ENABLED = "cluster.link.enabled";
-
-	public static final String CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT =
-		"cluster.link.node.bootup.response.timeout";
 
 	public static final String CLUSTERABLE_ADVICE_CALL_MASTER_TIMEOUT =
 		"clusterable.advice.call.master.timeout";
@@ -590,12 +559,6 @@ public interface PropsKeys {
 
 	public static final String CONTROL_PANEL_LAYOUT_REGULAR_THEME_ID =
 		"control.panel.layout.regular.theme.id";
-
-	public static final String CONTROL_PANEL_NAVIGATION_MAX_ORGANIZATIONS =
-		"control.panel.navigation.max.organizations";
-
-	public static final String CONTROL_PANEL_NAVIGATION_MAX_SITES =
-		"control.panel.navigation.max.sites";
 
 	public static final String CORS_DISABLE_AUTHORIZATION_CONTEXT_CHECK =
 		"cors.disable.authorization.context.check";
@@ -939,10 +902,6 @@ public interface PropsKeys {
 	public static final String DL_FILE_ENTRY_LOCK_POLICY =
 		"dl.file.entry.lock.policy";
 
-	public static final String
-		DL_FILE_ENTRY_OPEN_IN_MS_OFFICE_MANUAL_CHECK_IN_REQUIRED =
-			"dl.file.entry.open.in.ms.office.manual.check.in.required";
-
 	public static final String DL_FILE_ENTRY_PREVIEW_AUDIO =
 		"dl.file.entry.preview.audio.";
 
@@ -957,12 +916,6 @@ public interface PropsKeys {
 
 	public static final String DL_FILE_ENTRY_PREVIEW_AUDIO_SAMPLE_RATE =
 		"dl.file.entry.preview.audio.sample.rate";
-
-	public static final String DL_FILE_ENTRY_PREVIEW_AUTO_CREATE_ON_UPGRADE =
-		"dl.file.entry.preview.auto.create.on.upgrade";
-
-	public static final String DL_FILE_ENTRY_PREVIEW_DOCUMENT_DEPTH =
-		"dl.file.entry.preview.document.depth";
 
 	public static final String DL_FILE_ENTRY_PREVIEW_DOCUMENT_DPI =
 		"dl.file.entry.preview.document.dpi";
@@ -1050,9 +1003,6 @@ public interface PropsKeys {
 	public static final String DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH =
 		"dl.file.entry.thumbnail.max.width";
 
-	public static final String DL_FILE_ENTRY_THUMBNAIL_VIDEO_FRAME_PERCENTAGE =
-		"dl.file.entry.thumbnail.video.frame.percentage";
-
 	/**
 	 * @deprecated As of Mueller (7.2.x), with no direct replacement
 	 */
@@ -1060,9 +1010,6 @@ public interface PropsKeys {
 	public static final String
 		DL_FILE_ENTRY_TYPE_IG_IMAGE_AUTO_CREATE_ON_UPGRADE =
 			"dl.file.entry.type.ig.image.auto.create.on.upgrade";
-
-	public static final String DL_FILE_ENTRY_VERSION_POLICY =
-		"dl.file.entry.version.policy";
 
 	public static final String DL_FILE_EXTENSIONS_STRICT_CHECK =
 		"dl.file.extensions.strict.check";
@@ -1084,9 +1031,6 @@ public interface PropsKeys {
 		"dl.file.indexing.max.size";
 
 	public static final String DL_FOLDER_COLUMNS = "dl.folder.columns";
-
-	public static final String DL_FOLDER_ICON_CHECK_COUNT =
-		"dl.folder.icon.check.count";
 
 	public static final String DL_FOLDERS_SEARCH_VISIBLE =
 		"dl.folders.search.visible";
@@ -1326,9 +1270,6 @@ public interface PropsKeys {
 	public static final String INDEX_DATE_FORMAT_PATTERN =
 		"index.date.format.pattern";
 
-	public static final String INDEX_DUMP_COMPRESSION_ENABLED =
-		"index.dump.compression.enabled";
-
 	public static final String INDEX_ON_STARTUP = "index.on.startup";
 
 	public static final String INDEX_ON_STARTUP_DELAY =
@@ -1401,8 +1342,6 @@ public interface PropsKeys {
 
 	public static final String INDEX_SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH =
 		"index.sortable.text.fields.truncated.length";
-
-	public static final String INDEX_WITH_THREAD = "index.with.thread";
 
 	public static final String INDEXER_ENABLED = "indexer.enabled";
 
@@ -1508,9 +1447,6 @@ public interface PropsKeys {
 	public static final String LAYOUT_BROWSABLE = "layout.browsable";
 
 	public static final String LAYOUT_CLONE_IMPL = "layout.clone.impl";
-
-	public static final String LAYOUT_COMMENTS_ENABLED =
-		"layout.comments.enabled";
 
 	public static final String LAYOUT_CONFIGURATION_ACTION_DELETE =
 		"layout.configuration.action.delete";
@@ -2112,9 +2048,6 @@ public interface PropsKeys {
 	public static final String MY_SITES_DIRECTORY_SITE_EXCLUDES =
 		"my.sites.directory.site.excludes";
 
-	public static final String MY_SITES_DISPLAY_STYLE =
-		"my.sites.display.style";
-
 	public static final String MY_SITES_MAX_ELEMENTS = "my.sites.max.elements";
 
 	public static final String MY_SITES_SHOW_PRIVATE_SITES_WITH_NO_LAYOUTS =
@@ -2135,6 +2068,9 @@ public interface PropsKeys {
 
 	public static final String NOTIFICATIONS_MAX_EVENTS =
 		"notifications.max.events";
+
+	public static final String OBJECT_NESTED_FIELDS_MAX_QUERY_DEPTH =
+		"object.nested.fields.max.query.depth";
 
 	public static final String OMNIADMIN_USERS = "omniadmin.users";
 
@@ -2644,12 +2580,6 @@ public interface PropsKeys {
 
 	public static final String RSS_FEEDS_ENABLED = "rss.feeds.enabled";
 
-	public static final String RSS_PUBLISH_TO_LIVE_BY_DEFAULT =
-		"rss.publish.to.live.by.default";
-
-	public static final String RTL_CSS_EXCLUDED_PATHS_REGEXP =
-		"rtl.css.excluded.paths.regexp";
-
 	public static final String SANITIZER_IMPL = "sanitizer.impl";
 
 	public static final String SCHEDULER_DESCRIPTION_MAX_LENGTH =
@@ -2670,12 +2600,6 @@ public interface PropsKeys {
 		"schema.module.build.auto.upgrade";
 
 	public static final String SCHEMA_RUN_ENABLED = "schema.run.enabled";
-
-	public static final String SCRIPTING_JRUBY_COMPILE_MODE =
-		"scripting.jruby.compile.mode";
-
-	public static final String SCRIPTING_JRUBY_COMPILE_THRESHOLD =
-		"scripting.jruby.compile.threshold";
 
 	public static final String SEARCH_CONTAINER_PAGE_DEFAULT_DELTA =
 		"search.container.page.default.delta";
@@ -2823,6 +2747,9 @@ public interface PropsKeys {
 
 	public static final String SETUP_DATABASE_JAR_NAME =
 		"setup.database.jar.name";
+
+	public static final String SETUP_DATABASE_JAR_SHA1 =
+		"setup.database.jar.sha1";
 
 	public static final String SETUP_DATABASE_JAR_URL =
 		"setup.database.jar.url";
@@ -3228,8 +3155,6 @@ public interface PropsKeys {
 	public static final String USERS_FULL_NAME_VALIDATOR =
 		"users.full.name.validator";
 
-	public static final String USERS_LIST_VIEWS = "users.list.views";
-
 	public static final String USERS_PROFILE_FRIENDLY_URL =
 		"users.profile.friendly.url";
 
@@ -3434,9 +3359,6 @@ public interface PropsKeys {
 
 	public static final String YUI_COMPRESSOR_CSS_LINE_BREAK =
 		"yui.compressor.css.line.break";
-
-	public static final String ZIP_FILE_NAME_ENCODING =
-		"zip.file.name.encoding";
 
 	public static final String ZIP_FILE_WRITER_EXPORT_BUFFER_SIZE =
 		"zip.file.writer.export.buffer.size";

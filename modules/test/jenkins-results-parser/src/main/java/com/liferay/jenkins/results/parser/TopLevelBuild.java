@@ -177,12 +177,17 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 		TopLevelBuild topLevelBuild = getTopLevelBuild();
 
+		sb.append("/");
+
+		sb.append(
+			JenkinsResultsParserUtil.toDateString(
+				new Date(topLevelBuild.getStartTime()), "yyyy-MM",
+				"America/Los_Angeles"));
+
 		JenkinsMaster jenkinsMaster = topLevelBuild.getJenkinsMaster();
 
 		sb.append("/");
 		sb.append(jenkinsMaster.getName());
-		sb.append("/");
-		sb.append(topLevelBuild.getStartTime());
 		sb.append("/");
 		sb.append(topLevelBuild.getJobName());
 		sb.append("/");
@@ -469,6 +474,22 @@ public abstract class TopLevelBuild extends BaseBuild {
 			String.valueOf(getBuildNumber()), "/jenkins-report.html");
 	}
 
+	public File getJobSummaryDir() {
+		File jobSummaryDir = new File(getBuildDirPath(), "job-summary");
+
+		if (!jobSummaryDir.exists()) {
+			try {
+				CIJobSummaryReportUtil.writeJobSummaryReport(
+					jobSummaryDir, getJob());
+			}
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
+			}
+		}
+
+		return jobSummaryDir;
+	}
+
 	@Override
 	public Map<String, String> getMetricLabels() {
 		Map<String, String> metricLabels = new TreeMap<>();
@@ -481,23 +502,6 @@ public abstract class TopLevelBuild extends BaseBuild {
 
 	public List<String> getProjectNames() {
 		return Collections.emptyList();
-	}
-
-	@Override
-	public String getStatusReport(int indentSize) {
-		String statusReport = super.getStatusReport(indentSize);
-
-		if (getDownstreamBuildCount(null) > 0) {
-			while (statusReport.endsWith("\n")) {
-				statusReport = statusReport.substring(
-					0, statusReport.length() - 1);
-			}
-
-			statusReport += " / ";
-		}
-
-		return statusReport + "Update took " + _updateDuration +
-			" milliseconds.\n";
 	}
 
 	@Override

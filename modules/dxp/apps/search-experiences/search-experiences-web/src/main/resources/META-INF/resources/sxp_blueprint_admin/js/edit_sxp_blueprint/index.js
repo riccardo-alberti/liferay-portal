@@ -15,12 +15,14 @@ import ErrorBoundary from '../shared/ErrorBoundary';
 import ThemeContext from '../shared/ThemeContext';
 import {COPY_BUTTON_CSS_CLASS} from '../utils/constants';
 import {fetchData} from '../utils/fetch';
+import {openInitialSuccessToast} from '../utils/toasts';
 import useClipboardJS from '../utils/useClipboardJS';
 import EditSXPBlueprintForm from './EditSXPBlueprintForm';
 
 export default function ({
 	contextPath,
 	defaultLocale,
+	learnMessages,
 	locale,
 	namespace,
 	redirectURL,
@@ -31,6 +33,8 @@ export default function ({
 	useClipboardJS('.' + COPY_BUTTON_CSS_CLASS);
 
 	useEffect(() => {
+		openInitialSuccessToast();
+
 		fetchData(
 			`/o/search-experiences-rest/v1.0/sxp-blueprints/${sxpBlueprintId}`,
 			{method: 'GET'},
@@ -49,6 +53,7 @@ export default function ({
 				availableLanguages: Liferay.Language.available,
 				contextPath,
 				defaultLocale,
+				learnMessages,
 				locale,
 				namespace,
 				redirectURL,

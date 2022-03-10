@@ -21,6 +21,7 @@ import {config} from '../config/index';
 import {useDispatch} from '../contexts/StoreContext';
 import updateItemConfig from '../thunks/updateItemConfig';
 import AllowedFragmentSelector from './AllowedFragmentSelector';
+import AllowedFragmentSelectorTree from './AllowedFragmentSelectorTree';
 
 const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 	const dispatch = useDispatch();
@@ -68,17 +69,24 @@ const ManageAllowedFragmentModal = ({item, observer, onClose}) => {
 				{Liferay.Language.get('allowed-fragments')}
 			</ClayModal.Header>
 
-			<ClayModal.Body>
+			<ClayModal.Body className="p-0">
 				<p className="m-4 small text-secondary">
 					{Liferay.Language.get(
 						'specify-which-fragments-a-page-author-is-allowed-to-use-within-the-drop-zone-when-creating-a-page-from-this-master'
 					)}
 				</p>
 
-				<AllowedFragmentSelector
-					dropZoneConfig={item.config}
-					onSelectedFragment={onSelectedFragment}
-				/>
+				{Liferay.__FF__.enableClayTreeView ? (
+					<AllowedFragmentSelectorTree
+						dropZoneConfig={item.config}
+						onSelectedFragment={onSelectedFragment}
+					/>
+				) : (
+					<AllowedFragmentSelector
+						dropZoneConfig={item.config}
+						onSelectedFragment={onSelectedFragment}
+					/>
+				)}
 			</ClayModal.Body>
 
 			<ClayModal.Footer

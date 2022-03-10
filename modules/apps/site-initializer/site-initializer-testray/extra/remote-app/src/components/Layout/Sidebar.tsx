@@ -14,34 +14,27 @@
 
 import {useLocation} from 'react-router-dom';
 
+import i18n from '../../i18n';
 import TestrayLogo from '../../images/testray-logo';
-import {Liferay} from '../../services/liferay/liferay';
-import {Avatar} from '../Avatar';
+import SidebarFooter from './SidebarFooter';
 import SidebarItem from './SidebarItem';
 
 const sidebarItems = [
 	{
 		icon: 'polls',
-		label: 'Results',
+		label: i18n.translate('results'),
 		path: '/',
 	},
 	{
 		icon: 'merge',
-		label: 'TestFlow',
+		label: i18n.translate('testflow'),
 		path: '/testflow',
 	},
 	{
 		className: 'mt-3',
 		icon: 'drop',
-		label: 'Compare Runs',
+		label: i18n.translate('compare-runs'),
 		path: '/compare-runs',
-	},
-	{
-		className: 'mt-3',
-		footer: true,
-		icon: 'cog',
-		label: 'Manage',
-		path: '/manage',
 	},
 ];
 
@@ -58,56 +51,31 @@ const Sidebar = () => {
 					<TestrayLogo />
 				</a>
 
-				{sidebarItems
-					.filter(({footer}) => !footer)
-					.map(({className, icon, label, path}, index) => {
-						const [, ...items] = sidebarItems;
+				{sidebarItems.map(({className, icon, label, path}, index) => {
+					const [, ...items] = sidebarItems;
 
-						const someItemIsActive = items.some((item) =>
-							pathname.includes(item.path)
-						);
+					const someItemIsActive = items.some((item) =>
+						pathname.includes(item.path)
+					);
 
-						return (
-							<SidebarItem
-								active={
-									index === 0
-										? !someItemIsActive
-										: pathname.includes(path)
-								}
-								className={className}
-								icon={icon}
-								key={index}
-								label={label}
-								path={path}
-							/>
-						);
-					})}
-			</div>
-
-			<div className="testray-sidebar-footer">
-				{sidebarItems
-					.filter(({footer}) => footer)
-					.map(({className, icon, label, path}, index) => (
+					return (
 						<SidebarItem
-							active={pathname.includes(path)}
+							active={
+								index === 0
+									? !someItemIsActive
+									: pathname.includes(path)
+							}
 							className={className}
 							icon={icon}
 							key={index}
 							label={label}
 							path={path}
 						/>
-					))}
-
-				<div className="divider divider-full" />
-
-				<div className="testray-sidebar-item">
-					<Avatar
-						displayName
-						name={Liferay.ThemeDisplay.getUserName()}
-						url="https://clayui.com/images/long_user_image.png"
-					/>
-				</div>
+					);
+				})}
 			</div>
+
+			<SidebarFooter />
 		</div>
 	);
 };

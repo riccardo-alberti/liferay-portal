@@ -101,7 +101,7 @@ public class AccountEntryUserRelLocalServiceImpl
 		}
 		catch (PrincipalException principalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(principalException, principalException);
+				_log.debug(principalException);
 			}
 
 			creatorUserId = _userLocalService.getDefaultUserId(
@@ -151,7 +151,7 @@ public class AccountEntryUserRelLocalServiceImpl
 		long[] organizationIds = null;
 		long[] roleIds = null;
 		long[] userGroupIds = null;
-		boolean sendEmail = false;
+		boolean sendEmail = true;
 
 		ServiceContext serviceContext = null;
 

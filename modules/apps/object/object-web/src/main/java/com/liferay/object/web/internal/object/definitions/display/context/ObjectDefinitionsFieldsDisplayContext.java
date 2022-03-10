@@ -16,26 +16,35 @@ package com.liferay.object.web.internal.object.definitions.display.context;
 
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
 import com.liferay.object.field.business.type.ObjectFieldBusinessTypeServicesTracker;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.web.internal.configuration.activator.FFObjectFieldBusinessTypeConfigurationActivator;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.web.internal.configuration.FFBusinessTypeAttachmentConfiguration;
 import com.liferay.object.web.internal.constants.ObjectWebKeys;
 import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
+import com.liferay.object.web.internal.util.ObjectFieldBusinessTypeUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
@@ -49,16 +58,16 @@ import javax.servlet.http.HttpServletRequest;
 public class ObjectDefinitionsFieldsDisplayContext {
 
 	public ObjectDefinitionsFieldsDisplayContext(
-		FFObjectFieldBusinessTypeConfigurationActivator
-			ffObjectFieldBusinessTypeConfigurationActivator,
+		FFBusinessTypeAttachmentConfiguration
+			ffBusinessTypeAttachmentConfiguration,
 		HttpServletRequest httpServletRequest,
 		ModelResourcePermission<ObjectDefinition>
 			objectDefinitionModelResourcePermission,
 		ObjectFieldBusinessTypeServicesTracker
 			objectFieldBusinessTypeServicesTracker) {
 
-		_ffObjectFieldBusinessTypeConfigurationActivator =
-			ffObjectFieldBusinessTypeConfigurationActivator;
+		_ffBusinessTypeAttachmentConfiguration =
+			ffBusinessTypeAttachmentConfiguration;
 		_objectDefinitionModelResourcePermission =
 			objectDefinitionModelResourcePermission;
 		_objectFieldBusinessTypeServicesTracker =
@@ -130,33 +139,53 @@ public class ObjectDefinitionsFieldsDisplayContext {
 	}
 
 	public List<Map<String, String>> getObjectFieldBusinessTypeMaps(
-		Locale locale) {
+		boolean includeRelationshipObjectFieldBusinessType, Locale locale) {
 
-		List<Map<String, String>> objectFieldBusinessTypeMaps =
-			new ArrayList<>();
+		List<ObjectFieldBusinessType> objectFieldBusinessTypes =
+			_objectFieldBusinessTypeServicesTracker.
+				getObjectFieldBusinessTypes();
 
-		for (ObjectFieldBusinessType objectFieldBusinessType :
-				_objectFieldBusinessTypeServicesTracker.
-					getObjectFieldBusinessTypes()) {
+		Stream<ObjectFieldBusinessType> stream =
+			objectFieldBusinessTypes.stream();
 
-			if (!objectFieldBusinessType.isVisible()) {
-				continue;
-			}
+		return ObjectFieldBusinessTypeUtil.getObjectFieldBusinessTypeMaps(
+			locale,
+			stream.filter(
+				objectFieldBusinessType ->
+					objectFieldBusinessType.isVisible() &&
+					(!StringUtil.equals(
+						objectFieldBusinessType.getName(),
+						ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
+					 _ffBusinessTypeAttachmentConfiguration.enabled()) &&
+					(!StringUtil.equals(
+						objectFieldBusinessType.getName(),
+						ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP) ||
+					 includeRelationshipObjectFieldBusinessType)
+			).collect(
+				Collectors.toList()
+			));
+	}
 
-			objectFieldBusinessTypeMaps.add(
-				HashMapBuilder.put(
-					"businessType", objectFieldBusinessType.getName()
-				).put(
-					"dbType", objectFieldBusinessType.getDBType()
-				).put(
-					"description",
-					objectFieldBusinessType.getDescription(locale)
-				).put(
-					"label", objectFieldBusinessType.getLabel(locale)
-				).build());
-		}
-
-		return objectFieldBusinessTypeMaps;
+	public JSONObject getObjectFieldJSONObject(ObjectField objectField) {
+		return JSONUtil.put(
+			"businessType", objectField.getBusinessType()
+		).put(
+			"DBType", objectField.getDBType()
+		).put(
+			"id", objectField.getObjectFieldId()
+		).put(
+			"indexed", objectField.isIndexed()
+		).put(
+			"label", objectField.getLabelMap()
+		).put(
+			"name", objectField.getName()
+		).put(
+			"objectFieldSettings", _getObjectFieldSettingsJSONArray(objectField)
+		).put(
+			"relationshipType", objectField.getRelationshipType()
+		).put(
+			"required", objectField.isRequired()
+		);
 	}
 
 	public PortletURL getPortletURL() throws PortletException {
@@ -175,12 +204,27 @@ public class ObjectDefinitionsFieldsDisplayContext {
 			getObjectDefinitionId(), ActionKeys.UPDATE);
 	}
 
-	public boolean isFFObjectFieldBusinessTypeConfigurationEnabled() {
-		return _ffObjectFieldBusinessTypeConfigurationActivator.enabled();
+	private JSONArray _getObjectFieldSettingsJSONArray(
+		ObjectField objectField) {
+
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		ListUtil.isNotEmptyForEach(
+			objectField.getObjectFieldSettings(),
+			objectFieldSetting -> jsonArray.put(
+				JSONUtil.put(
+					"name", objectFieldSetting.getName()
+				).put(
+					"required", objectFieldSetting.isRequired()
+				).put(
+					"value", objectFieldSetting.getValue()
+				)));
+
+		return jsonArray;
 	}
 
-	private final FFObjectFieldBusinessTypeConfigurationActivator
-		_ffObjectFieldBusinessTypeConfigurationActivator;
+	private final FFBusinessTypeAttachmentConfiguration
+		_ffBusinessTypeAttachmentConfiguration;
 	private final ModelResourcePermission<ObjectDefinition>
 		_objectDefinitionModelResourcePermission;
 	private final ObjectFieldBusinessTypeServicesTracker

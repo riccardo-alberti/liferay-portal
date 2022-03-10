@@ -11,7 +11,11 @@
 
 export const actionTypes = {
 	CHANGE_STEP: 'CHANGE_STEP',
+	UPDATE_CURRENT_TOTAL_ADMINISTRATORS: 'UPDATE_CURRENT_TOTAL_ADMINISTRATORS',
+	UPDATE_DXP_CLOUD_ACTIVATION_SUBMITTED_STATUS:
+		'UPDATE_DXP_CLOUD_ACTIVATION_SUBMITTED_STATUS',
 	UPDATE_PROJECT: 'UPDATE_PROJECT',
+	UPDATE_SESSION_ID: 'UPDATE_SESSION_ID',
 	UPDATE_SUBSCRIPTION_GROUPS: 'UPDATE_SUBSCRIPTION_GROUPS',
 	UPDATE_USER_ACCOUNT: 'UPDATE_USER_ACCOUNT',
 };
@@ -24,10 +28,22 @@ const reducer = (state, action) => {
 				step: action.payload,
 			};
 		}
+		case actionTypes.UPDATE_CURRENT_TOTAL_ADMINISTRATORS: {
+			return {
+				...state,
+				totalAdministratorAccounts: action.payload,
+			};
+		}
 		case actionTypes.UPDATE_PROJECT: {
 			return {
 				...state,
 				project: action.payload,
+			};
+		}
+		case actionTypes.UPDATE_SESSION_ID: {
+			return {
+				...state,
+				sessionId: action.payload,
 			};
 		}
 		case actionTypes.UPDATE_USER_ACCOUNT: {
@@ -40,6 +56,12 @@ const reducer = (state, action) => {
 			return {
 				...state,
 				subscriptionGroups: action.payload,
+			};
+		}
+		case actionTypes.UPDATE_DXP_CLOUD_ACTIVATION_SUBMITTED_STATUS: {
+			return {
+				...state,
+				dxpCloudActivationSubmittedStatus: action.payload,
 			};
 		}
 		default: {

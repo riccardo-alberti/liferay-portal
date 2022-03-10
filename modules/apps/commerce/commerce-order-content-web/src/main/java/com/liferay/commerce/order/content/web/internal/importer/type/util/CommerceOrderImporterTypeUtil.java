@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -111,6 +112,15 @@ public class CommerceOrderImporterTypeUtil {
 									getLocalizedMessage(),
 							String.class));
 				}
+
+				if (exception instanceof PrincipalException) {
+					commerceOrderImporterItemImpl.setErrorMessages(
+						new String[] {
+							LanguageUtil.get(
+								serviceContext.getLocale(),
+								"the-product-is-no-longer-available")
+						});
+				}
 				else {
 					String[] errorMessages =
 						commerceOrderImporterItemImpl.getErrorMessages();
@@ -177,7 +187,7 @@ public class CommerceOrderImporterTypeUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 	}

@@ -42,6 +42,7 @@ const Table = ({
 
 	useEffect(() => {
 		if (
+			rows?.length &&
 			hasCheckbox &&
 			rows.every((row) => checkboxesChecked.includes(row.id))
 		) {
@@ -174,6 +175,7 @@ const Table = ({
 												return row.customClickOnRow();
 											}
 										}}
+										truncate={column.truncate}
 									>
 										{row[column.accessor]}
 									</ClayTable.Cell>

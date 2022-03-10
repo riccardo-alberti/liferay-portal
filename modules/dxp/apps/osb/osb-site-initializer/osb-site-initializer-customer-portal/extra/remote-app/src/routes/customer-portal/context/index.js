@@ -20,9 +20,9 @@ import {
 	getStructuredContentFolders,
 	getUserAccount,
 } from '../../../common/services/liferay/graphql/queries';
-import {searchParams} from '../../../common/services/liferay/searchParams';
 import {getCurrentSession} from '../../../common/services/okta/rest/sessions';
-import {ROLE_TYPES, SEARCH_PARAMS_KEYS} from '../../../common/utils/constants';
+import {ROLE_TYPES, ROUTE_TYPES} from '../../../common/utils/constants';
+import {getAccountKey} from '../../../common/utils/getAccountKey';
 import {isValidPage} from '../../../common/utils/page.validation';
 import {CUSTOM_EVENT_TYPES} from '../utils/constants';
 import reducer, {actionTypes} from './reducer';
@@ -96,9 +96,14 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 						({name}) => name === ROLE_TYPES.admin.key
 					);
 
+				const isStaff = data.userAccount?.roleBriefs?.some(
+					(role) => role.name === 'Administrator'
+				);
+
 				const userAccount = {
 					...data.userAccount,
 					isAdmin: isAccountAdministrator,
+					isStaff,
 				};
 
 				dispatch({
@@ -187,16 +192,15 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 		};
 
 		const fetchData = async () => {
-			const projectExternalReferenceCode = searchParams.get(
-				SEARCH_PARAMS_KEYS.accountKey
-			);
+			const projectExternalReferenceCode = getAccountKey();
+
 			const user = await getUser(projectExternalReferenceCode);
 
-			if (user && getCurrentPageName() === 'overview') {
+			if (user && getCurrentPageName() === ROUTE_TYPES.project) {
 				const isValid = await isValidPage(
 					user,
 					projectExternalReferenceCode,
-					'overview'
+					ROUTE_TYPES.project
 				);
 
 				if (isValid) {

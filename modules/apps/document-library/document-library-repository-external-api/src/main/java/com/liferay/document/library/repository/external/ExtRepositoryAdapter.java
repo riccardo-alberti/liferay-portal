@@ -87,9 +87,9 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	public FileEntry addFileEntry(
 			String externalReferenceCode, long userId, long folderId,
 			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, InputStream inputStream,
-			long size, Date expirationDate, Date reviewDate,
-			ServiceContext serviceContext)
+			String urlTitle, String description, String changeLog,
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		String fileName = null;
@@ -885,9 +885,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 							unsupportedOperationException) {
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							unsupportedOperationException,
-							unsupportedOperationException);
+						_log.debug(unsupportedOperationException);
 					}
 				}
 			}
@@ -909,9 +907,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 							unsupportedOperationException) {
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							unsupportedOperationException,
-							unsupportedOperationException);
+						_log.debug(unsupportedOperationException);
 					}
 				}
 			}
@@ -1038,8 +1034,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@Override
 	public FileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
 			InputStream inputStream, long size, Date expirationDate,
 			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {

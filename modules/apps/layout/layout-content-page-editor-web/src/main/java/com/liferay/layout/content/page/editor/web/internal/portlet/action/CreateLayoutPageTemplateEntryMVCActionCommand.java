@@ -38,7 +38,6 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsEntryConstants;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -70,8 +69,7 @@ public class CreateLayoutPageTemplateEntryMVCActionCommand
 			WebKeys.THEME_DISPLAY);
 
 		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsEntryConstants.ID_DEFAULT);
+			actionRequest, "segmentsExperienceId");
 		Layout sourceLayout = _layoutLocalService.getLayout(
 			themeDisplay.getPlid());
 		String name = ParamUtil.getString(actionRequest, "name");
@@ -110,7 +108,7 @@ public class CreateLayoutPageTemplateEntryMVCActionCommand
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			String errorMessage = null;
