@@ -55,7 +55,7 @@ String commerceRegionCode = BeanParamUtil.getString(commerceInventoryWarehouse, 
 			</commerce-ui:panel>
 		</div>
 
-		<div class="col-lg-6 d-flex">
+		<div class="col-lg-6">
 			<commerce-ui:panel
 				bodyClasses="flex-fill"
 				title='<%= LanguageUtil.get(request, "geolocation") %>'

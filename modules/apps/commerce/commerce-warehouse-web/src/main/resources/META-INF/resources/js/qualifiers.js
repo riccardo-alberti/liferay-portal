@@ -15,27 +15,25 @@
 import {liferayNavigate} from 'commerce-frontend-js/utilities/index';
 import {createPortletURL} from 'frontend-js-web';
 
-export default function ({currentURL, namespace, searchParam, selector}) {
-	const portletURL = createPortletURL(currentURL);
+export default function ({currentURLObj, namespace}) {
+	const radioButtons = document.querySelectorAll(`input[type=radio][id^=${namespace}]`)
+	const portletURL = createPortletURL(currentURLObj);
 
-	const radioButtons = document.querySelectorAll(
-		`[name=${namespace}${selector}]`
-	);
 
 	const handleSelectChange = (event) => {
 		if (event.target.checked) {
 			portletURL.searchParams.set(
-				event.target.getAttribute('data-type'),
-				event.target.getAttribute('data-choice')
+				`${namespace}${searchParam}`,
+				event.target.value
 			);
 
 			liferayNavigate(portletURL.toString());
 		}
 	};
 
-	radioButtons.forEach((radioButton) => {
-		radioButton.addEventListener('change', handleSelectChange);
-	});
+	radioButtons.forEach(radioButton => {
+		radioButton.addEventListener('change', handleSelectChange)
+	})
 
 	return {
 		dispose() {
@@ -44,4 +42,6 @@ export default function ({currentURL, namespace, searchParam, selector}) {
 			});
 		},
 	};
+
+	
 }
