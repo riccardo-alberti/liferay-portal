@@ -37,39 +37,11 @@ public class BatchPlannerLogServiceWrapper
 	}
 
 	@Override
-	public com.liferay.batch.planner.model.BatchPlannerLog addBatchPlannerLog(
-			long batchPlannerPlanId, String batchEngineExportERC,
-			String batchEngineImportERC, String dispatchTriggerERC, int size,
-			int status)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _batchPlannerLogService.addBatchPlannerLog(
-			batchPlannerPlanId, batchEngineExportERC, batchEngineImportERC,
-			dispatchTriggerERC, size, status);
-	}
-
-	@Override
-	public com.liferay.batch.planner.model.BatchPlannerLog
-			deleteBatchPlannerLog(long batchPlannerLogId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _batchPlannerLogService.deleteBatchPlannerLog(batchPlannerLogId);
-	}
-
-	@Override
 	public com.liferay.batch.planner.model.BatchPlannerLog getBatchPlannerLog(
 			long batchPlannerLogId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _batchPlannerLogService.getBatchPlannerLog(batchPlannerLogId);
-	}
-
-	@Override
-	public int getBatchPlannerLogsCount(long batchPlannerPlanId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _batchPlannerLogService.getBatchPlannerLogsCount(
-			batchPlannerPlanId);
 	}
 
 	@Override
@@ -97,6 +69,20 @@ public class BatchPlannerLogServiceWrapper
 	@Override
 	public java.util.List<com.liferay.batch.planner.model.BatchPlannerLog>
 			getCompanyBatchPlannerLogs(
+				long companyId, boolean export, String searchByKeyword,
+				int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.batch.planner.model.BatchPlannerLog>
+						orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _batchPlannerLogService.getCompanyBatchPlannerLogs(
+			companyId, export, searchByKeyword, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.batch.planner.model.BatchPlannerLog>
+			getCompanyBatchPlannerLogs(
 				long companyId, int start, int end,
 				com.liferay.portal.kernel.util.OrderByComparator
 					<com.liferay.batch.planner.model.BatchPlannerLog>
@@ -105,6 +91,19 @@ public class BatchPlannerLogServiceWrapper
 
 		return _batchPlannerLogService.getCompanyBatchPlannerLogs(
 			companyId, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.batch.planner.model.BatchPlannerLog>
+			getCompanyBatchPlannerLogs(
+				long companyId, String searchByKeyword, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.batch.planner.model.BatchPlannerLog>
+						orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _batchPlannerLogService.getCompanyBatchPlannerLogs(
+			companyId, searchByKeyword, start, end, orderByComparator);
 	}
 
 	@Override
@@ -121,6 +120,24 @@ public class BatchPlannerLogServiceWrapper
 
 		return _batchPlannerLogService.getCompanyBatchPlannerLogsCount(
 			companyId, export);
+	}
+
+	@Override
+	public int getCompanyBatchPlannerLogsCount(
+			long companyId, boolean export, String searchByKeyword)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _batchPlannerLogService.getCompanyBatchPlannerLogsCount(
+			companyId, export, searchByKeyword);
+	}
+
+	@Override
+	public int getCompanyBatchPlannerLogsCount(
+			long companyId, String searchByKeyword)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _batchPlannerLogService.getCompanyBatchPlannerLogsCount(
+			companyId, searchByKeyword);
 	}
 
 	/**

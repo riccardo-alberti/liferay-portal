@@ -195,9 +195,7 @@ public class LayoutRevisionLocalServiceImpl
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchPortletPreferencesException,
-						noSuchPortletPreferencesException);
+					_log.debug(noSuchPortletPreferencesException);
 				}
 			}
 		}
@@ -272,9 +270,7 @@ public class LayoutRevisionLocalServiceImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					noSuchLayoutRevisionException,
-					noSuchLayoutRevisionException);
+				_log.debug(noSuchLayoutRevisionException);
 			}
 
 			return null;
@@ -425,6 +421,11 @@ public class LayoutRevisionLocalServiceImpl
 	@Override
 	public List<LayoutRevision> getLayoutRevisionsByStatus(int status) {
 		return layoutRevisionPersistence.findByStatus(status);
+	}
+
+	@Override
+	public int getLayoutRevisionsCount(long plid) {
+		return layoutRevisionPersistence.countByPlid(plid);
 	}
 
 	@Override

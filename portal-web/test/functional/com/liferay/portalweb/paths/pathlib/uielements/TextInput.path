@@ -21,6 +21,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ALERT_MESSAGE</td>
+	<td>//div[label[contains(.,'${key_fieldLabel}')]]//div[contains(@class,'text-danger')][normalize-space()='${key_alertMessage}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ANSWER</td>
 	<td>//div[label[contains(.,'Answer')]]/input[@type='password']</td>
 	<td></td>
@@ -33,6 +38,11 @@
 <tr>
 	<td>ANY</td>
 	<td>//div[label[contains(.,'${key_text}')]]//input[not(contains(@type,'checkbox'))]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ANY_SPECIFIC</td>
+	<td>//div/label[text()='${key_text}']/..//input[not(contains(@type,'checkbox'))]</td>
 	<td></td>
 </tr>
 <tr>
@@ -52,7 +62,7 @@
 </tr>
 <tr>
 	<td>BORDER_BOTTOM_INPUT_FIELD</td>
-	<td>//div[contains(@class,'label')][normalize-space()='${key_borderBottom}']/following-sibling::div[1]//div[label[normalize-space(text())='${key_fieldLabel}']]/input</td>
+	<td>//button[contains(@class,'collapse-icon')][normalize-space()='${key_borderBottom}']/following-sibling::div[1]//div[label[normalize-space(text())='${key_fieldLabel}']]/input</td>
 	<td></td>
 </tr>
 <tr>
@@ -113,11 +123,6 @@
 <tr>
 	<td>CUSTOM_META_TAGS_PROPERTY_EDITOR</td>
 	<td>//div[label[contains(.,'Property')]]/input[@type='text' and @value='${key_customProperty}']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>CUSTOM_TITLE</td>
-	<td>//input[contains(@id,'customTitle')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -462,7 +467,7 @@
 </tr>
 <tr>
 	<td>PASSWORD</td>
-	<td>//div[label[contains(.,'Password')]]/input | //div[label[contains(.,"parola d'ordine")]]/input | //div[label[contains(.,'Contraseña')]]/input | //div[label[contains(.,'パスワード')]]/input | //div[label[contains(.,'密码')]]/input | //div[contains(.,'Kennwort')]//input[@type='password']</td>
+	<td>//div[label[contains(.,'Password') and not(contains(.,'One-Time Password'))]]/input | //div[label[contains(.,"parola d'ordine")]]/input | //div[label[contains(.,'Contraseña')]]/input | //div[label[contains(.,'パスワード')]]/input | //div[label[contains(.,'密码')]]/input | //div[contains(.,'Kennwort')]//input[@type='password']</td>
 	<td></td>
 </tr>
 <tr>

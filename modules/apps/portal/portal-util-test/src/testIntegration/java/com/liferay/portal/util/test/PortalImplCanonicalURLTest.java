@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.VirtualHostLocalService;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -77,6 +78,14 @@ public class PortalImplCanonicalURLTest {
 
 	@BeforeClass
 	public static void setUpClass() throws PortalException {
+		_originalVirtualHostDefaultSiteName =
+			ReflectionTestUtil.getAndSetFieldValue(
+				PropsValues.class, "VIRTUAL_HOSTS_DEFAULT_SITE_NAME", "Guest");
+		_originalWebServerHTTPPort = ReflectionTestUtil.getAndSetFieldValue(
+			PropsValues.class, "WEB_SERVER_HTTP_PORT", -1);
+		_originalWebServerHTTPSPort = ReflectionTestUtil.getAndSetFieldValue(
+			PropsValues.class, "WEB_SERVER_HTTPS_PORT", -1);
+
 		_defaultLocale = LocaleUtil.getDefault();
 		_defaultPrependStyle = PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE;
 
@@ -100,13 +109,23 @@ public class PortalImplCanonicalURLTest {
 		TestPropsUtil.set(
 			PropsKeys.LOCALE_PREPEND_FRIENDLY_URL_STYLE,
 			GetterUtil.getString(_defaultPrependStyle));
+
+		ReflectionTestUtil.setFieldValue(
+			PropsValues.class, "VIRTUAL_HOSTS_DEFAULT_SITE_NAME",
+			_originalVirtualHostDefaultSiteName);
+		ReflectionTestUtil.setFieldValue(
+			PropsValues.class, "WEB_SERVER_HTTP_PORT",
+			_originalWebServerHTTPPort);
+		ReflectionTestUtil.setFieldValue(
+			PropsValues.class, "WEB_SERVER_HTTPS_PORT",
+			_originalWebServerHTTPSPort);
 	}
 
 	@Before
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_layout1 = LayoutTestUtil.addLayout(
+		_layout1 = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(), false,
 			HashMapBuilder.put(
 				LocaleUtil.GERMANY, "Zuhause1"
@@ -123,7 +142,7 @@ public class PortalImplCanonicalURLTest {
 				LocaleUtil.US, "/home1"
 			).build());
 
-		_layout2 = LayoutTestUtil.addLayout(
+		_layout2 = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(), false,
 			HashMapBuilder.put(
 				LocaleUtil.GERMANY, "Zuhause2"
@@ -140,7 +159,7 @@ public class PortalImplCanonicalURLTest {
 				LocaleUtil.US, "/home2"
 			).build());
 
-		_layout3 = LayoutTestUtil.addLayout(
+		_layout3 = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(), false,
 			HashMapBuilder.put(
 				LocaleUtil.GERMANY, _group.getName(LocaleUtil.GERMANY)
@@ -153,7 +172,7 @@ public class PortalImplCanonicalURLTest {
 				LocaleUtil.US, _group.getFriendlyURL()
 			).build());
 
-		_layout4 = LayoutTestUtil.addLayout(
+		_layout4 = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(), false,
 			HashMapBuilder.put(
 				LocaleUtil.US, "weben"
@@ -177,10 +196,11 @@ public class PortalImplCanonicalURLTest {
 				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
 
 			if (_defaultGrouplayout1 == null) {
-				_defaultGrouplayout1 = LayoutTestUtil.addLayout(_defaultGroup);
+				_defaultGrouplayout1 = LayoutTestUtil.addTypePortletLayout(
+					_defaultGroup);
 			}
 
-			_defaultGrouplayout2 = LayoutTestUtil.addLayout(
+			_defaultGrouplayout2 = LayoutTestUtil.addTypePortletLayout(
 				_defaultGroup.getGroupId());
 		}
 	}
@@ -661,8 +681,8 @@ public class PortalImplCanonicalURLTest {
 
 		String expectedPortalDomain = virtualHostname;
 
-		if (virtualHostname.startsWith("localhost") &&
-			!portalDomain.startsWith("localhost")) {
+		if (virtualHostname.startsWith("localhost") ^
+			portalDomain.startsWith("localhost")) {
 
 			expectedPortalDomain = portalDomain;
 		}
@@ -695,6 +715,9 @@ public class PortalImplCanonicalURLTest {
 
 	private static Locale _defaultLocale;
 	private static int _defaultPrependStyle;
+	private static String _originalVirtualHostDefaultSiteName;
+	private static int _originalWebServerHTTPPort;
+	private static int _originalWebServerHTTPSPort;
 
 	@Inject
 	private static VirtualHostLocalService _virtualHostLocalService;

@@ -41,10 +41,12 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletPreferences;
+import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ImageLocalService;
@@ -129,7 +131,7 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		};
@@ -172,7 +174,7 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
-					_log.warn(exception, exception);
+					_log.warn(exception);
 				}
 			}
 		};
@@ -335,8 +337,11 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			_layoutPageTemplateStructureLocalService.
 				addLayoutPageTemplateStructure(
 					targetLayout.getUserId(), targetLayout.getGroupId(),
-					targetLayout.getPlid(), null,
-					ServiceContextThreadLocal.getServiceContext());
+					targetLayout.getPlid(),
+					_segmentsExperienceLocalService.
+						fetchDefaultSegmentsExperienceId(
+							targetLayout.getPlid()),
+					null, ServiceContextThreadLocal.getServiceContext());
 		}
 
 		Map<Long, Long> segmentsExperienceIdsMap = _getSegmentsExperienceIds(
@@ -401,14 +406,18 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 				deletedLayoutStructureItem.getItemId());
 		}
 
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				targetLayout.getPlid());
+
 		JSONObject dataJSONObject = _processDataJSONObject(
 			layoutStructure.toString(), targetLayout, fragmentEntryLinksMap,
-			SegmentsExperienceConstants.ID_DEFAULT);
+			defaultSegmentsExperienceId);
 
-		_layoutPageTemplateStructureLocalService.addLayoutPageTemplateStructure(
-			targetLayout.getUserId(), targetLayout.getGroupId(),
-			targetLayout.getPlid(), dataJSONObject.toString(),
-			ServiceContextThreadLocal.getServiceContext());
+		_layoutPageTemplateStructureLocalService.
+			updateLayoutPageTemplateStructureData(
+				targetLayout.getGroupId(), targetLayout.getPlid(),
+				defaultSegmentsExperienceId, dataJSONObject.toString());
 	}
 
 	private void _copyLayoutSEOEntry(Layout sourceLayout, Layout targetLayout)
@@ -558,20 +567,23 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 				targetPortletIds.remove(portletId);
 
-				PortletPreferences portletPreferences =
-					_portletPreferencesLocalService.fetchPortletPreferences(
-						PortletKeys.PREFS_OWNER_ID_DEFAULT,
-						PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
-						sourceLayout.getPlid(), portletId);
+				PortletPreferencesIds portletPreferencesIds =
+					_portletPreferencesFactory.getPortletPreferencesIds(
+						sourceLayout.getCompanyId(), sourceLayout.getGroupId(),
+						0, sourceLayout.getPlid(), portletId);
 
 				javax.portlet.PortletPreferences jxPortletPreferences =
-					_portletPreferenceValueLocalService.getPreferences(
-						portletPreferences);
+					_portletPreferencesLocalService.fetchPreferences(
+						portletPreferencesIds);
+
+				if (jxPortletPreferences == null) {
+					continue;
+				}
 
 				PortletPreferences targetPortletPreferences =
 					_portletPreferencesLocalService.fetchPortletPreferences(
-						PortletKeys.PREFS_OWNER_ID_DEFAULT,
-						PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+						portletPreferencesIds.getOwnerId(),
+						portletPreferencesIds.getOwnerType(),
 						targetLayout.getPlid(), portletId);
 
 				if (targetPortletPreferences != null) {
@@ -585,8 +597,8 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 				else {
 					_portletPreferencesLocalService.addPortletPreferences(
 						targetLayout.getCompanyId(),
-						PortletKeys.PREFS_OWNER_ID_DEFAULT,
-						PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+						portletPreferencesIds.getOwnerId(),
+						portletPreferencesIds.getOwnerType(),
 						targetLayout.getPlid(), portletId, portlet,
 						PortletPreferencesFactoryUtil.toXML(
 							jxPortletPreferences));
@@ -889,6 +901,9 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 	@Reference
 	private PortletLocalService _portletLocalService;
+
+	@Reference
+	private PortletPreferencesFactory _portletPreferencesFactory;
 
 	@Reference
 	private PortletPreferencesLocalService _portletPreferencesLocalService;

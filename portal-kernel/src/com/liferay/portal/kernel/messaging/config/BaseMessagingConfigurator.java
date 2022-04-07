@@ -201,7 +201,7 @@ public abstract class BaseMessagingConfigurator
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 
@@ -216,22 +216,13 @@ public abstract class BaseMessagingConfigurator
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
 		}
 
 		_messageListeners.putAll(messageListeners);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getOperatingClassLoader()}
-	 */
-	@Deprecated
-	protected ClassLoader getOperatingClassloader() {
-		return getOperatingClassLoader();
 	}
 
 	protected abstract ClassLoader getOperatingClassLoader();

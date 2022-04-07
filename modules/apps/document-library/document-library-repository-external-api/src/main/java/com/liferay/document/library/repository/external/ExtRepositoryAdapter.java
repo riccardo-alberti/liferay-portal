@@ -87,9 +87,9 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	public FileEntry addFileEntry(
 			String externalReferenceCode, long userId, long folderId,
 			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, InputStream inputStream,
-			long size, Date expirationDate, Date reviewDate,
-			ServiceContext serviceContext)
+			String urlTitle, String description, String changeLog,
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		String fileName = null;
@@ -425,12 +425,10 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 		String extRepositoryFileEntryKey = getExtRepositoryObjectKey(
 			fileEntryId);
 
-		ExtRepositoryObject extRepositoryObject =
-			_extRepository.getExtRepositoryObject(
-				ExtRepositoryObjectType.FILE, extRepositoryFileEntryKey);
-
 		return _toExtRepositoryObjectAdapter(
-			ExtRepositoryObjectAdapterType.FILE, extRepositoryObject);
+			ExtRepositoryObjectAdapterType.FILE,
+			_extRepository.getExtRepositoryObject(
+				ExtRepositoryObjectType.FILE, extRepositoryFileEntryKey));
 	}
 
 	@Override
@@ -439,12 +437,10 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 		String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
 
-		ExtRepositoryObject extRepositoryObject =
-			_extRepository.getExtRepositoryObject(
-				ExtRepositoryObjectType.FILE, extRepositoryFolderKey, title);
-
 		return _toExtRepositoryObjectAdapter(
-			ExtRepositoryObjectAdapterType.FILE, extRepositoryObject);
+			ExtRepositoryObjectAdapterType.FILE,
+			_extRepository.getExtRepositoryObject(
+				ExtRepositoryObjectType.FILE, extRepositoryFolderKey, title));
 	}
 
 	@Override
@@ -560,14 +556,12 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 		try {
 			String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
 
-			List<? extends ExtRepositoryObject> extRepositoryObjects =
-				_extRepository.getExtRepositoryObjects(
-					ExtRepositoryObjectType.OBJECT, extRepositoryFolderKey);
-
 			List<ExtRepositoryObjectAdapter<?>> extRepositoryObjectAdapters =
 				_toExtRepositoryObjectAdapters(
 					ExtRepositoryObjectAdapterType.OBJECT,
-					extRepositoryObjects);
+					_extRepository.getExtRepositoryObjects(
+						ExtRepositoryObjectType.OBJECT,
+						extRepositoryFolderKey));
 
 			return _sublist(
 				extRepositoryObjectAdapters, start, end,
@@ -586,13 +580,11 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 
 		String extRepositoryFolderKey = getExtRepositoryObjectKey(folderId);
 
-		List<ExtRepositoryObject> extRepositoryObjects =
-			_extRepository.getExtRepositoryObjects(
-				ExtRepositoryObjectType.OBJECT, extRepositoryFolderKey);
-
 		List<ExtRepositoryObjectAdapter<?>> extRepositoryObjectAdapters =
 			_toExtRepositoryObjectAdapters(
-				ExtRepositoryObjectAdapterType.OBJECT, extRepositoryObjects);
+				ExtRepositoryObjectAdapterType.OBJECT,
+				_extRepository.getExtRepositoryObjects(
+					ExtRepositoryObjectType.OBJECT, extRepositoryFolderKey));
 
 		extRepositoryObjectAdapters = _filterByMimeType(
 			extRepositoryObjectAdapters, mimeTypes);
@@ -885,9 +877,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 							unsupportedOperationException) {
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							unsupportedOperationException,
-							unsupportedOperationException);
+						_log.debug(unsupportedOperationException);
 					}
 				}
 			}
@@ -909,9 +899,7 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 							unsupportedOperationException) {
 
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							unsupportedOperationException,
-							unsupportedOperationException);
+						_log.debug(unsupportedOperationException);
 					}
 				}
 			}
@@ -1038,8 +1026,8 @@ public class ExtRepositoryAdapter extends BaseRepositoryImpl {
 	@Override
 	public FileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
 			InputStream inputStream, long size, Date expirationDate,
 			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {

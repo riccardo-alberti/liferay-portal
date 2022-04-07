@@ -65,11 +65,6 @@ public class ObjectFieldServiceTest {
 	public void setUp() throws Exception {
 		_defaultUser = _userLocalService.getDefaultUser(
 			TestPropsValues.getCompanyId());
-		_originalName = PrincipalThreadLocal.getName();
-		_originalPermissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-		_user = TestPropsValues.getUser();
-
 		_objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
 				TestPropsValues.getUserId(),
@@ -77,7 +72,6 @@ public class ObjectFieldServiceTest {
 				"A" + RandomTestUtil.randomString(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_COMPANY, null);
-
 		_systemObjectDefinition =
 			_objectDefinitionLocalService.addSystemObjectDefinition(
 				TestPropsValues.getUserId(), "Test", null,
@@ -86,6 +80,10 @@ public class ObjectFieldServiceTest {
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_COMPANY, 1,
 				Collections.<ObjectField>emptyList());
+		_originalName = PrincipalThreadLocal.getName();
+		_originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+		_user = TestPropsValues.getUser();
 	}
 
 	@After
@@ -193,7 +191,7 @@ public class ObjectFieldServiceTest {
 			user.getUserId(), 0, _objectDefinition.getObjectDefinitionId(),
 			"Text", "String", false, false, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-			StringUtil.randomId(), true);
+			StringUtil.randomId(), true, Collections.emptyList());
 	}
 
 	private void _setUser(User user) {
@@ -214,7 +212,7 @@ public class ObjectFieldServiceTest {
 			objectField = _objectFieldService.addCustomObjectField(
 				0, objectDefinitionId, "Text", "String", false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				StringUtil.randomId(), true);
+				StringUtil.randomId(), true, Collections.emptyList());
 		}
 		finally {
 			if (objectField != null) {
@@ -270,7 +268,8 @@ public class ObjectFieldServiceTest {
 			objectField = _objectFieldService.updateCustomObjectField(
 				objectField.getObjectFieldId(), 0, "Text", "String", true,
 				false, LanguageUtil.getLanguageId(LocaleUtil.getDefault()),
-				LocalizedMapUtil.getLocalizedMap("baker"), "baker", true);
+				LocalizedMapUtil.getLocalizedMap("baker"), "baker", true,
+				Collections.emptyList());
 		}
 		finally {
 			if (objectField != null) {

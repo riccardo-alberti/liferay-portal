@@ -22,8 +22,7 @@ import com.liferay.portal.upgrade.step.util.UpgradeStepFactory;
 import com.liferay.saml.persistence.internal.upgrade.v1_1_0.SamlSpAuthRequestUpgradeProcess;
 import com.liferay.saml.persistence.internal.upgrade.v1_1_0.SamlSpMessageUpgradeProcess;
 import com.liferay.saml.persistence.internal.upgrade.v2_1_0.SamlIdpSpConnectionUpgradeProcess;
-import com.liferay.saml.persistence.internal.upgrade.v3_0_0.util.SamlIdpSpSessionTable;
-import com.liferay.saml.persistence.internal.upgrade.v3_0_0.util.SamlSpSessionTable;
+import com.liferay.saml.persistence.internal.upgrade.v2_4_0.util.SamlPeerBindingTable;
 
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Component;
@@ -115,10 +114,7 @@ public class SamlServiceUpgrade implements UpgradeStepRegistrator {
 			new com.liferay.saml.persistence.internal.upgrade.v2_3_0.
 				SamlSpIdpConnectionUpgradeProcess());
 
-		registry.register(
-			"2.3.0", "2.4.0",
-			new com.liferay.saml.persistence.internal.upgrade.v3_0_0.
-				SamlPeerBindingUpgradeProcess());
+		registry.register("2.3.0", "2.4.0", SamlPeerBindingTable.create());
 
 		registry.register(
 			"2.4.0", "2.5.0",
@@ -129,22 +125,17 @@ public class SamlServiceUpgrade implements UpgradeStepRegistrator {
 
 		registry.register(
 			"2.5.0", "3.0.0",
+			UpgradeStepFactory.dropColumns("SamlIdpSpSession", "nameIdFormat"),
+			UpgradeStepFactory.dropColumns("SamlIdpSpSession", "nameIdValue"),
 			UpgradeStepFactory.dropColumns(
-				SamlIdpSpSessionTable.class, "nameIdFormat"),
+				"SamlIdpSpSession", "samlSpEntityId"),
+			UpgradeStepFactory.dropColumns("SamlSpSession", "nameIdFormat"),
 			UpgradeStepFactory.dropColumns(
-				SamlIdpSpSessionTable.class, "nameIdValue"),
+				"SamlSpSession", "nameIdNameQualifier"),
 			UpgradeStepFactory.dropColumns(
-				SamlIdpSpSessionTable.class, "samlSpEntityId"),
-			UpgradeStepFactory.dropColumns(
-				SamlSpSessionTable.class, "nameIdFormat"),
-			UpgradeStepFactory.dropColumns(
-				SamlSpSessionTable.class, "nameIdNameQualifier"),
-			UpgradeStepFactory.dropColumns(
-				SamlSpSessionTable.class, "nameIdSPNameQualifier"),
-			UpgradeStepFactory.dropColumns(
-				SamlSpSessionTable.class, "nameIdValue"),
-			UpgradeStepFactory.dropColumns(
-				SamlSpSessionTable.class, "samlIdpEntityId"));
+				"SamlSpSession", "nameIdSPNameQualifier"),
+			UpgradeStepFactory.dropColumns("SamlSpSession", "nameIdValue"),
+			UpgradeStepFactory.dropColumns("SamlSpSession", "samlIdpEntityId"));
 	}
 
 	@Reference

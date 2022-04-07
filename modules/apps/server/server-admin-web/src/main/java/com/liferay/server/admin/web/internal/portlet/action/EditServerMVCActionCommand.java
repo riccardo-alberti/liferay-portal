@@ -94,7 +94,6 @@ import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -107,6 +106,9 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.ShutdownUtil;
+import com.liferay.server.admin.web.internal.constants.ImageMagickResourceLimitConstants;
+
+import java.lang.reflect.InvocationHandler;
 
 import java.util.Collections;
 import java.util.Enumeration;
@@ -114,6 +116,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -377,12 +380,7 @@ public class EditServerMVCActionCommand
 					layoutStagingHandler.setLayoutRevision(layoutRevision);
 
 					if (_containsPortlet(
-							(Layout)ProxyUtil.newProxyInstance(
-								PortalClassLoaderUtil.getClassLoader(),
-								new Class<?>[] {
-									Layout.class, ModelWrapper.class
-								},
-								layoutStagingHandler),
+							_proxyProviderFunction.apply(layoutStagingHandler),
 							portletPreferences.getPortletId())) {
 
 						return;
@@ -646,18 +644,11 @@ public class EditServerMVCActionCommand
 		portletPreferences.setValue(
 			PropsKeys.IMAGEMAGICK_GLOBAL_SEARCH_PATH, imageMagickPath);
 
-		Enumeration<String> enumeration = actionRequest.getParameterNames();
+		for (String name : ImageMagickResourceLimitConstants.PROPERTY_NAMES) {
+			String propertyName = PropsKeys.IMAGEMAGICK_RESOURCE_LIMIT + name;
 
-		while (enumeration.hasMoreElements()) {
-			String name = enumeration.nextElement();
-
-			if (name.startsWith("imageMagickLimit")) {
-				String key = StringUtil.toLowerCase(name.substring(16));
-				String value = ParamUtil.getString(actionRequest, name);
-
-				portletPreferences.setValue(
-					PropsKeys.IMAGEMAGICK_RESOURCE_LIMIT + key, value);
-			}
+			portletPreferences.setValue(
+				propertyName, ParamUtil.getString(actionRequest, propertyName));
 		}
 
 		portletPreferences.store();
@@ -819,6 +810,9 @@ public class EditServerMVCActionCommand
 	private static final Log _log = LogFactoryUtil.getLog(
 		EditServerMVCActionCommand.class);
 
+	private static final Function<InvocationHandler, Layout>
+		_proxyProviderFunction = ProxyUtil.getProxyProviderFunction(
+			Layout.class, ModelWrapper.class);
 	private static final MethodKey _resetLogLevelsMethodKey = new MethodKey(
 		EditServerMVCActionCommand.class, "_resetLogLevels", Map.class,
 		Map.class);

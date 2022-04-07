@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.security.auth.Authenticator;
 import com.liferay.portal.kernel.security.auth.PasswordModificationThreadLocal;
 import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
-import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -101,7 +100,7 @@ public class LDAPAuth implements Authenticator {
 				companyId, emailAddress, StringPool.BLANK, 0, password);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			throw new AuthException(exception);
 		}
@@ -118,7 +117,7 @@ public class LDAPAuth implements Authenticator {
 				companyId, StringPool.BLANK, screenName, 0, password);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			throw new AuthException(exception);
 		}
@@ -136,7 +135,7 @@ public class LDAPAuth implements Authenticator {
 				password);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			throw new AuthException(exception);
 		}
@@ -323,7 +322,7 @@ public class LDAPAuth implements Authenticator {
 						ldapAuthConfiguration.passwordEncryptionAlgorithm()) &&
 					!Objects.equals(
 						ldapAuthConfiguration.passwordEncryptionAlgorithm(),
-						PasswordEncryptorUtil.TYPE_NONE)) {
+						PasswordEncryptor.TYPE_NONE)) {
 
 					ldapPassword = _removeEncryptionAlgorithm(ldapPassword);
 

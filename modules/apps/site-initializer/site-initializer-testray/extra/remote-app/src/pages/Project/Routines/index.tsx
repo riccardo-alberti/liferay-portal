@@ -12,78 +12,89 @@
  * details.
  */
 
-import {Link} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 
-import Chart from '../../../components/Charts';
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
 import ProgressBar from '../../../components/ProgressBar';
-import {getTestrayBuilds} from '../../../graphql/queries';
-import {Liferay} from '../../../services/liferay/liferay';
+import {getRoutines} from '../../../graphql/queries';
+import i18n from '../../../i18n';
+import {getTimeFromNow} from '../../../util/date';
+import RoutineModal from './RoutineModal';
+import useRoutineActions from './useRoutineActions';
 
-const getRandom = (max = 50) => Math.ceil(Math.random() * max);
+const Routines = () => {
+	const {projectId} = useParams();
+	const {actions, formModal} = useRoutineActions();
 
-const testrayData = [...new Array(20)].map((value, index) => ({
-	blocked: getRandom(),
-	create_date: new Date(2022, 1, index + 10).toLocaleString(),
-	failed: getRandom(20),
-	git_hash: '51bde0fe',
-	incomplete: getRandom(10),
-	name: `acceptance-pullrequest(7.0.x) - ${index}`,
-	passed: getRandom(200),
-	product_version: '7.0.x',
-	test_fix: getRandom(10),
-}));
-
-const Routine = () => {
 	return (
-		<Container title="Build History">
-			<Chart data={testrayData} />
-
+		<Container title={i18n.translate('routines')}>
 			<ListView
-				query={getTestrayBuilds}
+				forceRefetch={formModal.forceRefetch}
+				managementToolbarProps={{
+					addButton: () => formModal.modal.open(),
+				}}
+				query={getRoutines}
 				tableProps={{
+					actions,
 					columns: [
 						{
+							clickable: true,
 							key: 'name',
-							render: (
-								name: string,
-								{testrayBuildId}: {testrayBuildId: number}
-							) => (
-								<Link to={`build/${testrayBuildId}`}>
-									{name}
-								</Link>
-							),
-							value: 'Build',
+							value: i18n.translate('routine'),
 						},
-						{key: 'dateCreated', value: 'Create Date'},
-						{key: 'gitHash', value: 'Git Hash'},
-						{key: 'product_version', value: 'Product Version'},
-						{key: 'failed', value: 'Failed'},
-						{key: 'blocked', value: 'Blocked'},
-						{key: 'test_fix', value: 'Test Fix'},
 						{
+							clickable: true,
+							key: 'dateCreated',
+							render: getTimeFromNow,
+							value: i18n.translate('execution-date'),
+						},
+						{
+							clickable: true,
+							key: 'failed',
+							render: () => 0,
+							value: i18n.translate('failed'),
+						},
+						{
+							clickable: true,
+							key: 'blocked',
+							render: () => 0,
+							value: i18n.translate('blocked'),
+						},
+						{
+							clickable: true,
+							key: 'test_fix',
+							render: () => 0,
+							value: i18n.translate('test-fix'),
+						},
+						{
+							clickable: true,
 							key: 'metrics',
 							render: () => (
 								<ProgressBar
 									items={{
 										blocked: 0,
-										failed: 2,
-										incomplete: 0,
-										passed: 30,
-										test_fix: 0,
+										failed: 1,
+										passed: 70,
 									}}
 								/>
 							),
-							value: 'Metrics',
+							size: 'sm',
+							value: i18n.translate('metrics'),
 						},
 					],
+					navigateTo: ({id}) => id?.toString(),
 				}}
-				transformData={(data) => data?.c?.testrayBuilds}
-				variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
+				transformData={(data) => data?.c?.routines}
+				variables={{filter: `projectId eq ${projectId}`}}
+			/>
+
+			<RoutineModal
+				modal={formModal.modal}
+				projectId={Number(projectId)}
 			/>
 		</Container>
 	);
 };
 
-export default Routine;
+export default Routines;

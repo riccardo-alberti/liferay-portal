@@ -51,7 +51,6 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
-import com.liferay.portal.kernel.model.PortletPreferencesIds;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.Theme;
@@ -75,7 +74,7 @@ import com.liferay.portal.kernel.service.ThemeLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
@@ -424,7 +423,7 @@ public class CPFileImporterImpl implements CPFileImporter {
 
 		friendlyURL = friendlyURL.trim();
 
-		friendlyURL = FriendlyURLNormalizerUtil.normalize(friendlyURL);
+		friendlyURL = _friendlyURLNormalizer.normalize(friendlyURL);
 
 		friendlyURL = CharPool.SLASH + friendlyURL;
 
@@ -598,7 +597,7 @@ public class CPFileImporterImpl implements CPFileImporter {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -617,8 +616,8 @@ public class CPFileImporterImpl implements CPFileImporter {
 		return _dlAppLocalService.addFileEntry(
 			null, serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, fileName, mimeType,
-			fileName, StringPool.BLANK, StringPool.BLANK, byteArray, null, null,
-			serviceContext);
+			fileName, StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+			byteArray, null, null, serviceContext);
 	}
 
 	private long _getAssetEntryId(
@@ -783,16 +782,13 @@ public class CPFileImporterImpl implements CPFileImporter {
 			return;
 		}
 
-		PortletPreferencesIds portletPreferencesIds =
-			PortletPreferencesFactoryUtil.getPortletPreferencesIds(
-				layout.getCompanyId(), layout.getGroupId(), layout.getPlid(),
-				portletId,
-				PortletPreferencesFactoryConstants.
-					SETTINGS_SCOPE_PORTLET_INSTANCE);
-
 		PortletPreferences portletPreferences =
 			_portletPreferencesLocalService.getPreferences(
-				portletPreferencesIds);
+				PortletPreferencesFactoryUtil.getPortletPreferencesIds(
+					layout.getCompanyId(), layout.getGroupId(),
+					layout.getPlid(), portletId,
+					PortletPreferencesFactoryConstants.
+						SETTINGS_SCOPE_PORTLET_INSTANCE));
 
 		ResourceBundleLoader resourceBundleLoader =
 			new AggregateResourceBundleLoader(
@@ -828,13 +824,10 @@ public class CPFileImporterImpl implements CPFileImporter {
 			return;
 		}
 
-		PortletPreferencesIds portletPreferencesIds =
-			PortletPreferencesFactoryUtil.getPortletPreferencesIds(
-				layout.getGroupId(), 0, layout, portletId, false);
-
 		PortletPreferences portletPreferences =
 			_portletPreferencesLocalService.getPreferences(
-				portletPreferencesIds);
+				PortletPreferencesFactoryUtil.getPortletPreferencesIds(
+					layout.getGroupId(), 0, layout, portletId, false));
 
 		Iterator<String> iterator = jsonObject.keys();
 
@@ -1031,6 +1024,9 @@ public class CPFileImporterImpl implements CPFileImporter {
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;

@@ -131,6 +131,8 @@ public class CommercePriceEntryPersistenceTest {
 
 		newCommercePriceEntry.setMvccVersion(RandomTestUtil.nextLong());
 
+		newCommercePriceEntry.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newCommercePriceEntry.setUuid(RandomTestUtil.randomString());
 
 		newCommercePriceEntry.setExternalReferenceCode(
@@ -201,6 +203,9 @@ public class CommercePriceEntryPersistenceTest {
 		Assert.assertEquals(
 			existingCommercePriceEntry.getMvccVersion(),
 			newCommercePriceEntry.getMvccVersion());
+		Assert.assertEquals(
+			existingCommercePriceEntry.getCtCollectionId(),
+			newCommercePriceEntry.getCtCollectionId());
 		Assert.assertEquals(
 			existingCommercePriceEntry.getUuid(),
 			newCommercePriceEntry.getUuid());
@@ -398,11 +403,11 @@ public class CommercePriceEntryPersistenceTest {
 
 	protected OrderByComparator<CommercePriceEntry> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CommercePriceEntry", "mvccVersion", true, "uuid", true,
-			"externalReferenceCode", true, "commercePriceEntryId", true,
-			"companyId", true, "userId", true, "userName", true, "createDate",
-			true, "modifiedDate", true, "commercePriceListId", true,
-			"CPInstanceUuid", true, "CProductId", true, "price", true,
+			"CommercePriceEntry", "mvccVersion", true, "ctCollectionId", true,
+			"uuid", true, "externalReferenceCode", true, "commercePriceEntryId",
+			true, "companyId", true, "userId", true, "userName", true,
+			"createDate", true, "modifiedDate", true, "commercePriceListId",
+			true, "CPInstanceUuid", true, "CProductId", true, "price", true,
 			"promoPrice", true, "discountDiscovery", true, "discountLevel1",
 			true, "discountLevel2", true, "discountLevel3", true,
 			"discountLevel4", true, "hasTierPrice", true, "bulkPricing", true,
@@ -688,33 +693,6 @@ public class CommercePriceEntryPersistenceTest {
 
 	private void _assertOriginalValues(CommercePriceEntry commercePriceEntry) {
 		Assert.assertEquals(
-			Long.valueOf(commercePriceEntry.getCommercePriceListId()),
-			ReflectionTestUtil.<Long>invoke(
-				commercePriceEntry, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "commercePriceListId"));
-		Assert.assertEquals(
-			commercePriceEntry.getCPInstanceUuid(),
-			ReflectionTestUtil.invoke(
-				commercePriceEntry, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "CPInstanceUuid"));
-
-		Assert.assertEquals(
-			Long.valueOf(commercePriceEntry.getCommercePriceListId()),
-			ReflectionTestUtil.<Long>invoke(
-				commercePriceEntry, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "commercePriceListId"));
-		Assert.assertEquals(
-			commercePriceEntry.getCPInstanceUuid(),
-			ReflectionTestUtil.invoke(
-				commercePriceEntry, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "CPInstanceUuid"));
-		Assert.assertEquals(
-			Integer.valueOf(commercePriceEntry.getStatus()),
-			ReflectionTestUtil.<Integer>invoke(
-				commercePriceEntry, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "status"));
-
-		Assert.assertEquals(
 			Long.valueOf(commercePriceEntry.getCompanyId()),
 			ReflectionTestUtil.<Long>invoke(
 				commercePriceEntry, "getColumnOriginalValue",
@@ -732,6 +710,8 @@ public class CommercePriceEntryPersistenceTest {
 		CommercePriceEntry commercePriceEntry = _persistence.create(pk);
 
 		commercePriceEntry.setMvccVersion(RandomTestUtil.nextLong());
+
+		commercePriceEntry.setCtCollectionId(RandomTestUtil.nextLong());
 
 		commercePriceEntry.setUuid(RandomTestUtil.randomString());
 

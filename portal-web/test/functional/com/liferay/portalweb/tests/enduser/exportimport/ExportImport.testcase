@@ -139,6 +139,77 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LRQA-73362. Custom fields can be added and deleted through importing their LAR file."
+	@priority = "4"
+	test CustomFieldDeletionViaImporting {
+		property app.server.bundles.size = "1";
+		property databases.size = "1";
+		property minimum.slave.ram = "24";
+		property portal.upstream = "marcell";
+		property test.name.skip.portal.instance = "ExportImport#CustomFieldDeletionViaImporting";
+
+		CustomFields.addCP(
+			customFieldName = "Text Field",
+			customFieldType = "Input Field",
+			customInputDataType = "Text",
+			modelResource = "com.liferay.document.library.kernel.model.DLFileEntry");
+
+		CustomFields.openCustomFieldAdmin();
+
+		LAR.exportPortlet(
+			larFileName = "custom_fields.portlet.lar",
+			portletName = "Custom Fields");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		CustomFields.openCustomFieldAdmin(baseURL = "http://localhost:9080");
+
+		LAR.importPortlet(larFileName = "custom_fields.portlet.lar");
+
+		CustomFields.viewCPIsPresent(
+			customFieldName = "Text Field",
+			resourceName = "Document");
+
+		User.logoutPG(specificURL = "http://localhost:9080");
+
+		User.loginPG();
+
+		CustomFields.openCustomFieldAdmin();
+
+		CustomFields.deleteCP(
+			customFieldName = "Text Field",
+			resourceName = "Document");
+
+		CustomFields.openCustomFieldAdmin();
+
+		LAR.exportPortlet(
+			exportIndividualDeletions = "true",
+			larFileName = "custom_fields_deletion.portlet.lar",
+			portletName = "Custom Fields");
+
+		User.logoutPG();
+
+		User.firstLoginUI(
+			password = "test",
+			specificURL = "http://localhost:9080",
+			userEmailAddress = "test@liferay.com");
+
+		CustomFields.openCustomFieldAdmin(baseURL = "http://localhost:9080");
+
+		LAR.importPortlet(
+			importDeletions = "true",
+			larFileName = "custom_fields_deletion.portlet.lar");
+
+		CustomFields.viewCPIsNotPresent(
+			customFieldName = "Text Field",
+			resourceName = "Document");
+	}
+
 	@description = "This is a test for LPS-125446."
 	@priority = "4"
 	test DisplayStyleCanRemainAfterNavigation {
@@ -918,9 +989,7 @@ definition {
 
 		IFrame.selectConfigurationFrame();
 
-		Portlet.configureCustomTitleViaLookandfeelPG(portletName = "IFrame");
-
-		PortletEntry.save();
+		Portlet.configureGeneralViaLookAndFeelPG(customTitle = "IFrame Custom");
 
 		IFrame.closeFrame();
 
@@ -1104,6 +1173,86 @@ definition {
 			siteName = "Site Name A");
 
 		AssetPublisherPortlet.viewConfigureSiteScope(siteName = "Site Name B");
+	}
+
+	@description = "This is a test for LPS-142076. Can import site with the 'Copy as new' option in the Update data section."
+	@priority = "3"
+	test ExportImportSiteWithCopyAsNew {
+		task ("Add a new site and add a widget page to site") {
+			JSONGroup.addGroup(groupName = "Test Site Name");
+
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Site Name");
+		}
+
+		task ("Add a Web Content Display widget to new page") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Site Name",
+				widgetName = "Web Content Display");
+		}
+
+		task ("Add a web content with a link as content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(webContentTitle = "WC WebContent 1");
+
+			CKEditor.addSourceContent(content = '''
+<p>Test: <a href="/web/test-site-name/test-site-name">Link</a></p>
+''');
+
+			PortletEntry.publish();
+		}
+
+		task ("Add the second web content") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC WebContent Content",
+				webContentTitle = "WC WebContent 2");
+
+			PortletEntry.publish();
+		}
+
+		task ("Select display the second Web Content article in WCD") {
+			Navigator.gotoSitePage(
+				pageName = "Test Site Name",
+				siteName = "Test Site Name");
+
+			WebContentDisplayPortlet.selectWebContent(webContentTitle = "WC WebContent 2");
+		}
+
+		task ("Export the site") {
+			LAR.openExportAdmin(siteScopeName = "test-site-name");
+
+			LexiconEntry.gotoAdd();
+
+			LAR.exportWithAssertionOnSuccess();
+
+			LAR.downloadLar();
+		}
+
+		task ("Add a new site based on Blank Site") {
+			JSONGroup.addGroup(groupName = "Site Name");
+		}
+
+		task ("Import the lar into the new site") {
+			var larFileName = LAR.getLarFileName();
+
+			LAR.importSiteCP(
+				copyAsNew = "true",
+				larFileName = "${larFileName}",
+				siteName = "Site Name");
+		}
+
+		task ("Assert the console no errors occur") {
+			AssertConsoleTextNotPresent(value1 = "Could not execute JDBC batch update");
+		}
 	}
 
 	@description = "This is a use case for LPS-88331."
@@ -1993,7 +2142,7 @@ definition {
 			pageName = "Test Page",
 			siteName = "Site Name A");
 
-		WebContent.addPGViaWCD(
+		WebContentDisplayPortlet.add(
 			webContentContent = "WebContent Content",
 			webContentTitle = "WebContent Title");
 

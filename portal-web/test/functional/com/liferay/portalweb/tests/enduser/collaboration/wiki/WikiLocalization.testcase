@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -81,6 +81,15 @@ definition {
 		WikiPage.viewPG(
 			wikiPageContent = "Wikiページのコンテンツ",
 			wikiPageTitle = "Wikiページのタイトル");
+	}
+
+	@description = "This test covers LPS-144498. It validates that once localized, the Table of Contents uses the current language translation."
+	@ignore = "Test Stub"
+	@priority = "3"
+	test CanViewTableOfContentsInNorwegian {
+
+		// TODO LPS-149401
+
 	}
 
 }

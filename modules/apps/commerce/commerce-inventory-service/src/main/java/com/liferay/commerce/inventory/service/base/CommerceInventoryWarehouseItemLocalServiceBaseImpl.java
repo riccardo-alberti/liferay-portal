@@ -23,6 +23,7 @@ import com.liferay.commerce.inventory.service.persistence.CommerceInventoryReple
 import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehouseFinder;
 import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehouseItemFinder;
 import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehouseItemPersistence;
+import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehouseOrderTypeRelPersistence;
 import com.liferay.commerce.inventory.service.persistence.CommerceInventoryWarehousePersistence;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.bean.BeanReference;
@@ -763,6 +764,56 @@ public abstract class CommerceInventoryWarehouseItemLocalServiceBaseImpl
 	}
 
 	/**
+	 * Returns the commerce inventory warehouse order type rel local service.
+	 *
+	 * @return the commerce inventory warehouse order type rel local service
+	 */
+	public com.liferay.commerce.inventory.service.
+		CommerceInventoryWarehouseOrderTypeRelLocalService
+			getCommerceInventoryWarehouseOrderTypeRelLocalService() {
+
+		return commerceInventoryWarehouseOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Sets the commerce inventory warehouse order type rel local service.
+	 *
+	 * @param commerceInventoryWarehouseOrderTypeRelLocalService the commerce inventory warehouse order type rel local service
+	 */
+	public void setCommerceInventoryWarehouseOrderTypeRelLocalService(
+		com.liferay.commerce.inventory.service.
+			CommerceInventoryWarehouseOrderTypeRelLocalService
+				commerceInventoryWarehouseOrderTypeRelLocalService) {
+
+		this.commerceInventoryWarehouseOrderTypeRelLocalService =
+			commerceInventoryWarehouseOrderTypeRelLocalService;
+	}
+
+	/**
+	 * Returns the commerce inventory warehouse order type rel persistence.
+	 *
+	 * @return the commerce inventory warehouse order type rel persistence
+	 */
+	public CommerceInventoryWarehouseOrderTypeRelPersistence
+		getCommerceInventoryWarehouseOrderTypeRelPersistence() {
+
+		return commerceInventoryWarehouseOrderTypeRelPersistence;
+	}
+
+	/**
+	 * Sets the commerce inventory warehouse order type rel persistence.
+	 *
+	 * @param commerceInventoryWarehouseOrderTypeRelPersistence the commerce inventory warehouse order type rel persistence
+	 */
+	public void setCommerceInventoryWarehouseOrderTypeRelPersistence(
+		CommerceInventoryWarehouseOrderTypeRelPersistence
+			commerceInventoryWarehouseOrderTypeRelPersistence) {
+
+		this.commerceInventoryWarehouseOrderTypeRelPersistence =
+			commerceInventoryWarehouseOrderTypeRelPersistence;
+	}
+
+	/**
 	 * Returns the counter local service.
 	 *
 	 * @return the counter local service
@@ -1026,6 +1077,19 @@ public abstract class CommerceInventoryWarehouseItemLocalServiceBaseImpl
 	@BeanReference(type = CommerceInventoryWarehouseItemFinder.class)
 	protected CommerceInventoryWarehouseItemFinder
 		commerceInventoryWarehouseItemFinder;
+
+	@BeanReference(
+		type = com.liferay.commerce.inventory.service.CommerceInventoryWarehouseOrderTypeRelLocalService.class
+	)
+	protected com.liferay.commerce.inventory.service.
+		CommerceInventoryWarehouseOrderTypeRelLocalService
+			commerceInventoryWarehouseOrderTypeRelLocalService;
+
+	@BeanReference(
+		type = CommerceInventoryWarehouseOrderTypeRelPersistence.class
+	)
+	protected CommerceInventoryWarehouseOrderTypeRelPersistence
+		commerceInventoryWarehouseOrderTypeRelPersistence;
 
 	@ServiceReference(
 		type = com.liferay.counter.kernel.service.CounterLocalService.class

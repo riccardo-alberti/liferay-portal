@@ -12,48 +12,87 @@
  * details.
  */
 
-import {Link} from 'react-router-dom';
-
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
-import {getTestrayCases} from '../../../graphql/queries/testrayCase';
-import {Liferay} from '../../../services/liferay/liferay';
+import {getCases} from '../../../graphql/queries';
+import i18n from '../../../i18n';
+import CaseModal from './CaseModal';
+import useCaseActions from './useCaseActions';
 
-const Cases = () => (
-	<Container title="Cases">
-		<ListView
-			query={getTestrayCases}
-			tableProps={{
-				columns: [
-					{
-						key: 'name',
-						render: (name: string, {testrayCaseId}: any) => (
-							<Link to={`${testrayCaseId}`}>{name}</Link>
-						),
-						value: 'Case Name',
-					},
-					{key: 'priority', value: 'Priority'},
-					{key: 'type', value: 'Case Type'},
-					{key: 'team', value: 'Team'},
-					{key: 'component', value: 'Component'},
-					{key: 'issues', value: 'Issues'},
+const Cases = () => {
+	const {actions, formModal} = useCaseActions();
 
-					{
-						key: 'createdDate',
-						render: () => 'dez 13, 2021 12:00 PM',
-						value: 'Create Date',
-					},
-					{
-						key: 'modifiedDate',
-						render: () => 'dez 13, 2021 12:00 PM',
-						value: 'Modified Date',
-					},
-				],
-			}}
-			transformData={(data) => data?.c?.testrayCases}
-			variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
-		/>
-	</Container>
-);
+	return (
+		<>
+			<Container title={i18n.translate('cases')}>
+				<ListView
+					forceRefetch={formModal.forceRefetch}
+					initialContext={{
+						filters: {
+							columns: {
+								caseType: false,
+								dateCreated: false,
+								dateModified: false,
+								issues: false,
+								team: false,
+							},
+						},
+					}}
+					managementToolbarProps={{
+						addButton: formModal.modal.open,
+						visible: true,
+					}}
+					query={getCases}
+					tableProps={{
+						actions,
+						columns: [
+							{
+								key: 'dateCreated',
+								value: i18n.translate('create-date'),
+							},
+							{
+								key: 'dateModified',
+								value: i18n.translate('modified-date'),
+							},
+							{
+								key: 'priority',
+								sorteable: true,
+								value: i18n.translate('priority'),
+							},
+							{
+								key: 'caseType',
+								render: (caseType) => caseType?.name,
+								value: i18n.translate('case-type'),
+							},
+							{
+								clickable: true,
+								key: 'name',
+								size: 'md',
+								sorteable: true,
+								value: i18n.translate('case-name'),
+							},
+							{
+								key: 'team',
+								render: (_, {component}) =>
+									component?.team?.name,
+								value: i18n.translate('team'),
+							},
+							{
+								key: 'component',
+								render: (component) => component?.name,
+								value: i18n.translate('component'),
+							},
+							{key: 'issues', value: i18n.translate('issues')},
+						],
+						navigateTo: ({id}) => id?.toString(),
+					}}
+					transformData={(data) => data?.cases}
+				/>
+			</Container>
+
+			<CaseModal modal={formModal.modal} />
+		</>
+	);
+};
 
 export default Cases;

@@ -14,8 +14,10 @@
 
 package com.liferay.site.initializer.extender.internal;
 
+import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.commerce.initializer.util.PortletSettingsImporter;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -26,7 +28,10 @@ import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeEntryResource;
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyCategoryResource;
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyVocabularyResource;
 import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
+import com.liferay.headless.admin.user.resource.v1_0.AccountRoleResource;
+import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
+import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentFolderResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentResource;
 import com.liferay.headless.delivery.resource.v1_0.StructuredContentFolderResource;
@@ -43,10 +48,12 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ThemeLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -74,6 +81,8 @@ public class SiteInitializerExtension {
 
 	public SiteInitializerExtension(
 		AccountResource.Factory accountResourceFactory,
+		AccountRoleLocalService accountRoleLocalService,
+		AccountRoleResource.Factory accountRoleResourceFactory,
 		AssetCategoryLocalService assetCategoryLocalService,
 		AssetListEntryLocalService assetListEntryLocalService, Bundle bundle,
 		BundleContext bundleContext,
@@ -100,8 +109,11 @@ public class SiteInitializerExtension {
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectDefinitionResource.Factory objectDefinitionResourceFactory,
 		ObjectRelationshipResource.Factory objectRelationshipResourceFactory,
-		ObjectEntryLocalService objectEntryLocalService, Portal portal,
+		ObjectEntryLocalService objectEntryLocalService,
+		OrganizationResource.Factory organizationResourceFactory, Portal portal,
+		PortletSettingsImporter portletSettingsImporter,
 		RemoteAppEntryLocalService remoteAppEntryLocalService,
+		ResourceActionLocalService resourceActionLocalService,
 		ResourcePermissionLocalService resourcePermissionLocalService,
 		RoleLocalService roleLocalService,
 		SAPEntryLocalService sapEntryLocalService,
@@ -116,7 +128,9 @@ public class SiteInitializerExtension {
 		TaxonomyVocabularyResource.Factory taxonomyVocabularyResourceFactory,
 		ThemeLocalService themeLocalService,
 		UserAccountResource.Factory userAccountResourceFactory,
-		UserLocalService userLocalService) {
+		UserLocalService userLocalService,
+		WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService,
+		WorkflowDefinitionResource.Factory workflowDefinitionResourceFactory) {
 
 		_dependencyManager = new DependencyManager(bundle.getBundleContext());
 
@@ -124,7 +138,8 @@ public class SiteInitializerExtension {
 
 		_component.setImplementation(
 			new BundleSiteInitializer(
-				accountResourceFactory, assetCategoryLocalService,
+				accountResourceFactory, accountRoleLocalService,
+				accountRoleResourceFactory, assetCategoryLocalService,
 				assetListEntryLocalService, bundle, ddmStructureLocalService,
 				ddmTemplateLocalService, defaultDDMStructureHelper, dlURLHelper,
 				documentFolderResourceFactory, documentResourceFactory,
@@ -137,7 +152,8 @@ public class SiteInitializerExtension {
 				listTypeEntryResource, listTypeEntryResourceFactory,
 				objectDefinitionLocalService, objectDefinitionResourceFactory,
 				objectRelationshipResourceFactory, objectEntryLocalService,
-				portal, remoteAppEntryLocalService,
+				organizationResourceFactory, portal, portletSettingsImporter,
+				remoteAppEntryLocalService, resourceActionLocalService,
 				resourcePermissionLocalService, roleLocalService,
 				sapEntryLocalService, settingsFactory,
 				siteNavigationMenuItemLocalService,
@@ -146,7 +162,9 @@ public class SiteInitializerExtension {
 				structuredContentFolderResourceFactory,
 				styleBookEntryZipProcessor, taxonomyCategoryResourceFactory,
 				taxonomyVocabularyResourceFactory, themeLocalService,
-				userAccountResourceFactory, userLocalService));
+				userAccountResourceFactory, userLocalService,
+				workflowDefinitionLinkLocalService,
+				workflowDefinitionResourceFactory));
 		_component.setInterface(
 			SiteInitializer.class,
 			MapUtil.singletonDictionary(
@@ -155,9 +173,9 @@ public class SiteInitializerExtension {
 		ServiceDependency serviceDependency =
 			_dependencyManager.createServiceDependency();
 
-		serviceDependency.setCallbacks("setCommerceReferencesHolder", null);
+		serviceDependency.setCallbacks("setCommerceSiteInitializer", null);
 		serviceDependency.setRequired(false);
-		serviceDependency.setService(CommerceReferencesHolder.class);
+		serviceDependency.setService(CommerceSiteInitializer.class);
 
 		_component.add(serviceDependency);
 

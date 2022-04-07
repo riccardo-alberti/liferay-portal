@@ -42,6 +42,8 @@ definition {
 	@description = "This is a test for LPS-141351. The site admin could find display page type items in dropdown menu."
 	@priority = "5"
 	test AddDisplayPageTypeNavigationMenuItems {
+		property portal.acceptance = "true";
+
 		task ("Add the first display page template for Web Content Article and Basic Web Content") {
 			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
 				contentType = "Web Content Article",
@@ -197,7 +199,7 @@ definition {
 				item = "Document");
 
 			NavigationMenusAdmin.addItem(
-				assetTitle = "Category Name",
+				assetTitleList = "Category Name",
 				item = "Category");
 		}
 
@@ -330,6 +332,47 @@ definition {
 
 		task ("Assert the URL item was added") {
 			NavigationMenusAdmin.viewItem(itemName = "Liferay");
+		}
+	}
+
+	@description = "This is a test case for LPS-140253. View no private page in navigation menu."
+	@priority = "5"
+	@uitest
+	test AddPageToNavigationMenuAndViewPageStatus {
+		property osgi.module.configuration.file.names = "com.liferay.layout.internal.configuration.FFDisablePrivateLayoutsConfiguration.config";
+		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property portal.acceptance = "true";
+
+		task ("Add a page to the site") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Page Name");
+		}
+
+		task ("Add a navigation menu") {
+			JSONSitenavigation.addSiteNavigationMenu(
+				groupName = "Test Site Name",
+				siteNavigationMenuName = "Navigation Menu Name");
+		}
+
+		task ("Navigate to the navigation menu") {
+			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
+
+			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
+		}
+
+		task ("Add a page item") {
+			NavigationMenusAdmin.addPage(pageNames = "Test Page Name");
+		}
+
+		task ("Assert the page item was added") {
+			NavigationMenusAdmin.viewItem(itemName = "Test Page Name");
+		}
+
+		task ("View page status is Page") {
+			NavigationMenusAdmin.viewItemStatus(
+				itemName = "Test Page Name",
+				itemStatus = "Page");
 		}
 	}
 
@@ -520,9 +563,6 @@ definition {
 	@description = "This is a test for LPS-143841. The warning message won't be shown in contextual menu once change to an item with associated display page template."
 	@priority = "4"
 	test CannotViewWarningMessageInContextualMenuOnceChangeToAnItemWithoutAssociatedDisplayPage {
-		property osgi.module.configuration.file.names = "com.liferay.asset.categories.item.selector.web.internal.configuration.FFAssetCategoriesItemSelectorConfiguration.config:com.liferay.site.navigation.admin.web.internal.configuration.FFSiteNavigationAdminConfiguration.config:com.liferay.site.navigation.menu.item.display.page.internal.configuration.FFDisplayPageSiteNavigationMenuItemConfiguration.config";
-		property osgi.module.configurations = "categoriesMultipleSelectionEnabled=&quot;true&quot;:categoriesMultipleSelectionEnabled=&quot;true&quot;:multipleSelectionEnabled=B&quot;true&quot;";
-
 		task ("Add a vocabulary") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -576,7 +616,9 @@ definition {
 
 			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
 
-			NavigationMenusAdmin.addCategoryItem(assetTitleList = "Category Name 1");
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Category Name 1",
+				item = "Category");
 		}
 
 		task ("View a warning icon is shown in the item card") {
@@ -607,100 +649,9 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-76717. Can specify whether a Navigation Menu performs a specific function in fragments."
-	@ignore = "true"
-	@priority = "3"
-	test CanSelectTheSpecificNavigationMenuInFragments {
-		task ("Add a fragment collection") {
-			JSONFragment.addFragmentCollection(
-				groupName = "Test Site Name",
-				name = "Collection Name");
-		}
-
-		task ("Add a new fragment") {
-			var htmlSnippet = '''<lfr-widget-nav />''';
-
-			JSONFragment.addSection(
-				collectionName = "Collection Name",
-				fragmentStatus = "Approved",
-				groupName = "Test Site Name",
-				html = "${htmlSnippet}",
-				name = "Test Fragment Name");
-		}
-
-		task ("Add three navigation menus") {
-			for (var n : list "1,2,3") {
-				JSONSitenavigation.addSiteNavigationMenu(
-					groupName = "Test Site Name",
-					siteNavigationMenuName = "Navigation Menu Name ${n}");
-			}
-		}
-
-		task ("Navigate to Navigation Menus admin") {
-			NavigationMenusAdmin.openNavigationMenusAdmin(siteURLKey = "test-site-name");
-		}
-
-		task ("Mark the first navigation menu as Primary Navigation") {
-			NavigationMenusAdmin.configureMenuType(
-				menuType = "Primary Navigation",
-				navigationMenu = "Navigation Menu Name 1");
-		}
-
-		task ("Mark the second navigation menu as Secondary Navigation") {
-			NavigationMenusAdmin.configureMenuType(
-				menuType = "Secondary Navigation",
-				navigationMenu = "Navigation Menu Name 2");
-		}
-
-		task ("Mark the third navigation menu as Social Navigation") {
-			NavigationMenusAdmin.configureMenuType(
-				menuType = "Social Navigation",
-				navigationMenu = "Navigation Menu Name 3");
-		}
-
-		task ("Create a Page Template") {
-			PageTemplatesAdmin.openPageTemplatesAdmin(siteURLKey = "test-site-name");
-
-			PageTemplatesAdmin.addCollection(collectionName = "Page Template Collection");
-
-			PageTemplatesAdmin.addPageTemplate(pageTemplateName = "Page Template Name");
-		}
-
-		task ("Add a new fragment to the page template") {
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Test Fragment Name");
-
-			PageEditor.waitForAutoSave();
-		}
-
-		task ("Setting the Nav Portlet configure") {
-			Portlet.gotoPortletOptions(portletOption = "Configuration");
-
-			SelectFrame(locator1 = "IFrame#MODAL_BODY");
-		}
-
-		task ("Select different navigation menu, assert preview displays properly") {
-			NavigationMenusWidget.selectNavigation(menuType = "Primary Navigation");
-
-			AssertTextPresent(value1 = "There is no Primary Navigation available for the current site.");
-
-			NavigationMenusWidget.selectNavigation(menuType = "Secondary Navigation");
-
-			AssertTextPresent(value1 = "There is no Secondary Navigation available for the current site.");
-
-			NavigationMenusWidget.selectNavigation(menuType = "Social Navigation");
-
-			AssertTextPresent(value1 = "There is no Social Navigation available for the current site.");
-		}
-	}
-
 	@description = "This is a test case for LPS-141462. The user could change same type asset with selected one in an existing item."
 	@priority = "4"
 	test ChangeSameAssetTypeItem {
-		property osgi.module.configuration.file.names = "com.liferay.asset.categories.item.selector.web.internal.configuration.FFAssetCategoriesItemSelectorConfiguration.config:com.liferay.site.navigation.admin.web.internal.configuration.FFSiteNavigationAdminConfiguration.config:com.liferay.site.navigation.menu.item.display.page.internal.configuration.FFDisplayPageSiteNavigationMenuItemConfiguration.config";
-		property osgi.module.configurations = "categoriesMultipleSelectionEnabled=&quot;true&quot;:categoriesMultipleSelectionEnabled=&quot;true&quot;:multipleSelectionEnabled=B&quot;true&quot;";
-
 		task ("Add two Categories with different asset types") {
 			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
 
@@ -738,7 +689,9 @@ definition {
 		}
 
 		task ("Adding a category item type and view the iframe is Select Categories") {
-			NavigationMenusAdmin.addCategoryItem(assetTitleList = "Document Category Name");
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Document Category Name",
+				item = "Category");
 		}
 
 		task ("Assert the first category is shown after selecting in Navigation Menu") {
@@ -1109,9 +1062,6 @@ definition {
 	@description = "This is a test for LPS-137577. The category should be added under the nearest ancestor selected."
 	@priority = "4"
 	test ViewCategoryAddedToNearestAncestor {
-		property osgi.module.configuration.file.names = "com.liferay.asset.categories.item.selector.web.internal.configuration.FFAssetCategoriesItemSelectorConfiguration.config:com.liferay.site.navigation.admin.web.internal.configuration.FFSiteNavigationAdminConfiguration.config:com.liferay.site.navigation.menu.item.display.page.internal.configuration.FFDisplayPageSiteNavigationMenuItemConfiguration.config";
-		property osgi.module.configurations = "categoriesMultipleSelectionEnabled=&quot;true&quot;:categoriesMultipleSelectionEnabled=&quot;true&quot;:multipleSelectionEnabled=B&quot;true&quot;";
-
 		task ("Add three hierarchy levels categories to a vocabulary within a site") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -1146,7 +1096,9 @@ definition {
 
 			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
 
-			NavigationMenusAdmin.addCategoryItem(assetTitleList = "Category Name,SubSubcategory Name");
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Category Name,SubSubcategory Name",
+				item = "Category");
 		}
 
 		task ("View third level of category is nested to first category") {
@@ -1263,9 +1215,6 @@ definition {
 	@description = "This is a test for LPS-137577. The modal confirmation is displayed when delete a item with children."
 	@priority = "4"
 	test ViewModalWhenDeleteItemWithChildren {
-		property osgi.module.configuration.file.names = "com.liferay.asset.categories.item.selector.web.internal.configuration.FFAssetCategoriesItemSelectorConfiguration.config:com.liferay.site.navigation.admin.web.internal.configuration.FFSiteNavigationAdminConfiguration.config:com.liferay.site.navigation.menu.item.display.page.internal.configuration.FFDisplayPageSiteNavigationMenuItemConfiguration.config";
-		property osgi.module.configurations = "categoriesMultipleSelectionEnabled=&quot;true&quot;:categoriesMultipleSelectionEnabled=&quot;true&quot;:multipleSelectionEnabled=B&quot;true&quot;";
-
 		task ("Add three hierarchy levels categories to a vocabulary within a site") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -1300,7 +1249,9 @@ definition {
 
 			NavigationMenusAdmin.editMenu(navigationMenuName = "Navigation Menu Name");
 
-			NavigationMenusAdmin.addCategoryItem(assetTitleList = "Category Name,Subcategory Name,SubSubcategory Name");
+			NavigationMenusAdmin.addItem(
+				assetTitleList = "Category Name,Subcategory Name,SubSubcategory Name",
+				item = "Category");
 		}
 
 		task ("Delete only the second leve item that has child") {

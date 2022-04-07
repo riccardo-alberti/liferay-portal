@@ -1,5 +1,113 @@
 # Poshi Runner Change Log
 
+## 1.0.344
+
+### Other
+
+* [LPS-147241](https://issues.liferay.com/browse/LPS-147241) - Tests Automation
+* [LPS-149663](https://issues.liferay.com/browse/LPS-149663) - StringUtil.upperCaseFirstLetter can cause ArrayIndexOutOfBoundsException
+
+### Script
+
+* [POSHI-318](https://issues.liferay.com/browse/POSHI-318) - Sort properties in Poshi Script
+
+### Utils
+
+* [POSHI-320](https://issues.liferay.com/browse/POSHI-320) - Truncate JSON responses to max 2,500 chars
+
+### WebDriver
+
+* [POSHI-312](https://issues.liferay.com/browse/POSHI-312) - Add javaScriptMouseOver method
+* [POSHI-319](https://issues.liferay.com/browse/POSHI-319) - Change baseline image folder in Ocular from "snap" to "baseline"
+
+## 1.0.342
+
+### Core
+
+* [POSHI-260](https://issues.liferay.com/browse/POSHI-260) - Add new property to grab all wanted test directories
+* [POSHI-308](https://issues.liferay.com/browse/POSHI-308) - WIndows Issue: Poshi Validation error when using poshi resource function
+
+### Prose
+
+* [POSHI-292](https://issues.liferay.com/browse/POSHI-292) - Fix Poshi Prose parsing to work after Validation refactors
+
+### Runner
+
+* [POSHI-303](https://issues.liferay.com/browse/POSHI-303) - As a test writer, I should be able to set a match percentage for Ocular images
+
+### Script
+
+* [POSHI-253](https://issues.liferay.com/browse/POSHI-253) - Investigate CDATA usage in Poshi
+
+### Standalone
+
+* [POSHI-306](https://issues.liferay.com/browse/POSHI-306) - Add install.sh file to poshi-standalone
+
+### Utils
+
+* [POSHI-305](https://issues.liferay.com/browse/POSHI-305) - Add StringUtils.center method
+
+### Validation
+
+* [POSHI-307](https://issues.liferay.com/browse/POSHI-307) - Throw correct error when the test name cannot be found
+
+## 1.0.337
+
+### Documentation
+
+* [POSHI-259](https://issues.liferay.com/browse/POSHI-259) - Finalize poshi standalone for usage
+
+### Validation
+
+* [POSHI-258](https://issues.liferay.com/browse/POSHI-258) -  Throws Poshi validation error on winOS
+
+## 1.0.336
+
+### Documentation
+
+* [POSHI-193](https://issues.liferay.com/browse/POSHI-193) - Create documentation for Poshi quick start guide
+
+### IDE
+
+* [POSHI-229](https://issues.liferay.com/browse/POSHI-229) - Begin migration of methods into PoshiParserUtil
+* [POSHI-235](https://issues.liferay.com/browse/POSHI-235) - Research and prototype creating a basic VSCode plugin config file for Poshi syntax
+
+### Other
+
+* [LPS-105380](https://issues.liferay.com/browse/LPS-105380) - SourceFormatter Improvements
+* [LPS-147432](https://issues.liferay.com/browse/LPS-147432) - SF rule: Enforce using PoshiScript instead of PoshiXML
+* [LRCI-2648](https://issues.liferay.com/browse/LRCI-2648) - Shift Testray 1 over to GCP instead of the Testray Mount
+* [LRCI-2776](https://issues.liferay.com/browse/LRCI-2776) - Rename the Testray Import task for Poshi Standalone
+* [LRCI-2801](https://issues.liferay.com/browse/LRCI-2801) - Simplify poshi standalone configuration
+
+### Runner
+
+* [POSHI-255](https://issues.liferay.com/browse/POSHI-255) - Casting failure in com.liferay.poshi.runner.util.HttpRequestUtilTest
+
+### Script
+
+* [POSHI-219](https://issues.liferay.com/browse/POSHI-219) - Add additional poshi script syntax validation
+
+### Standalone
+
+* [LRCI-2670](https://issues.liferay.com/browse/LRCI-2670) - Create a sample Poshi testcase for development
+* [LRCI-2671](https://issues.liferay.com/browse/LRCI-2671) - Implement Gradle tasks that will upload Poshi test results to Testray
+
+### Validation
+
+* [POSHI-145](https://issues.liferay.com/browse/POSHI-145) - *.function and *.macro files cannot share the same name
+* [POSHI-201](https://issues.liferay.com/browse/POSHI-201) - Validation doesn't fail for incorrect Util syntax
+* [POSHI-242](https://issues.liferay.com/browse/POSHI-242) - As a Poshi test writer/analyst, I should be able to see error snippets while running validation
+* [POSHI-33](https://issues.liferay.com/browse/POSHI-33) - Remove "component-name" attribute from Poshi Script validation
+
+### WebDriver
+
+* [POSHI-216](https://issues.liferay.com/browse/POSHI-216) - Make the _getOffsetDate reusable
+* [POSHI-240](https://issues.liferay.com/browse/POSHI-240) - Modify dragAndDrop to support offset
+* [POSHI-241](https://issues.liferay.com/browse/POSHI-241) - Consolidate wrappedWebDriver usages in BaseWebDriverImpl
+* [POSHI-243](https://issues.liferay.com/browse/POSHI-243) - Add method to get current UTC time
+* [POSHI-250](https://issues.liferay.com/browse/POSHI-250) - Change default browser type to Google Chrome
+
 ## 1.0.329
 
 ### Other

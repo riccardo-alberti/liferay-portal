@@ -16,6 +16,7 @@ package com.liferay.headless.admin.list.type.internal.resource.v1_0;
 
 import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition;
 import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionResource;
+import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -299,6 +300,70 @@ public abstract class BaseListTypeDefinitionResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'PATCH' 'http://localhost:8080/o/headless-admin-list-type/v1.0/list-type-definitions/{listTypeDefinitionId}' -d $'{"name": ___, "name_i18n": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 */
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "listTypeDefinitionId"
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {
+			@io.swagger.v3.oas.annotations.tags.Tag(name = "ListTypeDefinition")
+		}
+	)
+	@javax.ws.rs.Consumes({"application/json", "application/xml"})
+	@javax.ws.rs.PATCH
+	@javax.ws.rs.Path("/list-type-definitions/{listTypeDefinitionId}")
+	@javax.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
+	public ListTypeDefinition patchListTypeDefinition(
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@javax.validation.constraints.NotNull
+			@javax.ws.rs.PathParam("listTypeDefinitionId")
+			Long listTypeDefinitionId,
+			ListTypeDefinition listTypeDefinition)
+		throws Exception {
+
+		ListTypeDefinition existingListTypeDefinition = getListTypeDefinition(
+			listTypeDefinitionId);
+
+		if (listTypeDefinition.getActions() != null) {
+			existingListTypeDefinition.setActions(
+				listTypeDefinition.getActions());
+		}
+
+		if (listTypeDefinition.getDateCreated() != null) {
+			existingListTypeDefinition.setDateCreated(
+				listTypeDefinition.getDateCreated());
+		}
+
+		if (listTypeDefinition.getDateModified() != null) {
+			existingListTypeDefinition.setDateModified(
+				listTypeDefinition.getDateModified());
+		}
+
+		if (listTypeDefinition.getName() != null) {
+			existingListTypeDefinition.setName(listTypeDefinition.getName());
+		}
+
+		if (listTypeDefinition.getName_i18n() != null) {
+			existingListTypeDefinition.setName_i18n(
+				listTypeDefinition.getName_i18n());
+		}
+
+		preparePatch(listTypeDefinition, existingListTypeDefinition);
+
+		return putListTypeDefinition(
+			listTypeDefinitionId, existingListTypeDefinition);
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'PUT' 'http://localhost:8080/o/headless-admin-list-type/v1.0/list-type-definitions/{listTypeDefinitionId}' -d $'{"name": ___, "name_i18n": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@io.swagger.v3.oas.annotations.Parameters(
@@ -388,8 +453,14 @@ public abstract class BaseListTypeDefinitionResourceImpl
 				listTypeDefinition -> postListTypeDefinition(
 					listTypeDefinition);
 
-		for (ListTypeDefinition listTypeDefinition : listTypeDefinitions) {
-			listTypeDefinitionUnsafeConsumer.accept(listTypeDefinition);
+		if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				listTypeDefinitions, listTypeDefinitionUnsafeConsumer);
+		}
+		else {
+			for (ListTypeDefinition listTypeDefinition : listTypeDefinitions) {
+				listTypeDefinitionUnsafeConsumer.accept(listTypeDefinition);
+			}
 		}
 	}
 
@@ -469,6 +540,15 @@ public abstract class BaseListTypeDefinitionResourceImpl
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {
 		this.contextAcceptLanguage = contextAcceptLanguage;
+	}
+
+	public void setContextBatchUnsafeConsumer(
+		UnsafeBiConsumer
+			<java.util.Collection<ListTypeDefinition>,
+			 UnsafeConsumer<ListTypeDefinition, Exception>, Exception>
+				contextBatchUnsafeConsumer) {
+
+		this.contextBatchUnsafeConsumer = contextBatchUnsafeConsumer;
 	}
 
 	public void setContextCompany(
@@ -590,6 +670,11 @@ public abstract class BaseListTypeDefinitionResourceImpl
 			actionName, siteId, methodName, null, permissionName, siteId);
 	}
 
+	protected void preparePatch(
+		ListTypeDefinition listTypeDefinition,
+		ListTypeDefinition existingListTypeDefinition) {
+	}
+
 	protected <T, R> List<R> transform(
 		java.util.Collection<T> collection,
 		UnsafeFunction<T, R, Exception> unsafeFunction) {
@@ -619,6 +704,10 @@ public abstract class BaseListTypeDefinitionResourceImpl
 	}
 
 	protected AcceptLanguage contextAcceptLanguage;
+	protected UnsafeBiConsumer
+		<java.util.Collection<ListTypeDefinition>,
+		 UnsafeConsumer<ListTypeDefinition, Exception>, Exception>
+			contextBatchUnsafeConsumer;
 	protected com.liferay.portal.kernel.model.Company contextCompany;
 	protected HttpServletRequest contextHttpServletRequest;
 	protected HttpServletResponse contextHttpServletResponse;

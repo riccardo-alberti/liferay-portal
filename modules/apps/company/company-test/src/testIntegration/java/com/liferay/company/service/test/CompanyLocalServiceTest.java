@@ -298,7 +298,8 @@ public class CompanyLocalServiceTest {
 
 		DLAppLocalServiceUtil.addFileEntry(
 			null, userId, guestGroup.getGroupId(), 0, "test.xml", "text/xml",
-			"test.xml", "", "", "test".getBytes(), null, null, serviceContext);
+			"test.xml", "", "", "", "test".getBytes(), null, null,
+			serviceContext);
 
 		CompanyLocalServiceUtil.deleteCompany(companyId);
 	}
@@ -1011,7 +1012,7 @@ public class CompanyLocalServiceTest {
 			}
 			catch (CompanyNameException companyNameException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(companyNameException, companyNameException);
+					_log.debug(companyNameException);
 				}
 
 				Assert.assertTrue(expectFailure);
@@ -1057,7 +1058,7 @@ public class CompanyLocalServiceTest {
 		}
 		catch (CompanyMxException companyMxException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(companyMxException, companyMxException);
+				_log.debug(companyMxException);
 			}
 
 			Assert.assertFalse(valid);
@@ -1086,9 +1087,7 @@ public class CompanyLocalServiceTest {
 			}
 			catch (CompanyVirtualHostException companyVirtualHostException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						companyVirtualHostException,
-						companyVirtualHostException);
+					_log.debug(companyVirtualHostException);
 				}
 
 				Assert.assertTrue(expectFailure);

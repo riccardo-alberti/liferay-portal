@@ -68,7 +68,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.events.ThemeServicePreAction;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.portlet.PortletProvider;
@@ -123,10 +122,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 
 	@Override
 	public Cart getCart(Long cartId) throws Exception {
-		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
-			cartId);
-
-		return _toCart(commerceOrder);
+		return _toCart(_commerceOrderService.getCommerceOrder(cartId));
 	}
 
 	@Override
@@ -189,12 +185,10 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 				commerceChannel.getGroupId(), accountId, null,
 				pagination.getStartPosition(), pagination.getEndPosition());
 
-		long pendingCommerceOrdersCount =
-			_commerceOrderService.getPendingCommerceOrdersCount(
-				commerceChannel.getGroupId(), accountId, null);
-
 		return Page.of(
-			_toCarts(commerceOrders), pagination, pendingCommerceOrdersCount);
+			_toCarts(commerceOrders), pagination,
+			_commerceOrderService.getPendingCommerceOrdersCount(
+				commerceChannel.getGroupId(), accountId, null));
 	}
 
 	@Override
@@ -341,15 +335,9 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		CommerceAccount commerceAccount =
 			_commerceAccountService.getCommerceAccount(cart.getAccountId());
 
-		CommerceChannel commerceChannel =
-			_commerceChannelLocalService.getCommerceChannelByGroupId(
-				commerceChannelGroupId);
-
 		return _commerceOrderService.addCommerceOrder(
 			commerceChannelGroupId, commerceAccount.getCommerceAccountId(),
-			commerceCurrencyId,
-			_getCommerceOrderTypeId(
-				commerceChannel.getCommerceChannelId(), cart));
+			commerceCurrencyId, _getCommerceOrderTypeId(cart));
 	}
 
 	private void _addOrUpdateBillingAddress(
@@ -370,6 +358,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		}
 
 		_commerceOrderService.updateCommerceOrder(
+			commerceOrder.getExternalReferenceCode(),
 			commerceOrder.getCommerceOrderId(),
 			commerceOrder.getBillingAddressId(),
 			commerceOrder.getShippingAddressId(),
@@ -448,6 +437,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 
 		if (useAsBilling) {
 			_commerceOrderService.updateCommerceOrder(
+				commerceOrder.getExternalReferenceCode(),
 				commerceOrder.getCommerceOrderId(),
 				commerceOrder.getShippingAddressId(),
 				commerceOrder.getShippingAddressId(),
@@ -492,6 +482,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		}
 
 		return _commerceOrderService.updateCommerceOrder(
+			commerceOrder.getExternalReferenceCode(),
 			commerceOrder.getCommerceOrderId(),
 			commerceOrder.getBillingAddressId(),
 			commerceOrder.getShippingAddressId(),
@@ -503,9 +494,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 			commerceOrder.getAdvanceStatus(), commerceContext);
 	}
 
-	private long _getCommerceOrderTypeId(long commerceChannelId, Cart cart)
-		throws Exception {
-
+	private long _getCommerceOrderTypeId(Cart cart) throws Exception {
 		if (cart.getOrderTypeId() != null) {
 			return cart.getOrderTypeId();
 		}
@@ -516,21 +505,6 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 				contextCompany.getCompanyId());
 
 		if (commerceOrderType != null) {
-			return commerceOrderType.getCommerceOrderTypeId();
-		}
-
-		int commerceOrderTypesCount =
-			_commerceOrderTypeService.getCommerceOrderTypesCount(
-				CommerceChannel.class.getName(), commerceChannelId, true);
-
-		if (commerceOrderTypesCount == 1) {
-			List<CommerceOrderType> commerceOrderTypes =
-				_commerceOrderTypeService.getCommerceOrderTypes(
-					CommerceChannel.class.getName(), commerceChannelId, true,
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-			commerceOrderType = commerceOrderTypes.get(0);
-
 			return commerceOrderType.getCommerceOrderTypeId();
 		}
 
@@ -745,6 +719,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 			commerceOrder.getCommerceAccountId());
 
 		commerceOrder = _commerceOrderService.updateCommerceOrder(
+			commerceOrder.getExternalReferenceCode(),
 			commerceOrder.getCommerceOrderId(),
 			GetterUtil.get(
 				cart.getBillingAddressId(),

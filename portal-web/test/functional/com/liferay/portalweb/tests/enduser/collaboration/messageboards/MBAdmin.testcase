@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -308,6 +308,24 @@ definition {
 			userScreenName = "userfn userln");
 
 		MessageboardsThread.viewNoBannedUsers();
+	}
+
+	@description = "This is a test for LPS-82508. It ensures that the number of threads and categories in a message board reflects the whole hierarchy."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanViewCountsFromRootCategory {
+
+		// TODO LPS-148587 CanViewCountsFromRootCategory pending implementation
+
+	}
+
+	@description = "This is a test for LPS-68939. It ensures that the message threads appear from newest to oldest by default."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ThreadsAreSortedFromNewestToOldestByDefault {
+
+		// TODO LPS-150860 ThreadsAreSortedFromNewestToOldestByDefault pending implementation
+
 	}
 
 }

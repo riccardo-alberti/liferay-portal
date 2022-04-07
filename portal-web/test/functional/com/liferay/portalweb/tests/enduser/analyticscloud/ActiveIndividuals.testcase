@@ -46,7 +46,8 @@ definition {
 	test AssertIndividualActivitiesChartPopover {
 		property portal.upstream = "quarantine";
 
-		// AC Refactor ticket: LRAC-9707
+		// AC Quarantine Reason: Not finding the date pattern
+		// AC Refactor ticket: LRAC-10517
 
 		task ("Add DM to AC Page") {
 			ACUtils.createDMAndAddToPage();
@@ -226,7 +227,6 @@ definition {
 	@ignore = "true"
 	@priority = "3"
 	test AssertIndividualActivitiesTimeFilter180Days {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: data doesn't appear on time and the test needs data from a past date
 		// AC Refactor ticket: LRAC-8970
@@ -313,7 +313,7 @@ definition {
 
 		ACSegments.createStaticSegment();
 
-		ACSegments.nameSegment(segmentName = "Static Segment Test");
+		ACUtils.setItemName(itemName = "Static Segment Test");
 
 		ACSegments.addStaticMember(tableMember = "userfn userln");
 
@@ -334,6 +334,8 @@ definition {
 	@priority = "5"
 	test CanSetDataWithCustomRangeOnIndividualActivitiesCard {
 		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: Active individuals chart takes some time to load
 
 		ACUtils.createDMAndAddToPage();
 

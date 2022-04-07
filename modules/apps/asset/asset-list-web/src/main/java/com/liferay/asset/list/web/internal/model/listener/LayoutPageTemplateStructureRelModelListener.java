@@ -33,7 +33,6 @@ import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.util.Optional;
@@ -95,7 +94,7 @@ public class LayoutPageTemplateStructureRelModelListener
 				plid, serviceContext);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException, portalException);
+			_log.error(portalException);
 		}
 	}
 
@@ -110,11 +109,7 @@ public class LayoutPageTemplateStructureRelModelListener
 			return false;
 		}
 
-		if (ListUtil.exists(
-				layoutStructure.getDeletedLayoutStructureItems(),
-				deletedLayoutStructureItem ->
-					deletedLayoutStructureItem.containsItemId(itemId))) {
-
+		if (layoutStructure.isItemMarkedForDeletion(itemId)) {
 			return false;
 		}
 

@@ -38,7 +38,6 @@ page import="com.liferay.announcements.kernel.exception.NoSuchFlagException" %><
 page import="com.liferay.announcements.kernel.model.AnnouncementsEntry" %><%@
 page import="com.liferay.announcements.kernel.model.AnnouncementsEntryConstants" %><%@
 page import="com.liferay.announcements.kernel.model.AnnouncementsFlagConstants" %><%@
-page import="com.liferay.announcements.kernel.service.AnnouncementsEntryLocalServiceUtil" %><%@
 page import="com.liferay.announcements.kernel.service.AnnouncementsFlagLocalServiceUtil" %><%@
 page import="com.liferay.announcements.web.internal.configuration.AnnouncementsPortletInstanceConfiguration" %><%@
 page import="com.liferay.announcements.web.internal.constants.AnnouncementsWebKeys" %><%@
@@ -46,7 +45,6 @@ page import="com.liferay.announcements.web.internal.display.context.Announcement
 page import="com.liferay.announcements.web.internal.display.context.AnnouncementsDisplayContext" %><%@
 page import="com.liferay.announcements.web.internal.display.context.DefaultAnnouncementsDisplayContext" %><%@
 page import="com.liferay.announcements.web.internal.display.context.helper.AnnouncementsRequestHelper" %><%@
-page import="com.liferay.announcements.web.internal.search.AnnouncementsEntryChecker" %><%@
 page import="com.liferay.frontend.taglib.clay.servlet.taglib.util.JSPNavigationItemList" %><%@
 page import="com.liferay.petra.portlet.url.builder.PortletURLBuilder" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
@@ -86,10 +84,7 @@ page import="com.liferay.portlet.announcements.service.permission.AnnouncementsE
 page import="com.liferay.taglib.search.ResultRow" %>
 
 <%@ page import="java.util.ArrayList" %><%@
-page import="java.util.LinkedHashMap" %><%@
 page import="java.util.List" %>
-
-<%@ page import="javax.portlet.PortletURL" %>
 
 <liferay-frontend:defineObjects />
 
@@ -100,7 +95,7 @@ page import="java.util.List" %>
 <%
 AnnouncementsRequestHelper announcementsRequestHelper = new AnnouncementsRequestHelper(request);
 
-AnnouncementsDisplayContext announcementsDisplayContext = new DefaultAnnouncementsDisplayContext(announcementsRequestHelper);
+AnnouncementsDisplayContext announcementsDisplayContext = new DefaultAnnouncementsDisplayContext(announcementsRequestHelper, request, portletName, renderRequest, renderResponse);
 %>
 
 <%@ include file="/init-ext.jsp" %>

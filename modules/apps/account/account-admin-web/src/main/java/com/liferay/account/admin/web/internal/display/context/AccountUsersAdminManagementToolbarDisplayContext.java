@@ -340,9 +340,7 @@ public class AccountUsersAdminManagementToolbarDisplayContext
 								).setParameter(
 									"accountEntriesNavigation", (String)null
 								).buildString());
-
 							labelItem.setCloseable(true);
-
 							labelItem.setLabel(
 								LanguageUtil.get(
 									httpServletRequest, "no-assigned-account"));
@@ -359,16 +357,14 @@ public class AccountUsersAdminManagementToolbarDisplayContext
 								).setNavigation(
 									(String)null
 								).buildString());
-
 							labelItem.setCloseable(true);
-
-							String label = String.format(
-								"%s: %s",
-								LanguageUtil.get(httpServletRequest, "status"),
-								LanguageUtil.get(
-									httpServletRequest, getNavigation()));
-
-							labelItem.setLabel(label);
+							labelItem.setLabel(
+								String.format(
+									"%s: %s",
+									LanguageUtil.get(
+										httpServletRequest, "status"),
+									LanguageUtil.get(
+										httpServletRequest, getNavigation())));
 						});
 				}
 			}
@@ -387,7 +383,7 @@ public class AccountUsersAdminManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 
 			return liferayPortletResponse.createRenderURL();

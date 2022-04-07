@@ -30,10 +30,12 @@ import com.liferay.info.list.renderer.DefaultInfoListRendererContext;
 import com.liferay.info.list.renderer.InfoListRenderer;
 import com.liferay.layout.display.page.LayoutDisplayPageProvider;
 import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
+import com.liferay.layout.helper.CollectionPaginationHelper;
 import com.liferay.layout.responsive.ResponsiveLayoutStructureUtil;
 import com.liferay.layout.taglib.internal.display.context.RenderCollectionLayoutStructureItemDisplayContext;
 import com.liferay.layout.taglib.internal.display.context.RenderLayoutStructureDisplayContext;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
+import com.liferay.layout.taglib.internal.util.FFLayoutTaglibConfigurationUtil;
 import com.liferay.layout.util.constants.LayoutStructureConstants;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.ColumnLayoutStructureItem;
@@ -58,7 +60,9 @@ import com.liferay.portal.kernel.service.LayoutTemplateLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
@@ -148,6 +152,13 @@ public class RenderLayoutStructureTag extends IncludeTag {
 		return SKIP_BODY;
 	}
 
+	private String _getLayoutMode() {
+		HttpServletRequest httpServletRequest = getRequest();
+
+		return ParamUtil.getString(
+			httpServletRequest, "p_l_mode", Constants.VIEW);
+	}
+
 	private void _renderCollectionStyledLayoutStructureItem(
 			LayoutStructureItem layoutStructureItem,
 			RenderLayoutStructureDisplayContext
@@ -179,9 +190,19 @@ public class RenderLayoutStructureTag extends IncludeTag {
 					httpServletResponse);
 
 		jspWriter.write("<div class=\"");
-		jspWriter.write(
-			renderLayoutStructureDisplayContext.getCssClass(
-				collectionStyledLayoutStructureItem));
+
+		if (renderLayoutStructureDisplayContext.isCommonStylesFFEnabled()) {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.
+					getLayoutStructureItemCssClass(
+						collectionStyledLayoutStructureItem));
+		}
+		else {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.getCssClass(
+					collectionStyledLayoutStructureItem));
+		}
+
 		jspWriter.write("\" style=\"");
 		jspWriter.write(
 			renderLayoutStructureDisplayContext.getStyle(
@@ -318,8 +339,7 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 		if (Objects.equals(
 				collectionStyledLayoutStructureItem.getPaginationType(),
-				RenderCollectionLayoutStructureItemDisplayContext.
-					PAGINATION_TYPE_NUMERIC)) {
+				CollectionPaginationHelper.PAGINATION_TYPE_NUMERIC)) {
 
 			PaginationBarTag paginationBarTag = new PaginationBarTag();
 
@@ -346,8 +366,7 @@ public class RenderLayoutStructureTag extends IncludeTag {
 
 		if (Objects.equals(
 				collectionStyledLayoutStructureItem.getPaginationType(),
-				RenderCollectionLayoutStructureItemDisplayContext.
-					PAGINATION_TYPE_SIMPLE)) {
+				CollectionPaginationHelper.PAGINATION_TYPE_SIMPLE)) {
 
 			jspWriter.write("<div class=\"d-flex flex-grow-1 h-100 ");
 			jspWriter.write("justify-content-center py-3\" ");
@@ -481,10 +500,55 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			jspWriter.write("\">");
 		}
 
-		jspWriter.write("<div class=\"");
-		jspWriter.write(
-			renderLayoutStructureDisplayContext.getCssClass(
-				containerStyledLayoutStructureItem));
+		String htmlTag = containerStyledLayoutStructureItem.getHtmlTag();
+
+		if (!FFLayoutTaglibConfigurationUtil.fragmentAdvancedOptionsEnabled() ||
+			Validator.isNull(htmlTag)) {
+
+			htmlTag = "div";
+		}
+
+		jspWriter.write(StringPool.LESS_THAN);
+		jspWriter.write(htmlTag);
+		jspWriter.write(" class=\"");
+
+		if (renderLayoutStructureDisplayContext.isCommonStylesFFEnabled()) {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.
+					getLayoutStructureItemCssClass(
+						containerStyledLayoutStructureItem));
+
+			if (Objects.equals(
+					containerStyledLayoutStructureItem.getWidthType(),
+					"fixed")) {
+
+				jspWriter.write(" container-fluid container-fluid-max-xl");
+			}
+
+			if (!Objects.equals(
+					containerStyledLayoutStructureItem.getDisplay(), "none")) {
+
+				if (Objects.equals(
+						containerStyledLayoutStructureItem.getContentDisplay(),
+						"flex-column")) {
+
+					jspWriter.write(" d-flex flex-column");
+				}
+				else if (Objects.equals(
+							containerStyledLayoutStructureItem.
+								getContentDisplay(),
+							"flex-row")) {
+
+					jspWriter.write(" d-flex flex-row");
+				}
+			}
+		}
+		else {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.getCssClass(
+					containerStyledLayoutStructureItem));
+		}
+
 		jspWriter.write("\" style=\"");
 		jspWriter.write(
 			renderLayoutStructureDisplayContext.getStyle(
@@ -495,7 +559,9 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			layoutStructureItem.getChildrenItemIds(),
 			renderLayoutStructureDisplayContext);
 
-		jspWriter.write("</div>");
+		jspWriter.write("</");
+		jspWriter.write(htmlTag);
+		jspWriter.write(StringPool.GREATER_THAN);
 
 		if (Validator.isNotNull(containerLinkHref)) {
 			jspWriter.write("</a>");
@@ -621,9 +687,21 @@ public class RenderLayoutStructureTag extends IncludeTag {
 							collectionElementIndex);
 
 				jspWriter.write("<div class=\"");
-				jspWriter.write(
-					renderLayoutStructureDisplayContext.getCssClass(
-						fragmentStyledLayoutStructureItem));
+
+				if (renderLayoutStructureDisplayContext.
+						isCommonStylesFFEnabled()) {
+
+					jspWriter.write(
+						renderLayoutStructureDisplayContext.
+							getLayoutStructureItemCssClass(
+								fragmentStyledLayoutStructureItem));
+				}
+				else {
+					jspWriter.write(
+						renderLayoutStructureDisplayContext.getCssClass(
+							fragmentStyledLayoutStructureItem));
+				}
+
 				jspWriter.write("\" style=\"");
 				jspWriter.write(
 					renderLayoutStructureDisplayContext.getStyle(
@@ -670,6 +748,16 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			else if (layoutStructureItem instanceof
 						ContainerStyledLayoutStructureItem) {
 
+				ContainerStyledLayoutStructureItem
+					containerStyledLayoutStructureItem =
+						(ContainerStyledLayoutStructureItem)layoutStructureItem;
+
+				if (Objects.equals(_getLayoutMode(), Constants.SEARCH) &&
+					!containerStyledLayoutStructureItem.isIndexed()) {
+
+					continue;
+				}
+
 				_renderContainerStyledLayoutStructureItem(
 					layoutStructureItem, renderLayoutStructureDisplayContext);
 			}
@@ -682,12 +770,31 @@ public class RenderLayoutStructureTag extends IncludeTag {
 			else if (layoutStructureItem instanceof
 						FragmentStyledLayoutStructureItem) {
 
+				FragmentStyledLayoutStructureItem
+					fragmentStyledLayoutStructureItem =
+						(FragmentStyledLayoutStructureItem)layoutStructureItem;
+
+				if (Objects.equals(_getLayoutMode(), Constants.SEARCH) &&
+					!fragmentStyledLayoutStructureItem.isIndexed()) {
+
+					continue;
+				}
+
 				_renderFragmentStyledLayoutStructureItem(
 					collectionElementIndex, layoutStructureItem,
 					renderLayoutStructureDisplayContext);
 			}
 			else if (layoutStructureItem instanceof
 						RowStyledLayoutStructureItem) {
+
+				RowStyledLayoutStructureItem rowStyledLayoutStructureItem =
+					(RowStyledLayoutStructureItem)layoutStructureItem;
+
+				if (Objects.equals(_getLayoutMode(), Constants.SEARCH) &&
+					!rowStyledLayoutStructureItem.isIndexed()) {
+
+					continue;
+				}
 
 				_renderRowStyledLayoutStructureItem(
 					layoutStructureItem, renderLayoutStructureDisplayContext);
@@ -767,9 +874,19 @@ public class RenderLayoutStructureTag extends IncludeTag {
 		}
 
 		jspWriter.write("<div class=\"");
-		jspWriter.write(
-			renderLayoutStructureDisplayContext.getCssClass(
-				rowStyledLayoutStructureItem));
+
+		if (renderLayoutStructureDisplayContext.isCommonStylesFFEnabled()) {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.
+					getLayoutStructureItemCssClass(
+						rowStyledLayoutStructureItem));
+		}
+		else {
+			jspWriter.write(
+				renderLayoutStructureDisplayContext.getCssClass(
+					rowStyledLayoutStructureItem));
+		}
+
 		jspWriter.write("\" style=\"");
 		jspWriter.write(
 			renderLayoutStructureDisplayContext.getStyle(

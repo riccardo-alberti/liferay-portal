@@ -152,7 +152,7 @@ public class WebFormPortlet extends MVCPortlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(captchaException, captchaException);
+					_log.debug(captchaException);
 				}
 
 				Class<?> clazz = captchaException.getClass();
@@ -297,7 +297,7 @@ public class WebFormPortlet extends MVCPortlet {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -423,13 +423,13 @@ public class WebFormPortlet extends MVCPortlet {
 
 			for (ExpandoRow row : rows) {
 				for (String fieldName : fieldLabels) {
-					String data = _expandoValueLocalService.getData(
-						themeDisplay.getCompanyId(),
-						WebFormUtil.class.getName(), databaseTableName,
-						fieldName, row.getClassPK(), StringPool.BLANK);
-
-					sb.append(_getCSVFormattedValue(data));
-
+					sb.append(
+						_getCSVFormattedValue(
+							_expandoValueLocalService.getData(
+								themeDisplay.getCompanyId(),
+								WebFormUtil.class.getName(), databaseTableName,
+								fieldName, row.getClassPK(),
+								StringPool.BLANK)));
 					sb.append(csvSeparator);
 				}
 

@@ -29,6 +29,7 @@ import com.liferay.commerce.service.CommerceOrderNoteService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.commerce.service.CommerceShipmentService;
+import com.liferay.commerce.term.service.CommerceTermEntryLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -72,12 +73,12 @@ public class EditCommerceShipmentMVCRenderCommand implements MVCRenderCommand {
 					_commerceNotificationQueueEntryLocalService,
 					_commerceOrderEngine,
 					_commerceOrderItemDecimalQuantityConfiguration,
-					_commerceOrderItemService, _commerceOrderNoteService,
+					_commerceOrderItemService, _commerceOrderNoteService, null,
 					_commerceOrderService, _commerceOrderStatusRegistry,
 					_commerceOrderTypeService,
 					_commercePaymentMethodGroupRelLocalService,
-					_commerceShipmentService, _cpMeasurementUnitService,
-					renderRequest);
+					_commerceShipmentService, _commerceTermEntryLocalService,
+					_cpMeasurementUnitService, renderRequest);
 
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
@@ -141,6 +142,9 @@ public class EditCommerceShipmentMVCRenderCommand implements MVCRenderCommand {
 
 	@Reference
 	private CommerceShipmentService _commerceShipmentService;
+
+	@Reference
+	private CommerceTermEntryLocalService _commerceTermEntryLocalService;
 
 	@Reference
 	private CPMeasurementUnitService _cpMeasurementUnitService;

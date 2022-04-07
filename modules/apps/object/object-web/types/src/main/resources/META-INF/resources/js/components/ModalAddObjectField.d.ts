@@ -12,19 +12,18 @@
  * details.
  */
 
-import React from 'react';
-interface IProps extends React.HTMLAttributes<HTMLElement> {
+/// <reference types="react" />
+
+export default function ModalWithProvider({
+	allowMaxLength,
+	apiURL,
+	objectFieldTypes,
+	showDocumentsAndMediaOption,
+}: IProps): JSX.Element;
+interface IProps {
+	allowMaxLength: boolean;
 	apiURL: string;
-	ffObjectFieldBusinessTypeConfigurationEnabled: boolean;
-	objectFieldBusinessTypes: IObjectFieldBusinessType[];
-	observer: any;
-	onClose: () => void;
+	objectFieldTypes: ObjectFieldType[];
+	showDocumentsAndMediaOption: boolean;
 }
-interface IObjectFieldBusinessType {
-	businessType: string;
-	dbType: string;
-	description: string;
-	label: string;
-}
-declare const ModalWithProvider: React.FC<IProps>;
-export default ModalWithProvider;
+export {};

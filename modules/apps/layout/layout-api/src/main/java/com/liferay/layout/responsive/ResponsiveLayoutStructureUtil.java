@@ -17,7 +17,6 @@ package com.liferay.layout.responsive;
 import com.liferay.layout.util.structure.ColumnLayoutStructureItem;
 import com.liferay.layout.util.structure.CommonStylesUtil;
 import com.liferay.layout.util.structure.ContainerStyledLayoutStructureItem;
-import com.liferay.layout.util.structure.RowLayoutStructureItem;
 import com.liferay.layout.util.structure.RowStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.StyledLayoutStructureItem;
 import com.liferay.petra.string.StringBundler;
@@ -64,7 +63,7 @@ public class ResponsiveLayoutStructureUtil {
 		Map<String, JSONObject> columnViewportConfigurations =
 			columnLayoutStructureItem.getViewportConfigurations();
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (Objects.equals(viewportSize, ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -90,18 +89,6 @@ public class ResponsiveLayoutStructureUtil {
 		return sb.toString();
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnCssClass(ColumnLayoutStructureItem, RowStyledLayoutStructureItem)}
-	 */
-	@Deprecated
-	public static String getColumnCssClass(
-		RowLayoutStructureItem rowLayoutStructureItem,
-		ColumnLayoutStructureItem columnLayoutStructureItem) {
-
-		return getColumnCssClass(columnLayoutStructureItem, null);
-	}
-
 	public static String getResponsiveCssClassValues(
 			StyledLayoutStructureItem styledLayoutStructureItem)
 		throws Exception {
@@ -113,14 +100,7 @@ public class ResponsiveLayoutStructureUtil {
 		JSONObject itemConfigJSONObject =
 			styledLayoutStructureItem.getItemConfigJSONObject();
 
-		ViewportSize[] viewportSizes = ViewportSize.values();
-
-		Comparator<ViewportSize> comparator = Comparator.comparingInt(
-			ViewportSize::getOrder);
-
-		Arrays.sort(viewportSizes, comparator.reversed());
-
-		for (ViewportSize viewportSize : viewportSizes) {
+		for (ViewportSize viewportSize : _sortedViewportSizes) {
 			if (Objects.equals(viewportSize, ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -194,39 +174,20 @@ public class ResponsiveLayoutStructureUtil {
 			return viewportConfigurationJSONObject.get(propertyName);
 		}
 
-		ViewportSize[] viewportSizes = ViewportSize.values();
+		for (ViewportSize viewportSize : _sortedViewportSizes) {
+			if (viewportSize.getOrder() < currentViewportSize.getOrder()) {
+				viewportConfigurationJSONObject =
+					viewportConfigurations.getOrDefault(
+						viewportSize.getViewportSizeId(),
+						JSONFactoryUtil.createJSONObject());
 
-		Comparator<ViewportSize> comparator = Comparator.comparingInt(
-			ViewportSize::getOrder);
-
-		Arrays.sort(viewportSizes, comparator.reversed());
-
-		for (ViewportSize viewportSize : viewportSizes) {
-			viewportConfigurationJSONObject =
-				viewportConfigurations.getOrDefault(
-					viewportSize.getViewportSizeId(),
-					JSONFactoryUtil.createJSONObject());
-
-			if (viewportConfigurationJSONObject.has(propertyName) &&
-				(viewportSize.getOrder() < currentViewportSize.getOrder())) {
-
-				return viewportConfigurationJSONObject.get(propertyName);
+				if (viewportConfigurationJSONObject.has(propertyName)) {
+					return viewportConfigurationJSONObject.get(propertyName);
+				}
 			}
 		}
 
 		return defaultValue;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getRowCssClass(RowStyledLayoutStructureItem)}
-	 */
-	@Deprecated
-	public static String getRowCssClass(
-		RowLayoutStructureItem rowLayoutStructureItem) {
-
-		return getRowCssClass(
-			(RowStyledLayoutStructureItem)rowLayoutStructureItem);
 	}
 
 	public static String getRowCssClass(
@@ -242,7 +203,7 @@ public class ResponsiveLayoutStructureUtil {
 		Map<String, JSONObject> rowViewportConfigurations =
 			rowStyledLayoutStructureItem.getViewportConfigurations();
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (Objects.equals(viewportSize, ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -274,7 +235,7 @@ public class ResponsiveLayoutStructureUtil {
 			sb.append("flex-lg-row");
 		}
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (Objects.equals(viewportSize, ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -321,14 +282,7 @@ public class ResponsiveLayoutStructureUtil {
 
 		JSONObject stylesJSONObject = JSONFactoryUtil.createJSONObject();
 
-		ViewportSize[] viewportSizes = ViewportSize.values();
-
-		Comparator<ViewportSize> comparator = Comparator.comparingInt(
-			ViewportSize::getOrder);
-
-		Arrays.sort(viewportSizes, comparator.reversed());
-
-		for (ViewportSize viewportSize : viewportSizes) {
+		for (ViewportSize viewportSize : _sortedViewportSizes) {
 			if (viewportSize.getOrder() > currentViewportSize.getOrder()) {
 				continue;
 			}
@@ -376,6 +330,17 @@ public class ResponsiveLayoutStructureUtil {
 		}
 
 		return "start";
+	}
+
+	private static final ViewportSize[] _sortedViewportSizes =
+		ViewportSize.values();
+	private static final ViewportSize[] _viewportSizes = ViewportSize.values();
+
+	static {
+		Comparator<ViewportSize> comparator = Comparator.comparingInt(
+			ViewportSize::getOrder);
+
+		Arrays.sort(_sortedViewportSizes, comparator.reversed());
 	}
 
 }

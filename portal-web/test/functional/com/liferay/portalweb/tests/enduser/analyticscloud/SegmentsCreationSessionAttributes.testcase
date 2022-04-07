@@ -44,13 +44,12 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9204 | Test Summary: Add segment using a session property 'Device'"
-	@ignore = "true"
 	@priority = "4"
 	test CanCreateSessionAttributeUsingDevice {
 		property portal.upstream = "quarantine";
 
-		// AC Refactor: timing issue for total members and membership card
-		// AC Refactor ticket: LRAC-9264
+		// AC Quarantine Reason: Segment membership takes long time to load
+		// AC refactor ticket: LRAC-10769
 
 		task ("Connect the DXP to Analytics Cloud") {
 			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
@@ -79,7 +78,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "New Segment Test");
+			ACUtils.setItemName(itemName = "New Segment Test");
 		}
 
 		task ("Add a Device Brand field") {
@@ -125,7 +124,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSessionAttributeUsingReferrerURL {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: timing issue for Referrer URL with page sync
 		// AC Refactor ticket: LRAC-9272
@@ -181,7 +179,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 		}
 
 		task ("Add an URL criteria from Session Attributes") {
@@ -228,6 +226,10 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9211 | Test Summary: Add segment using a session property 'URL'"
 	@priority = "4"
 	test CanCreateSessionAttributeUsingURL {
+		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: Segment membership takes long time to load LRAC-10769
+
 		task ("Connect the DXP to Analytics Cloud") {
 			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud();
 		}
@@ -271,7 +273,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 		}
 
 		task ("Add an URL criteria from Session Attributes") {
@@ -329,7 +331,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 		}
 
 		task ("Add criterias from differents attributes") {

@@ -145,7 +145,7 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 
 									<c:choose>
 										<c:when test="<%= conversions.length > 0 %>">
-											<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>">
+											<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>" data-analytics-file-entry-title="<%= String.valueOf(fileEntry.getTitle()) %>">
 												<clay:dropdown-menu
 													dropdownItems='<%=
 														new JSPDropdownItemList(pageContext) {
@@ -154,12 +154,14 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 
 																Map<String, Object> data = HashMapBuilder.<String, Object>put(
 																	"analytics-file-entry-id", String.valueOf(fileEntry.getFileEntryId())
+																).put(
+																	"analytics-file-entry-title", String.valueOf(fileEntry.getTitle())
 																).build();
 
 																add(
 																	dropdownItem -> {
 																		dropdownItem.setData(data);
-																		dropdownItem.setHref(DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true));
+																		dropdownItem.setHref(dlViewFileVersionDisplayContext.getDownloadURL(fileEntry, fileVersion, true));
 																		dropdownItem.setLabel(LanguageUtil.get(httpServletRequest, "this-version"));
 																		dropdownItem.setSeparator(true);
 																	});
@@ -193,8 +195,9 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 											<div class="btn-group-item">
 												<clay:link
 													data-analytics-file-entry-id="<%= fileEntry.getFileEntryId() %>"
+													data-analytics-file-entry-title="<%= fileEntry.getTitle() %>"
 													displayType="primary"
-													href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
+													href="<%= dlViewFileVersionDisplayContext.getDownloadURL(fileEntry, fileVersion, false) %>"
 													label="download"
 													small="<%= true %>"
 													title='<%= LanguageUtil.format(resourceBundle, "file-size-x", LanguageUtil.formatStorageSize(fileVersion.getSize(), locale), false) %>'
@@ -205,10 +208,10 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 									</c:choose>
 								</c:when>
 								<c:otherwise>
-									<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>">
+									<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>" data-analytics-file-entry-title="<%= String.valueOf(fileEntry.getTitle()) %>">
 										<clay:link
 											displayType="primary"
-											href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
+											href="<%= dlViewFileVersionDisplayContext.getDownloadURL(fileEntry, fileVersion, false) %>"
 											label="download"
 											small="<%= true %>"
 											title='<%= LanguageUtil.format(resourceBundle, "file-size-x", LanguageUtil.formatStorageSize(fileVersion.getSize(), locale), false) %>'

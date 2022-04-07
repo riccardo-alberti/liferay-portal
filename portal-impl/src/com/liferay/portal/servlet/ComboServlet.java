@@ -88,7 +88,7 @@ public class ComboServlet extends HttpServlet {
 			doService(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			PortalUtil.sendError(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR, exception,
@@ -532,7 +532,7 @@ public class ComboServlet extends HttpServlet {
 			PortalCacheManagerNames.SINGLE_VM, FileContentBag.class.getName());
 
 	private final Set<String> _protectedParameters = SetUtil.fromArray(
-		"b", "browserId", "minifierType", "languageId", "t", "themeId", "zx");
+		"browserId", "minifierType", "languageId", "t", "themeId", "zx");
 
 	private static class FileContentBag implements Serializable {
 

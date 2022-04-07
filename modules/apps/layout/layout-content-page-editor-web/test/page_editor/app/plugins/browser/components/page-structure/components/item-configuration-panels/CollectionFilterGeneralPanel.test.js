@@ -12,7 +12,7 @@
  * details.
  */
 
-import {cleanup, render} from '@testing-library/react';
+import {render} from '@testing-library/react';
 
 import '@testing-library/jest-dom/extend-expect';
 import React from 'react';
@@ -28,6 +28,15 @@ jest.mock(
 	() => ({
 		getCollectionFilters: jest.fn(),
 		getCollectionSupportedFilters: jest.fn(),
+	})
+);
+
+jest.mock(
+	'../../../../../../../../../src/main/resources/META-INF/resources/page_editor/app/config',
+	() => ({
+		config: {
+			commonStyles: [],
+		},
 	})
 );
 
@@ -95,7 +104,6 @@ const renderComponent = (
 
 describe('CollectionFilterGeneralPanel', () => {
 	afterEach(() => {
-		cleanup();
 		CollectionService.getCollectionFilters.mockClear();
 		CollectionService.getCollectionSupportedFilters.mockClear();
 	});

@@ -12,12 +12,13 @@
  * details.
  */
 
-import ClayForm, {ClayInput} from '@clayui/form';
+import ClayForm, {ClayCheckbox, ClayInput, ClaySelect} from '@clayui/form';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
-import React, {useCallback, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import parseFile from '../FileParsers';
 import {
+	CSV_DELIMITERS,
 	FILE_EXTENSION_INPUT_PARTIAL_NAME,
 	FILE_SCHEMA_EVENT,
 	IMPORT_FILE_FORMATS,
@@ -33,70 +34,176 @@ function updateExtensionInputValue(namespace, value) {
 	}
 }
 
+const acceptedExtensions = IMPORT_FILE_FORMATS.map(
+	(format) => `.${format}`
+).join(', ');
+
 function FileUpload({portletNamespace}) {
 	const isMounted = useIsMounted();
 	const [errorMessage, setErrorMessage] = useState();
+	const [fileToBeUploaded, setFileToBeUploaded] = useState(null);
 
-	const onFileChange = useCallback(
-		(event) => {
-			const {files} = event.target;
-			if (files?.length === 0) {
-				updateExtensionInputValue(portletNamespace, '');
+	const inputContainsHeadersId = `${portletNamespace}containsHeaders`;
+	const inputCSVSeparatorId = `${portletNamespace}csvSeparator`;
+	const inputCSVDelimiterId = `${portletNamespace}csvDelimiter`;
+	const inputFileId = `${portletNamespace}importFile`;
 
-				return Liferay.fire(FILE_SCHEMA_EVENT, {
-					schema: null,
-				});
-			}
+	const [parserOptions, setParserOptions] = useState({
+		CSVContainsHeaders: true,
+		CSVDelimiter: '',
+		CSVSeparator: ',',
+	});
 
-			const onComplete = ({extension, schema}) => {
-				updateExtensionInputValue(portletNamespace, extension);
+	const fileExtension = fileToBeUploaded
+		? fileToBeUploaded.name
+				.substring(fileToBeUploaded.name.lastIndexOf('.') + 1)
+				.toLowerCase()
+		: null;
 
-				Liferay.fire(FILE_SCHEMA_EVENT, {
-					schema,
-				});
-			};
+	useEffect(() => {
+		if (!fileToBeUploaded) {
+			updateExtensionInputValue(portletNamespace, '');
 
-			const onError = () => {
-				if (isMounted()) {
-					setErrorMessage(Liferay.Language.get('unexpected-error'));
-				}
-			};
-
-			parseFile({
-				file: files[0],
-				onComplete,
-				onError,
+			Liferay.fire(FILE_SCHEMA_EVENT, {
+				fileContent: null,
+				schema: null,
 			});
-		},
-		[isMounted, portletNamespace]
-	);
 
-	const inputNameId = `${portletNamespace}importFile`;
+			return;
+		}
+
+		const onComplete = ({extension, fileContent, schema}) => {
+			updateExtensionInputValue(portletNamespace, extension);
+
+			Liferay.fire(FILE_SCHEMA_EVENT, {
+				fileContent,
+				schema,
+			});
+		};
+
+		const onError = () => {
+			if (isMounted()) {
+				setErrorMessage(Liferay.Language.get('unexpected-error'));
+			}
+		};
+
+		parseFile({
+			extension: fileExtension,
+			file: fileToBeUploaded,
+			onComplete,
+			onError,
+			options: parserOptions,
+		});
+	}, [
+		fileExtension,
+		fileToBeUploaded,
+		isMounted,
+		parserOptions,
+		portletNamespace,
+	]);
 
 	return (
-		<ClayForm.Group className={errorMessage ? 'has-error' : ''}>
-			<label htmlFor={inputNameId}>{Liferay.Language.get('file')}</label>
+		<>
+			<ClayForm.Group className={errorMessage ? 'has-error' : ''}>
+				<label htmlFor={inputFileId}>{`${Liferay.Language.get(
+					'file'
+				)} (${acceptedExtensions})`}</label>
 
-			<ClayInput
-				accept={IMPORT_FILE_FORMATS.map((format) => `.${format}`).join(
-					', '
+				<ClayInput
+					accept={acceptedExtensions}
+					className="h-auto"
+					id={inputFileId}
+					name={inputFileId}
+					onChange={({target}) => {
+						setFileToBeUploaded(
+							target.files?.length ? target.files[0] : null
+						);
+					}}
+					type="file"
+				/>
+
+				{errorMessage && (
+					<ClayForm.FeedbackGroup>
+						<ClayForm.FeedbackItem>
+							<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
+							{errorMessage}
+						</ClayForm.FeedbackItem>
+					</ClayForm.FeedbackGroup>
 				)}
-				id={inputNameId}
-				name={inputNameId}
-				onChange={onFileChange}
-				type="file"
-			/>
+			</ClayForm.Group>
 
-			{errorMessage && (
-				<ClayForm.FeedbackGroup>
-					<ClayForm.FeedbackItem>
-						<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+			{fileExtension === 'csv' && (
+				<>
+					<ClayForm.Group>
+						<ClayCheckbox
+							checked={parserOptions.CSVContainsHeaders}
+							label={Liferay.Language.get(
+								'this-file-contains-headers'
+							)}
+							name={inputContainsHeadersId}
+							onChange={({target}) =>
+								setParserOptions({
+									...parserOptions,
+									CSVContainsHeaders: target.checked,
+								})
+							}
+							value="true"
+						/>
+					</ClayForm.Group>
 
-						{errorMessage}
-					</ClayForm.FeedbackItem>
-				</ClayForm.FeedbackGroup>
+					<div className="row">
+						<div className="col-md-6">
+							<ClayForm.Group>
+								<label htmlFor={inputCSVSeparatorId}>
+									{Liferay.Language.get('csv-separator')}
+								</label>
+
+								<ClayInput
+									id={inputCSVSeparatorId}
+									name={inputCSVSeparatorId}
+									onChange={({target}) =>
+										setParserOptions({
+											...parserOptions,
+											CSVSeparator: target.value,
+										})
+									}
+									value={parserOptions.CSVSeparator}
+								/>
+							</ClayForm.Group>
+						</div>
+
+						<div className="col-md-6">
+							<ClayForm.Group>
+								<label htmlFor={inputCSVDelimiterId}>
+									{Liferay.Language.get(
+										'csv-file-column-delimiter'
+									)}
+								</label>
+
+								<ClaySelect
+									id={inputCSVDelimiterId}
+									onChange={({target}) =>
+										setParserOptions({
+											...parserOptions,
+											CSVDelimiter: target.value,
+										})
+									}
+								>
+									{CSV_DELIMITERS.map((delimiter) => (
+										<ClaySelect.Option
+											key={delimiter}
+											label={delimiter}
+											value={delimiter}
+										/>
+									))}
+								</ClaySelect>
+							</ClayForm.Group>
+						</div>
+					</div>
+				</>
 			)}
-		</ClayForm.Group>
+		</>
 	);
 }
 

@@ -391,6 +391,7 @@ definition {
 	@description = "This is a use case for LPS-83319. The user could change default language of web content after enable Changeable Default Language."
 	@priority = "5"
 	test ChangeWebContentDefaultLanguage {
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "LocalizationWithWebContent#ChangeWebContentDefaultLanguage";
 
 		task ("Enable Changeable Default Language for Web Content") {
@@ -444,6 +445,49 @@ definition {
 				webContentTitle = "Título del contenido web");
 
 			WebContent.viewDefaultLanguage(defaultLanguage = "Spanish (ES)");
+		}
+	}
+
+	@description = "This is a test for LPS-137902. The user can delete a localized content in the web content."
+	@priority = "4"
+	test DeleteLocalizedContent {
+		task ("Add a web content with English and Spanish translations") {
+			JSONWebcontent.addBasicWebContentLocalized(
+				contentMap = "en_US:Web Content Content,es_ES:Contenido de contenido web",
+				groupName = "Test Site Name",
+				titleMap = "en_US:Web Content Title,es_ES:Título del contenido web");
+		}
+
+		task ("View web content is localized to both languages") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			WebContent.viewCP(
+				webContentContent = "Web Content Content",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.changeLocale(locale = "es-ES");
+
+			WebContent.viewCP(
+				webContentContent = "Contenido de contenido web",
+				webContentTitle = "Título del contenido web");
+		}
+
+		task ("Delete the Spanish translation in the content field") {
+			WebContent.addCP(webContentContent = "");
+
+			PortletEntry.publish();
+		}
+
+		task ("View content field is empty in Spanish after publish") {
+			WebContentNavigator.gotoEditCP(webContentTitle = "Web Content Title");
+
+			PortletEntry.changeLocale(locale = "es-ES");
+
+			WebContent.viewCP(
+				webContentContent = "",
+				webContentTitle = "Título del contenido web");
 		}
 	}
 
@@ -501,7 +545,7 @@ definition {
 				portletName = "Web Content Display",
 				portletOption = "Configuration");
 
-			WebContentDisplayPortlet.configureSetupPG(userToolNameList = "Translations");
+			WebContentDisplayPortlet.configureSetup(userToolNameList = "Translations");
 
 			WebContentDisplayPortlet.saveConfiguration();
 

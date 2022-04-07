@@ -603,14 +603,6 @@
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on anonymous classes." />
 		</check>
-		<check name="JavaAPISignatureCheck">
-			<category name="Bug Prevention" />
-			<description name="Checks that types `HttpServletRequest`, `HttpServletResponse`, `ThemeDisplay`, and `ServiceContext` are not used in API method signatures." />
-			<property name="illegalAPIParameterTypes" value="HttpServletRequest" />
-			<property name="illegalAPIParameterTypes" value="HttpServletResponse" />
-			<property name="illegalAPIParameterTypes" value="ThemeDisplay" />
-			<property name="illegalAPIServiceParameterTypes" value="ServiceContext" />
-		</check>
 		<check name="JavaBaseUpgradeCallableCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks that BaseUpgradeCallable is used instead of Callable or Runnable in Upgrade and Verify classes." />
@@ -811,6 +803,7 @@
 		<check name="LogParametersCheck">
 			<category name="Bug Prevention" />
 			<description name="Validates the values of parameters passed to `_log.*` calls." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="ResourceBundleCheck">
 			<category name="Bug Prevention" />
@@ -852,10 +845,6 @@
 		<check name="JavaModuleJavaxPortletInitParamTemplatePathCheck">
 			<category name="Bug Prevention" />
 			<description name="Validates the value of `javax.portlet.init-param.template-path`." />
-		</check>
-		<check name="JavaModuleServiceProxyFactoryCheck">
-			<category name="Bug Prevention" />
-			<description name="Finds cases of `ServiceProxyFactory.newServiceTrackedInstance`." />
 		</check>
 		<check name="JavaModuleServiceReferenceCheck">
 			<category name="Bug Prevention" />
@@ -905,6 +894,11 @@
 		<check name="JSONPackageJSONDependencyVersionCheck">
 			<category name="Bug Prevention" />
 			<description name="Checks the version for dependencies in `package.json` files." />
+		</check>
+		<check name="JSONPackageJSONRedundantDependenciesCheck">
+			<category name="Performance" />
+			<description name="Checks for preventing internal dependencies from being added to `package.json`." />
+			<property name="enabled" value="false" />
 		</check>
 	</source-processor>
 	<source-processor name="JSPSourceProcessor">
@@ -1092,6 +1086,7 @@
 		<check name="LogParametersCheck">
 			<category name="Bug Prevention" />
 			<description name="Validates the values of parameters passed to `_log.*` calls." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="ResourceBundleCheck">
 			<category name="Bug Prevention" />
@@ -1276,6 +1271,10 @@
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on `source-formatter.properties` file." />
 		</check>
+		<check name="PropertiesSQLStylingCheck">
+			<category name="Styling" />
+			<description name="Applies rules to enforce consisteny in code style." />
+		</check>
 		<check name="PropertiesStylingCheck">
 			<category name="Styling" />
 			<description name="Applies rules to enforce consisteny in code style." />
@@ -1433,6 +1432,11 @@
 		<check name="XMLDTDVersionCheck">
 			<category name="Styling" />
 			<description name="Checks the DTD version in `*.xml` file." />
+		</check>
+		<check name="XMLEchoMessageCheck">
+			<category name="Styling" />
+			<description name="Checks the echo message attributes in `*.xml` file." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="XMLFriendlyURLRoutesFileCheck">
 			<category name="Styling" />

@@ -12,67 +12,72 @@
  * details.
  */
 
-import ClayForm, {ClayInput} from '@clayui/form';
-import classNames from 'classnames';
+import {ClayInput} from '@clayui/form';
 import React from 'react';
 
-import ErrorFeedback from './ErrorFeedback';
-import FeedbackMessage from './FeedbackMessage';
-import RequiredMask from './RequiredMask';
+import FieldBase from './FieldBase';
 
-interface IInputProps extends React.HTMLAttributes<HTMLElement> {
+const Input: React.ForwardRefExoticComponent<
+	IProps & React.RefAttributes<HTMLInputElement>
+> = React.forwardRef(
+	(
+		{
+			className,
+			component,
+			disabled,
+			error,
+			feedbackMessage,
+			id,
+			label,
+			name,
+			onChange,
+			onInput,
+			required,
+			type,
+			value,
+			...otherProps
+		},
+		forwardRef
+	) => {
+		return (
+			<FieldBase
+				className={className}
+				disabled={disabled}
+				error={error}
+				feedbackMessage={feedbackMessage}
+				id={id}
+				label={label}
+				required={required}
+			>
+				<ClayInput
+					{...otherProps}
+					component={component}
+					disabled={disabled}
+					id={id}
+					name={name}
+					onChange={onChange}
+					onInput={onInput}
+					ref={forwardRef}
+					type={type}
+					value={value}
+				/>
+			</FieldBase>
+		);
+	}
+);
+
+export default Input;
+
+interface IProps
+	extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+	component?: 'input' | 'textarea' | React.ForwardRefExoticComponent<any>;
 	disabled?: boolean;
 	error?: string;
 	feedbackMessage?: string;
 	id?: string;
 	label: string;
-	name: string;
+	name?: string;
 	required?: boolean;
-	value: string;
+	type?: 'number' | 'text';
+	value?: string | number | string[];
 }
-
-const Input: React.FC<IInputProps> = ({
-	className,
-	disabled = false,
-	error,
-	feedbackMessage,
-	id,
-	label,
-	name,
-	onChange,
-	required = false,
-	value,
-	...otherProps
-}) => {
-	return (
-		<ClayForm.Group
-			className={classNames(className, {
-				'has-error': error,
-			})}
-		>
-			<label className={classNames({disabled})} htmlFor={id}>
-				{label}
-
-				{required && <RequiredMask />}
-			</label>
-
-			<ClayInput
-				{...otherProps}
-				disabled={disabled}
-				id={id}
-				name={name}
-				onChange={onChange}
-				type="input"
-				value={value}
-			/>
-
-			{error && <ErrorFeedback error={error} />}
-
-			{feedbackMessage && (
-				<FeedbackMessage feedbackMessage={feedbackMessage} />
-			)}
-		</ClayForm.Group>
-	);
-};
-
-export default Input;

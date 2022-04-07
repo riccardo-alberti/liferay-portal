@@ -25,8 +25,8 @@ export default function ({currentURL, namespace, searchParam, selector}) {
 	const handleSelectChange = (event) => {
 		if (event.target.checked) {
 			portletURL.searchParams.set(
-				`${namespace}${searchParam}`,
-				event.target.value
+				event.target.getAttribute('data-type'),
+				event.target.getAttribute('data-choice')
 			);
 
 			liferayNavigate(portletURL.toString());

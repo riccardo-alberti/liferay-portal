@@ -17,11 +17,14 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String backURL = ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL()));
-
 long batchPlannerPlanId = ParamUtil.getLong(renderRequest, "batchPlannerPlanId");
 
 boolean editable = ParamUtil.getBoolean(renderRequest, "editable");
+
+EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBatchPlannerPlanDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL())));
 
 renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : LanguageUtil.get(request, "export"));
 %>
@@ -36,11 +39,6 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 			<h4 class="card-header"><%= LanguageUtil.get(request, "export-settings") %></h4>
 
 			<div class="card-body">
-
-				<%
-				EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBatchPlannerPlanDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
-				%>
-
 				<liferay-frontend:edit-form-body>
 					<div id="<portlet:namespace />templateSelect"></div>
 
@@ -131,15 +129,8 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 			</div>
 		</liferay-frontend:edit-form-body>
 
-		<div class="mt-4" id="<portlet:namespace />formButtons">
+		<div class="mt-4">
 			<liferay-frontend:edit-form-footer>
-				<clay:link
-					displayType="secondary"
-					href="<%= backURL %>"
-					label="cancel"
-					type="button"
-				/>
-
 				<span>
 					<react:component
 						module="js/SaveTemplate"
@@ -159,6 +150,8 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 								).buildString()
 							).put(
 								"namespace", liferayPortletResponse.getNamespace()
+							).put(
+								"type", "export"
 							).build()
 						%>'
 					/>

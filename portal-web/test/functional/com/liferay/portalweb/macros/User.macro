@@ -250,6 +250,9 @@ definition {
 	}
 
 	macro addCP {
+
+		// TODO LRQA-73479 Refactor so separate macros to add user can be used in this single macro EX: Organization.addUser
+
 		LexiconEntry.gotoAdd();
 
 		Type(
@@ -306,6 +309,18 @@ definition {
 			Type(
 				locator1 = "TextArea#COMMENTS",
 				value1 = "${userComment}");
+		}
+
+		if (isSet(destination)) {
+			var origin = Geolocation.getMarkerPosition();
+
+			Geolocation.setMarkerPosition(destination = "${destination}");
+
+			var current = Geolocation.getMarkerPosition();
+
+			TestUtils.assertNotEquals(
+				actual = "${current}",
+				expected = "${origin}");
 		}
 
 		var browserType = PropsUtil.get("browser.type");
@@ -1125,10 +1140,9 @@ definition {
 
 			User.loginPG(
 				authenticationMethod = "${authenticationMethod}",
+				newPassword = "${newPassword}",
 				nodePort = "${nodePort}",
 				password = "test",
-				resetPassword = "${resetPassword}",
-				syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 				userEmailAddress = "test@liferay.com",
 				userScreenName = "${userScreenName}");
 		}
@@ -1157,10 +1171,9 @@ definition {
 
 			User.loginPG(
 				authenticationMethod = "${authenticationMethod}",
+				newPassword = "${newPassword}",
 				nodePort = "${nodePort}",
 				password = "test",
-				resetPassword = "${resetPassword}",
-				syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 				userEmailAddress = "test@liferay.com",
 				userScreenName = "${userScreenName}");
 		}
@@ -1522,10 +1535,9 @@ definition {
 
 		User.loginPG(
 			authenticationMethod = "${authenticationMethod}",
+			newPassword = "${newPassword}",
 			nodePort = "${nodePort}",
 			password = "${newPassword}",
-			resetPassword = "${resetPassword}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}",
 			userEmailAddress = "${userEmailAddress}",
 			userScreenName = "${userScreenName}");
 
@@ -1562,12 +1574,7 @@ definition {
 
 		Button.clickSave();
 
-		if ("${changeable}" == "false") {
-			AssertTextEquals.assertPartialText(
-				locator1 = "Message#ERROR_1",
-				value1 = "Passwords may not be changed under the current password policy.");
-		}
-		else if ("${passwordTooShort}" == "true") {
+		if ("${passwordTooShort}" == "true") {
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#ERROR_1",
 				value1 = "That password is too short. Please make sure your password is at least 6 characters long.");
@@ -1915,10 +1922,7 @@ definition {
 
 		// TODO Remove below macro after password reminder gets completely cleaned out with JSON
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
@@ -1930,7 +1934,9 @@ definition {
 	@summary = "Log into Liferay using URL navigation"
 	macro firstLoginPG {
 		if (isSet(virtualHostsURL)) {
-			Navigator.openSpecificURL(url = "${virtualHostsURL}");
+			Navigator.openSpecificURL(
+				domain = "${domain}",
+				url = "${virtualHostsURL}");
 		}
 		else {
 			Navigator.openURL();
@@ -1953,10 +1959,7 @@ definition {
 
 		// TODO Remove below macro after password reminder gets completely cleaned out with JSON
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
@@ -1981,7 +1984,9 @@ definition {
 	@summary = "Log into Liferay using the UI"
 	macro firstLoginUI {
 		if (isSet(specificURL)) {
-			Navigator.openSpecificURL(url = "${specificURL}");
+			Navigator.openSpecificURL(
+				domain = "${domain}",
+				url = "${specificURL}");
 		}
 		else {
 			Navigator.openURL();
@@ -2024,6 +2029,12 @@ definition {
 		}
 		else if (IsElementPresent(locator1 = "Button#I_AGREE")) {
 			SignIn.agreeToTermsOfUse();
+		}
+
+		if (IsElementPresent(locator1 = "TextInput#PASSWORD_2")) {
+			User.resetPassword(
+				localizedSaveButton = "${localizedSaveButton}",
+				newPassword = "${newPassword}");
 		}
 
 		if (isSet(localizedAnswer)) {
@@ -2115,10 +2126,7 @@ definition {
 
 		// TODO Remove below macro after password reminder gets completely cleaned out with JSON
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
@@ -2149,10 +2157,7 @@ definition {
 
 		// TODO Remove below macro after password reminder gets completely cleaned out with JSON
 
-		User.resetPassword(
-			resetPassword = "${resetPassword}",
-			setupWizardEnabled = "${setupWizardEnabled}",
-			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
+		User.resetPassword(newPassword = "${newPassword}");
 
 		User.answerPasswordReminder();
 
@@ -2282,28 +2287,7 @@ definition {
 					value1 = "I Agree");
 			}
 
-			if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#PASSWORD")) {
-				if (isSet(syntaxCheckingEnabled) && ("${syntaxCheckingEnabled}" == "true")) {
-					Type(
-						locator1 = "TextInput#PASSWORD",
-						value1 = "${resetPassword}");
-
-					Type(
-						locator1 = "TextInput#ENTER_AGAIN",
-						value1 = "${resetPassword}");
-				}
-				else {
-					Type(
-						locator1 = "TextInput#PASSWORD",
-						value1 = "test");
-
-					Type(
-						locator1 = "TextInput#ENTER_AGAIN",
-						value1 = "test");
-				}
-
-				Button.click(button = "Save");
-			}
+			User.resetPassword(newPassword = "${newPassword}");
 
 			if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#ANSWER")) {
 				Type(
@@ -2362,17 +2346,7 @@ definition {
 				value1 = "I Agree");
 		}
 
-		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#PASSWORD")) {
-			Type(
-				locator1 = "TextInput#PASSWORD",
-				value1 = "test");
-
-			Type(
-				locator1 = "TextInput#ENTER_AGAIN",
-				value1 = "test");
-
-			Button.clickSave();
-		}
+		User.resetPassword();
 
 		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#ANSWER")) {
 			Type(
@@ -2466,39 +2440,33 @@ definition {
 
 	macro resetPassword {
 		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#PASSWORD")) {
-			if ("${syntaxCheckingEnabled}" == "true") {
+			if (isSet(newPassword)) {
 				Type(
 					locator1 = "TextInput#PASSWORD_1",
-					value1 = "${resetPassword}");
+					value1 = "${newPassword}");
 
 				Type(
 					locator1 = "TextInput#PASSWORD_2",
-					value1 = "${resetPassword}");
+					value1 = "${newPassword}");
 			}
 			else {
-				if ("${setupWizardEnabled}" == "true") {
-					Type(
-						locator1 = "TextInput#PASSWORD_1",
-						value1 = "test2");
+				Type(
+					locator1 = "TextInput#PASSWORD_1",
+					value1 = "test");
 
-					Type(
-						locator1 = "TextInput#PASSWORD_2",
-						value1 = "test2");
-				}
-				else {
-					Type(
-						locator1 = "TextInput#PASSWORD_1",
-						value1 = "test");
-
-					Type(
-						locator1 = "TextInput#PASSWORD_2",
-						value1 = "test");
-				}
+				Type(
+					locator1 = "TextInput#PASSWORD_2",
+					value1 = "test");
 			}
 
-			Button.clickSubmitButton();
+			if (isSet(localizedSaveButton)) {
+				Button.click(button = "${localizedSaveButton}");
+			}
+			else {
+				Button.clickSubmitButton();
 
-			AssertElementNotPresent(locator1 = "TextInput#ENTER_AGAIN");
+				AssertElementNotPresent(locator1 = "TextInput#ENTER_AGAIN");
+			}
 		}
 	}
 
@@ -2611,28 +2579,7 @@ definition {
 				value1 = "Verify");
 		}
 
-		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#PASSWORD")) {
-			if (isSet(syntaxCheckingEnabled) && ("${syntaxCheckingEnabled}" == "true")) {
-				Type(
-					locator1 = "TextInput#PASSWORD",
-					value1 = "${resetPassword}");
-
-				Type(
-					locator1 = "TextInput#ENTER_AGAIN",
-					value1 = "${resetPassword}");
-			}
-			else {
-				Type(
-					locator1 = "TextInput#PASSWORD",
-					value1 = "test");
-
-				Type(
-					locator1 = "TextInput#ENTER_AGAIN",
-					value1 = "test");
-			}
-
-			Button.clickSave();
-		}
+		User.resetPassword(newPassword = "${newPassword}");
 
 		if (isSet(localizedAnswer)) {
 			User.answerPasswordReminderLocalized(

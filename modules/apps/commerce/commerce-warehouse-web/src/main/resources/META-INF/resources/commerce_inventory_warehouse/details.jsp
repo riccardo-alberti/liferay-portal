@@ -20,23 +20,89 @@
 CommerceInventoryWarehousesDisplayContext commerceInventoryWarehousesDisplayContext = (CommerceInventoryWarehousesDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 
 CommerceInventoryWarehouse commerceInventoryWarehouse = commerceInventoryWarehousesDisplayContext.getCommerceInventoryWarehouse();
-%>
 
-<liferay-ui:error-marker
-	key="<%= WebKeys.ERROR_SECTION %>"
-	value="details"
-/>
+String countryTwoLettersISOCode = BeanParamUtil.getString(commerceInventoryWarehouse, request, "countryTwoLettersISOCode");
+
+String commerceRegionCode = BeanParamUtil.getString(commerceInventoryWarehouse, request, "commerceRegionCode");
+%>
 
 <liferay-ui:error exception="<%= CommerceInventoryWarehouseActiveException.class %>" message="please-add-geolocation-information-to-the-warehouse-to-activate" />
 <liferay-ui:error exception="<%= CommerceInventoryWarehouseNameException.class %>" message="please-enter-a-valid-name" />
 <liferay-ui:error exception="<%= MVCCException.class %>" message="this-item-is-no-longer-valid-please-try-again" />
 
-<aui:model-context bean="<%= commerceInventoryWarehouse %>" model="<%= CommerceInventoryWarehouse.class %>" />
+<portlet:actionURL name="/commerce_inventory_warehouse/edit_commerce_inventory_warehouse" var="editCommerceInventoryWarehouseActionURL" />
 
-<aui:fieldset>
-	<aui:input name="name" />
+<aui:form action="<%= editCommerceInventoryWarehouseActionURL %>" cssClass="pt-4" method="post" name="fm">
+	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (commerceInventoryWarehouse == null) ? Constants.ADD : Constants.UPDATE %>" />
+	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+	<aui:input name="externalReferenceCode" type="hidden" value="<%= commerceInventoryWarehouse.getExternalReferenceCode() %>" />
+	<aui:input name="commerceInventoryWarehouseId" type="hidden" value="<%= commerceInventoryWarehouse.getCommerceInventoryWarehouseId() %>" />
+	<aui:input name="name" type="hidden" value="<%= (commerceInventoryWarehouse == null) ? null : commerceInventoryWarehouse.getName() %>" />
+	<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_SAVE_DRAFT) %>" />
 
-	<aui:input name="description" />
+	<aui:model-context bean="<%= commerceInventoryWarehouse %>" model="<%= CommerceInventoryWarehouse.class %>" />
 
-	<aui:input checked="<%= (commerceInventoryWarehouse == null) ? false : commerceInventoryWarehouse.isActive() %>" inlineLabel="right" labelCssClass="simple-toggle-switch" name="active" type="toggle-switch" />
-</aui:fieldset>
+	<div class="mt-4 row">
+		<div class="col-lg-6">
+			<commerce-ui:panel
+				title='<%= LanguageUtil.get(request, "details") %>'
+			>
+				<aui:input localized="<%= true %>" name="label" required="<%= true %>" value="<%= commerceInventoryWarehouse.getLabel(locale) %>" />
+
+				<aui:input localized="<%= true %>" name="description" type="textarea" value="<%= commerceInventoryWarehouse.getDescription(locale) %>" />
+
+				<aui:input checked="<%= (commerceInventoryWarehouse == null) ? false : commerceInventoryWarehouse.isActive() %>" inlineLabel="right" labelCssClass="simple-toggle-switch" name='<%= LanguageUtil.get(request, "make-active") %>' type="toggle-switch" />
+			</commerce-ui:panel>
+		</div>
+
+		<div class="col-lg-6">
+			<commerce-ui:panel
+				bodyClasses="flex-fill"
+				title='<%= LanguageUtil.get(request, "geolocation") %>'
+			>
+				<aui:input name="latitude" />
+
+				<aui:input name="longitude" />
+			</commerce-ui:panel>
+		</div>
+
+		<div class="col">
+			<commerce-ui:panel
+				title='<%= LanguageUtil.get(request, "address") %>'
+			>
+				<div class="row">
+					<div class="col-lg-6">
+						<aui:input name="street1" />
+
+						<aui:input name="street3" />
+
+						<aui:select label="region" name="commerceRegionCode" />
+
+						<aui:input name="city" />
+					</div>
+
+					<div class="col-lg-6">
+						<aui:input name="street2" />
+
+						<aui:select label="country" name="countryTwoLettersISOCode" />
+
+						<aui:input label="postal-code" name="zip" />
+					</div>
+				</div>
+			</commerce-ui:panel>
+		</div>
+	</div>
+</aui:form>
+
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"commerceRegionCode", commerceRegionCode
+		).put(
+			"companyId", company.getCompanyId()
+		).put(
+			"countryTwoLettersISOCode", HtmlUtil.escape(countryTwoLettersISOCode)
+		).build()
+	%>'
+	module="js/warehouseAddress"
+/>

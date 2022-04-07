@@ -64,6 +64,8 @@ definition {
 	test CanExpandActivityInIndividualOverview {
 		property portal.upstream = "quarantine";
 
+		// AC Quarantine Reason: Individuals activities takes some time to load
+
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -242,6 +244,8 @@ definition {
 	test SelectDataOnIndividualsActivitiesChart {
 		property portal.upstream = "quarantine";
 
+		// AC Quarantine Reason: Data does not appear in time
+
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
@@ -307,7 +311,6 @@ definition {
 	@ignore = "true"
 	@priority = "3"
 	test ShowLast5ActivitiesOnIndividualsActivitiesChartWhenSetPaginationTo5 {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: data doesn't appear on time
 		// AC Refactor ticket: LRAC-8951

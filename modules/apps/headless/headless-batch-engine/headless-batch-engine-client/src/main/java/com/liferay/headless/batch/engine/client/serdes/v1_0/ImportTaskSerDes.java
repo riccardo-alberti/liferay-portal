@@ -59,7 +59,7 @@ public class ImportTaskSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (importTask.getClassName() != null) {
 			if (sb.length() > 1) {
@@ -127,6 +127,20 @@ public class ImportTaskSerDes {
 			sb.append("\"");
 
 			sb.append(importTask.getExecuteStatus());
+
+			sb.append("\"");
+		}
+
+		if (importTask.getExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"externalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(importTask.getExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -243,7 +257,7 @@ public class ImportTaskSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (importTask.getClassName() == null) {
 			map.put("className", null);
@@ -282,6 +296,15 @@ public class ImportTaskSerDes {
 		else {
 			map.put(
 				"executeStatus", String.valueOf(importTask.getExecuteStatus()));
+		}
+
+		if (importTask.getExternalReferenceCode() == null) {
+			map.put("externalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"externalReferenceCode",
+				String.valueOf(importTask.getExternalReferenceCode()));
 		}
 
 		if (importTask.getFailedItems() == null) {
@@ -387,6 +410,14 @@ public class ImportTaskSerDes {
 					importTask.setExecuteStatus(
 						ImportTask.ExecuteStatus.create(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "externalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					importTask.setExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "failedItems")) {

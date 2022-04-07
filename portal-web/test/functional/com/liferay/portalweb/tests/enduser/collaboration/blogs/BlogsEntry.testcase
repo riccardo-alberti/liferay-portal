@@ -1,6 +1,7 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Blogs";
@@ -351,7 +352,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanAddWithEmbeddedVideo {
-		property portal.acceptance = "true";
 		property testray.component.names = "WYSIWYG";
 
 		JSONLayout.addPublicLayout(
@@ -647,8 +647,6 @@ definition {
 	@priority = "5"
 	@refactordone
 	test CanDeleteMultipleEntriesSequentially {
-		property portal.acceptance = "true";
-
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
@@ -808,12 +806,46 @@ definition {
 			entryTitle = "Blogs Entry Title Edit");
 	}
 
+	@description = "This is a test for LPS-67515. It ensures that an exported blog entry with a cover image can be imported to a new site after cleaning the DB."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanImportEntryWithImageAfterCleaningDB {
+
+		// TODO LPS-149060 CanImportEntryWithImageAfterCleaningDB pending implementation
+
+	}
+
+	@description = "This is a test for LPS-67515. It ensures that a blog entry with a cover image can be exported and imported between different sites."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanImportEntryWithImageBetweenDifferentSites {
+
+		// TODO LPS-149060 CanImportEntryWithImageBetweenDifferentSites pending implementation
+
+	}
+
+	@description = "This is a test for LPS-67515. It ensures that an exported blog entry with a small image can be imported to a new site after cleaning the DB."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanImportEntryWithSmallImageAfterCleaningDB {
+
+		// TODO LPS-149060 CanImportEntryWithSmallImageAfterCleaningDB pending implementation
+
+	}
+
+	@description = "This is a test for LPS-67515. It ensures that a blog entry with a small image can be exported and imported between different sites."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanImportEntryWithSmallImageBetweenDifferentSites {
+
+		// TODO LPS-149060 CanImportEntryWithSmallImageBetweenDifferentSites pending implementation
+
+	}
+
 	@description = "This checks that a blog entry can be manually saved as a draft."
 	@priority = "5"
 	@refactordone
 	test CanManuallySaveAsDraft {
-		property portal.acceptance = "true";
-
 		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
 
 		Blogs.addDraft(
@@ -917,6 +949,36 @@ definition {
 		BlogsEntry.viewDefaultCP(entryTitle = "");
 	}
 
+	@description = "This is a test for LPS-147320. It checks that Javascript cannot be executed in the code view."
+	@priority = "4"
+	test CannotExecuteXSSInCodeView {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Guest",
+			layoutName = "Blogs Page",
+			widgetName = "Blogs");
+
+		BlogsNavigator.openToAddEntry(
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addEntryContentViaCodeView(entryContent = '''<p><img src="xss" onerror="alert(1)" /></p>''');
+
+		Button.clickPublish();
+
+		BlogsNavigator.openToBlogEntry(
+			entryTitle = "Blogs Entry Title",
+			layoutName = "Blogs Page",
+			siteURLKey = "guest");
+
+		AssertAlertNotPresent();
+	}
+
 	@description = "This is a test for LPS-136764. It checks that Javascript cannot be executed in the content field."
 	@priority = "3"
 	test CannotExecuteXSSInContent {
@@ -1007,6 +1069,52 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		AssertAlertNotPresent();
+	}
+
+	@description = "This is a use case for LPS-82204. View blogs entry with XSS custom abstract."
+	@priority = "5"
+	test CannotExecuteXSSInCustomAbstractViaAP {
+		property testray.component.names = "Security";
+
+		var entryAbstractDescription = '''<script>alert(123)</script>''';
+		var key_entryAbstractDescription = "${entryAbstractDescription}";
+
+		task ("Add public layout") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Blogs Page");
+		}
+
+		task ("Add page") {
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Guest",
+				layoutName = "Blogs Page",
+				widgetName = "Asset Publisher");
+		}
+
+		task ("Add custom abstract") {
+			JSONBlog.addEntry(
+				entryAbstractDescription = "${entryAbstractDescription}",
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title");
+		}
+
+		task ("Assert abstract added successfully") {
+			Navigator.gotoPage(pageName = "Blogs Page");
+
+			AssertAlertNotPresent();
+
+			Blogs.viewContentAbstractDescription(descriptionValue = "${entryAbstractDescription}");
+		}
+	}
+
+	@description = "This test covers LPS-49419. It validates that BBCode cannot be injected into a blog comment using Pingback."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CannotInjectBBCodeIntoCommentUsingPingback {
+
+		// TODO LPS-147822
+
 	}
 
 	@description = "This is a test for LPS-136788. It checks that a user cannot rate a post when it is disabled in the configuration."
@@ -1163,6 +1271,15 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-80502. It asserts that user can search a draft blog entry."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanSearchForDraftEntry {
+
+		// TODO LPS-149388 CanSearchForDraftEntry pending implementation
+
+	}
+
 	@priority = "4"
 	@refactorneeded
 	test CanViewDefaultAbstract {
@@ -1188,17 +1305,85 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		BlogsEntry.viewAbstractDisplay(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsNavigator.gotoEntryWithAbstractPG(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsEntry.viewEntryPG(
 			entryContent = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent a definition of a standard web application while the darker blue squares show the addition of social aspects.",
 			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This is a test for LPS-90966. It checks that the caption link will keep persisting."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test LinkToImageInCaptionPersistsAfterBeingAdded {
+
+		// TODO LPS-149365 LinkToImageInCaptionPersistsAfterBeingAdded pending implementation
+
+	}
+
+	@description = "This test covers LPS-133714. The blog entry creator receives a notification of its own blog"
+	@priority = "3"
+	test NotificationIsReceivedByNewEntryCreator {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
+		task ("Enable Send Notifications to Blogs Entry Creator") {
+			BlogsNavigator.openToConfigInInstanceSettings(portlet = "Blogs Service");
+
+			FormFields.enableCheckbox(fieldName = "Send Notifications to Blogs Entry Creator");
+
+			if (IsElementPresent(key_text = "Save", locator1 = "Button#ANY")) {
+				Button.clickSave();
+			}
+			else {
+				Button.clickUpdate();
+			}
+		}
+
+		task ("Check no notifications are pending") {
+			Notifications.viewBadgeCount(notificationCount = "0");
+		}
+
+		task ("Create a Blog Page and subscribe to widget to receive notifications") {
+			JSONLayout.addPublicLayout(
+				groupName = "Guest",
+				layoutName = "Blogs Page Admin");
+
+			JSONLayout.addWidgetToPublicLayout(
+				column = "1",
+				groupName = "Guest",
+				layoutName = "Blogs Page Admin",
+				widgetName = "Blogs");
+
+			Navigator.gotoPage(pageName = "Blogs Page Admin");
+
+			if (IsElementPresent(locator1 = "Blogs#UNSUBSCRIBE_LINK", value1 = "Unsubscribe")) {
+				AssertClick(
+					locator1 = "Blogs#UNSUBSCRIBE_LINK",
+					value1 = "Unsubscribe");
+			}
+
+			Blogs.subscribePG();
+		}
+
+		task ("Add blog entry") {
+			JSONBlog.addEntry(
+				entryContent = "Blogs Entry Content",
+				entryTitle = "Blogs Entry Title",
+				userEmailAddress = "test@liferay.com",
+				userPassword = "test");
+		}
+
+		task ("Check entry creator has a notification") {
+			Navigator.gotoPage(pageName = "Blogs Page Admin");
+
+			Notifications.viewBadgeCount(notificationCount = "1");
+		}
 	}
 
 	@description = "This is a use case for LPS-69240. It checks that when blog entries are duplicated their custom URL's are unique."

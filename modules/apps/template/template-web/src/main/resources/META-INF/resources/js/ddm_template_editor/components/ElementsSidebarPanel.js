@@ -13,6 +13,7 @@
  */
 
 import {ClayButtonWithIcon} from '@clayui/button';
+import ClayEmptyState from '@clayui/empty-state';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import classNames from 'classnames';
@@ -68,7 +69,7 @@ export function ElementsSidebarPanel({className}) {
 				{Liferay.Language.get('elements')}
 			</h1>
 
-			<ClayForm.Group small>
+			<ClayForm.Group className="mb-4" small>
 				<label className="sr-only" htmlFor={SEARCH_INPUT_ID}>
 					{Liferay.Language.get('search')}
 				</label>
@@ -107,10 +108,21 @@ export function ElementsSidebarPanel({className}) {
 			</ClayForm.Group>
 
 			{filteredItems ? (
-				<ButtonList
-					items={filteredItems}
-					onButtonClick={onButtonClick}
-				/>
+				filteredItems.length !== 0 ? (
+					<ButtonList
+						items={filteredItems}
+						onButtonClick={onButtonClick}
+					/>
+				) : (
+					<ClayEmptyState
+						description={Liferay.Language.get(
+							'try-again-with-a-different-search'
+						)}
+						imgSrc={`${themeDisplay.getPathThemeImages()}/states/search_state.gif`}
+						small
+						title={Liferay.Language.get('no-results-found')}
+					/>
+				)
 			) : (
 				templateVariableGroups.map(({items, label}) => (
 					<CollapsableButtonList

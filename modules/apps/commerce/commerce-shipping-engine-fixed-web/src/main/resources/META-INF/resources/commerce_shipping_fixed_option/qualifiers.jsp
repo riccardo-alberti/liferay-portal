@@ -37,6 +37,8 @@ boolean hasPermission = commerceShippingFixedOptionQualifiersDisplayContext.hasP
 	<aui:input name="orderTypeQualifiers" type="hidden" value="<%= orderTypeQualifiers %>" />
 	<aui:input name="termEntryQualifiers" type="hidden" value="<%= termEntryQualifiers %>" />
 
+	<liferay-ui:error exception="<%= DuplicateCommerceShippingFixedOptionQualifierException.class %>" message="the-qualifier-is-already-linked" />
+
 	<aui:model-context bean="<%= commerceShippingFixedOption %>" model="<%= CommerceShippingFixedOption.class %>" />
 
 	<commerce-ui:panel
@@ -59,7 +61,7 @@ boolean hasPermission = commerceShippingFixedOptionQualifiersDisplayContext.hasP
 		bodyClasses="flex-fill"
 		collapsed="<%= false %>"
 		collapsible="<%= false %>"
-		title='<%= LanguageUtil.get(request, "delivery-term-eligibility") %>'
+		title='<%= LanguageUtil.get(request, "delivery-terms-eligibility") %>'
 	>
 		<aui:fieldset markupView="lexicon">
 			<aui:input checked='<%= Objects.equals(termEntryQualifiers, "none") %>' label="no-delivery-terms" name="qualifiers--termEntry--" type="radio" value="none" />

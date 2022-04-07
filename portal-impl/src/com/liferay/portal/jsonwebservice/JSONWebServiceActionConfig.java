@@ -37,15 +37,6 @@ public class JSONWebServiceActionConfig
 			   JSONWebServiceActionMapping {
 
 	public JSONWebServiceActionConfig(
-		String contextName, String contextPath, Class<?> actionClass,
-		Method actionMethod, String path, String method) {
-
-		this(
-			contextName, contextPath, null, actionClass, actionMethod, path,
-			method);
-	}
-
-	public JSONWebServiceActionConfig(
 		String contextName, String contextPath, Object actionObject,
 		Class<?> actionClass, Method actionMethod, String path, String method) {
 
@@ -97,7 +88,7 @@ public class JSONWebServiceActionConfig
 		}
 		catch (NoSuchMethodException noSuchMethodException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchMethodException, noSuchMethodException);
+				_log.debug(noSuchMethodException);
 			}
 		}
 

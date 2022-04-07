@@ -807,10 +807,10 @@ definition {
 
 			PageEditor.viewFragmentHeaderNotVisible(fragmentName = "Asset Publisher");
 
-			MouseOver.mouseOverInvisible(
+			MouseOver(
+				index = "1",
 				key_fragmentName = "Asset Publisher",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_CONTENT");
 
 			PageEditor.viewFragmentHeaderNotVisible(fragmentName = "Asset Publisher");
 		}
@@ -822,10 +822,10 @@ definition {
 
 			PageEditor.viewFragmentHeaderNotVisible(fragmentName = "Heading");
 
-			MouseOver.mouseOverInvisible(
+			MouseOver(
+				index = "1",
 				key_fragmentName = "Heading",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_CONTENT");
 
 			PageEditor.viewFragmentHeaderNotVisible(fragmentName = "Heading");
 		}
@@ -1256,9 +1256,9 @@ definition {
 
 		task ("Assert Header of Card is shown over body when doesn't reach the management toolbar") {
 			ScrollWebElementIntoView(
+				index = "1",
 				key_fragmentName = "Card",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_LABEL");
 
 			PageEditor.clickConfigurableField(fragmentName = "Card");
 
@@ -1269,9 +1269,9 @@ definition {
 
 		task ("Assert Header of Card moves inside body when reach the management toolbar") {
 			ScrollWebElementIntoView(
+				index = "1",
 				key_fragmentName = "Image",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_LABEL");
 
 			AssertElementPresent(
 				key_fragmentName = "Card",
@@ -1305,9 +1305,9 @@ definition {
 
 		task ("Assert Header of Blogs is shown over body when doesn't reach the management toolbar") {
 			ScrollWebElementIntoView(
+				index = "1",
 				key_fragmentName = "Blogs",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_LABEL");
 
 			PageEditor.clickConfigurableField(fragmentName = "Blogs");
 
@@ -1318,9 +1318,9 @@ definition {
 
 		task ("Assert Header of Blogs moves inside body when reach the management toolbar") {
 			ScrollWebElementIntoView(
+				index = "1",
 				key_fragmentName = "My Sites",
-				key_index = "1",
-				locator1 = "Fragment#FRAGMENT_HEADER_ANY");
+				locator1 = "Fragment#FRAGMENT_LABEL");
 
 			AssertElementPresent(
 				key_fragmentName = "Blogs",
@@ -1515,6 +1515,45 @@ definition {
 				locator1 = "AP#ASSET_ABSTRACT_TITLE");
 
 			Alert.viewErrorMessage(errorMessage = "You do not have the roles required to access this portlet.");
+		}
+	}
+
+	@description = "LPS-147400. Collection Display and Collection Filter have width and display configuration."
+	@priority = "3"
+	test ViewWidthAndHideOfCollectionFilterAndCollectionDisplayAndCollectionFilterCanBeHidden {
+		task ("Go to edit page") {
+			ContentPagesNavigator.openEditContentPage(
+				pageName = "Test Content Page Name",
+				siteName = "Test Site Name");
+		}
+
+		task ("Add Collection Display and Collection Filter frgaments to page") {
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Display");
+
+			PageEditor.addFragment(
+				collectionName = "Content Display",
+				fragmentName = "Collection Filter",
+				targetFragmentName = "Collection Display");
+		}
+
+		task ("View Collection Filter frgaments width and height options") {
+			PageEditor.gotoConfiguration(fragmentName = "Collection Filter");
+
+			AssertVisible(
+				key_text = "Height",
+				locator1 = "TextInput#ANY_SPECIFIC");
+
+			AssertVisible(
+				key_text = "Width",
+				locator1 = "TextInput#ANY_SPECIFIC");
+		}
+
+		task ("Hide Collection Display and Collection Filter frgaments from fragment options") {
+			PageEditor.hideFragmentViaPageStyles(fragmentName = "Collection Display");
+
+			PageEditor.hideFragmentViaPageStyles(fragmentName = "Collection Filter");
 		}
 	}
 

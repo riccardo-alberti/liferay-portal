@@ -13,11 +13,37 @@
  */
 
 import Container from '../../../../../components/Layout/Container';
+import ListView from '../../../../../components/ListView/ListView';
+import {getTeams} from '../../../../../graphql/queries/testrayTeam';
+import i18n from '../../../../../i18n';
 
 const Teams = () => {
 	return (
-		<Container className="mt-4" title="Teams">
-			Teams
+		<Container className="mt-4" title={i18n.translate('teams')}>
+			<ListView
+				query={getTeams}
+				tableProps={{
+					columns: [
+						{
+							key: 'name',
+							value: i18n.translate('team'),
+						},
+						{
+							key: 'failed',
+							value: i18n.translate('failed'),
+						},
+						{
+							key: 'Total',
+							value: i18n.translate('total'),
+						},
+						{
+							key: 'metrics',
+							value: i18n.translate('metrics'),
+						},
+					],
+				}}
+				transformData={(data) => data?.c?.teams}
+			/>
 		</Container>
 	);
 };

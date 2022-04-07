@@ -47,7 +47,6 @@ import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderResource;
 import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
@@ -70,10 +69,12 @@ import java.lang.reflect.Method;
 
 import java.math.BigDecimal;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MultivaluedMap;
@@ -302,8 +303,7 @@ public class OrderResourceImpl
 				order.getExternalReferenceCode(), commerceChannel.getGroupId(),
 				commerceAccount.getCommerceAccountId(),
 				commerceCurrency.getCommerceCurrencyId(),
-				_getCommerceOrderTypeId(
-					commerceChannel.getCommerceChannelId(), order),
+				_getCommerceOrderTypeId(order),
 				GetterUtil.getLong(order.getBillingAddressId()),
 				GetterUtil.getLong(order.getShippingAddressId()),
 				order.getPaymentMethod(), commerceShippingMethodId,
@@ -372,6 +372,18 @@ public class OrderResourceImpl
 					order.getPrintedNote(), commerceOrder.getPrintedNote()));
 		}
 
+		// Terms and Conditions
+
+		if ((order.getDeliveryTermId() != null) ||
+			(order.getPaymentTermId() != null)) {
+
+			_commerceOrderService.updateTermsAndConditions(
+				commerceOrder.getCommerceOrderId(),
+				GetterUtil.getLong(order.getDeliveryTermId()),
+				GetterUtil.getLong(order.getPaymentTermId()),
+				contextAcceptLanguage.getPreferredLanguageId());
+		}
+
 		// Expando
 
 		Map<String, ?> customFields = order.getCustomFields();
@@ -413,9 +425,7 @@ public class OrderResourceImpl
 		).build();
 	}
 
-	private long _getCommerceOrderTypeId(long commerceChannelId, Order order)
-		throws Exception {
-
+	private long _getCommerceOrderTypeId(Order order) throws Exception {
 		if (order.getOrderTypeId() != null) {
 			return order.getOrderTypeId();
 		}
@@ -426,21 +436,6 @@ public class OrderResourceImpl
 				contextCompany.getCompanyId());
 
 		if (commerceOrderType != null) {
-			return commerceOrderType.getCommerceOrderTypeId();
-		}
-
-		int commerceOrderTypesCount =
-			_commerceOrderTypeService.getCommerceOrderTypesCount(
-				CommerceChannel.class.getName(), commerceChannelId, true);
-
-		if (commerceOrderTypesCount == 1) {
-			List<CommerceOrderType> commerceOrderTypes =
-				_commerceOrderTypeService.getCommerceOrderTypes(
-					CommerceChannel.class.getName(), commerceChannelId, true,
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-
-			commerceOrderType = commerceOrderTypes.get(0);
-
 			return commerceOrderType.getCommerceOrderTypeId();
 		}
 
@@ -484,6 +479,30 @@ public class OrderResourceImpl
 		return null;
 	}
 
+	private String[] _getOrderItemExternalReferenceCodes(
+		OrderItem[] orderItems) {
+
+		Stream<OrderItem> stream = Arrays.stream(orderItems);
+
+		return stream.map(
+			OrderItem::getExternalReferenceCode
+		).distinct(
+		).toArray(
+			String[]::new
+		);
+	}
+
+	private Long[] _getOrderItemIds(OrderItem[] orderItems) {
+		Stream<OrderItem> stream = Arrays.stream(orderItems);
+
+		return stream.map(
+			OrderItem::getId
+		).distinct(
+		).toArray(
+			Long[]::new
+		);
+	}
+
 	private String _getVersion(UriInfo uriInfo) {
 		String version = "";
 
@@ -506,11 +525,13 @@ public class OrderResourceImpl
 		OrderItem[] orderItems = order.getOrderItems();
 
 		if (orderItems != null) {
-			_commerceOrderItemService.deleteCommerceOrderItems(
-				commerceOrder.getCommerceOrderId());
+			_commerceOrderItemService.deleteMissingCommerceOrderItems(
+				commerceOrder.getCommerceOrderId(),
+				_getOrderItemIds(orderItems),
+				_getOrderItemExternalReferenceCodes(orderItems));
 
 			for (OrderItem orderItem : orderItems) {
-				OrderItemUtil.addCommerceOrderItem(
+				OrderItemUtil.addOrUpdateCommerceOrderItem(
 					_cpInstanceService, _commerceOrderItemService,
 					_commerceOrderModelResourcePermission, orderItem,
 					commerceOrder,
@@ -599,6 +620,9 @@ public class OrderResourceImpl
 			(BigDecimal)GetterUtil.getNumber(
 				order.getTotalWithTaxAmount(),
 				commerceOrder.getTotalWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountAmount(),
+				commerceOrder.getTotalDiscountAmount()),
 			GetterUtil.getString(
 				order.getAdvanceStatus(), commerceOrder.getAdvanceStatus()),
 			_commerceContextFactory.create(
@@ -609,6 +633,124 @@ public class OrderResourceImpl
 					commerceOrder.getCommerceAccountId())));
 
 		// Requested Delivery Date
+
+		_commerceOrderService.updateCommerceOrderPrices(
+			commerceOrder.getCommerceOrderId(),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotal(), commerceOrder.getSubtotal()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountAmount(),
+				commerceOrder.getSubtotalDiscountAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel1(),
+				commerceOrder.getSubtotalDiscountPercentageLevel1()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel2(),
+				commerceOrder.getSubtotalDiscountPercentageLevel2()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel3(),
+				commerceOrder.getTotalDiscountPercentageLevel3()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel4(),
+				commerceOrder.getSubtotalDiscountPercentageLevel4()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingAmount(), commerceOrder.getShippingAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountAmount(),
+				commerceOrder.getShippingDiscountAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel1(),
+				commerceOrder.getShippingDiscountPercentageLevel1()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel2(),
+				commerceOrder.getShippingDiscountPercentageLevel2()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel3(),
+				commerceOrder.getShippingDiscountPercentageLevel3()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel4(),
+				commerceOrder.getShippingDiscountPercentageLevel4()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTaxAmount(), commerceOrder.getTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotal(), commerceOrder.getTotal()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountAmount(),
+				commerceOrder.getTotalDiscountAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel1(),
+				commerceOrder.getTotalDiscountPercentageLevel1()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel2(),
+				commerceOrder.getTotalDiscountPercentageLevel2()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel3(),
+				commerceOrder.getTotalDiscountPercentageLevel3()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel4(),
+				commerceOrder.getTotalDiscountPercentageLevel4()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalWithTaxAmount(),
+				commerceOrder.getSubtotalWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountWithTaxAmount(),
+				commerceOrder.getSubtotalDiscountWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel1WithTaxAmount(),
+				commerceOrder.
+					getSubtotalDiscountPercentageLevel1WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel2WithTaxAmount(),
+				commerceOrder.
+					getSubtotalDiscountPercentageLevel2WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel3WithTaxAmount(),
+				commerceOrder.
+					getSubtotalDiscountPercentageLevel3WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getSubtotalDiscountPercentageLevel4WithTaxAmount(),
+				commerceOrder.
+					getSubtotalDiscountPercentageLevel4WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingWithTaxAmount(),
+				commerceOrder.getShippingWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountWithTaxAmount(),
+				commerceOrder.getShippingDiscountWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel1WithTaxAmount(),
+				commerceOrder.
+					getShippingDiscountPercentageLevel1WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel2WithTaxAmount(),
+				commerceOrder.
+					getShippingDiscountPercentageLevel2WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel3WithTaxAmount(),
+				commerceOrder.
+					getShippingDiscountPercentageLevel3WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getShippingDiscountPercentageLevel4WithTaxAmount(),
+				commerceOrder.
+					getShippingDiscountPercentageLevel4WithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalWithTaxAmount(),
+				commerceOrder.getTotalWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountWithTaxAmount(),
+				commerceOrder.getTotalDiscountWithTaxAmount()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel1(),
+				commerceOrder.getTotalDiscountPercentageLevel1()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel2(),
+				commerceOrder.getTotalDiscountPercentageLevel2()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel3(),
+				commerceOrder.getTotalDiscountPercentageLevel3()),
+			(BigDecimal)GetterUtil.getNumber(
+				order.getTotalDiscountPercentageLevel4(),
+				commerceOrder.getTotalDiscountPercentageLevel4()));
 
 		if (order.getRequestedDeliveryDate() != null) {
 			ServiceContext serviceContext =

@@ -117,12 +117,26 @@ declare module Liferay {
 			elementName: string
 		): Element | NodeList | null;
 
+		export function getLexiconIcon(
+			icon: string,
+			cssClass?: string
+		): HTMLElement;
+
+		export function getLexiconIconTpl(
+			icon: string,
+			cssClass?: string
+		): string;
+
+		export function getTop(): Window;
+
 		export function getOpener(): any;
 
 		/**
 		 * Returns the portlet namespace with underscores prepended and appended to it
 		 */
 		export function getPortletNamespace(portletId: string): string;
+
+		export function getURLWithSessionId(url: string): string;
 
 		/**
 		 * Performs navigation to the given url. If SPA is enabled, it will route the
@@ -165,7 +179,17 @@ declare module Liferay {
 			data: Object
 		): void;
 
-		export function sub(langKey: string, ...args: any[]): string;
+		export function sub(
+			string: string,
+			data:
+				| string
+				| number
+				| string[]
+				| number[]
+				| Array<string>
+				| Array<number>,
+			...args: string[] | number[]
+		): string;
 
 		/**
 		 * Get character code at the start of the given string.
@@ -443,6 +467,7 @@ declare module Liferay {
 
 	namespace ThemeDisplay {
 		export function getDefaultLanguageId(): string;
+		export function getLanguageId(): Language.Locale;
 	}
 
 	/**

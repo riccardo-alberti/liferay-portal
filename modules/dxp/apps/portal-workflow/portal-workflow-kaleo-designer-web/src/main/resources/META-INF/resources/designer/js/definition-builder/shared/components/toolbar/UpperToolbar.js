@@ -33,38 +33,56 @@ import {
 } from '../../../util/fetchUtil';
 import {isObjectEmpty} from '../../../util/utils';
 
-export default function UpperToolbar({displayNames, languageIds, version}) {
+export default function UpperToolbar({displayNames, languageIds}) {
 	const {
 		active,
+		blockingErrors,
 		currentEditor,
 		definitionDescription,
 		definitionId,
+		definitionName,
 		definitionTitle,
 		elements,
 		selectedLanguageId,
+		setDefinitionId,
 		setDefinitionTitle,
 		setDeserialize,
 		setSelectedLanguageId,
 		setShowInvalidContentMessage,
 		setSourceView,
 		setTranslations,
+		setVersion,
 		sourceView,
 		translations,
+		version,
 	} = useContext(DefinitionBuilderContext);
 	const inputRef = useRef(null);
-	const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-	const [showDangerAlert, setShowDangerAlert] = useState(false);
 	const [alertMessage, setAlertMessage] = useState('');
+	const [alertType, setAlertType] = useState(null);
+	const [showAlert, setShowAlert] = useState(false);
 
 	const availableLocales = getAvailableLocalesObject(
 		displayNames,
 		languageIds
 	);
 
-	const getXMLContent = (publishing = false) => {
+	const errorTitle = () => {
+		if (blockingErrors.errorType === 'duplicated') {
+			return Liferay.Language.get('you-have-the-same-id-in-two-nodes');
+		}
+
+		if (blockingErrors.errorType === 'emptyField') {
+			return Liferay.Language.get('some-fields-need-to-be-filled');
+		}
+		else {
+			return Liferay.Language.get('error');
+		}
+	};
+
+	const getXMLContent = (exporting) => {
 		let xmlContent;
 
-		if (currentEditor) {
+		if (currentEditor && !exporting) {
 			xmlContent = currentEditor.getData();
 		}
 		else {
@@ -72,12 +90,12 @@ export default function UpperToolbar({displayNames, languageIds, version}) {
 				xmlNamespace,
 				{
 					description: definitionDescription,
-					name: definitionTitle,
+					name: definitionName,
 					version,
 				},
 				elements.filter(isNode),
 				elements.filter(isEdge),
-				publishing
+				exporting
 			);
 		}
 
@@ -111,8 +129,11 @@ export default function UpperToolbar({displayNames, languageIds, version}) {
 
 		if (!definitionTitle) {
 			alertMessage = Liferay.Language.get('name-workflow-before-publish');
+
 			setAlertMessage(alertMessage);
-			setShowDangerAlert(true);
+			setAlertType('danger');
+
+			setShowAlert(true);
 		}
 		else {
 			if (definitionNotPublished) {
@@ -137,9 +158,22 @@ export default function UpperToolbar({displayNames, languageIds, version}) {
 				version,
 			}).then((response) => {
 				if (response.ok) {
-					setShowSuccessAlert(true);
+					setAlertType('success');
 
-					window.history.back();
+					setShowAlert(true);
+
+					response.json().then(({name, version}) => {
+						setDefinitionId(name);
+						setVersion(`${version}.0`);
+					});
+				}
+				else {
+					response.json().then(({title}) => {
+						setAlertMessage(title);
+						setAlertType('danger');
+
+						setShowAlert(true);
+					});
 				}
 			});
 		}
@@ -147,23 +181,48 @@ export default function UpperToolbar({displayNames, languageIds, version}) {
 
 	const saveDefinition = () => {
 		const successMessage = Liferay.Language.get('workflow-saved');
+		const duplicatedAlertMessage = Liferay.Language.get(
+			'please-rename-this-with-another-words'
+		);
+		const emptyFieldAlertMessage = Liferay.Language.get(
+			'please-fill-out-the-fields-before-saving-or-publishing'
+		);
 
-		setAlertMessage(successMessage);
+		if (blockingErrors.errorType === 'emptyField') {
+			setAlertMessage(emptyFieldAlertMessage);
+			setAlertType('danger');
 
-		saveDefinitionRequest({
-			active,
-			content: getXMLContent(),
-			name: definitionId,
-			title: definitionTitle,
-			title_i18n: translations,
-			version,
-		}).then((response) => {
-			if (response.ok) {
-				setShowSuccessAlert(true);
+			setShowAlert(true);
+		}
 
-				window.history.back();
-			}
-		});
+		if (blockingErrors.errorType === 'duplicated') {
+			setAlertMessage(duplicatedAlertMessage);
+			setAlertType('danger');
+
+			setShowAlert(true);
+		}
+
+		if (blockingErrors.errorType === '') {
+			saveDefinitionRequest({
+				active,
+				content: getXMLContent(true),
+				name: definitionId,
+				title: definitionTitle,
+				version,
+			}).then((response) => {
+				if (response.ok) {
+					setAlertMessage(successMessage);
+					setAlertType('success');
+
+					setShowAlert(true);
+
+					response.json().then(({name, version}) => {
+						setDefinitionId(name);
+						setVersion(`${version}.0`);
+					});
+				}
+			});
+		}
 	};
 
 	useEffect(() => {
@@ -297,26 +356,17 @@ export default function UpperToolbar({displayNames, languageIds, version}) {
 				</ClayLayout.ContainerFluid>
 			</ClayToolbar>
 
-			{showSuccessAlert && (
+			{showAlert && (
 				<ClayAlert.ToastContainer>
 					<ClayAlert
 						autoClose={5000}
-						displayType="success"
-						onClose={() => setShowSuccessAlert(false)}
-						title={`${Liferay.Language.get('success')}:`}
-					>
-						{alertMessage}
-					</ClayAlert>
-				</ClayAlert.ToastContainer>
-			)}
-
-			{showDangerAlert && (
-				<ClayAlert.ToastContainer>
-					<ClayAlert
-						autoClose={5000}
-						displayType="danger"
-						onClose={() => setShowDangerAlert(false)}
-						title={`${Liferay.Language.get('error')}:`}
+						displayType={alertType}
+						onClose={() => setShowAlert(false)}
+						title={
+							alertType === 'success'
+								? `${Liferay.Language.get('success')}:`
+								: `${errorTitle()}:`
+						}
 					>
 						{alertMessage}
 					</ClayAlert>

@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.lang.reflect.Field;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -77,25 +75,10 @@ public class DBInspector {
 			return true;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #hasColumnType(String, String, String)}
-	 */
-	@Deprecated
-	public boolean hasColumnType(
-			Class<?> tableClass, String columnName, String columnType)
-		throws Exception {
-
-		Field tableNameField = tableClass.getField("TABLE_NAME");
-
-		return hasColumnType(
-			(String)tableNameField.get(null), columnName, columnType);
 	}
 
 	public boolean hasColumnType(
@@ -172,7 +155,7 @@ public class DBInspector {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;
@@ -192,7 +175,7 @@ public class DBInspector {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return false;

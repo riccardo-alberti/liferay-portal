@@ -775,6 +775,14 @@
 					"title": "The collectionConfig Schema",
 					"type": "object"
 				},
+				"displayAllItems": {
+					"title": "The displayAllItems Schema",
+					"type": "boolean"
+				},
+				"displayAllPages": {
+					"title": "The displayAllPages Schema",
+					"type": "boolean"
+				},
 				"fragmentStyle": {
 					"$ref": "#/definitions/FragmentStyle"
 				},
@@ -808,6 +816,11 @@
 					"title": "The numberOfItemsPerPage Schema",
 					"type": "integer"
 				},
+				"numberOfPages": {
+					"minimum": 0,
+					"title": "The numberOfPages Schema",
+					"type": "integer"
+				},
 				"paginationType": {
 					"enum": [
 						"None",
@@ -819,6 +832,7 @@
 					"type": "string"
 				},
 				"showAllItems": {
+					"deprecationMessage": "Deprecated as of Cavanaugh (7.4.x), replaced by displayAllPages",
 					"title": "The showAllItems Schema",
 					"type": "boolean"
 				},
@@ -1163,6 +1177,10 @@
 					"title": "The fragmentViewports Schema",
 					"type": "array"
 				},
+				"indexed": {
+					"title": "The indexed Schema",
+					"type": "boolean"
+				},
 				"widgetInstances": {
 					"items": {
 						"$ref": "#/definitions/WidgetInstance"
@@ -1194,6 +1212,10 @@
 				},
 				"gutters": {
 					"title": "The gutters Schema",
+					"type": "boolean"
+				},
+				"indexed": {
+					"title": "The indexed Schema",
 					"type": "boolean"
 				},
 				"modulesPerRow": {
@@ -1343,6 +1365,28 @@
 					"title": "The fragmentViewports Schema",
 					"type": "array"
 				},
+				"htmlProperties": {
+					"properties": {
+						"htmlTag": {
+							"enum": [
+								"Article",
+								"Aside",
+								"Div",
+								"Footer",
+								"Header",
+								"Main",
+								"Nav",
+								"Section"
+							],
+							"title": "The htmlTag Schema",
+							"type": "string"
+						}
+					}
+				},
+				"indexed": {
+					"title": "The indexed Schema",
+					"type": "boolean"
+				},
 				"layout": {
 					"additionalProperties": false,
 					"properties": {
@@ -1393,6 +1437,15 @@
 								"FlexRow"
 							],
 							"title": "The contentDisplay Schema",
+							"type": "string"
+						},
+						"flexWrap": {
+							"enum": [
+								"NoWrap",
+								"Wrap",
+								"WrapReverse"
+							],
+							"title": "The flexWrap Schema",
 							"type": "string"
 						},
 						"justify": {

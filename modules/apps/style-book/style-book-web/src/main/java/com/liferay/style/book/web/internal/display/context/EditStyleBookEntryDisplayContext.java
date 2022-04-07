@@ -14,13 +14,13 @@
 
 package com.liferay.style.book.web.internal.display.context;
 
-import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.fragment.collection.item.selector.FragmentCollectionItemSelectorReturnType;
 import com.liferay.fragment.collection.item.selector.criterion.FragmentCollectionItemSelectorCriterion;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.service.FragmentCollectionServiceUtil;
+import com.liferay.fragment.util.comparator.FragmentCollectionContributorNameComparator;
 import com.liferay.fragment.util.comparator.FragmentCollectionCreateDateComparator;
 import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
@@ -66,12 +65,14 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 import com.liferay.style.book.constants.StyleBookPortletKeys;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalServiceUtil;
 import com.liferay.style.book.web.internal.configuration.FFStyleBookConfigurationUtil;
 import com.liferay.style.book.web.internal.constants.StyleBookWebKeys;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -129,8 +130,6 @@ public class EditStyleBookEntryDisplayContext {
 				return JSONFactoryUtil.createJSONObject(
 					styleBookEntry.getFrontendTokensValues());
 			}
-		).put(
-			"initialPreviewLayout", _getInitialPreviewLayoutJSONObject()
 		).put(
 			"isPrivateLayoutsEnabled",
 			() -> {
@@ -193,9 +192,6 @@ public class EditStyleBookEntryDisplayContext {
 		).put(
 			"styleBookEntryId", _getStyleBookEntryId()
 		).put(
-			"templatesPreviewEnabled",
-			FFStyleBookConfigurationUtil.templatesPreviewEnabled()
-		).put(
 			"themeName", _getThemeName()
 		).put(
 			"tokenReuseEnabled",
@@ -253,6 +249,11 @@ public class EditStyleBookEntryDisplayContext {
 						fragmentCollectionContributors =
 							_fragmentCollectionContributorTracker.
 								getFragmentCollectionContributors();
+
+					Collections.sort(
+						fragmentCollectionContributors,
+						new FragmentCollectionContributorNameComparator(
+							_themeDisplay.getLocale()));
 
 					List<FragmentCollectionContributor>
 						filteredFragmentCollectionContributors =
@@ -335,40 +336,11 @@ public class EditStyleBookEntryDisplayContext {
 				layoutSet.getThemeId());
 
 		if (frontendTokenDefinition != null) {
-			return JSONFactoryUtil.createJSONObject(
-				frontendTokenDefinition.getJSON(_themeDisplay.getLocale()));
+			return frontendTokenDefinition.getJSONObject(
+				_themeDisplay.getLocale());
 		}
 
 		return JSONFactoryUtil.createJSONObject();
-	}
-
-	private JSONObject _getInitialPreviewLayoutJSONObject() throws Exception {
-		Group group = StagingUtil.getStagingGroup(
-			_themeDisplay.getScopeGroupId());
-
-		Layout layout = LayoutLocalServiceUtil.fetchFirstLayout(
-			group.getGroupId(), false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
-
-		if (layout == null) {
-			layout = LayoutLocalServiceUtil.fetchFirstLayout(
-				group.getGroupId(), true,
-				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
-
-			if (layout == null) {
-				return null;
-			}
-		}
-
-		String layoutURL = HttpUtil.addParameter(
-			PortalUtil.getLayoutFullURL(layout, _themeDisplay), "p_l_mode",
-			Constants.PREVIEW);
-
-		return JSONUtil.put(
-			"name", layout.getName(_themeDisplay.getLocale())
-		).put(
-			"url", layoutURL
-		);
 	}
 
 	private JSONObject _getOptionJSONObject(int... layoutTypes) {
@@ -537,7 +509,7 @@ public class EditStyleBookEntryDisplayContext {
 				layoutURL, "styleBookEntryPreview", true);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException.getMessage(), portalException);
+			_log.error(portalException);
 		}
 
 		return null;
@@ -553,18 +525,23 @@ public class EditStyleBookEntryDisplayContext {
 			if (layoutPageTemplateEntry.getType() ==
 					LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE) {
 
-				String url = ResourceURLBuilder.createResourceURL(
-					PortletURLFactoryUtil.create(
-						_httpServletRequest,
-						ContentPageEditorPortletKeys.
-							CONTENT_PAGE_EDITOR_PORTLET,
-						layout, PortletRequest.RESOURCE_PHASE)
-				).setResourceID(
-					"/layout_content_page_editor/get_page_preview"
-				).buildString();
+				ResourceURL getPagePreviewURL = PortletURLFactoryUtil.create(
+					_httpServletRequest,
+					ContentPageEditorPortletKeys.CONTENT_PAGE_EDITOR_PORTLET,
+					layout, PortletRequest.RESOURCE_PHASE);
 
-				url = HttpUtil.addParameter(
-					url, "doAsUserId", _themeDisplay.getDefaultUserId());
+				getPagePreviewURL.setParameter(
+					"segmentsExperienceId",
+					String.valueOf(
+						SegmentsExperienceLocalServiceUtil.
+							fetchDefaultSegmentsExperienceId(
+								layoutPageTemplateEntry.getPlid())));
+				getPagePreviewURL.setResourceID(
+					"/layout_content_page_editor/get_page_preview");
+
+				String url = HttpUtil.addParameter(
+					getPagePreviewURL.toString(), "doAsUserId",
+					_themeDisplay.getDefaultUserId());
 
 				url = HttpUtil.addParameter(url, "p_l_mode", Constants.PREVIEW);
 
@@ -575,7 +552,7 @@ public class EditStyleBookEntryDisplayContext {
 			return _getPreviewURL(layout);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException.getMessage(), portalException);
+			_log.error(portalException);
 		}
 
 		return null;

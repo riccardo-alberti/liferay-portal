@@ -30,10 +30,12 @@ import updateItemConfig from '../../../../../../app/thunks/updateItemConfig';
 import isMapped from '../../../../../../app/utils/editable-value/isMapped';
 import {getEditableLinkValue} from '../../../../../../app/utils/getEditableLinkValue';
 import {getResponsiveConfig} from '../../../../../../app/utils/getResponsiveConfig';
+import Collapse from '../../../../../../common/components/Collapse';
 import {getLayoutDataItemPropTypes} from '../../../../../../prop-types/index';
 import {CommonStyles} from './CommonStyles';
 
 const ALIGN_ITEMS_STRETCH = 'align-items-stretch';
+const FLEX_WRAP_NOWRAP = 'flex-nowrap';
 const JUSTIFY_CONTENT_START = 'justify-content-start';
 
 const CONTENT_DISPLAY_OPTIONS = [
@@ -71,6 +73,21 @@ const ALIGN_OPTIONS = [
 	{
 		label: Liferay.Language.get('baseline'),
 		value: 'align-items-baseline',
+	},
+];
+
+const FLEX_WRAP_OPTIONS = [
+	{
+		label: Liferay.Language.get('nowrap'),
+		value: FLEX_WRAP_NOWRAP,
+	},
+	{
+		label: Liferay.Language.get('wrap'),
+		value: 'flex-wrap',
+	},
+	{
+		label: Liferay.Language.get('wrap-reverse'),
+		value: 'flex-wrap-reverse',
 	},
 ];
 
@@ -169,132 +186,176 @@ export default function ContainerGeneralPanel({item}) {
 
 	return (
 		<>
+			{selectedViewportSize === VIEWPORT_SIZES.desktop && (
+				<div className="mb-3">
+					<Collapse
+						label={Liferay.Language.get('container-options')}
+						open
+					>
+						<LinkField
+							field={{name: 'link'}}
+							onValueSelect={handleValueSelect}
+							value={linkValue || {}}
+						/>
+
+						<SelectField
+							field={{
+								label: Liferay.Language.get('content-display'),
+								name: 'contentDisplay',
+								typeOptions: {
+									validValues: CONTENT_DISPLAY_OPTIONS,
+								},
+							}}
+							onValueSelect={(name, value) => {
+								const itemConfig =
+									value === CONTAINER_DISPLAY_OPTIONS.block
+										? {
+												align: '',
+												flexWrap: '',
+												justify: '',
+												[name]: '',
+										  }
+										: {[name]: value};
+
+								dispatch(
+									updateItemConfig({
+										itemConfig,
+										itemId: item.itemId,
+										segmentsExperienceId,
+									})
+								);
+							}}
+							value={item.config.contentDisplay}
+						/>
+
+						{flexOptionsVisible && (
+							<>
+								<SelectField
+									field={{
+										label: Liferay.Language.get(
+											'flex-wrap'
+										),
+										name: 'flexWrap',
+										typeOptions: {
+											validValues: FLEX_WRAP_OPTIONS,
+										},
+									}}
+									onValueSelect={(name, value) => {
+										dispatch(
+											updateItemConfig({
+												itemConfig: {
+													[name]:
+														value ===
+														FLEX_WRAP_NOWRAP
+															? ''
+															: value,
+												},
+												itemId: item.itemId,
+												segmentsExperienceId,
+											})
+										);
+									}}
+									value={
+										item.config.flexWrap || FLEX_WRAP_NOWRAP
+									}
+								/>
+
+								<div className="d-flex justify-content-between">
+									<SelectField
+										className="page-editor__sidebar__fieldset__field-small"
+										field={{
+											label: Liferay.Language.get(
+												'align-items'
+											),
+											name: 'align',
+											typeOptions: {
+												validValues: ALIGN_OPTIONS,
+											},
+										}}
+										onValueSelect={(name, value) => {
+											dispatch(
+												updateItemConfig({
+													itemConfig: {
+														[name]:
+															value ===
+															ALIGN_ITEMS_STRETCH
+																? ''
+																: value,
+													},
+													itemId: item.itemId,
+													segmentsExperienceId,
+												})
+											);
+										}}
+										value={
+											item.config.align ||
+											ALIGN_ITEMS_STRETCH
+										}
+									/>
+
+									<SelectField
+										className="page-editor__sidebar__fieldset__field-small"
+										field={{
+											label: Liferay.Language.get(
+												'justify-content'
+											),
+											name: 'justify',
+											typeOptions: {
+												validValues: JUSTIFY_OPTIONS,
+											},
+										}}
+										onValueSelect={(name, value) => {
+											dispatch(
+												updateItemConfig({
+													itemConfig: {
+														[name]:
+															value ===
+															JUSTIFY_CONTENT_START
+																? ''
+																: value,
+													},
+													itemId: item.itemId,
+													segmentsExperienceId,
+												})
+											);
+										}}
+										value={
+											item.config.justify ||
+											JUSTIFY_CONTENT_START
+										}
+									/>
+								</div>
+							</>
+						)}
+
+						<SelectField
+							field={{
+								label: Liferay.Language.get('container-width'),
+								name: 'widthType',
+								typeOptions: {
+									validValues: WIDTH_TYPE_OPTIONS,
+								},
+							}}
+							onValueSelect={(name, value) => {
+								dispatch(
+									updateItemConfig({
+										itemConfig: {[name]: value},
+										itemId: item.itemId,
+										segmentsExperienceId,
+									})
+								);
+							}}
+							value={item.config.widthType}
+						/>
+					</Collapse>
+				</div>
+			)}
+
 			<CommonStyles
 				commonStylesValues={containerConfig.styles}
 				item={item}
 				role={COMMON_STYLES_ROLES.general}
 			/>
-
-			{selectedViewportSize === VIEWPORT_SIZES.desktop && (
-				<div className="page-editor__item-general-configuration">
-					<LinkField
-						field={{name: 'link'}}
-						onValueSelect={handleValueSelect}
-						value={linkValue || {}}
-					/>
-
-					<SelectField
-						field={{
-							label: Liferay.Language.get('content-display'),
-							name: 'contentDisplay',
-							typeOptions: {
-								validValues: CONTENT_DISPLAY_OPTIONS,
-							},
-						}}
-						onValueSelect={(name, value) => {
-							const itemConfig =
-								value === CONTAINER_DISPLAY_OPTIONS.block
-									? {
-											align: '',
-											justify: '',
-											[name]: '',
-									  }
-									: {[name]: value};
-
-							dispatch(
-								updateItemConfig({
-									itemConfig,
-									itemId: item.itemId,
-									segmentsExperienceId,
-								})
-							);
-						}}
-						value={item.config.contentDisplay}
-					/>
-
-					{flexOptionsVisible && (
-						<div className="d-flex justify-content-between">
-							<SelectField
-								className="page-editor__sidebar__fieldset__field-small"
-								field={{
-									label: Liferay.Language.get('align-items'),
-									name: 'align',
-									typeOptions: {
-										validValues: ALIGN_OPTIONS,
-									},
-								}}
-								onValueSelect={(name, value) => {
-									dispatch(
-										updateItemConfig({
-											itemConfig: {
-												[name]:
-													value ===
-													ALIGN_ITEMS_STRETCH
-														? ''
-														: value,
-											},
-											itemId: item.itemId,
-											segmentsExperienceId,
-										})
-									);
-								}}
-								value={item.config.align || ALIGN_ITEMS_STRETCH}
-							/>
-
-							<SelectField
-								className="page-editor__sidebar__fieldset__field-small"
-								field={{
-									label: Liferay.Language.get(
-										'justify-content'
-									),
-									name: 'justify',
-									typeOptions: {
-										validValues: JUSTIFY_OPTIONS,
-									},
-								}}
-								onValueSelect={(name, value) => {
-									dispatch(
-										updateItemConfig({
-											itemConfig: {
-												[name]:
-													value ===
-													JUSTIFY_CONTENT_START
-														? ''
-														: value,
-											},
-											itemId: item.itemId,
-											segmentsExperienceId,
-										})
-									);
-								}}
-								value={
-									item.config.justify || JUSTIFY_CONTENT_START
-								}
-							/>
-						</div>
-					)}
-
-					<SelectField
-						field={{
-							label: Liferay.Language.get('container-width'),
-							name: 'widthType',
-							typeOptions: {
-								validValues: WIDTH_TYPE_OPTIONS,
-							},
-						}}
-						onValueSelect={(name, value) => {
-							dispatch(
-								updateItemConfig({
-									itemConfig: {[name]: value},
-									itemId: item.itemId,
-									segmentsExperienceId,
-								})
-							);
-						}}
-						value={item.config.widthType}
-					/>
-				</div>
-			)}
 		</>
 	);
 }

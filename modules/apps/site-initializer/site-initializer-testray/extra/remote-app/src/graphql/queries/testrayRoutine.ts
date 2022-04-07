@@ -14,23 +14,22 @@
 
 import {gql} from '@apollo/client';
 
-export const getTestrayRoutines = gql`
-	query getTestrayRoutines(
-		$filter: String
-		$page: Int = 1
-		$pageSize: Int = 20
-		$scopeKey: String
-	) {
+import {testrayRoutineFragment} from '../fragments';
+
+export type TestrayRoutine = {
+	dateCreated: string;
+	id: number;
+	name: string;
+};
+
+export const getRoutines = gql`
+	${testrayRoutineFragment}
+
+	query getRoutines($filter: String, $page: Int = 1, $pageSize: Int = 20) {
 		c {
-			testrayRoutines(
-				filter: $filter
-				page: $page
-				pageSize: $pageSize
-				scopeKey: $scopeKey
-			) {
+			routines(filter: $filter, page: $page, pageSize: $pageSize) {
 				items {
-					name
-					testrayRoutineId
+					...RoutineFragment
 				}
 				lastPage
 				page
@@ -41,13 +40,13 @@ export const getTestrayRoutines = gql`
 	}
 `;
 
-export const getTestrayRoutine = gql`
-	query getTestrayRoutine($testrayRoutineId: Long!) {
+export const getRoutine = gql`
+	${testrayRoutineFragment}
+
+	query getRoutine($routineId: Long!) {
 		c {
-			testrayRoutine(testrayRoutineId: $testrayRoutineId) {
-				autoanalyze
-				name
-				testrayRoutineId
+			routine(routineId: $routineId) {
+				...RoutineFragment
 			}
 		}
 	}

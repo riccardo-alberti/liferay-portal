@@ -12,83 +12,96 @@
  * details.
  */
 
+import {useParams} from 'react-router-dom';
+
 import {Avatar} from '../../../../components/Avatar';
 import AssignToMe from '../../../../components/Avatar/AssigneToMe';
+import Code from '../../../../components/Code';
 import Container from '../../../../components/Layout/Container';
 import ListView from '../../../../components/ListView/ListView';
 import StatusBadge from '../../../../components/StatusBadge';
-import {getTestrayCases} from '../../../../graphql/queries';
-import {Liferay} from '../../../../services/liferay/liferay';
+import {TestrayCaseResult, getCaseResults} from '../../../../graphql/queries';
+import i18n from '../../../../i18n';
 import {getStatusLabel} from '../../../../util/constants';
 
 const Build = () => {
+	const {buildId} = useParams();
+
 	return (
-		<Container className="mt-4" title="Tests">
+		<Container className="mt-4" title={i18n.translate('tests')}>
 			<ListView
-				query={getTestrayCases}
+				query={getCaseResults}
 				tableProps={{
 					columns: [
 						{
 							clickable: true,
 							key: 'priority',
-							value: 'Priority',
+							render: (
+								_: any,
+								{case: testrayCase}: TestrayCaseResult
+							) => testrayCase?.priority,
+							value: i18n.translate('priority'),
 						},
 						{
 							key: 'component',
-							value: 'Component',
+							render: (
+								_: any,
+								{case: testrayCase}: TestrayCaseResult
+							) => testrayCase?.component?.name,
+							value: i18n.translate('component'),
 						},
 						{
 							clickable: true,
 							key: 'name',
-							value: 'Case',
+							render: (
+								_: any,
+								{case: testrayCase}: TestrayCaseResult
+							) => testrayCase?.name,
+							value: i18n.translate('case'),
 						},
 						{
 							key: 'run',
 							render: () => '01',
-							value: 'Run',
+							value: i18n.translate('run'),
 						},
 						{
 							key: 'assignee',
-							render: (_: any, {testrayCaseResult}: any) =>
-								testrayCaseResult?.assignedUserId ? (
+							render: (_: any, {caseResult}: any) =>
+								caseResult?.assignedUserId ? (
 									<Avatar />
 								) : (
-									<AssignToMe></AssignToMe>
+									<AssignToMe />
 								),
-							value: 'Assignee',
+							value: i18n.translate('assignee'),
 						},
 						{
-							key: 'status',
-							render: (_: any, {testrayCaseResult}: any) =>
-								testrayCaseResult?.dueStatus && (
-									<StatusBadge
-										type={getStatusLabel(
-											testrayCaseResult?.dueStatus
-										)?.toLowerCase()}
-									>
-										{getStatusLabel(
-											testrayCaseResult?.dueStatus
-										)}
-									</StatusBadge>
-								),
-							value: 'Status',
+							key: 'dueStatus',
+							render: (dueStatus: any) => (
+								<StatusBadge
+									type={getStatusLabel(
+										dueStatus
+									)?.toLowerCase()}
+								>
+									{getStatusLabel(dueStatus)}
+								</StatusBadge>
+							),
+							value: i18n.translate('status'),
 						},
 						{
 							key: 'issues',
-							value: 'Issues',
+							value: i18n.translate('issues'),
 						},
 						{
-							key: 'error',
-							render: (_: any, {testrayCaseResult}: any) => (
-								<code>{testrayCaseResult?.errors}</code>
-							),
-							value: 'Errors',
+							key: 'errors',
+							render: (errors: string) =>
+								errors && <Code>{errors}</Code>,
+							value: i18n.translate('errors'),
 						},
 					],
-					navigateTo: (item) => `case/${item.testrayCaseId}`,
+					navigateTo: ({id}) => `case-result/${id}`,
 				}}
-				transformData={(data) => data?.c?.testrayCases}
-				variables={{scopeKey: Liferay.ThemeDisplay.getScopeGroupId()}}
+				transformData={(data) => data?.caseResults}
+				variables={{filter: `buildId eq ${buildId}`}}
 			/>
 		</Container>
 	);

@@ -374,10 +374,10 @@ public class SingleLogoutProfileImpl
 		}
 		catch (SystemException systemException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(systemException.getMessage(), systemException);
+				_log.debug(systemException);
 			}
 			else {
-				_log.error(systemException.getMessage());
+				_log.error(systemException);
 			}
 		}
 	}
@@ -413,10 +413,10 @@ public class SingleLogoutProfileImpl
 			}
 			catch (SystemException systemException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(systemException.getMessage(), systemException);
+					_log.debug(systemException);
 				}
 				else {
-					_log.error(systemException.getMessage());
+					_log.error(systemException);
 				}
 			}
 		}

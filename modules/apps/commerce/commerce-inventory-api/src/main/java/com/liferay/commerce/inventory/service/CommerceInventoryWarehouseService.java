@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -80,6 +82,15 @@ public interface CommerceInventoryWarehouseService extends BaseService {
 		throws PortalException;
 
 	public CommerceInventoryWarehouse addCommerceInventoryWarehouse(
+			String externalReferenceCode, String name,
+			Map<Locale, String> labelMap, Map<Locale, String> descriptionMap,
+			boolean active, String street1, String street2, String street3,
+			String city, String zip, String commerceRegionCode,
+			String commerceCountryCode, double latitude, double longitude,
+			ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceInventoryWarehouse addCommerceInventoryWarehouse(
 			String externalReferenceCode, String name, String description,
 			boolean active, String street1, String street2, String street3,
 			String city, String zip, String commerceRegionCode,
@@ -88,6 +99,11 @@ public interface CommerceInventoryWarehouseService extends BaseService {
 		throws PortalException;
 
 	public CommerceInventoryWarehouse deleteCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceInventoryWarehouse fetchByCommerceInventoryWarehouse(
 			long commerceInventoryWarehouseId)
 		throws PortalException;
 
@@ -173,11 +189,25 @@ public interface CommerceInventoryWarehouseService extends BaseService {
 		throws PortalException;
 
 	public CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId, String name,
+			Map<Locale, String> labelMap, Map<Locale, String> descriptionMap,
+			boolean active, String street1, String street2, String street3,
+			String city, String zip, String commerceRegionCode,
+			String commerceCountryCode, double latitude, double longitude,
+			long mvccVersion, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
 			long commerceInventoryWarehouseId, String name, String description,
 			boolean active, String street1, String street2, String street3,
 			String city, String zip, String commerceRegionCode,
 			String commerceCountryCode, double latitude, double longitude,
 			long mvccVersion, ServiceContext serviceContext)
+		throws PortalException;
+
+	public CommerceInventoryWarehouse
+			updateCommerceInventoryWarehouseExternalReferenceCode(
+				String externalReferenceCode, long commerceInventoryWarehouseId)
 		throws PortalException;
 
 }

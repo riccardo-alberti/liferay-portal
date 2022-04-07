@@ -34,6 +34,7 @@ function Export({
 	const onButtonClick = useCallback(
 		(event) => {
 			event.preventDefault();
+
 			setVisible(true);
 		},
 		[setVisible]
@@ -51,7 +52,7 @@ function Export({
 	}, [portletNamespace]);
 
 	return (
-		<span>
+		<>
 			<ClayButton
 				disabled={disable}
 				displayType="primary"
@@ -71,7 +72,7 @@ function Export({
 					observer={observer}
 				/>
 			)}
-		</span>
+		</>
 	);
 }
 

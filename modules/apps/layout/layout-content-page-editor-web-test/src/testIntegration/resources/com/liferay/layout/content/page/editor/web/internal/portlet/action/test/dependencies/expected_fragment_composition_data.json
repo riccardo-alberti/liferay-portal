@@ -1,5 +1,6 @@
 {
 	"definition": {
+		"indexed": true,
 		"layout": {
 			"borderWidth": 0,
 			"marginBottom": 0,
@@ -62,7 +63,8 @@
 							}
 						}
 					}
-				]
+				],
+				"indexed": true
 			},
 			"type": "Fragment"
 		}

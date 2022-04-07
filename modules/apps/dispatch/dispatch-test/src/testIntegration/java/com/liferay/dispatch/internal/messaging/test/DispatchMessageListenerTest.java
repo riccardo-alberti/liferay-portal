@@ -18,6 +18,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.dispatch.constants.DispatchConstants;
 import com.liferay.dispatch.executor.DispatchTaskClusterMode;
 import com.liferay.dispatch.executor.DispatchTaskStatus;
+import com.liferay.dispatch.internal.messaging.TestDispatchTaskExecutor;
 import com.liferay.dispatch.model.DispatchLog;
 import com.liferay.dispatch.model.DispatchTrigger;
 import com.liferay.dispatch.service.DispatchLogLocalService;
@@ -119,12 +120,11 @@ public class DispatchMessageListenerTest {
 			executeCount, 750, false,
 			TestDispatchTaskExecutor.DISPATCH_TASK_EXECUTOR_TYPE_TEST);
 
-		List<DispatchLog> dispatchLogs =
+		_assertExecutionSequence(
 			_dispatchLogLocalService.getDispatchLogs(
 				dispatchTrigger.getDispatchTriggerId(), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
-
-		_assertExecutionSequence(dispatchLogs, executeCount, false);
+				QueryUtil.ALL_POS),
+			executeCount, false);
 	}
 
 	private void _assertExecutionSequence(
@@ -228,8 +228,8 @@ public class DispatchMessageListenerTest {
 
 		DispatchTrigger dispatchTrigger =
 			_dispatchTriggerLocalService.addDispatchTrigger(
-				user.getUserId(), type, null, RandomTestUtil.randomString(),
-				RandomTestUtil.randomBoolean());
+				null, user.getUserId(), type, null,
+				RandomTestUtil.randomString(), RandomTestUtil.randomBoolean());
 
 		Date date = new Date();
 

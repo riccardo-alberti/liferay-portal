@@ -141,6 +141,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FIELD_SUBTITLE</td>
+	<td>//div[contains(@class,'form-group')][label[normalize-space(text())='${key_fieldLabel}']]/following-sibling::p[contains(@class,'text-secondary')][normalize-space(text())='${key_subtitle}']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FIELD_VISIBLE</td>
 	<td>//div[@class='form-group' and contains(@data-field-name,'${key_fieldName}')]</td>
 	<td></td>
@@ -212,7 +217,7 @@
 </tr>
 <tr>
 	<td>PUBLISHED_FORM_FIELD_SEPARATOR_BY_INDEX</td>
-	<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]/div[${key_index}]//label[contains(text(),'Separator')]//.//../div[contains(@class, 'separator')]</td>
+	<td>//div[contains(concat(' ',normalize-space(@class),' '),'ddm-field-container')]/div[${key_index}]//label[contains(text(),'Separator')]//.//../hr[contains(@class, 'separator')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -779,7 +784,7 @@
 </tr>
 <tr>
 	<td>SELECT_FIELD_OPTIONS_LIST</td>
-	<td>//div[contains(@class, 'dropdown-menu') and contains(@class, 'show')]//li[contains(.,'${key_selectOption}')]</td>
+	<td>//div[@class='dropdown-menu ddm-btn-full ddm-select-dropdown show']//button[@label='${key_selectOption}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -850,7 +855,7 @@
 <!--SEPARATOR-->
 <tr>
 	<td>SEPARATOR_LINE</td>
-	<td>//label[text()='${key_fieldLabel}']/following-sibling::div[contains(@class,'separator')]</td>
+	<td>//label[text()='${key_fieldLabel}']/following-sibling::hr[contains(@class,'separator')]</td>
 	<td></td>
 </tr>
 <!--SWITCH-->
@@ -897,8 +902,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>VALIDATION_ARGUMENT_2</td>
+	<td>//div[contains(@class,'form-control')]//div[contains(@class,'option-selected') and text()='Contains']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>VALIDATION_ARGUMENT_OPTION</td>
-	<td>//div[contains(@data-field-name,'validation')]//ul[contains(@class,'results-chosen')]//li[contains(.,'${key_validationArgument}')] | //div[contains(@class,'dropdown-menu') and contains(@class,'show')]//ul[contains(@class,'list-unstyled')]//button[contains(text(),'${key_validationArgument}')]</td>
+	<td>//div[contains(@class,'dropdown-menu ddm-btn-full ddm-select-dropdown show')]//ul//li//button[text()='${key_validationArgument}']</td>
 	<td></td>
 </tr>
 <tr>

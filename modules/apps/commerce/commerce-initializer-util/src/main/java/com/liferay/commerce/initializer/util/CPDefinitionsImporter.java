@@ -37,7 +37,6 @@ import com.liferay.commerce.product.model.CPDefinitionSpecificationOptionValue;
 import com.liferay.commerce.product.model.CPInstance;
 import com.liferay.commerce.product.model.CPOption;
 import com.liferay.commerce.product.model.CPOptionCategory;
-import com.liferay.commerce.product.model.CPOptionValue;
 import com.liferay.commerce.product.model.CPSpecificationOption;
 import com.liferay.commerce.product.model.CPTaxCategory;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
@@ -74,7 +73,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -519,20 +518,15 @@ public class CPDefinitionsImporter {
 				BigDecimal cost = BigDecimal.valueOf(
 					jsonObject.getDouble("cost", 0));
 
-				BigDecimal promoPrice = BigDecimal.valueOf(
-					jsonObject.getDouble("promoPrice", 0));
-
+				cpInstance.setManufacturerPartNumber(
+					jsonObject.getString("manufacturerPartNumber"));
 				cpInstance.setPrice(price);
-				cpInstance.setPromoPrice(promoPrice);
+				cpInstance.setPromoPrice(
+					BigDecimal.valueOf(jsonObject.getDouble("promoPrice", 0)));
 				cpInstance.setCost(cost);
 
-				String manufacturerPartNumber = jsonObject.getString(
-					"manufacturerPartNumber");
-
-				cpInstance.setManufacturerPartNumber(manufacturerPartNumber);
-
 				String cpInstanceExternalReferenceCode =
-					FriendlyURLNormalizerUtil.normalize(sku);
+					_friendlyURLNormalizer.normalize(sku);
 
 				cpInstance.setExternalReferenceCode(
 					cpInstanceExternalReferenceCode);
@@ -669,7 +663,7 @@ public class CPDefinitionsImporter {
 
 			for (int i = 0; i < filterAccountGroupsJSONArray.length(); i++) {
 				String accountGroupExternalReferenceCode =
-					FriendlyURLNormalizerUtil.normalize(
+					_friendlyURLNormalizer.normalize(
 						filterAccountGroupsJSONArray.getString(i));
 
 				CommerceAccountGroup commerceAccountGroup =
@@ -757,15 +751,13 @@ public class CPDefinitionsImporter {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		CPOptionValue cpOptionValue =
-			_cpOptionValueLocalService.getCPOptionValue(
-				cpDefinitionOptionRel.getCPOptionId(),
-				FriendlyURLNormalizerUtil.normalize(key));
-
 		return _cpDefinitionOptionValueRelLocalService.
 			addCPDefinitionOptionValueRel(
 				cpDefinitionOptionRel.getCPDefinitionOptionRelId(),
-				cpOptionValue, serviceContext);
+				_cpOptionValueLocalService.getCPOptionValue(
+					cpDefinitionOptionRel.getCPOptionId(),
+					_friendlyURLNormalizer.normalize(key)),
+				serviceContext);
 	}
 
 	private CPDefinitionSpecificationOptionValue
@@ -877,7 +869,7 @@ public class CPDefinitionsImporter {
 		CPDefinition cpDefinition = _cpDefinitionLocalService.getCPDefinition(
 			cpDefinitionId);
 
-		String externalReferenceCode = FriendlyURLNormalizerUtil.normalize(sku);
+		String externalReferenceCode = _friendlyURLNormalizer.normalize(sku);
 
 		boolean overrideSubscriptionInfo = false;
 		boolean subscriptionEnabled = false;
@@ -1043,6 +1035,9 @@ public class CPDefinitionsImporter {
 
 	@Reference
 	private CPTaxCategoryLocalService _cpTaxCategoryLocalService;
+
+	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 	@Reference
 	private UserLocalService _userLocalService;

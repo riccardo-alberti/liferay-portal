@@ -31,6 +31,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8498 | Test Summary: Link to view all criteria allows the user to scroll down and see more"
 	@priority = "4"
 	test LinkToViewAllCriteriaAllowsUserScrollDownAndSeeMore {
+		property test.name.skip.portal.instance = "SegmentsCreationOverview#LinkToViewAllCriteriaAllowsUserScrollDownAndSeeMore";
+
 		var criteriasAcount = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20";
 
 		task ("Connect the DXP to Analytics Cloud") {
@@ -48,7 +50,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 		}
 
 		task ("Add View Blog field and add 21 copies") {
@@ -92,7 +94,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 		}
 
 		task ("Add an email criteria from Individual Attributes") {

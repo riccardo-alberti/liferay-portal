@@ -23,6 +23,7 @@ import com.liferay.commerce.product.model.CPDefinitionSpecificationOptionValue;
 import com.liferay.commerce.product.model.CPSpecificationOption;
 import com.liferay.commerce.product.service.base.CPSpecificationOptionLocalServiceBaseImpl;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -46,11 +47,12 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 
@@ -79,7 +81,9 @@ public class CPSpecificationOptionLocalServiceImpl
 
 		User user = userLocalService.getUser(userId);
 
-		key = FriendlyURLNormalizerUtil.normalize(key);
+		key = StringUtil.replace(key, CharPool.UNDERLINE, CharPool.DASH);
+
+		key = _friendlyURLNormalizer.normalize(key);
 
 		validate(0, user.getCompanyId(), titleMap, key);
 
@@ -179,7 +183,8 @@ public class CPSpecificationOptionLocalServiceImpl
 			long companyId, String key)
 		throws PortalException {
 
-		return cpSpecificationOptionPersistence.findByC_K(companyId, key);
+		return cpSpecificationOptionPersistence.findByC_K(
+			companyId, _friendlyURLNormalizer.normalize(key));
 	}
 
 	@Override
@@ -221,7 +226,9 @@ public class CPSpecificationOptionLocalServiceImpl
 			cpSpecificationOptionPersistence.findByPrimaryKey(
 				cpSpecificationOptionId);
 
-		key = FriendlyURLNormalizerUtil.normalize(key);
+		key = StringUtil.replace(key, CharPool.UNDERLINE, CharPool.DASH);
+
+		key = _friendlyURLNormalizer.normalize(key);
 
 		validate(
 			cpSpecificationOption.getCPSpecificationOptionId(),
@@ -448,5 +455,8 @@ public class CPSpecificationOptionLocalServiceImpl
 
 	@ServiceReference(type = ExpandoRowLocalService.class)
 	private ExpandoRowLocalService _expandoRowLocalService;
+
+	@ServiceReference(type = FriendlyURLNormalizer.class)
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
 
 }

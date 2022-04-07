@@ -51,11 +51,13 @@ import com.liferay.portal.kernel.model.OrganizationTable;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
+import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.Repository;
 import com.liferay.portal.kernel.repository.RepositoryException;
 import com.liferay.portal.kernel.repository.RepositoryProviderUtil;
 import com.liferay.portal.kernel.repository.capabilities.ThumbnailCapability;
+import com.liferay.portal.kernel.repository.friendly.url.resolver.FileEntryFriendlyURLResolver;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
@@ -127,9 +129,11 @@ import java.io.InputStream;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -178,6 +182,14 @@ public class WebServerServlet extends HttpServlet {
 			else if (Validator.isNumber(pathArray[0])) {
 				_checkFileEntry(pathArray);
 			}
+			else if (_PATH_SEPARATOR_FILE_ENTRY.equals(pathArray[0])) {
+				Optional<FileEntry> fileEntryOptional = _resolveFileEntry(
+					httpServletRequest, pathArray);
+
+				if (!fileEntryOptional.isPresent()) {
+					return false;
+				}
+			}
 			else if (PATH_PORTLET_FILE_ENTRY.equals(pathArray[0])) {
 				FileEntry fileEntry = getPortletFileEntry(
 					httpServletRequest, pathArray);
@@ -207,8 +219,7 @@ public class WebServerServlet extends HttpServlet {
 						// LPS-52675
 
 						if (_log.isDebugEnabled()) {
-							_log.debug(
-								noSuchFolderException, noSuchFolderException);
+							_log.debug(noSuchFolderException);
 						}
 
 						if (i != (pathArray.length - 1)) {
@@ -227,7 +238,7 @@ public class WebServerServlet extends HttpServlet {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;
@@ -508,7 +519,7 @@ public class WebServerServlet extends HttpServlet {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
@@ -682,7 +693,7 @@ public class WebServerServlet extends HttpServlet {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 
@@ -713,11 +724,11 @@ public class WebServerServlet extends HttpServlet {
 		}
 		catch (PrincipalException principalException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(principalException, principalException);
+				_log.warn(principalException);
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return -1;
@@ -817,7 +828,7 @@ public class WebServerServlet extends HttpServlet {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -904,7 +915,7 @@ public class WebServerServlet extends HttpServlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception2, exception2);
+					_log.debug(exception2);
 				}
 			}
 		}
@@ -1180,8 +1191,9 @@ public class WebServerServlet extends HttpServlet {
 				HttpHeaders.CACHE_CONTROL_PRIVATE_VALUE));
 
 		ServletResponseUtil.sendFile(
-			null, httpServletResponse, title, fileEntry.getContentStream(),
-			fileEntry.getSize(), fileEntry.getMimeType(),
+			null, httpServletResponse, fileEntry.getTitle(),
+			fileEntry.getContentStream(), fileEntry.getSize(),
+			fileEntry.getMimeType(),
 			HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT);
 	}
 
@@ -1237,7 +1249,8 @@ public class WebServerServlet extends HttpServlet {
 
 	protected void sendPortletFileEntry(
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, String[] pathArray)
+			HttpServletResponse httpServletResponse, String path,
+			String[] pathArray)
 		throws Exception {
 
 		FileEntry fileEntry = getPortletFileEntry(
@@ -1252,6 +1265,10 @@ public class WebServerServlet extends HttpServlet {
 		}
 
 		String fileName = HttpUtil.decodeURL(HtmlUtil.escape(pathArray[2]));
+
+		if (Validator.isNull(fileName)) {
+			throw new NoSuchFileEntryException("Invalid path " + path);
+		}
 
 		if (fileEntry.isInTrash()) {
 			fileName = TrashUtil.getOriginalTitle(fileName);
@@ -1315,7 +1332,7 @@ public class WebServerServlet extends HttpServlet {
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 	}
@@ -1360,8 +1377,7 @@ public class WebServerServlet extends HttpServlet {
 				}
 				catch (NoSuchFileEntryException noSuchFileEntryException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(
-							noSuchFileEntryException, noSuchFileEntryException);
+						_log.debug(noSuchFileEntryException);
 					}
 
 					DLAppLocalServiceUtil.getFileEntry(
@@ -1373,7 +1389,7 @@ public class WebServerServlet extends HttpServlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(repositoryException, repositoryException);
+					_log.debug(repositoryException);
 				}
 			}
 		}
@@ -1391,7 +1407,7 @@ public class WebServerServlet extends HttpServlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(repositoryException, repositoryException);
+					_log.debug(repositoryException);
 				}
 			}
 		}
@@ -1450,6 +1466,22 @@ public class WebServerServlet extends HttpServlet {
 			typeSettingsUnicodeProperties.getProperty(
 				"directoryIndexingEnabled"),
 			PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED);
+	}
+
+	private static Optional<FileEntry> _resolveFileEntry(
+			HttpServletRequest httpServletRequest, String[] pathArray)
+		throws Exception {
+
+		if (_fileEntryFriendlyURLResolver == null) {
+			return Optional.empty();
+		}
+
+		User user = _getUser(httpServletRequest);
+
+		Group group = _getGroup(user.getCompanyId(), pathArray[1]);
+
+		return _fileEntryFriendlyURLResolver.resolveFriendlyURL(
+			group.getGroupId(), pathArray[2]);
 	}
 
 	private void _checkExpiredFileEntry(
@@ -1563,9 +1595,15 @@ public class WebServerServlet extends HttpServlet {
 						httpServletRequest, httpServletResponse, user,
 						pathArray);
 				}
+				else if (_PATH_SEPARATOR_FILE_ENTRY.equals(pathArray[0])) {
+					sendFile(
+						httpServletRequest, httpServletResponse, user,
+						pathArray);
+				}
 				else if (PATH_PORTLET_FILE_ENTRY.equals(pathArray[0])) {
 					sendPortletFileEntry(
-						httpServletRequest, httpServletResponse, pathArray);
+						httpServletRequest, httpServletResponse, path,
+						pathArray);
 				}
 				else {
 					if (PropsValues.WEB_SERVER_SERVLET_CHECK_IMAGE_GALLERY &&
@@ -1630,6 +1668,15 @@ public class WebServerServlet extends HttpServlet {
 
 			return fileEntry;
 		}
+		else if (_PATH_SEPARATOR_FILE_ENTRY.equals(pathArray[0])) {
+			Optional<FileEntry> fileEntryOptional = _resolveFileEntry(
+				httpServletRequest, pathArray);
+
+			return fileEntryOptional.orElseThrow(
+				() -> new NoSuchFileEntryException(
+					"No file entry found for friendly URL " +
+						Arrays.toString(pathArray)));
+		}
 		else if (pathArray.length == 3) {
 			long groupId = GetterUtil.getLong(pathArray[0]);
 			long folderId = GetterUtil.getLong(pathArray[1]);
@@ -1651,8 +1698,7 @@ public class WebServerServlet extends HttpServlet {
 			}
 			catch (NoSuchFileEntryException noSuchFileEntryException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchFileEntryException, noSuchFileEntryException);
+					_log.debug(noSuchFileEntryException);
 				}
 
 				FileEntry fileEntry = DLAppServiceUtil.getFileEntry(
@@ -1740,6 +1786,9 @@ public class WebServerServlet extends HttpServlet {
 		return true;
 	}
 
+	private static final String _PATH_SEPARATOR_FILE_ENTRY =
+		FriendlyURLResolverConstants.URL_SEPARATOR_Y_FILE_ENTRY;
+
 	private static final boolean _WEB_SERVER_SERVLET_VERSION_VERBOSITY_DEFAULT =
 		StringUtil.equalsIgnoreCase(
 			PropsValues.WEB_SERVER_SERVLET_VERSION_VERBOSITY,
@@ -1754,6 +1803,11 @@ public class WebServerServlet extends HttpServlet {
 
 	private static final Set<String> _acceptRangesMimeTypes = SetUtil.fromArray(
 		PropsValues.WEB_SERVER_SERVLET_ACCEPT_RANGES_MIME_TYPES);
+	private static volatile FileEntryFriendlyURLResolver
+		_fileEntryFriendlyURLResolver =
+			ServiceProxyFactory.newServiceTrackedInstance(
+				FileEntryFriendlyURLResolver.class, WebServerServlet.class,
+				"_fileEntryFriendlyURLResolver", false, true);
 	private static volatile InactiveRequestHandler _inactiveRequestHandler =
 		ServiceProxyFactory.newServiceTrackedInstance(
 			InactiveRequestHandler.class, WebServerServlet.class,

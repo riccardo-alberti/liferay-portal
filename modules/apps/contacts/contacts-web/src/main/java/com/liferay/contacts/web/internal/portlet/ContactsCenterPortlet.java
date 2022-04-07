@@ -221,8 +221,7 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchRelationException, noSuchRelationException);
+					_log.debug(noSuchRelationException);
 				}
 			}
 		}
@@ -321,7 +320,7 @@ public class ContactsCenterPortlet extends MVCPortlet {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchUserException, noSuchUserException);
+					_log.debug(noSuchUserException);
 				}
 			}
 		}
@@ -510,13 +509,10 @@ public class ContactsCenterPortlet extends MVCPortlet {
 			jsonObject.put(
 				"contact",
 				_getEntryJSONObject(
-					actionResponse, themeDisplay, entry, redirect));
-
-			JSONObject contactsJSONObject = _getContactsJSONObject(
-				actionRequest, actionResponse);
-
-			jsonObject.put(
-				"contactList", contactsJSONObject
+					actionResponse, themeDisplay, entry, redirect)
+			).put(
+				"contactList",
+				_getContactsJSONObject(actionRequest, actionResponse)
 			).put(
 				"success", Boolean.TRUE
 			);
@@ -709,7 +705,7 @@ public class ContactsCenterPortlet extends MVCPortlet {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			jsonObject.put("success", Boolean.FALSE);
@@ -1007,10 +1003,8 @@ public class ContactsCenterPortlet extends MVCPortlet {
 			}
 
 			for (User user : usersList) {
-				JSONObject userJSONObject = _getUserJSONObject(
-					portletResponse, themeDisplay, user);
-
-				jsonArray.put(userJSONObject);
+				jsonArray.put(
+					_getUserJSONObject(portletResponse, themeDisplay, user));
 			}
 		}
 

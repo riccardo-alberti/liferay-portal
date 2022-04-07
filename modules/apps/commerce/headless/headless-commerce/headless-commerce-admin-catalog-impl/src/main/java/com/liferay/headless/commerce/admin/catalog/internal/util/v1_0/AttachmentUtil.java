@@ -326,8 +326,8 @@ public class AttachmentUtil {
 		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
 			null, serviceContext.getScopeGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, uniqueFileName,
-			contentType, uniqueFileName, null, StringPool.BLANK, file, null,
-			null, serviceContext);
+			contentType, uniqueFileName, StringPool.BLANK, null,
+			StringPool.BLANK, file, null, null, serviceContext);
 
 		FileUtil.delete(file);
 
@@ -349,7 +349,7 @@ public class AttachmentUtil {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

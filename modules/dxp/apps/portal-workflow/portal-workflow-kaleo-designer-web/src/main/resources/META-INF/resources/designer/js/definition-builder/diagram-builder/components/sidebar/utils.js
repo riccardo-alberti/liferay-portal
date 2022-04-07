@@ -22,6 +22,22 @@ function isIdDuplicated(elements, id) {
 }
 
 function getModalInfo(itemType) {
+	if (itemType === 'actions') {
+		return {
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-all-actions-and-their-settings'
+			),
+			title: Liferay.Language.get('delete-actions'),
+		};
+	}
+	if (itemType === 'assignments') {
+		return {
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-all-assignments-and-their-settings'
+			),
+			title: Liferay.Language.get('delete-assignments'),
+		};
+	}
 	if (itemType === 'condition') {
 		return {
 			message: Liferay.Language.get(
@@ -38,7 +54,7 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-end-node'),
 		};
 	}
-	else if (itemType === 'fork') {
+	if (itemType === 'fork') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-fork-node'
@@ -46,7 +62,7 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-fork-node'),
 		};
 	}
-	else if (itemType === 'join') {
+	if (itemType === 'join') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-join-node'
@@ -54,7 +70,7 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-join-node'),
 		};
 	}
-	else if (itemType === 'join-xor') {
+	if (itemType === 'join-xor') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-join-xor-node'
@@ -62,7 +78,15 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-join-xor-node'),
 		};
 	}
-	else if (itemType === 'start') {
+	if (itemType === 'notifications') {
+		return {
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-all-notifications-and-their-settings'
+			),
+			title: Liferay.Language.get('delete-notifications'),
+		};
+	}
+	if (itemType === 'start') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-start-node'
@@ -70,7 +94,7 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-start-node'),
 		};
 	}
-	else if (itemType === 'state') {
+	if (itemType === 'state') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-state-node'
@@ -78,7 +102,7 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-state-node'),
 		};
 	}
-	else if (itemType === 'task') {
+	if (itemType === 'task') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-task-node'
@@ -86,7 +110,15 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-task-node'),
 		};
 	}
-	else if (itemType === 'transition') {
+	if (itemType === 'timers') {
+		return {
+			message: Liferay.Language.get(
+				'are-you-sure-you-want-to-delete-all-timers-and-their-settings'
+			),
+			title: Liferay.Language.get('delete-timers'),
+		};
+	}
+	if (itemType === 'transition') {
 		return {
 			message: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-the-selected-transition'
@@ -94,9 +126,8 @@ function getModalInfo(itemType) {
 			title: Liferay.Language.get('delete-transition'),
 		};
 	}
-	else {
-		return {};
-	}
+
+	return {};
 }
 
 export {getModalInfo, isIdDuplicated};

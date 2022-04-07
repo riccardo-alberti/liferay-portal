@@ -49,6 +49,35 @@ definition {
 		Click(locator1 = "Button#SUBMIT");
 	}
 
+	macro goBackUsingBrowserButton {
+		GoBack();
+	}
+
+	macro goBackUsingBrowserHistory {
+		RunScript(locator1 = "window.history.go(-1)");
+	}
+
+	macro goToLink {
+		Click(
+			key_buttonName = "${key_buttonName}",
+			key_href = "${key_href}",
+			locator1 = "Masterclass#FRAGMENT_LINK");
+
+		WaitForPageLoad();
+
+		if (isSet(key_description)) {
+			AssertElementPresent(
+				key_description = "${key_description}",
+				locator1 = "TeamExtranet#FRAGMENT_TEXT_BLOCK");
+		}
+
+		if (isSet(key_title)) {
+			AssertElementPresent(
+				key_title = "${key_title}",
+				locator1 = "TeamExtranet#FRAGMENT_HEADING");
+		}
+	}
+
 	macro gotoNavItem {
 		var key_navItem = "${navItem}";
 
@@ -107,6 +136,16 @@ definition {
 				key_fragmentName = "${element}",
 				locator1 = "Masterclass#FRAGMENTS_IN_SIMULATION");
 		}
+	}
+
+	macro verifySignInForm {
+		AssertElementPresent(
+			labelTitle = "Email Address",
+			locator1 = "Masterclass#SIGN_IN_FORM");
+
+		AssertElementPresent(
+			labelTitle = "Password",
+			locator1 = "Masterclass#SIGN_IN_FORM");
 	}
 
 	macro viewCoursesInPage {

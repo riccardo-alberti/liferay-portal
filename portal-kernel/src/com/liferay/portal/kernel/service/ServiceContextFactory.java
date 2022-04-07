@@ -82,7 +82,7 @@ public class ServiceContextFactory {
 
 		ServiceContext serviceContext = _getInstance(httpServletRequest);
 
-		if (className == null) {
+		if ((className == null) || (httpServletRequest == null)) {
 			return serviceContext;
 		}
 
@@ -171,6 +171,10 @@ public class ServiceContextFactory {
 
 		ServiceContext serviceContext = new ServiceContext();
 
+		if (httpServletRequest == null) {
+			return serviceContext;
+		}
+
 		// Theme display
 
 		ThemeDisplay themeDisplay =
@@ -223,7 +227,7 @@ public class ServiceContextFactory {
 				// LPS-52675
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchUserException, noSuchUserException);
+					_log.debug(noSuchUserException);
 				}
 			}
 

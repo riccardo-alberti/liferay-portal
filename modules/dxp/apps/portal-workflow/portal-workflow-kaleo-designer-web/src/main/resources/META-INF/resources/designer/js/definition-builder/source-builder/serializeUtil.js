@@ -12,6 +12,7 @@
 
 import {isObject, isObjectEmpty} from '../util/utils';
 import {
+	DEFAULT_LANGUAGE,
 	STR_CDATA_CLOSE,
 	STR_CDATA_OPEN,
 	STR_CHAR_CRLF,
@@ -49,6 +50,7 @@ function appendXMLActions(
 	buffer,
 	actions,
 	notifications,
+	exporting,
 	assignments,
 	wrapperNodeName,
 	actionNodeName,
@@ -68,10 +70,7 @@ function appendXMLActions(
 	}
 
 	if (hasAction) {
-		const description = actions.description;
-		const executionType = actions.executionType;
-		const language = actions.scriptLanguage;
-		const script = actions.script;
+		const {description, executionType, priority, script} = actions;
 
 		const xmlAction = XMLUtil.createObj(actionNodeName || 'action');
 
@@ -86,8 +85,10 @@ function appendXMLActions(
 				buffer.push(XMLUtil.create('script', cdata(script[index])));
 			}
 
-			if (isValidValue(language, index)) {
-				buffer.push(XMLUtil.create('scriptLanguage', language[index]));
+			buffer.push(XMLUtil.create('scriptLanguage', DEFAULT_LANGUAGE));
+
+			if (isValidValue(priority, index)) {
+				buffer.push(XMLUtil.create('priority', priority[index]));
 			}
 
 			if (isValidValue(executionType, index)) {
@@ -101,11 +102,21 @@ function appendXMLActions(
 	}
 
 	if (hasNotification) {
-		appendXMLNotifications(buffer, notifications, notificationNodeName);
+		appendXMLNotifications(
+			buffer,
+			notifications,
+			notificationNodeName,
+			exporting
+		);
 	}
 
 	if (hasAssignment) {
-		appendXMLAssignments(buffer, assignments, assignmentNodeName);
+		appendXMLAssignments(
+			buffer,
+			assignments,
+			exporting,
+			assignmentNodeName
+		);
 	}
 
 	if (hasAction || hasNotification || hasAssignment) {
@@ -116,6 +127,7 @@ function appendXMLActions(
 function appendXMLAssignments(
 	buffer,
 	dataAssignments,
+	exporting,
 	wrapperNodeName,
 	wrapperNodeAttrs
 ) {
@@ -138,6 +150,8 @@ function appendXMLAssignments(
 		}
 
 		const xmlRoles = XMLUtil.createObj('roles');
+
+		const roleTypeName = exporting ? 'depot' : 'asset library';
 
 		if (assignmentType === 'resourceActions') {
 			const xmlResourceAction = XMLUtil.create(
@@ -163,24 +177,27 @@ function appendXMLAssignments(
 
 			dataAssignments.roleType.forEach((item, index) => {
 				const roleName = dataAssignments.roleName[index];
+				let roleType = dataAssignments.roleType[index];
+
+				if (item === 'asset library') {
+					roleType = roleTypeName;
+				}
 
 				if (roleName) {
 					buffer.push(
 						xmlRole.open,
-						XMLUtil.create('roleType', item),
+						XMLUtil.create('roleType', roleType),
 						XMLUtil.create('name', roleName)
 					);
 
-					if (
-						dataAssignments.autoCreate[index] !== null &&
-						dataAssignments.autoCreate[index] !== undefined
-					) {
-						buffer.push(
-							XMLUtil.create(
-								'autoCreate',
-								dataAssignments.autoCreate[index]
-							)
-						);
+					let autoCreate = dataAssignments.autoCreate?.[index];
+
+					if (autoCreate !== undefined && autoCreate !== null) {
+						if (!autoCreate) {
+							autoCreate = 'false';
+						}
+
+						buffer.push(XMLUtil.create('autoCreate', autoCreate));
 					}
 
 					buffer.push(xmlRole.close);
@@ -189,7 +206,10 @@ function appendXMLAssignments(
 
 			buffer.push(xmlRoles.close);
 		}
-		else if (assignmentType === 'scriptedAssignment') {
+		else if (
+			assignmentType === 'scriptedAssignment' &&
+			dataAssignments.script?.length
+		) {
 			const xmlScriptedAssignment = XMLUtil.createObj(
 				'scriptedAssignment'
 			);
@@ -294,14 +314,16 @@ function appendXMLAssignments(
 	}
 }
 
-function appendXMLNotifications(buffer, notifications, nodeName) {
+function appendXMLNotifications(buffer, notifications, nodeName, exporting) {
 	if (notifications && notifications.name && notifications.name.length > 0) {
-		const description = notifications.description;
-		const executionType = notifications.executionType;
-		const notificationTypes = notifications.notificationTypes;
-		const recipients = notifications.recipients;
-		const template = notifications.template;
-		const templateLanguage = notifications.templateLanguage;
+		const {
+			description,
+			executionType,
+			notificationTypes,
+			recipients,
+			template,
+			templateLanguage,
+		} = notifications;
 
 		const xmlNotification = XMLUtil.createObj(nodeName || 'notification');
 
@@ -313,6 +335,8 @@ function appendXMLNotifications(buffer, notifications, nodeName) {
 					XMLUtil.create('description', cdata(description[index]))
 				);
 			}
+
+			const roleTypeName = exporting ? 'depot' : 'asset library';
 
 			if (isValidValue(template, index)) {
 				buffer.push(XMLUtil.create('template', cdata(template[index])));
@@ -346,6 +370,12 @@ function appendXMLNotifications(buffer, notifications, nodeName) {
 				recipientsAttrs.receptionType = recipients[index].receptionType;
 			}
 
+			recipients[index].roleType?.forEach((item, roleTypeIndex) => {
+				if (item === 'depot' || item === 'asset library') {
+					recipients[index].roleType[roleTypeIndex] = roleTypeName;
+				}
+			});
+
 			if (
 				isObject(recipients[index]) &&
 				!isObjectEmpty(recipients[index])
@@ -353,6 +383,7 @@ function appendXMLNotifications(buffer, notifications, nodeName) {
 				appendXMLAssignments(
 					buffer,
 					recipients[index],
+					exporting,
 					'recipients',
 					recipientsAttrs
 				);
@@ -369,7 +400,7 @@ function appendXMLNotifications(buffer, notifications, nodeName) {
 	}
 }
 
-function appendXMLTaskTimers(buffer, taskTimers) {
+function appendXMLTaskTimers(buffer, taskTimers, exporting) {
 	if (taskTimers && taskTimers.name && taskTimers.name.length > 0) {
 		const xmlTaskTimers = XMLUtil.createObj('task-timers');
 
@@ -424,6 +455,7 @@ function appendXMLTaskTimers(buffer, taskTimers) {
 				buffer,
 				timerActions[index],
 				timerNotifications[index],
+				exporting,
 				reassignments[index],
 				'timer-actions',
 				'timer-action',
@@ -438,7 +470,7 @@ function appendXMLTaskTimers(buffer, taskTimers) {
 	}
 }
 
-function appendXMLTransitions(buffer, transitions, publishing) {
+function appendXMLTransitions(buffer, transitions, exporting) {
 	if (transitions.length) {
 		const xmlTransitions = XMLUtil.createObj('transitions');
 
@@ -464,7 +496,7 @@ function appendXMLTransitions(buffer, transitions, publishing) {
 
 			buffer.push(xmlLabels.close);
 
-			const tagTransitionNameId = publishing ? 'name' : 'id';
+			const tagTransitionNameId = exporting ? 'name' : 'id';
 
 			buffer.push(XMLUtil.create(`${tagTransitionNameId}`, item.id));
 
@@ -484,7 +516,7 @@ function serializeDefinition(
 	metadata,
 	nodes,
 	transitions,
-	publishing
+	exporting
 ) {
 	const description = metadata.description;
 	const name = metadata.name;
@@ -528,7 +560,7 @@ function serializeDefinition(
 
 		const xmlNode = XMLUtil.createObj(xmlType);
 
-		const tagNodeNameId = publishing ? 'name' : 'id';
+		const tagNodeNameId = exporting ? 'name' : 'id';
 
 		buffer.push(xmlNode.open, XMLUtil.create(`${tagNodeNameId}`, id));
 
@@ -544,20 +576,17 @@ function serializeDefinition(
 
 		buffer.push(XMLUtil.create('metadata', cdata(jsonStringify(metadata))));
 
+		appendXMLActions(
+			buffer,
+			item.data.actions,
+			item.data.notifications,
+			exporting
+		);
+
+		appendXMLAssignments(buffer, item.data.assignments, exporting);
+
 		if (initial) {
 			buffer.push(XMLUtil.create('initial', initial));
-		}
-
-		if (item.data.actions) {
-			appendXMLActions(buffer, item.data.actions);
-		}
-
-		if (item.data.assignments) {
-			appendXMLAssignments(buffer, item.data.assignments);
-		}
-
-		if (item.data.notifications) {
-			appendXMLNotifications(buffer, item.data.notifications);
 		}
 
 		const xmlLabels = XMLUtil.createObj('labels');
@@ -575,17 +604,21 @@ function serializeDefinition(
 
 		buffer.push(xmlLabels.close);
 
+		appendXMLTaskTimers(buffer, item.data.taskTimers, exporting);
+
 		if (script) {
 			buffer.push(XMLUtil.create('script', cdata(script)));
 		}
 
-		appendXMLTaskTimers(buffer, item.data.taskTimers);
+		if (xmlType === 'condition') {
+			buffer.push(XMLUtil.create('scriptLanguage', DEFAULT_LANGUAGE));
+		}
 
 		const nodeTransitions = transitions.filter(
 			(transition) => transition.source === id
 		);
 
-		appendXMLTransitions(buffer, nodeTransitions, publishing);
+		appendXMLTransitions(buffer, nodeTransitions, exporting);
 
 		buffer.push(xmlNode.close);
 	});

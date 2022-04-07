@@ -13,56 +13,80 @@
  */
 
 import ClayButton from '@clayui/button';
-import {useModal} from '@clayui/modal';
+import ClayModal, {useModal} from '@clayui/modal';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState} from 'react';
 
-import ImportModal from './ImportModal';
+import ImportPreviewModalBody from './ImportPreviewModalBody';
+import ImportProcessModalBody from './ImportProcessModalBody';
 
 function ImportSubmit({
-	disabled,
+	evaluateForm,
+	fieldsSelections,
+	fileContent,
 	formDataQuerySelector,
 	formImportURL,
-	portletNamespace,
+	formIsValid,
 }) {
-	const [visible, setVisible] = useState(false);
+	const [modalVisibile, setModalVisibile] = useState(false);
+	const [stage, setStage] = useState('preview');
+
 	const {observer, onClose} = useModal({
-		onClose: () => setVisible(false),
+		onClose: () => {
+			setStage('preview');
+
+			setModalVisibile(false);
+		},
 	});
-	const onButtonClick = useCallback(() => {
-		setVisible(true);
-	}, [setVisible]);
+
+	const showPreviewModal = useCallback(() => {
+		evaluateForm();
+
+		if (formIsValid) {
+			setModalVisibile(true);
+		}
+	}, [evaluateForm, formIsValid]);
 
 	return (
 		<span className="mr-3">
 			<ClayButton
-				disabled={disabled}
 				displayType="primary"
-				id={`${portletNamespace}-import-submit`}
-				onClick={onButtonClick}
+				onClick={showPreviewModal}
 				type="button"
 			>
-				{Liferay.Language.get('import')}
+				{Liferay.Language.get('next')}
 			</ClayButton>
 
-			{visible && (
-				<ImportModal
-					closeModal={onClose}
-					formDataQuerySelector={formDataQuerySelector}
-					formSubmitURL={formImportURL}
-					namespace={portletNamespace}
+			{modalVisibile && (
+				<ClayModal
 					observer={observer}
-				/>
+					size={stage === 'import' ? 'md' : 'lg'}
+				>
+					{stage === 'preview' && (
+						<ImportPreviewModalBody
+							closeModal={onClose}
+							fieldsSelections={fieldsSelections}
+							fileContent={fileContent}
+							startImport={() => setStage('import')}
+						/>
+					)}
+
+					{stage === 'import' && (
+						<ImportProcessModalBody
+							closeModal={onClose}
+							formDataQuerySelector={formDataQuerySelector}
+							formImportURL={formImportURL}
+						/>
+					)}
+				</ClayModal>
 			)}
 		</span>
 	);
 }
 
 ImportSubmit.propTypes = {
-	disabled: PropTypes.bool.isRequired,
 	formDataQuerySelector: PropTypes.string.isRequired,
 	formImportURL: PropTypes.string.isRequired,
-	portletNamespace: PropTypes.string.isRequired,
 };
 
 export default ImportSubmit;

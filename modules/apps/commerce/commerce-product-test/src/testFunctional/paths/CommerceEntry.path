@@ -169,6 +169,10 @@
 	<td>NAME_FIELD</td>
 	<td>//div/input[contains(@id,'name')]</td>
 	<td></td>
+</tr><tr>
+	<td>NAME_FIELD_SPECIAL</td>
+	<td>//label[contains(.,'Title')]//..//input[@type="text"]</td>
+	<td></td>
 </tr>
 <tr>
 	<td>NOTIFICATION_TEMPLATE_FROM_NAME_FIELD</td>
@@ -433,6 +437,11 @@
 <tr>
 	<td>COST_FIELD</td>
 	<td>//div/input[contains(@id,'cost')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SALE_PRICE_FIELD</td>
+	<td>//div/input[contains(@id,'promoPrice')]</td>
 	<td></td>
 </tr>
 <tr>

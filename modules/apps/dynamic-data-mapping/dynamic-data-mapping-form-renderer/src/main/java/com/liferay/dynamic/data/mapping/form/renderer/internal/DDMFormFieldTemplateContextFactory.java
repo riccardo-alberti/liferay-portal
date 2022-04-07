@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -85,8 +86,9 @@ public class DDMFormFieldTemplateContextFactory {
 		DDMFormRenderingContext ddmFormRenderingContext,
 		DDMStructureLayoutLocalService ddmStructureLayoutLocalService,
 		DDMStructureLocalService ddmStructureLocalService,
-		GroupLocalService groupLocalService, JSONFactory jsonFactory,
-		boolean pageEnabled, DDMFormLayout parentDDMFormLayout) {
+		GroupLocalService groupLocalService, HtmlParser htmlParser,
+		JSONFactory jsonFactory, boolean pageEnabled,
+		DDMFormLayout parentDDMFormLayout) {
 
 		_ddmFormEvaluator = ddmFormEvaluator;
 		_ddmFormFieldName = ddmFormFieldName;
@@ -97,6 +99,7 @@ public class DDMFormFieldTemplateContextFactory {
 		_ddmStructureLayoutLocalService = ddmStructureLayoutLocalService;
 		_ddmStructureLocalService = ddmStructureLocalService;
 		_groupLocalService = groupLocalService;
+		_htmlParser = htmlParser;
 		_jsonFactory = jsonFactory;
 		_pageEnabled = pageEnabled;
 		_parentDDMFormLayout = parentDDMFormLayout;
@@ -402,7 +405,7 @@ public class DDMFormFieldTemplateContextFactory {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -509,7 +512,7 @@ public class DDMFormFieldTemplateContextFactory {
 						_ddmFormRenderingContext,
 						_ddmStructureLayoutLocalService,
 						_ddmStructureLocalService, _groupLocalService,
-						_jsonFactory);
+						_htmlParser, _jsonFactory);
 
 			ddmFormPagesTemplateContextFactory.setDDMFormEvaluator(
 				_ddmFormEvaluator);
@@ -1106,7 +1109,7 @@ public class DDMFormFieldTemplateContextFactory {
 		}
 		catch (JSONException jsonException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(jsonException, jsonException);
+				_log.debug(jsonException);
 			}
 		}
 	}
@@ -1126,6 +1129,7 @@ public class DDMFormFieldTemplateContextFactory {
 		_ddmStructureLayoutLocalService;
 	private final DDMStructureLocalService _ddmStructureLocalService;
 	private final GroupLocalService _groupLocalService;
+	private final HtmlParser _htmlParser;
 	private final JSONFactory _jsonFactory;
 	private final Locale _locale;
 	private final boolean _pageEnabled;

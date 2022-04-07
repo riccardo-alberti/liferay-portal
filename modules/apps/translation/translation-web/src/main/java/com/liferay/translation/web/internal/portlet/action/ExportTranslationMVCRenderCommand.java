@@ -18,38 +18,33 @@ import com.liferay.info.field.InfoFieldValue;
 import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.item.provider.InfoItemFieldValuesProvider;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.translation.constants.TranslationPortletKeys;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterTracker;
-import com.liferay.translation.web.internal.configuration.FFLayoutExperienceSelectorConfiguration;
 import com.liferay.translation.web.internal.display.context.ExportTranslationDisplayContext;
 import com.liferay.translation.web.internal.helper.TranslationRequestHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.portlet.PortletException;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Adolfo Pérez
  */
 @Component(
-	configurationPid = "com.liferay.translation.web.internal.configuration.FFLayoutExperienceSelectorConfiguration",
 	property = {
 		"javax.portlet.name=" + TranslationPortletKeys.TRANSLATION,
 		"mvc.command.name=/translation/export_translation"
@@ -69,7 +64,8 @@ public class ExportTranslationMVCRenderCommand implements MVCRenderCommand {
 
 			TranslationRequestHelper translationRequestHelper =
 				new TranslationRequestHelper(
-					_infoItemServiceTracker, renderRequest);
+					_infoItemServiceTracker, renderRequest,
+					_segmentsExperienceLocalService);
 
 			List<Object> models = _getModels(
 				translationRequestHelper.getModelClassName(),
@@ -80,7 +76,6 @@ public class ExportTranslationMVCRenderCommand implements MVCRenderCommand {
 				new ExportTranslationDisplayContext(
 					translationRequestHelper.getClassNameId(),
 					translationRequestHelper.getModelClassPKs(),
-					_ffLayoutExperienceSelectorConfiguration,
 					translationRequestHelper.getGroupId(),
 					_portal.getHttpServletRequest(renderRequest),
 					_infoItemServiceTracker,
@@ -96,14 +91,6 @@ public class ExportTranslationMVCRenderCommand implements MVCRenderCommand {
 		catch (PortalException portalException) {
 			throw new PortletException(portalException);
 		}
-	}
-
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_ffLayoutExperienceSelectorConfiguration =
-			ConfigurableUtil.createConfigurable(
-				FFLayoutExperienceSelectorConfiguration.class, properties);
 	}
 
 	private List<Object> _getModels(String className, long[] classPKs)
@@ -143,9 +130,6 @@ public class ExportTranslationMVCRenderCommand implements MVCRenderCommand {
 		return (String)infoFieldValue.getValue(locale);
 	}
 
-	private volatile FFLayoutExperienceSelectorConfiguration
-		_ffLayoutExperienceSelectorConfiguration;
-
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
 
@@ -154,6 +138,9 @@ public class ExportTranslationMVCRenderCommand implements MVCRenderCommand {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	@Reference
 	private TranslationInfoItemFieldValuesExporterTracker

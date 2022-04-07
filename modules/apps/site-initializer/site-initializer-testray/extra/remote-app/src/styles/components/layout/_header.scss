@@ -39,4 +39,22 @@
 			background-color: $color-primary;
 		}
 	}
+
+	.header-item {
+		&.cursor-pointer:hover {
+			.header-title {
+				text-decoration: underline;
+			}
+		}
+
+		.header-title:not(:last-child) {
+			max-width: 100%;
+			max-width: 300px;
+			min-width: 1.2em;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			word-wrap: normal;
+		}
+	}
 }

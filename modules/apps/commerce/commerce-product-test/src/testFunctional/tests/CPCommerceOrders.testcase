@@ -80,8 +80,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -94,6 +94,40 @@ definition {
 		Alert.viewErrorMessage(errorMessage = "Unable to create a new order as the open order limit has been reached.");
 	}
 
+	@description = "This is a test for COMMERCE-6912. Bulk delete orders"
+	@priority = "3"
+	test BulkDeleteOrders {
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		JSONAccountEntry.addAccountEntry(
+			accountEntryName = "Commerce Account",
+			accountEntryType = "Business");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+
+		CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+
+		CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+
+		CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+
+		CommerceAcceleratorsInitializer.createNewOrderFromPendingOrders();
+
+		CommerceNavigator.gotoPortlet(
+			category = "Order Management",
+			portlet = "Orders");
+
+		while (IsElementNotPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER")) {
+			CommerceProducts.deleteEntries();
+		}
+
+		AssertElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
+	}
+
 	@description = "This is a test for COMMERCE-6210. Shipment cancelled"
 	@ignore = "true"
 	@priority = "3"
@@ -101,6 +135,26 @@ definition {
 		property portal.acceptance = "false";
 
 		// TODO COMMERCE-6210 CancelShipmentAndCreateNewFromPendingOrder Pending Implementation
+
+	}
+
+	@description = "[Please Update]"
+	@ignore = "true"
+	@priority = "3"
+	test CanEditOrderMeasurementUnit {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-7982 CanEditOrderMeasurementUnit Pending Implementation
+
+	}
+
+	@description = "[Please Update]"
+	@ignore = "true"
+	@priority = "3"
+	test CanSetOrderQuantityToDecimal {
+		property portal.acceptance = "false";
+
+		// TODO COMMERCE-7983 CanSetOrderQuantityToDecimal Pending Implementation
 
 	}
 
@@ -667,8 +721,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -714,8 +768,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "ttest",
 			password = "test",
-			resetPassword = "ttest",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -799,8 +853,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 

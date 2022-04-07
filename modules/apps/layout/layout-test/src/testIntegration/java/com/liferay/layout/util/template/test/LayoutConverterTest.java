@@ -21,6 +21,7 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructureItemUtil;
+import com.liferay.layout.util.template.LayoutConversionResult;
 import com.liferay.layout.util.template.LayoutConverter;
 import com.liferay.layout.util.template.LayoutConverterRegistry;
 import com.liferay.layout.util.template.LayoutData;
@@ -48,6 +49,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
@@ -652,7 +654,8 @@ public class LayoutConverterTest {
 
 	@Test
 	public void testIsConvertibleTrue() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(_group.getGroupId());
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
 
 		LayoutConverter layoutConverter =
 			_layoutConverterRegistry.getLayoutConverter(
@@ -663,7 +666,7 @@ public class LayoutConverterTest {
 
 	@Test
 	public void testIsConvertibleTrueWidgetPageCustomizable() throws Exception {
-		Layout layout = LayoutTestUtil.addLayout(
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(),
 			UnicodePropertiesBuilder.put(
 				LayoutConstants.CUSTOMIZABLE_LAYOUT, Boolean.TRUE.toString()
@@ -680,7 +683,7 @@ public class LayoutConverterTest {
 	public void testIsConvertibleTrueWidgetPageWithNestedApplicationsWidget()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addLayout(
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(),
 			UnicodePropertiesBuilder.put(
 				LayoutTypePortletConstants.NESTED_COLUMN_IDS,
@@ -863,7 +866,7 @@ public class LayoutConverterTest {
 		List<Map<String, List<String>>> encodedPortletIdsMaps =
 			new ArrayList<>();
 
-		Layout layout = LayoutTestUtil.addLayout(
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(),
 			UnicodePropertiesBuilder.put(
 				LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID, layoutTemplateId
@@ -910,7 +913,10 @@ public class LayoutConverterTest {
 			_layoutConverterRegistry.getLayoutConverter(
 				_getLayoutTemplateId(layout));
 
-		LayoutData layoutData = layoutConverter.convert(layout);
+		LayoutConversionResult layoutConversionResult = layoutConverter.convert(
+			layout, LocaleUtil.getSiteDefault());
+
+		LayoutData layoutData = layoutConversionResult.getLayoutData();
 
 		LayoutStructure actualLayoutStructure = LayoutStructure.of(
 			String.valueOf(layoutData.getLayoutDataJSONObject()));
@@ -994,7 +1000,7 @@ public class LayoutConverterTest {
 	private void _testConvertNoPortlets(String layoutTemplateId)
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addLayout(
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
 			_group.getGroupId(),
 			UnicodePropertiesBuilder.put(
 				LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID, layoutTemplateId
@@ -1004,7 +1010,10 @@ public class LayoutConverterTest {
 			_layoutConverterRegistry.getLayoutConverter(
 				_getLayoutTemplateId(layout));
 
-		LayoutData layoutData = layoutConverter.convert(layout);
+		LayoutConversionResult layoutConversionResult = layoutConverter.convert(
+			layout, LocaleUtil.getSiteDefault());
+
+		LayoutData layoutData = layoutConversionResult.getLayoutData();
 
 		LayoutStructure actualLayoutStructure = LayoutStructure.of(
 			String.valueOf(layoutData.getLayoutDataJSONObject()));

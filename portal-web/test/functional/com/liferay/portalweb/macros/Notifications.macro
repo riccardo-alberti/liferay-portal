@@ -18,6 +18,20 @@ definition {
 			value1 = "${key_notificationsTitle}");
 	}
 
+	macro deleteAllNotifications {
+		Refresh();
+
+		if (IsElementPresent(locator1 = "Notifications#PROFILE_BADGE_COUNT")) {
+			Navigator.gotoNotifications();
+
+			PortletEntry.selectAll();
+
+			ClickNoError(locator1 = "Icon#DELETE");
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
 	macro deleteNotification {
 		var key_contentBody = "${contentBody}";
 
@@ -56,12 +70,51 @@ definition {
 		}
 	}
 
+	macro markAsReadViaManagementBar {
+		if (isSet(selectAll)) {
+			PortletEntry.selectAll();
+		}
+		else {
+			LexiconEntry.selectEntry(key_rowEntry = "${notificationsTitle}");
+		}
+
+		Click(locator1 = "Icon#MARK_AS_READ");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro markAsUnreadViaManagementBar {
+		if (isSet(selectAll)) {
+			PortletEntry.selectAll();
+		}
+		else {
+			LexiconEntry.selectEntry(key_rowEntry = "${notificationsTitle}");
+		}
+
+		Click(locator1 = "Icon#MARK_AS_UNREAD");
+
+		Alert.viewSuccessMessage();
+	}
+
 	macro navigateToContent {
 		var key_contentBody = "${contentBody}";
 
 		AssertClick.assertPartialTextClickAt(
 			locator1 = "Notifications#NOTIFICATIONS_CONTENT",
 			value1 = "${contentBody}");
+	}
+
+	macro removeNotificationsViaManagementBar {
+		if (isSet(selectAll)) {
+			PortletEntry.selectAll();
+		}
+		else {
+			LexiconEntry.selectEntry(key_rowEntry = "${notificationsTitle}");
+		}
+
+		Click(locator1 = "Icon#DELETE");
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro tearDownUnreadNotifications {

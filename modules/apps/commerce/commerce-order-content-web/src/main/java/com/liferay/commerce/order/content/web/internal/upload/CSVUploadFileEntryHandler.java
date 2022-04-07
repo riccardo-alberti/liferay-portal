@@ -48,7 +48,8 @@ public class CSVUploadFileEntryHandler implements UploadFileEntryHandler {
 		String fileName = uploadPortletRequest.getFileName(_PARAMETER_NAME);
 
 		_dlValidator.validateFileSize(
-			fileName, uploadPortletRequest.getSize(_PARAMETER_NAME));
+			fileName, uploadPortletRequest.getContentType(_PARAMETER_NAME),
+			uploadPortletRequest.getSize(_PARAMETER_NAME));
 
 		String extension = FileUtil.getExtension(fileName);
 
@@ -83,11 +84,11 @@ public class CSVUploadFileEntryHandler implements UploadFileEntryHandler {
 			uniqueFileName, inputStream, contentType);
 	}
 
-	private boolean _exists(String curFileName, ThemeDisplay themeDisplay) {
+	private boolean _exists(String fileName, ThemeDisplay themeDisplay) {
 		try {
 			FileEntry tempFileEntry = TempFileEntryUtil.getTempFileEntry(
 				themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
-				_TEMP_FOLDER_NAME, curFileName);
+				_TEMP_FOLDER_NAME, fileName);
 
 			if (tempFileEntry != null) {
 				return true;
@@ -97,7 +98,7 @@ public class CSVUploadFileEntryHandler implements UploadFileEntryHandler {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;

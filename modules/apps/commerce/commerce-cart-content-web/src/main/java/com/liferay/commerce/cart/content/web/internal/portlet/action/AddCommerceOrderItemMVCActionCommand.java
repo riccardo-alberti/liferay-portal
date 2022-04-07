@@ -120,15 +120,13 @@ public class AddCommerceOrderItemMVCActionCommand extends BaseMVCActionCommand {
 					ddmFormValues, quantity, 0, commerceContext,
 					serviceContext);
 
-			int commerceOrderItemsQuantity =
-				_commerceOrderItemService.getCommerceOrderItemsQuantity(
-					commerceOrder.getCommerceOrderId());
-
 			jsonObject.put(
 				"commerceOrderItemId",
 				commerceOrderItem.getCommerceOrderItemId()
 			).put(
-				"commerceOrderItemsQuantity", commerceOrderItemsQuantity
+				"commerceOrderItemsQuantity",
+				_commerceOrderItemService.getCommerceOrderItemsQuantity(
+					commerceOrder.getCommerceOrderId())
 			).put(
 				"success", true
 			).put(
@@ -166,7 +164,7 @@ public class AddCommerceOrderItemMVCActionCommand extends BaseMVCActionCommand {
 			);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			jsonObject.put(
 				"error", exception.getMessage()

@@ -286,7 +286,7 @@ public class ActionUtil {
 			}
 			catch (NoSuchArticleException noSuchArticleException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchArticleException, noSuchArticleException);
+					_log.debug(noSuchArticleException);
 				}
 
 				return null;
@@ -312,7 +312,7 @@ public class ActionUtil {
 				}
 				catch (Exception exception) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(exception, exception);
+						_log.debug(exception);
 					}
 				}
 			}
@@ -331,7 +331,6 @@ public class ActionUtil {
 
 				article.setNew(true);
 				article.setId(0);
-				article.setResourcePrimKey(0);
 				article.setGroupId(groupId);
 				article.setClassNameId(
 					JournalArticleConstants.CLASS_NAME_ID_DEFAULT);
@@ -341,7 +340,7 @@ public class ActionUtil {
 			}
 			catch (NoSuchArticleException noSuchArticleException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(noSuchArticleException, noSuchArticleException);
+					_log.debug(noSuchArticleException);
 				}
 
 				return null;

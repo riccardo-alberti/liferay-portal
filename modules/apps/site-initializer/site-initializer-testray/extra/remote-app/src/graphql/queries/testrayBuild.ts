@@ -14,58 +14,67 @@
 
 import {gql} from '@apollo/client';
 
+import {TestrayProductVersion} from './testrayProductVersion';
+import {TestrayProject} from './testrayProject';
+import {TestrayRoutine} from './testrayRoutine';
+
 export type TestrayBuild = {
 	dateCreated: string;
 	description: string;
 	dueStatus: number;
 	gitHash: string;
+	id: number;
 	name: string;
+	productVersion?: TestrayProductVersion;
+	project?: TestrayProject;
 	promoted: boolean;
+	routine?: TestrayRoutine;
 };
 
-export const getTestrayBuilds = gql`
-	query getTestrayBuilds(
-		$filter: String
-		$page: Int = 1
-		$pageSize: Int = 20
-		$scopeKey: String
-	) {
-		c {
-			testrayBuilds(
-				filter: $filter
-				page: $page
-				pageSize: $pageSize
-				scopeKey: $scopeKey
+export const getBuilds = gql`
+	query getBuilds($filter: String, $page: Int = 1, $pageSize: Int = 20) {
+		builds(filter: $filter, page: $page, pageSize: $pageSize)
+			@rest(
+				type: "C_Build"
+				path: "builds?page={args.page}&pageSize={args.pageSize}&nestedFields=productVersion&filter={args.filter}&nestedFieldsDepth=2"
 			) {
-				items {
-					dateCreated
-					description
-					dueStatus
-					gitHash
-					name
-					promoted
-					testrayBuildId
-				}
-				lastPage
-				page
-				pageSize
-				totalCount
-			}
-		}
-	}
-`;
-
-export const getTestrayBuild = gql`
-	query getTestrayBuild($testrayBuildId: Long!) {
-		c {
-			testrayBuild(testrayBuildId: $testrayBuildId) {
+			items {
 				dateCreated
 				description
 				dueStatus
 				gitHash
 				name
 				promoted
+				id
+				productVersion: r_productVersionToBuilds_c_productVersion {
+					name
+				}
 			}
+			lastPage
+			page
+			pageSize
+			totalCount
+		}
+	}
+`;
+
+export const getBuild = gql`
+	query getBuild($buildId: Long!) {
+		build(buildId: $buildId)
+			@rest(
+				type: "C_Build"
+				path: "builds/{args.buildId}?nestedFields=productVersion"
+			) {
+			dateCreated
+			description
+			dueStatus
+			gitHash
+			id
+			name
+			productVersion: r_productVersionToBuilds_c_productVersion {
+				name
+			}
+			promoted
 		}
 	}
 `;

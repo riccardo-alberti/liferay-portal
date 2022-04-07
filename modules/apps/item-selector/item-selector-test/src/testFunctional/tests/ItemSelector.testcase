@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -154,6 +154,15 @@ definition {
 		ItemSelector.clearFilterResults(
 			currentSiteWebContentTitle = "WC WebContent From Site",
 			webContentTitle = "Web Content From Depot");
+	}
+
+	@description = "This is a test for LPS-107014. It checks that the site pagination can be displayed correctly in item selector."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanDisplaySitePaginationCorrectly {
+
+		// TODO LPS-149369 CanDisplaySitePaginationCorrectly pending implementation
+
 	}
 
 	@description = "This test ensures that documents can filter by the current site in the item selector."
@@ -811,7 +820,7 @@ definition {
 			entryTitle = "Document_1.jpeg",
 			navItem = "Documents and Media",
 			paddingTop = "2",
-			panelList = "Styles");
+			panel = "Styles");
 
 		PageEditor.clickPublish();
 

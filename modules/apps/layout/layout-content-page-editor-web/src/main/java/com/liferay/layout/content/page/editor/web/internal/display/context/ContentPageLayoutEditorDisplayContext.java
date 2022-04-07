@@ -68,6 +68,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
+import com.liferay.segments.manager.SegmentsExperienceManager;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperimentRel;
@@ -114,6 +115,7 @@ public class ContentPageLayoutEditorDisplayContext
 		ItemSelector itemSelector,
 		PageEditorConfiguration pageEditorConfiguration,
 		PortletRequest portletRequest, RenderResponse renderResponse,
+		SegmentsExperienceManager segmentsExperienceManager,
 		StagingGroupHelper stagingGroupHelper) {
 
 		super(
@@ -124,7 +126,7 @@ public class ContentPageLayoutEditorDisplayContext
 			fragmentRendererTracker, frontendTokenDefinitionRegistry,
 			httpServletRequest, infoItemServiceTracker, itemSelector,
 			pageEditorConfiguration, portletRequest, renderResponse,
-			stagingGroupHelper);
+			segmentsExperienceManager, stagingGroupHelper);
 	}
 
 	@Override
@@ -149,9 +151,6 @@ public class ContentPageLayoutEditorDisplayContext
 			"availableSegmentsEntries", _getAvailableSegmentsEntries());
 		configContext.put(
 			"defaultSegmentsEntryId", SegmentsEntryConstants.ID_DEFAULT);
-		configContext.put(
-			"defaultSegmentsExperienceId",
-			String.valueOf(SegmentsExperienceConstants.ID_DEFAULT));
 		configContext.put(
 			"deleteSegmentsExperienceURL",
 			getFragmentEntryActionURL(
@@ -179,8 +178,6 @@ public class ContentPageLayoutEditorDisplayContext
 			SegmentsExperienceUtil.getAvailableSegmentsExperiences(
 				httpServletRequest));
 		stateContext.put("layoutDataList", _getLayoutDataList());
-		stateContext.put(
-			"segmentsExperienceId", String.valueOf(getSegmentsExperienceId()));
 		stateContext.put(
 			"segmentsExperimentStatus",
 			SegmentsExperienceUtil.getSegmentsExperimentStatus(
@@ -270,7 +267,7 @@ public class ContentPageLayoutEditorDisplayContext
 				}
 				catch (PortalException portalException) {
 					if (_log.isDebugEnabled()) {
-						_log.debug(portalException, portalException);
+						_log.debug(portalException);
 					}
 				}
 			}
@@ -703,7 +700,7 @@ public class ContentPageLayoutEditorDisplayContext
 				return !segmentsExperimentRel.isControl();
 			}
 			catch (PortalException portalException) {
-				_log.error(portalException, portalException);
+				_log.error(portalException);
 			}
 		}
 

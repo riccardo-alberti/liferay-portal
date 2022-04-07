@@ -14,29 +14,62 @@
 
 import {useQuery} from '@apollo/client';
 import ClayIcon from '@clayui/icon';
+import {useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 
 import Container from '../../../components/Layout/Container';
 import ListView from '../../../components/ListView/ListView';
-import {LoadingWrapper} from '../../../components/Loading';
+import Loading from '../../../components/Loading';
+import MarkdownPreview from '../../../components/Markdown';
 import QATable from '../../../components/Table/QATable';
-import {getTestrayCases, getTestrayRequirement} from '../../../graphql/queries';
-import {Liferay} from '../../../services/liferay/liferay';
+import {
+	TestrayRequirement,
+	getCases,
+	getRequirement,
+} from '../../../graphql/queries';
+import useHeader from '../../../hooks/useHeader';
+import i18n from '../../../i18n';
+import {DescriptionType} from '../../../types';
 
 const Requirement = () => {
 	const {requirementId} = useParams();
 
-	const {data, loading} = useQuery(getTestrayRequirement, {
-		variables: {
-			testrayRequirementId: requirementId,
-		},
-	});
+	const {setHeading, setTabs} = useHeader({shouldUpdate: false});
 
-	const testrayRequirement = data?.c?.testrayRequirement || {};
+	const {data, loading} = useQuery<{requirement: TestrayRequirement}>(
+		getRequirement,
+		{
+			variables: {
+				requirementId,
+			},
+		}
+	);
+
+	const testrayRequirement = data?.requirement;
+
+	useEffect(() => {
+		if (testrayRequirement) {
+			setTimeout(() => {
+				setHeading([{title: testrayRequirement.key}], true);
+			}, 0);
+		}
+	}, [setHeading, testrayRequirement]);
+
+	useEffect(() => {
+		setTabs([]);
+	}, [setTabs]);
+
+	if (loading) {
+		return <Loading />;
+	}
+
+	if (!testrayRequirement) {
+		return null;
+	}
 
 	return (
-		<LoadingWrapper isLoading={loading}>
-			<Container title="Details">
+		<>
+			<Container title={i18n.translate('details')}>
 				<QATable
 					items={[
 						{
@@ -60,44 +93,63 @@ const Requirement = () => {
 								</a>
 							),
 						},
-						{title: 'team', value: testrayRequirement.team},
 						{
-							title: 'component',
-							value: testrayRequirement.component,
+							title: 'team',
+							value: testrayRequirement.component?.team?.name,
 						},
 						{
-							title: 'jira components',
+							title: i18n.translate('component'),
+							value: testrayRequirement.component?.name,
+						},
+						{
+							title: i18n.translate('jira-components'),
 							value: testrayRequirement.components,
 						},
 						{
-							title: 'summary',
+							title: i18n.translate('summary'),
 							value: testrayRequirement.summary,
 						},
 						{
-							title: 'description',
-							value: testrayRequirement.description,
+							title: i18n.translate('description'),
+							value: (
+								<>
+									{testrayRequirement.descriptionType ===
+									(DescriptionType.MARKDOWN as any) ? (
+										<MarkdownPreview
+											markdown={
+												testrayRequirement.description
+											}
+										/>
+									) : (
+										testrayRequirement.description
+									)}
+								</>
+							),
 						},
 					]}
 				/>
 			</Container>
 
-			<Container className="mt-3" title="Cases">
+			<Container className="mt-3" title={i18n.translate('cases')}>
 				<ListView
-					query={getTestrayCases}
+					query={getCases}
 					tableProps={{
 						columns: [
-							{key: 'priority', value: 'Priority'},
-							{key: 'name', value: 'Case Name'},
-							{key: 'component', value: 'Component'},
+							{
+								key: 'priority',
+								value: i18n.translate('priority'),
+							},
+							{key: 'name', value: i18n.translate('case-name')},
+							{
+								key: 'component',
+								value: i18n.translate('component'),
+							},
 						],
 					}}
-					transformData={(data) => data?.c?.testrayCases}
-					variables={{
-						scopeKey: Liferay.ThemeDisplay.getScopeGroupId(),
-					}}
+					transformData={(data) => data?.cases}
 				/>
 			</Container>
-		</LoadingWrapper>
+		</>
 	);
 };
 

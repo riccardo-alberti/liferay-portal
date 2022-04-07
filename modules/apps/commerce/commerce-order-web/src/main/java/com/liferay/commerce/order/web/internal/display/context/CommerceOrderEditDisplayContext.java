@@ -16,6 +16,7 @@ package com.liferay.commerce.order.web.internal.display.context;
 
 import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.configuration.CommerceOrderItemDecimalQuantityConfiguration;
+import com.liferay.commerce.constants.CommerceOrderActionKeys;
 import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.frontend.model.HeaderActionModel;
 import com.liferay.commerce.frontend.model.StepModel;
@@ -43,6 +44,9 @@ import com.liferay.commerce.service.CommerceOrderNoteService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceOrderTypeService;
 import com.liferay.commerce.service.CommerceShipmentService;
+import com.liferay.commerce.term.constants.CommerceTermEntryConstants;
+import com.liferay.commerce.term.model.CommerceTermEntry;
+import com.liferay.commerce.term.service.CommerceTermEntryLocalService;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
@@ -55,6 +59,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
@@ -94,12 +99,14 @@ public class CommerceOrderEditDisplayContext {
 				commerceOrderItemDecimalQuantityConfiguration,
 			CommerceOrderItemService commerceOrderItemService,
 			CommerceOrderNoteService commerceOrderNoteService,
+			PortletResourcePermission commerceOrderPortletResourcePermission,
 			CommerceOrderService commerceOrderService,
 			CommerceOrderStatusRegistry commerceOrderStatusRegistry,
 			CommerceOrderTypeService commerceOrderTypeService,
 			CommercePaymentMethodGroupRelLocalService
 				commercePaymentMethodGroupRelLocalService,
 			CommerceShipmentService commerceShipmentService,
+			CommerceTermEntryLocalService commerceTermEntryLocalService,
 			CPMeasurementUnitService cpMeasurementUnitService,
 			RenderRequest renderRequest)
 		throws PortalException {
@@ -112,12 +119,15 @@ public class CommerceOrderEditDisplayContext {
 			commerceOrderItemDecimalQuantityConfiguration;
 		_commerceOrderItemService = commerceOrderItemService;
 		_commerceOrderNoteService = commerceOrderNoteService;
+		_commerceOrderPortletResourcePermission =
+			commerceOrderPortletResourcePermission;
 		_commerceOrderService = commerceOrderService;
 		_commerceOrderStatusRegistry = commerceOrderStatusRegistry;
 		_commerceOrderTypeService = commerceOrderTypeService;
 		_commercePaymentMethodGroupRelLocalService =
 			commercePaymentMethodGroupRelLocalService;
 		_commerceShipmentService = commerceShipmentService;
+		_commerceTermEntryLocalService = commerceTermEntryLocalService;
 		_cpMeasurementUnitService = cpMeasurementUnitService;
 
 		long commerceOrderId = ParamUtil.getLong(
@@ -465,6 +475,12 @@ public class CommerceOrderEditDisplayContext {
 			_commerceOrderItemDecimalQuantityConfiguration.roundingMode());
 	}
 
+	public List<CommerceTermEntry> getDeliveryTermsEntries() {
+		return _commerceTermEntryLocalService.getCommerceTermEntries(
+			_commerceOrder.getCompanyId(),
+			CommerceTermEntryConstants.TYPE_DELIVERY_TERMS);
+	}
+
 	public String getDescriptiveAddress(CommerceAddress commerceAddress) {
 		StringBundler sb = new StringBundler(5);
 
@@ -679,6 +695,12 @@ public class CommerceOrderEditDisplayContext {
 		return steps;
 	}
 
+	public List<CommerceTermEntry> getPaymentTermsEntries() {
+		return _commerceTermEntryLocalService.getCommerceTermEntries(
+			_commerceOrder.getCompanyId(),
+			CommerceTermEntryConstants.TYPE_PAYMENT_TERMS);
+	}
+
 	public PortletURL getTransitionOrderPortletURL() {
 		return PortletURLBuilder.createActionURL(
 			_commerceOrderRequestHelper.getLiferayPortletResponse()
@@ -691,6 +713,33 @@ public class CommerceOrderEditDisplayContext {
 		).setParameter(
 			"commerceOrderId", _commerceOrder.getCommerceOrderId()
 		).buildPortletURL();
+	}
+
+	public boolean hasManageCommerceOrderDeliveryTermsPermission() {
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		return _commerceOrderPortletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), null,
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_DELIVERY_TERMS);
+	}
+
+	public boolean hasManageCommerceOrderPaymentMethodsPermission() {
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		return _commerceOrderPortletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), null,
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_PAYMENT_METHODS);
+	}
+
+	public boolean hasManageCommerceOrderPaymentTermsPermission() {
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		return _commerceOrderPortletResourcePermission.contains(
+			themeDisplay.getPermissionChecker(), null,
+			CommerceOrderActionKeys.MANAGE_COMMERCE_ORDER_PAYMENT_TERMS);
 	}
 
 	private List<StepModel> _getWorkflowSteps() {
@@ -743,6 +792,8 @@ public class CommerceOrderEditDisplayContext {
 		_commerceOrderItemDecimalQuantityConfiguration;
 	private final CommerceOrderItemService _commerceOrderItemService;
 	private final CommerceOrderNoteService _commerceOrderNoteService;
+	private final PortletResourcePermission
+		_commerceOrderPortletResourcePermission;
 	private final CommerceOrderRequestHelper _commerceOrderRequestHelper;
 	private final CommerceOrderService _commerceOrderService;
 	private final CommerceOrderStatusRegistry _commerceOrderStatusRegistry;
@@ -751,6 +802,7 @@ public class CommerceOrderEditDisplayContext {
 		_commercePaymentMethodGroupRelLocalService;
 	private CommerceShipment _commerceShipment;
 	private final CommerceShipmentService _commerceShipmentService;
+	private final CommerceTermEntryLocalService _commerceTermEntryLocalService;
 	private final CPMeasurementUnitService _cpMeasurementUnitService;
 
 }

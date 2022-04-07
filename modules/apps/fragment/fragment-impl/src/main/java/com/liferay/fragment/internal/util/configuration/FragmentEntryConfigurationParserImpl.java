@@ -330,7 +330,7 @@ public class FragmentEntryConfigurationParserImpl
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -465,31 +465,25 @@ public class FragmentEntryConfigurationParserImpl
 			frontendTokenDefinition.getFrontendTokens();
 
 		for (FrontendToken frontendToken : frontendTokens) {
-			try {
-				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-					frontendToken.getJSON(LocaleUtil.getMostRelevantLocale()));
+			JSONObject jsonObject = frontendToken.getJSONObject(
+				LocaleUtil.getMostRelevantLocale());
 
-				if (!Objects.equals(jsonObject.getString("name"), fieldValue)) {
-					continue;
-				}
-
-				List<FrontendTokenMapping> frontendTokenMappings =
-					new ArrayList<>(
-						frontendToken.getFrontendTokenMappings(
-							FrontendTokenMapping.TYPE_CSS_VARIABLE));
-
-				if (frontendTokenMappings.isEmpty()) {
-					return fieldValue;
-				}
-
-				FrontendTokenMapping frontendTokenMapping =
-					frontendTokenMappings.get(0);
-
-				return "var(--" + frontendTokenMapping.getValue() + ")";
+			if (!Objects.equals(jsonObject.getString("name"), fieldValue)) {
+				continue;
 			}
-			catch (JSONException jsonException) {
+
+			List<FrontendTokenMapping> frontendTokenMappings = new ArrayList<>(
+				frontendToken.getFrontendTokenMappings(
+					FrontendTokenMapping.TYPE_CSS_VARIABLE));
+
+			if (frontendTokenMappings.isEmpty()) {
 				return fieldValue;
 			}
+
+			FrontendTokenMapping frontendTokenMapping =
+				frontendTokenMappings.get(0);
+
+			return "var(--" + frontendTokenMapping.getValue() + ")";
 		}
 
 		return fieldValue;

@@ -30,6 +30,7 @@ import java.util.Map;
 
 /**
  * @author Ivica Cardic
+ * @author Igor Beslic
  */
 public class CSVBatchEngineImportTaskItemReaderImpl
 	implements BatchEngineImportTaskItemReader {
@@ -40,18 +41,20 @@ public class CSVBatchEngineImportTaskItemReaderImpl
 		throws IOException {
 
 		_delimiter = (String)parameters.getOrDefault("delimiter", delimiter);
-
 		_inputStream = inputStream;
 
-		_delimiterRegex = _getDelimiterRegex(
-			_getEnclosingCharacter(parameters));
 		_enclosingCharacter = _getEnclosingCharacter(parameters);
+
+		_delimiterRegex = _getDelimiterRegex(_enclosingCharacter);
 
 		_unsyncBufferedReader = new UnsyncBufferedReader(
 			new InputStreamReader(_inputStream));
 
-		_fieldNames = StringUtil.split(
-			_unsyncBufferedReader.readLine(), _delimiter);
+		_fieldNames = _getFieldNames(
+			Boolean.valueOf(
+				(String)parameters.getOrDefault(
+					"containsHeaders", StringPool.TRUE)),
+			_delimiter, _unsyncBufferedReader);
 	}
 
 	@Override
@@ -77,21 +80,13 @@ public class CSVBatchEngineImportTaskItemReaderImpl
 				continue;
 			}
 
-			String value = values[i].trim();
+			FieldNameValueMapHandlerFactory.FieldNameValueMapHandler
+				fieldNameValueMapHandler =
+					FieldNameValueMapHandlerFactory.getFieldNameValueMapHandler(
+						fieldName);
 
-			if (value.isEmpty()) {
-				value = null;
-			}
-
-			int lastDelimiterIndex = fieldName.lastIndexOf('_');
-
-			if (lastDelimiterIndex == -1) {
-				fieldNameValueMap.put(fieldName, value);
-			}
-			else {
-				BatchEngineImportTaskItemReaderUtil.handleMapField(
-					fieldName, fieldNameValueMap, lastDelimiterIndex, value);
-			}
+			fieldNameValueMapHandler.handle(
+				fieldName, fieldNameValueMap, values[i]);
 		}
 
 		return fieldNameValueMap;
@@ -127,6 +122,24 @@ public class CSVBatchEngineImportTaskItemReaderImpl
 		}
 
 		return enclosingCharacter;
+	}
+
+	private String[] _getFieldNames(
+			boolean containsHeaders, String delimiter,
+			UnsyncBufferedReader unsyncBufferedReader)
+		throws IOException {
+
+		if (containsHeaders) {
+			return StringUtil.split(unsyncBufferedReader.readLine(), delimiter);
+		}
+
+		String[] fieldNames = new String[100];
+
+		for (int i = 0; i < fieldNames.length; i++) {
+			fieldNames[i] = String.valueOf(i);
+		}
+
+		return fieldNames;
 	}
 
 	private String _trimEnclosingCharacter(String line) {

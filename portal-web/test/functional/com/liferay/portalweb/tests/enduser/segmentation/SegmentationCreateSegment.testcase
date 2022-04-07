@@ -1966,6 +1966,121 @@ definition {
 		}
 	}
 
+	@description = "LPS-147454 Validate if the user can use a custom field as criteria to create a segment"
+	@priority = "4"
+	test AddSegmentUsingCustomFields {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#AddSegmentUsingCustomFields";
+
+		task ("Add custom field in User") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Custom Fields");
+
+			CustomFields.addCP(
+				customFieldName = "Business Unit",
+				customFieldType = "Input Field",
+				customInputDataType = "Text",
+				resourceName = "User",
+				startingValue = "COIN");
+		}
+
+		task ("Add a new user and view the Custom Fields") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			User.gotoEditCP(userScreenName = "usersn");
+
+			User.viewUserCustomFieldsCP(
+				customFieldName = "Business Unit",
+				customFieldType = "Text Area",
+				startingValue = "COIN");
+		}
+
+		task ("Create a segment using the custom field") {
+			Navigator.openURL();
+
+			ProductMenu.gotoPortlet(
+				category = "People",
+				portlet = "Segments");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.addProperties(propertyOption = "Business Unit");
+
+			Segmentation.fillProperty(propertyField = "COIN");
+
+			Segmentation.fillTitle(titleField = "COINers");
+
+			Segmentation.viewMembers(memberName = "userfn userln");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Assert the segment is correctly created") {
+			Segmentation.editSegment(entry = "COINers");
+
+			Segmentation.viewSegment(propertyField = "COIN");
+		}
+	}
+
+	@description = "LPS-146550 Bug: Apostrophe in segment property value breaks filter"
+	@priority = "4"
+	test AddSegmentWithApostrophe {
+		task ("Create an User with an apostrophe") {
+			JSONUser.addUser(
+				userEmailAddress = "shaquille@liferay.com",
+				userFirstName = "Shaquille",
+				userLastName = "O'Neal",
+				userScreenName = "shaquille");
+		}
+
+		task ("Create a Segment that includes user created") {
+			LexiconEntry.gotoAdd();
+
+			Segmentation.fillTitle(titleField = "Segment with Apostrophe");
+
+			Segmentation.addProperties(propertyOption = "Last Name");
+
+			Segmentation.fillProperty(propertyField = "O'Neal");
+		}
+
+		task ("Check that segment includes user") {
+			AssertTextEquals(
+				locator1 = "Segmentation#MEMBERS_MATCHED",
+				value1 = "1 Member");
+
+			Segmentation.viewMembers(memberName = "Shaquille O'Neal");
+		}
+
+		task ("Save segment") {
+			Button.clickSave();
+		}
+
+		task ("Go to edit segment") {
+			Segmentation.editSegment(entry = "Segment with Apostrophe");
+		}
+
+		task ("Check that segment still includes user") {
+			AssertTextEquals(
+				locator1 = "Segmentation#MEMBERS_MATCHED",
+				value1 = "1 Member");
+
+			Segmentation.viewMembers(memberName = "Shaquille O'Neal");
+		}
+	}
+
 	@description = "LPS-135495 Validate if, The criteria default language must be tagged as such in the language selection dropdown."
 	@priority = "3"
 	test CheckDefaultLanguageTag {
@@ -2095,12 +2210,19 @@ definition {
 		}
 
 		task ("Create Segment with Vocabulary") {
-			JSONSegmentsentry.addSegment(
-				fieldName = "Browser",
-				groupName = "Guest",
-				operator = "equals",
-				segmentName = "KeepInfomationOfDeleteVocabularyInSegment Test",
-				text = "Audience Category 1");
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.gotoSidebar(fieldType = "Session");
+
+			Segmentation.addProperties(propertyOption = "Browser");
+
+			Segmentation.fillTitle(titleField = "KeepInfomationOfDeleteVocabularyInSegment Test");
+
+			Segmentation.fillProperty(optionsValue = "Audience Category 1");
+
+			Button.clickSave();
 		}
 
 		task ("Delete category of vocabulary") {
@@ -2118,6 +2240,42 @@ definition {
 			AssertValue(
 				locator1 = "Segmentation#PROPERTY_FIELD",
 				value1 = "Audience Category 1");
+		}
+	}
+
+	@description = "LPS-150511 Bug: Can't scroll down in segments editor sidebar"
+	@priority = "4"
+	test ScrollDownSegmentsEditor {
+		property portal.acceptance = "true";
+
+		task ("Go to segments editor page") {
+			ProductMenu.gotoPortlet(
+				category = "People",
+				portlet = "Segments");
+
+			LexiconEntry.gotoAdd();
+		}
+
+		task ("Scroll down User session") {
+			ScrollWebElementIntoView(
+				key_propertyOption = "User Name",
+				locator1 = "Segmentation#ADD_FIELD_TYPE");
+		}
+
+		task ("Scroll down Organization session") {
+			Segmentation.gotoSidebar(fieldType = "Organization");
+
+			ScrollWebElementIntoView(
+				key_propertyOption = "Type",
+				locator1 = "Segmentation#ADD_FIELD_TYPE");
+		}
+
+		task ("Scroll down Session session") {
+			Segmentation.gotoSidebar(fieldType = "Session");
+
+			ScrollWebElementIntoView(
+				key_propertyOption = "User Agent",
+				locator1 = "Segmentation#ADD_FIELD_TYPE");
 		}
 	}
 

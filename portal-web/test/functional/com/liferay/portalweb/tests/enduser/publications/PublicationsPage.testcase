@@ -1,6 +1,7 @@
 @component-name = "portal-publications"
 definition {
 
+	property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Publications";
@@ -26,15 +27,17 @@ definition {
 
 	@priority = "4"
 	test PublishDeletedPageWithTag {
+		JSONGroup.addGroup(groupName = "Site Name");
+
 		JSONLayout.addPublicLayout(
-			groupName = "Guest",
+			groupName = "Site Name",
 			layoutName = "Test Page");
 
 		JSONPublications.addPublication(publicationName = "Publication Name");
 
 		JSONPublications.selectPublication(publicationName = "Publication Name");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
@@ -48,16 +51,16 @@ definition {
 
 		PublicationsChanges.viewChanges(
 			changeCategory = "Tag",
-			changeSite = "Guest",
+			changeSite = "Site Name",
 			changeTitle = "tag name",
 			changeType = "Added",
 			changeUser = "Test Test");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		PagesAdmin.deletePage(pageName = "Test Page");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		Page.viewNoPG(pageName = "Test Page");
 
@@ -65,7 +68,7 @@ definition {
 
 		PublicationsChanges.viewChanges(
 			changeCategory = "Page",
-			changeSite = "Guest",
+			changeSite = "Site Name",
 			changeTitle = "Test Page",
 			changeType = "Deleted",
 			changeUser = "Test Test");
@@ -74,7 +77,7 @@ definition {
 
 		Publications.viewPublicationPublished(publicationName = "Publication Name");
 
-		Navigator.openSiteURL(siteName = "Guest");
+		Navigator.openSiteURL(siteName = "site-name");
 
 		Page.viewNoPG(pageName = "Test Page");
 	}
@@ -87,11 +90,13 @@ definition {
 
 		JSONPublications.selectPublication(publicationName = "Publication Name");
 
+		JSONGroup.addGroup(groupName = "Site Name");
+
 		JSONFragment.addFragmentCollection(
-			groupName = "Guest",
+			groupName = "Site Name",
 			name = "Collection Name");
 
-		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "Guest");
+		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "site-name");
 
 		FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
 
@@ -110,10 +115,10 @@ definition {
 
 		JSONWebcontent.addWebContent(
 			content = "WC WebContent Content",
-			groupName = "Guest",
+			groupName = "Site Name",
 			title = "WC WebContent Title");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		ContentPages.addPrivatePage(pageName = "Test Page");
 
@@ -123,7 +128,7 @@ definition {
 
 		PageEditor.clickPublish();
 
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/guest/test-page");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/site-name/test-page");
 
 		WebContent.viewPGViaAP(
 			webContentContent = "WC WebContent Content",
@@ -135,7 +140,7 @@ definition {
 
 		Navigator.gotoPrivateSitePage(
 			pageName = "Test Page",
-			siteName = "Guest");
+			siteName = "Site Name");
 
 		WebContent.viewPGViaAP(
 			webContentContent = "WC WebContent Content",
@@ -219,34 +224,27 @@ definition {
 			publicationName = "Publication Name 1");
 
 		PublicationsChanges.discardChanges(
-			changeCategory = "com.liferay.layout.page.template.model.LayoutPageTemplateStructure",
-			changeTitle = "com.liferay.layout.page.template.model.LayoutPageTemplateStructure",
+			changeCategory = "Content Page Name",
+			changeTitle = "Content Page Name",
 			conflictingChanges = "true",
-			entryTitle = "com.liferay.layout.page.template.model.LayoutPageTemplateStructure");
+			entryTitle = "Content Page Name");
 
-		PublicationsChanges.discardChanges(
-			changeCategory = "com.liferay.portal.kernel.model.PortletPreferenceValue",
-			changeTitle = "com.liferay.portal.kernel.model.PortletPreferenceValue",
-			conflictingChanges = "true",
-			entryTitle = "com.liferay.portal.kernel.model.PortletPreferenceValue");
-
-		// Workaround LPS-124618
-
-		//AssertElementNotPresent(locator1 = "Publications#NEEDS_MANUAL_RESOLUTION_TABLE");
-
+		Publications.publishPublication(publicationName = "Publication Name 1");
 	}
 
 	@priority = "5"
 	test ViewPageFriendlyURLAfterRevertingPublication {
+		JSONGroup.addGroup(groupName = "Site Name");
+
 		JSONLayout.addPublicLayout(
-			groupName = "Guest",
+			groupName = "Site Name",
 			layoutName = "Test Page");
 
 		JSONPublications.addPublication(publicationName = "Publication Name");
 
 		JSONPublications.selectPublication(publicationName = "Publication Name");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
@@ -270,7 +268,7 @@ definition {
 
 		Publications.viewPublicationPublished(publicationName = "Publication Name");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",
@@ -285,7 +283,7 @@ definition {
 
 		Publications.revertPublication(publicationName = "Publication Name");
 
-		PagesAdmin.openPagesAdmin(siteURLKey = "guest");
+		PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
 
 		PagesAdmin.gotoPageEllipsisMenuItem(
 			menuItem = "Configure",

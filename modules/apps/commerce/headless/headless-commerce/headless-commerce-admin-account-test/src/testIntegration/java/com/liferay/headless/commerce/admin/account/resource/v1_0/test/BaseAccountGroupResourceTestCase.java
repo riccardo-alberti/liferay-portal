@@ -253,6 +253,35 @@ public abstract class BaseAccountGroupResourceTestCase {
 	}
 
 	@Test
+	public void testGetAccountGroupsPageWithFilterDoubleEquals()
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DOUBLE);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		AccountGroup accountGroup1 = testGetAccountGroupsPage_addAccountGroup(
+			randomAccountGroup());
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		AccountGroup accountGroup2 = testGetAccountGroupsPage_addAccountGroup(
+			randomAccountGroup());
+
+		for (EntityField entityField : entityFields) {
+			Page<AccountGroup> page = accountGroupResource.getAccountGroupsPage(
+				getFilterString(entityField, "eq", accountGroup1),
+				Pagination.of(1, 2), null);
+
+			assertEquals(
+				Collections.singletonList(accountGroup1),
+				(List<AccountGroup>)page.getItems());
+		}
+	}
+
+	@Test
 	public void testGetAccountGroupsPageWithFilterStringEquals()
 		throws Exception {
 
@@ -333,6 +362,18 @@ public abstract class BaseAccountGroupResourceTestCase {
 				BeanUtils.setProperty(
 					accountGroup1, entityField.getName(),
 					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
+
+	@Test
+	public void testGetAccountGroupsPageWithSortDouble() throws Exception {
+		testGetAccountGroupsPageWithSort(
+			EntityField.Type.DOUBLE,
+			(entityField, accountGroup1, accountGroup2) -> {
+				BeanUtils.setProperty(
+					accountGroup1, entityField.getName(), 0.1);
+				BeanUtils.setProperty(
+					accountGroup2, entityField.getName(), 0.5);
 			});
 	}
 
@@ -746,6 +787,261 @@ public abstract class BaseAccountGroupResourceTestCase {
 	@Test
 	public void testPatchAccountGroup() throws Exception {
 		Assert.assertTrue(false);
+	}
+
+	@Test
+	public void testGetAccountByExternalReferenceCodeAccountGroupsPage()
+		throws Exception {
+
+		String externalReferenceCode =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_getExternalReferenceCode();
+		String irrelevantExternalReferenceCode =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_getIrrelevantExternalReferenceCode();
+
+		Page<AccountGroup> page =
+			accountGroupResource.
+				getAccountByExternalReferenceCodeAccountGroupsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
+
+		if (irrelevantExternalReferenceCode != null) {
+			AccountGroup irrelevantAccountGroup =
+				testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+					irrelevantExternalReferenceCode,
+					randomIrrelevantAccountGroup());
+
+			page =
+				accountGroupResource.
+					getAccountByExternalReferenceCodeAccountGroupsPage(
+						irrelevantExternalReferenceCode, Pagination.of(1, 2));
+
+			Assert.assertEquals(1, page.getTotalCount());
+
+			assertEquals(
+				Arrays.asList(irrelevantAccountGroup),
+				(List<AccountGroup>)page.getItems());
+			assertValid(page);
+		}
+
+		AccountGroup accountGroup1 =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				externalReferenceCode, randomAccountGroup());
+
+		AccountGroup accountGroup2 =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				externalReferenceCode, randomAccountGroup());
+
+		page =
+			accountGroupResource.
+				getAccountByExternalReferenceCodeAccountGroupsPage(
+					externalReferenceCode, Pagination.of(1, 10));
+
+		Assert.assertEquals(2, page.getTotalCount());
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(accountGroup1, accountGroup2),
+			(List<AccountGroup>)page.getItems());
+		assertValid(page);
+
+		accountGroupResource.deleteAccountGroup(accountGroup1.getId());
+
+		accountGroupResource.deleteAccountGroup(accountGroup2.getId());
+	}
+
+	@Test
+	public void testGetAccountByExternalReferenceCodeAccountGroupsPageWithPagination()
+		throws Exception {
+
+		String externalReferenceCode =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_getExternalReferenceCode();
+
+		AccountGroup accountGroup1 =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				externalReferenceCode, randomAccountGroup());
+
+		AccountGroup accountGroup2 =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				externalReferenceCode, randomAccountGroup());
+
+		AccountGroup accountGroup3 =
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				externalReferenceCode, randomAccountGroup());
+
+		Page<AccountGroup> page1 =
+			accountGroupResource.
+				getAccountByExternalReferenceCodeAccountGroupsPage(
+					externalReferenceCode, Pagination.of(1, 2));
+
+		List<AccountGroup> accountGroups1 =
+			(List<AccountGroup>)page1.getItems();
+
+		Assert.assertEquals(
+			accountGroups1.toString(), 2, accountGroups1.size());
+
+		Page<AccountGroup> page2 =
+			accountGroupResource.
+				getAccountByExternalReferenceCodeAccountGroupsPage(
+					externalReferenceCode, Pagination.of(2, 2));
+
+		Assert.assertEquals(3, page2.getTotalCount());
+
+		List<AccountGroup> accountGroups2 =
+			(List<AccountGroup>)page2.getItems();
+
+		Assert.assertEquals(
+			accountGroups2.toString(), 1, accountGroups2.size());
+
+		Page<AccountGroup> page3 =
+			accountGroupResource.
+				getAccountByExternalReferenceCodeAccountGroupsPage(
+					externalReferenceCode, Pagination.of(1, 3));
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(accountGroup1, accountGroup2, accountGroup3),
+			(List<AccountGroup>)page3.getItems());
+	}
+
+	protected AccountGroup
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_addAccountGroup(
+				String externalReferenceCode, AccountGroup accountGroup)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_getExternalReferenceCode()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected String
+			testGetAccountByExternalReferenceCodeAccountGroupsPage_getIrrelevantExternalReferenceCode()
+		throws Exception {
+
+		return null;
+	}
+
+	@Test
+	public void testGetAccountIdAccountGroupsPage() throws Exception {
+		Long id = testGetAccountIdAccountGroupsPage_getId();
+		Long irrelevantId = testGetAccountIdAccountGroupsPage_getIrrelevantId();
+
+		Page<AccountGroup> page =
+			accountGroupResource.getAccountIdAccountGroupsPage(
+				id, Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
+
+		if (irrelevantId != null) {
+			AccountGroup irrelevantAccountGroup =
+				testGetAccountIdAccountGroupsPage_addAccountGroup(
+					irrelevantId, randomIrrelevantAccountGroup());
+
+			page = accountGroupResource.getAccountIdAccountGroupsPage(
+				irrelevantId, Pagination.of(1, 2));
+
+			Assert.assertEquals(1, page.getTotalCount());
+
+			assertEquals(
+				Arrays.asList(irrelevantAccountGroup),
+				(List<AccountGroup>)page.getItems());
+			assertValid(page);
+		}
+
+		AccountGroup accountGroup1 =
+			testGetAccountIdAccountGroupsPage_addAccountGroup(
+				id, randomAccountGroup());
+
+		AccountGroup accountGroup2 =
+			testGetAccountIdAccountGroupsPage_addAccountGroup(
+				id, randomAccountGroup());
+
+		page = accountGroupResource.getAccountIdAccountGroupsPage(
+			id, Pagination.of(1, 10));
+
+		Assert.assertEquals(2, page.getTotalCount());
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(accountGroup1, accountGroup2),
+			(List<AccountGroup>)page.getItems());
+		assertValid(page);
+
+		accountGroupResource.deleteAccountGroup(accountGroup1.getId());
+
+		accountGroupResource.deleteAccountGroup(accountGroup2.getId());
+	}
+
+	@Test
+	public void testGetAccountIdAccountGroupsPageWithPagination()
+		throws Exception {
+
+		Long id = testGetAccountIdAccountGroupsPage_getId();
+
+		AccountGroup accountGroup1 =
+			testGetAccountIdAccountGroupsPage_addAccountGroup(
+				id, randomAccountGroup());
+
+		AccountGroup accountGroup2 =
+			testGetAccountIdAccountGroupsPage_addAccountGroup(
+				id, randomAccountGroup());
+
+		AccountGroup accountGroup3 =
+			testGetAccountIdAccountGroupsPage_addAccountGroup(
+				id, randomAccountGroup());
+
+		Page<AccountGroup> page1 =
+			accountGroupResource.getAccountIdAccountGroupsPage(
+				id, Pagination.of(1, 2));
+
+		List<AccountGroup> accountGroups1 =
+			(List<AccountGroup>)page1.getItems();
+
+		Assert.assertEquals(
+			accountGroups1.toString(), 2, accountGroups1.size());
+
+		Page<AccountGroup> page2 =
+			accountGroupResource.getAccountIdAccountGroupsPage(
+				id, Pagination.of(2, 2));
+
+		Assert.assertEquals(3, page2.getTotalCount());
+
+		List<AccountGroup> accountGroups2 =
+			(List<AccountGroup>)page2.getItems();
+
+		Assert.assertEquals(
+			accountGroups2.toString(), 1, accountGroups2.size());
+
+		Page<AccountGroup> page3 =
+			accountGroupResource.getAccountIdAccountGroupsPage(
+				id, Pagination.of(1, 3));
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(accountGroup1, accountGroup2, accountGroup3),
+			(List<AccountGroup>)page3.getItems());
+	}
+
+	protected AccountGroup testGetAccountIdAccountGroupsPage_addAccountGroup(
+			Long id, AccountGroup accountGroup)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Long testGetAccountIdAccountGroupsPage_getId() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected Long testGetAccountIdAccountGroupsPage_getIrrelevantId()
+		throws Exception {
+
+		return null;
 	}
 
 	@Rule

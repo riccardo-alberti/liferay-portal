@@ -20,6 +20,7 @@
 		<!-- Other fields -->
 
 		<column name="defaultBillingAddressId" type="long" />
+		<column name="defaultCPaymentMethodKey" type="String" />
 		<column name="defaultDeliveryCTermEntryId" type="long" />
 		<column name="defaultPaymentCTermEntryId" type="long" />
 		<column name="defaultShippingAddressId" type="long" />
@@ -208,6 +209,10 @@
 		</finder>
 		<finder name="RoleId" return-type="AccountRole">
 			<finder-column name="roleId" />
+		</finder>
+		<finder name="C_A" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column arrayable-operator="OR" name="accountEntryId" />
 		</finder>
 	</entity>
 	<exceptions>

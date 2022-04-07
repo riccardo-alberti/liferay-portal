@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -266,6 +266,9 @@ definition {
 	@priority = "4"
 	@refactordone
 	test CanViewWebsiteNotificationForNewEntry {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "false";
+
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		Blogs.subscribePG();
@@ -297,6 +300,15 @@ definition {
 			entryTitle = "Blogs Entry Title");
 
 		Notifications.viewBadgeCount(notificationCount = "0");
+	}
+
+	@description = "This test covers LPS-143369. It validates that an email notification can be received after a Blog update is scheduled and the time is reached."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test EmailIsReceivedWhenUpdateReachesScheduledTime {
+
+		// TODO LPS-147824
+
 	}
 
 	@priority = "4"

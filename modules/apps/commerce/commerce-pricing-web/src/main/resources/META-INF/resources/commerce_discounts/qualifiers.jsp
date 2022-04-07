@@ -64,11 +64,11 @@ boolean hasPermission = commerceDiscountQualifiersDisplayContext.hasPermission(A
 	</div>
 
 	<c:if test='<%= Objects.equals(accountQualifiers, "accounts") %>'>
-		<%@ include file="/commerce_discounts/qualifier/accounts.jspf" %>
+		<%@ include file="/commerce_inventory_warehouse/qualifier/accounts.jspf" %>
 	</c:if>
 
 	<c:if test='<%= Objects.equals(accountQualifiers, "accountGroups") %>'>
-		<%@ include file="/commerce_discounts/qualifier/account_groups.jspf" %>
+		<%@ include file="/commerce_inventory_warehouse/qualifier/account_groups.jspf" %>
 	</c:if>
 
 	<div class="row">
@@ -90,7 +90,7 @@ boolean hasPermission = commerceDiscountQualifiersDisplayContext.hasPermission(A
 	</div>
 
 	<c:if test='<%= Objects.equals(channelQualifiers, "channels") %>'>
-		<%@ include file="/commerce_discounts/qualifier/channels.jspf" %>
+		<%@ include file="/commerce_inventory_warehouse/qualifier/channels.jspf" %>
 	</c:if>
 
 	<div class="row">
@@ -112,7 +112,7 @@ boolean hasPermission = commerceDiscountQualifiersDisplayContext.hasPermission(A
 	</div>
 
 	<c:if test='<%= Objects.equals(orderTypeQualifiers, "orderTypes") %>'>
-		<%@ include file="/commerce_discounts/qualifier/order_types.jspf" %>
+		<%@ include file="/commerce_inventory_warehouse/qualifier/order_types.jspf" %>
 	</c:if>
 </aui:form>
 

@@ -733,12 +733,12 @@ public class BookmarksEntryLocalServiceImpl
 				entry.getFolderId());
 		}
 
-		Group group = _groupLocalService.fetchGroup(entry.getGroupId());
-
 		return PortletURLBuilder.create(
 			_portal.getControlPanelPortletURL(
-				httpServletRequest, group, BookmarksPortletKeys.BOOKMARKS_ADMIN,
-				0, 0, PortletRequest.RENDER_PHASE)
+				httpServletRequest,
+				_groupLocalService.fetchGroup(entry.getGroupId()),
+				BookmarksPortletKeys.BOOKMARKS_ADMIN, 0, 0,
+				PortletRequest.RENDER_PHASE)
 		).setMVCRenderCommandName(
 			"/bookmarks/view"
 		).setParameter(
@@ -782,7 +782,7 @@ public class BookmarksEntryLocalServiceImpl
 			statusByUserName = user.getFullName();
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		String entryTitle = entry.getName();

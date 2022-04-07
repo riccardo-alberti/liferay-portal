@@ -117,7 +117,7 @@ components:
                     readOnly: true
                     type: object
                 businessType:
-                    enum: [Boolean, Date, Decimal, Integer, LongInteger, LongText, Picklist, PrecisionDecimal, Relationship, Text]
+                    enum: [Attachment, Boolean, Date, Decimal, Integer, LongInteger, LongText, Picklist, PrecisionDecimal, Relationship, RichText, Text]
                     type: string
                 id:
                     format: int64
@@ -138,6 +138,10 @@ components:
                     type: integer
                 name:
                     type: string
+                objectFieldSettings:
+                    items:
+                        $ref: "#/components/schemas/ObjectFieldSetting"
+                    type: array
                 relationshipType:
                     enum: [oneToMany, oneToOne]
                     readOnly: true
@@ -147,6 +151,19 @@ components:
                 type:
                     deprecated: true
                     enum: [BigDecimal, Boolean, Clob, Date, Double, Integer, Long, String]
+                    type: string
+        ObjectFieldSetting:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    type: string
+                objectFieldId:
+                    format: int64
+                    type: integer
+                value:
                     type: string
         ObjectLayout:
             properties:
@@ -316,7 +333,26 @@ components:
                     items:
                         $ref: "#/components/schemas/ObjectViewColumn"
                     type: array
+                objectViewSortColumns:
+                    items:
+                        $ref: "#/components/schemas/ObjectViewSortColumn"
+                    type: array
         ObjectViewColumn:
+            properties:
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                label:
+                    additionalProperties:
+                        type: string
+                    type: object
+                objectFieldName:
+                    type: string
+                priority:
+                    format: int32
+                    type: integer
+        ObjectViewSortColumn:
             properties:
                 id:
                     format: int64
@@ -327,6 +363,9 @@ components:
                 priority:
                     format: int32
                     type: integer
+                sortOrder:
+                    enum: [asc, desc]
+                    type: string
         Status:
             properties:
                 code:
@@ -341,7 +380,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.object.admin.rest.client', and version '1.0.12'."
+        'com.liferay.object.admin.rest.client', and version '1.0.18'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -1203,6 +1242,26 @@ paths:
                     application/xml:
                         schema:
                             $ref: "#/components/schemas/ObjectView"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectView"
+            tags: ["ObjectView"]
+    "/object-views/{objectViewId}/copy":
+        post:
+            operationId: postObjectViewCopy
+            parameters:
+                - in: path
+                  name: objectViewId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
             responses:
                 200:
                     content:

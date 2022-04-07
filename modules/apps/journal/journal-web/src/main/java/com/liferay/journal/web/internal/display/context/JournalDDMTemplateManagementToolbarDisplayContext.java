@@ -78,7 +78,7 @@ public class JournalDDMTemplateManagementToolbarDisplayContext
 		return DropdownItemListBuilder.add(
 			dropdownItem -> {
 				dropdownItem.putData("action", "deleteDDMTemplates");
-				dropdownItem.setIcon("times-circle");
+				dropdownItem.setIcon("trash");
 				dropdownItem.setLabel(
 					LanguageUtil.get(httpServletRequest, "delete"));
 				dropdownItem.setQuickAction(true);
@@ -206,7 +206,7 @@ public class JournalDDMTemplateManagementToolbarDisplayContext
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -235,7 +235,7 @@ public class JournalDDMTemplateManagementToolbarDisplayContext
 
 	@Override
 	protected String[] getOrderByKeys() {
-		return new String[] {"modified-date", "id"};
+		return new String[] {"modified-date", "name", "id"};
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

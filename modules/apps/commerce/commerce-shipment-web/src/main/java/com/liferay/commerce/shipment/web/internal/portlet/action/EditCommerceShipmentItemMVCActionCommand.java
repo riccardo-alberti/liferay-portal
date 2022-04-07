@@ -172,7 +172,7 @@ public class EditCommerceShipmentItemMVCActionCommand
 			portletURL.setWindowState(LiferayWindowState.POP_UP);
 		}
 		catch (WindowStateException windowStateException) {
-			_log.error(windowStateException, windowStateException);
+			_log.error(windowStateException);
 		}
 
 		return portletURL.toString();
@@ -223,15 +223,16 @@ public class EditCommerceShipmentItemMVCActionCommand
 				commerceShipmentItem =
 					_commerceShipmentItemService.updateCommerceShipmentItem(
 						initialCommerceShipmentItem.getCommerceShipmentItemId(),
-						commerceInventoryWarehouseId, quantity);
+						commerceInventoryWarehouseId, quantity, true);
 
 				initialCommerceShipmentItem = null;
 			}
 			else if ((commerceShipmentItem == null) && (quantity > 0)) {
 				commerceShipmentItem =
 					_commerceShipmentItemService.addCommerceShipmentItem(
-						commerceShipmentId, commerceOrderItemId,
-						commerceInventoryWarehouseId, quantity, serviceContext);
+						null, commerceShipmentId, commerceOrderItemId,
+						commerceInventoryWarehouseId, quantity, true,
+						serviceContext);
 			}
 			else if ((commerceShipmentItem != null) &&
 					 (quantity != commerceShipmentItem.getQuantity())) {
@@ -239,13 +240,13 @@ public class EditCommerceShipmentItemMVCActionCommand
 				commerceShipmentItem =
 					_commerceShipmentItemService.updateCommerceShipmentItem(
 						commerceShipmentItem.getCommerceShipmentItemId(),
-						commerceInventoryWarehouseId, quantity);
+						commerceInventoryWarehouseId, quantity, true);
 
 				if (quantity == 0) {
 					commerceShipmentItem =
 						_commerceShipmentItemService.updateCommerceShipmentItem(
 							commerceShipmentItem.getCommerceShipmentItemId(), 0,
-							quantity);
+							quantity, true);
 				}
 			}
 		}

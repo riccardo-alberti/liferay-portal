@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -29,6 +29,8 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+
 			User.logoutPG();
 		}
 	}
@@ -729,6 +731,52 @@ definition {
 		Redirect.viewDefault();
 	}
 
+	@description = "This ensures that no new 404 tracking is performed when the option is manually disabled at system settings."
+	@priority = "4"
+	test CanDisable404InSystemSettings {
+		property test.name.skip.portal.instance = "Redirect#CanDisable404InSystemSettings";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Redirect.openToConfigInSystemSettings();
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/my-url-that-does-not-exist");
+
+		Redirect.open404URLsAdmin(siteURLKey = "test-site-name");
+
+		Redirect.view404URLs(
+			ignoreURL = "${portalURL}/web/test-site-name/my-url-that-does-not-exist",
+			requestNumber = "1");
+
+		Redirect.openToConfigInSystemSettings();
+
+		FormFields.disableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		Redirect.openRedirectAdmin(siteURLKey = "test-site-name");
+
+		Redirect.view404URLsTab(disabled404Tracking = "true");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/my-url-that-does-not-exist");
+
+		Redirect.openToConfigInSystemSettings();
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+
+		SystemSettings.saveConfiguration();
+
+		Redirect.open404URLsAdmin(siteURLKey = "test-site-name");
+
+		Redirect.view404URLs(
+			ignoreURL = "${portalURL}/web/test-site-name/my-url-that-does-not-exist",
+			requestNumber = "1");
+	}
+
 	@description = "This ensures that an unexpired redirect can be edited."
 	@priority = "5"
 	@refactordone
@@ -874,6 +922,30 @@ definition {
 			locator1 = "ContentRow#ENTRY_CONTENT_REDIRECT_DESTINATION_URL_COLUMN");
 	}
 
+	@description = "This ensures that the 404 tab is not shown and no new 404 tracking is performed when 404 tracking is disabled."
+	@priority = "5"
+	test CannotView404ByDefault {
+		property test.name.skip.portal.instance = "Redirect#CannotView404ByDefault";
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name/my-url-that-does-not-exist");
+
+		Redirect.openRedirectAdmin(siteURLKey = "test-site-name");
+
+		Redirect.view404URLsTab(disabled404Tracking = "true");
+
+		Redirect.openToConfigInSystemSettings();
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+
+		PortletEntry.save();
+
+		Redirect.open404URLsAdmin(siteURLKey = "test-site-name");
+
+		Redirect.view404URLsDefault();
+	}
+
 	@description = "This ensures that the 404 URLs can be ordered by requests."
 	@priority = "5"
 	@refactordone
@@ -887,7 +959,7 @@ definition {
 
 		FormFields.enableCheckbox(fieldName = "enabled");
 
-		PortletEntry.save();
+		SystemSettings.saveConfiguration();
 
 		JSONLayout.addPublicLayout(
 			groupName = "Test Site Name",
@@ -911,6 +983,8 @@ definition {
 
 		Redirect.open404URLsAdmin(siteURLKey = "test-site-name");
 
+		TestUtils.hardRefresh();
+
 		Redirect.view404URLs(
 			ignoreURL = "${portalURL}/web/test-site-name/test-destination-page1",
 			requestNumber = "1");
@@ -919,15 +993,11 @@ definition {
 			ignoreURL = "${portalURL}/web/test-site-name/test-destination-page2",
 			requestNumber = "2");
 
+		Click(locator1 = "ManagementBar#ORDER_ICON_GENERIC");
+
 		Redirect.viewOrderedURLs(
 			entry1 = "1",
 			entry2 = "2");
-
-		Click(locator1 = "ContentDashboard#REVERSE_SORT_DIRECTION_BUTTON");
-
-		Redirect.viewOrderedURLs(
-			entry1 = "2",
-			entry2 = "1");
 	}
 
 	@description = "This ensures that accessing a nonexistent URL redirects the user to the home of the current site."
@@ -1164,10 +1234,10 @@ definition {
 			Redirect.viewEntryFloatingURL(redirectURL = "${redirectURL}");
 		}
 
-		var currentMonth = DateUtil.getFormattedCurrentDate("MMMM");
+		var currentYear = DateUtil.getFormattedCurrentDate("yyyy");
 
 		Redirect.viewEntryInfo(
-			createDate = "${currentMonth}",
+			createDate = "${currentYear}",
 			createdBy = "Test Test",
 			expirationDate = "January 1, 2100",
 			latestOccurrence = "Never",
@@ -1178,10 +1248,10 @@ definition {
 		Redirect.openRedirectAdmin(siteURLKey = "test-site-name");
 
 		Redirect.viewEntryInfo(
-			createDate = "${currentMonth}",
+			createDate = "${currentYear}",
 			createdBy = "Test Test",
 			expirationDate = "January 1, 2100",
-			latestOccurrence = "${currentMonth}",
+			latestOccurrence = "${currentYear}",
 			type = "Temporary");
 	}
 

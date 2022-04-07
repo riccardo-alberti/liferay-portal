@@ -82,7 +82,7 @@
 	</tr>
 	<tr>
 		<td>DROPDOWN_LANGUAGEM</td>
-		<td>//button[contains(@class,'input-localized-trigger') and contains(@id,'labelMenu')]</td>
+		<td>//button[contains(@class,'input-localized-trigger') and contains(@id,'labelMenu')] | //button[contains(@class,'dropdown-toggle btn btn-monospaced btn-secondary')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -171,6 +171,11 @@
 		<td></td>
 	</tr>
 	<tr>
+		<td>OBJECT_IMPORT_FIELDS</td>
+		<td>//label[contains(text(),'${fieldName}')]/following::input[@class='form-control' and @value='${valueName}']</td>
+		<td></td>
+	</tr>
+	<tr>
 		<td>LAYOUT_ENTRY_CHOOSE_OPTION</td>
 		<td>//span[contains(text(),'Choose an Option')]</td>
 		<td></td>
@@ -222,7 +227,7 @@
 	</tr>
 	<tr>
 		<td>VIEW_SEARCHABLE_SECTION_DISABLED</td>
-		<td>//label[contains(@class,'simple-toggle-switch toggle-switch disabled')]//span[contains(text(),'Searchable')]</td>
+		<td>//div//h2[text()='Searchable']/..//label[contains(@class,'toggle-switch simple-toggle-switch disabled')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -273,26 +278,6 @@
 	<tr>
 		<td>OBJECT_FIELDS_LABEL_INPUT</td>
 		<td>//input[contains(@id,'objectFieldLabel')]</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>OBJECT_FIELDS_NAME_INPUT</td>
-		<td>//input[contains(@id,'objectFieldName')]</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>OBJECT_FIELDS_MANDATORY_TOGGLE_SWITCH</td>
-		<td>//input[contains(@class,'toggle-switch-check')]</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>OBJECT_FIELDS_MANDATORY_TOGGLE_SWITCH_DISABLED</td>
-		<td>//label[contains(@class,'simple-toggle-switch toggle-switch disabled')]//span[contains(text(),'Mandatory')]</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>OBJECT_FIELDS_TYPE</td>
-		<td>//select[contains(@id,'objectFieldType')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -372,7 +357,7 @@
 	</tr>
 	<tr>
 		<td>SELECT_LANGUAGE</td>
-		<td>//span[contains(text(),'${key_newLanguage}')]</td>
+		<td>//span[contains(text(),'${key_newLanguage}')] | //button[contains(@class,'dropdown-item')]//div[text()='${key_newLanguage}']</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -421,16 +406,6 @@
 		<td></td>
 	</tr>
 	<tr>
-		<td>FIELD_SEARCHABLE_LANGUAGE_LABEL</td>
-		<td>//div[contains(@class,'form-group input-select-wrapper')]//label[contains (., 'Language')]</td>
-		<td></td>
-	</tr>
-	<tr>
-		<td>FIELD_SEARCHABLE_LANGUAGE_OPTION</td>
-		<td>//div[contains(@class,'form-group input-select-wrapper')]//option[contains(@value, 'en_US')]</td>
-		<td></td>
-	</tr>
-	<tr>
 		<td>FIELDS_TYPE_COLUMN</td>
 		<td>//div[contains(@class,'dnd-th') and contains(text(),'Type')]</td>
 		<td></td>
@@ -457,7 +432,7 @@
 	</tr>
 	<tr>
 		<td>OBJECT_KEBAB_MENU</td>
-		<td>//a[contains(text(),'${key_objectLabel}')]/ancestor::div[contains(@class,'dnd-tr')]//*[contains(@class,'lexicon-icon-ellipsis')]</td>
+		<td>//*[contains(text(),'${key_objectLabel}')]/ancestor::div[contains(@class,'dnd-tr')]//*[contains(@class,'lexicon-icon-ellipsis')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -472,7 +447,7 @@
 	</tr>
 	<tr>
 		<td>TYPE_FIELD_REQUIRED</td>
-		<td>//select[@id='objectFieldType']/following-sibling::div//span[contains(text(),'Required')]</td>
+		<td>//input[@placeholder='Choose an Option']/ancestor::div//span[contains(text(),'Required')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -578,6 +553,16 @@
 	<tr>
 		<td>VIEW_FIELD_VALUE_DISABLED</td>
 		<td>//input[@disabled][contains(@class,'form-control ddm-field-text') and contains(@value,'${key_fieldValue}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_OPTION_TITLE_FIELD</td>
+		<td>//*[contains(@id,'titleObjectFieldId')]//option[contains(text(),'${key_optionName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_OBJECT_RELATIONSHIP_REQUIRED</td>
+		<td>//input[@id ='objectRelationshipLabel']/..//div//span[contains(text(),'Required')]</td>
 		<td></td>
 	</tr>
 </tbody>

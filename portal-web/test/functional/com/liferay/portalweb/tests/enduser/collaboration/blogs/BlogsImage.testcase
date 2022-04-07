@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -488,6 +488,15 @@ definition {
 		AssertElementPresent(
 			key_uploadFileName = "Document_2",
 			locator1 = "BlogsEntry#ENTRY_COVER_IMAGE");
+	}
+
+	@description = "This is a test for LPS-67276. It ensures that the success message for the cover image does not display after publishing with the empty required fields."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test SuccessMessageForCoverImageDoesNotDisplayAfterPublishingWithEmptyRequiredFields {
+
+		// TODO LPS-148984 SuccessMessageForCoverImageDoesNotDisplayAfterPublishingWithEmptyRequiredFields pending implementation
+
 	}
 
 }

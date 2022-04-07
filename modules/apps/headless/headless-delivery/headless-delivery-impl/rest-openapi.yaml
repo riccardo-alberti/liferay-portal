@@ -3088,6 +3088,16 @@ components:
                         - collectionReference
                         - collectionType
                     type: object
+                displayAllItems:
+                    # @review
+                    description:
+                        Whether to show all items when pagination is disabled.
+                    type: boolean
+                displayAllPages:
+                    # @review
+                    description:
+                        Whether to show all pages when pagination is enabled.
+                    type: boolean
                 fragmentStyle:
                     allOf:
                         - $ref: "#/components/schemas/FragmentStyle"
@@ -3119,12 +3129,17 @@ components:
                 numberOfItems:
                     # @review
                     description:
-                        The number of items in the page collection.
+                        The maximum number of items to display in the page collection when pagination is disabled.
                     type: integer
                 numberOfItemsPerPage:
                     # @review
                     description:
                         The number of items per page in the page collection.
+                    type: integer
+                numberOfPages:
+                    # @review
+                    description:
+                        The maximum number of pages to show when pagination is enabled.
                     type: integer
                 paginationType:
                     # @review
@@ -3138,9 +3153,11 @@ components:
                         Simple]
                     type: string
                 showAllItems:
+                    deprecated: true
                     # @review
                     description:
-                        Whether to show all items when pagination is enabled.
+                        Whether to show all items when pagination is enabled. Deprecated as of Cavanaugh (7.4.x),
+                        replaced by displayAllPages
                     type: boolean
                 templateKey:
                     # @review
@@ -3315,6 +3332,11 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page fragment instance is indexed or not.
+                    type: boolean
                 widgetInstances:
                     # @review
                     description:
@@ -3350,6 +3372,11 @@ components:
                     # @review
                     description:
                         A flag that indicates whether the page row has gutters.
+                    type: boolean
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page row is indexed or not.
                     type: boolean
                 modulesPerRow:
                     # @review
@@ -3461,6 +3488,20 @@ components:
                     items:
                         $ref: "#/components/schemas/FragmentViewport"
                     type: array
+                htmlProperties:
+                    # @review
+                    description:
+                        The page section's html properties
+                    properties:
+                        htmlTag:
+                            enum: [Article, Aside, Div, Footer, Header, Main, Nav, Section]
+                            type: string
+                    type: object
+                indexed:
+                    # @review
+                    description:
+                        A flag that indicates whether the page section is indexed or not.
+                    type: boolean
                 layout:
                     # @review
                     description:
@@ -3489,6 +3530,9 @@ components:
                         contentDisplay:
                             deprecated: true
                             enum: [Block, FlexColumn, FlexRow]
+                            type: string
+                        flexWrap:
+                            enum: [NoWrap, Wrap, WrapReverse]
                             type: string
                         justify:
                             deprecated: true
@@ -4318,6 +4362,12 @@ components:
                         The number of comments the structured content has received.
                     readOnly: true
                     type: integer
+                priority:
+                    # @review
+                    description:
+                        The structured content's priority.
+                    format: double
+                    type: number
                 relatedContents:
                     # @review
                     description:
@@ -4821,7 +4871,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.delivery.client', and version '4.0.20'."
+        'com.liferay.headless.delivery.client', and version '4.0.24'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"

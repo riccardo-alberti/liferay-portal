@@ -19,7 +19,7 @@ definition {
 
 		Click(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_TITLE");
 
-		AssertElementNotPresent(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_ELLIPSIS");
+		AssertElementNotPresent(locator1 = "PublicationsChanges#PUBLICATIONS_CHANGE_DROPDOWN");
 	}
 
 	macro assertScheduledPublicationPublished {
@@ -161,10 +161,6 @@ definition {
 		PublicationsNavigator.openPublicationsHistory();
 
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
-
-		// Workaround LPS-115320
-
-		Refresh();
 
 		var key_publicationName = "${publicationName}";
 
@@ -348,6 +344,12 @@ definition {
 			key_entryTitle = "${entryTitle}",
 			key_successMessage = "${successMessage}",
 			locator1 = "Publications#CONFLICTING_CHANGES_SUCCESS_CONTENT");
+	}
+
+	macro viewConflictingChangesWarning {
+		AssertElementPresent(
+			key_warningMessage = "${warningMessage}",
+			locator1 = "Message#WARNING_SPECIFIC");
 	}
 
 	macro viewNeedsManualResolution {

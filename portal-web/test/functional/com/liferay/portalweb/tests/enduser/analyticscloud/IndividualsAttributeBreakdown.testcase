@@ -64,6 +64,9 @@ definition {
 	test AddNewBreakdownByAttributeAndAssertCorrectResultsAppear {
 		property portal.upstream = "quarantine";
 
+		// AC Quarantine Reason: Name of breakdown already exists causing test to fail
+		// Possible CSV load time issue as well
+
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "ac@liferay.com",
@@ -116,8 +119,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8997 | Test Summary: Distribution page can be filtered by a specific string"
 	@priority = "5"
 	test BreakdownByAttributeOnDistributionPage {
-		property portal.upstream = "quarantine";
-
 		task ("View the site page") {
 			ACUtils.navigateToSitePageWithUser(
 				emailList = "ac@liferay.com",
@@ -219,8 +220,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9000 | Test Summary: As a Business User, I should be able to select different tabs in breakdown"
 	@priority = "3"
 	test SelectDifferentTabsInbreakdown {
-		property portal.upstream = "quarantine";
-
 		task ("Sign in as new user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "ac@liferay.com",

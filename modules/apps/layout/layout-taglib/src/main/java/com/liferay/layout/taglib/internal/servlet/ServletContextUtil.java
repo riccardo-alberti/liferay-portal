@@ -24,6 +24,7 @@ import com.liferay.info.item.InfoItemServiceTracker;
 import com.liferay.info.list.renderer.InfoListRendererTracker;
 import com.liferay.layout.adaptive.media.LayoutAdaptiveMediaProcessor;
 import com.liferay.layout.display.page.LayoutDisplayPageProviderTracker;
+import com.liferay.layout.helper.CollectionPaginationHelper;
 import com.liferay.layout.list.retriever.LayoutListRetrieverTracker;
 import com.liferay.layout.list.retriever.ListObjectReferenceFactoryTracker;
 import com.liferay.layout.util.LayoutClassedModelUsageRecorder;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.SegmentsEntryRetriever;
 import com.liferay.segments.context.RequestContextMapper;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +50,10 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
  */
 @Component(immediate = true, service = {})
 public class ServletContextUtil {
+
+	public static CollectionPaginationHelper getCollectionPaginationHelper() {
+		return _collectionPaginationHelper;
+	}
 
 	public static String getContextPath() {
 		return _servletContext.getContextPath();
@@ -129,6 +135,12 @@ public class ServletContextUtil {
 		return _segmentsEntryRetriever;
 	}
 
+	public static SegmentsExperienceLocalService
+		getSegmentsExperienceLocalService() {
+
+		return _segmentsExperienceLocalService;
+	}
+
 	public static ServletContext getServletContext() {
 		return _servletContext;
 	}
@@ -165,6 +177,13 @@ public class ServletContextUtil {
 		}
 
 		_layoutClassedModelUsageRecorders.remove(modelClassName);
+	}
+
+	@Reference(unbind = "-")
+	protected void setCollectionPaginationHelper(
+		CollectionPaginationHelper collectionPaginationHelper) {
+
+		_collectionPaginationHelper = collectionPaginationHelper;
 	}
 
 	@Reference(unbind = "-")
@@ -267,6 +286,13 @@ public class ServletContextUtil {
 		_segmentsEntryRetriever = segmentsEntryRetriever;
 	}
 
+	@Reference(unbind = "-")
+	protected void setSegmentsExperienceLocalService(
+		SegmentsExperienceLocalService segmentsExperienceLocalService) {
+
+		_segmentsExperienceLocalService = segmentsExperienceLocalService;
+	}
+
 	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.layout.taglib)",
 		unbind = "-"
@@ -275,6 +301,7 @@ public class ServletContextUtil {
 		_servletContext = servletContext;
 	}
 
+	private static CollectionPaginationHelper _collectionPaginationHelper;
 	private static FragmentCollectionContributorTracker
 		_fragmentCollectionContributorTracker;
 	private static FragmentEntryConfigurationParser
@@ -296,6 +323,8 @@ public class ServletContextUtil {
 		_listObjectReferenceFactoryTracker;
 	private static RequestContextMapper _requestContextMapper;
 	private static SegmentsEntryRetriever _segmentsEntryRetriever;
+	private static SegmentsExperienceLocalService
+		_segmentsExperienceLocalService;
 	private static ServletContext _servletContext;
 
 }

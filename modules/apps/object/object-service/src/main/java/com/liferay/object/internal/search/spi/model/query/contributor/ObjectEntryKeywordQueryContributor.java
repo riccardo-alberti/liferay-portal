@@ -14,8 +14,12 @@
 
 package com.liferay.object.internal.search.spi.model.query.contributor;
 
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectView;
+import com.liferay.object.model.ObjectViewColumn;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -37,7 +41,6 @@ import com.liferay.portal.kernel.search.generic.TermQueryImpl;
 import com.liferay.portal.kernel.search.generic.TermRangeQueryImpl;
 import com.liferay.portal.kernel.search.generic.WildcardQueryImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.spi.model.query.contributor.KeywordQueryContributor;
@@ -48,8 +51,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Marco Leo
@@ -59,9 +65,11 @@ public class ObjectEntryKeywordQueryContributor
 	implements KeywordQueryContributor {
 
 	public ObjectEntryKeywordQueryContributor(
-		ObjectFieldLocalService objectFieldLocalService) {
+		ObjectFieldLocalService objectFieldLocalService,
+		ObjectViewLocalService objectViewLocalService) {
 
 		_objectFieldLocalService = objectFieldLocalService;
+		_objectViewLocalService = objectViewLocalService;
 	}
 
 	@Override
@@ -98,8 +106,50 @@ public class ObjectEntryKeywordQueryContributor
 			}
 		}
 
+		AtomicBoolean addObjectEntryTitle = new AtomicBoolean(true);
+		List<ObjectField> objectFields = null;
+
+		if (GetterUtil.getBoolean(
+				searchContext.getAttribute("searchByObjectView"))) {
+
+			ObjectView defaultObjectView =
+				_objectViewLocalService.fetchDefaultObjectView(
+					objectDefinitionId);
+
+			if (defaultObjectView != null) {
+				addObjectEntryTitle.set(false);
+
+				List<ObjectViewColumn> objectViewColumns =
+					defaultObjectView.getObjectViewColumns();
+
+				Stream<ObjectViewColumn> stream = objectViewColumns.stream();
+
+				objectFields = stream.peek(
+					objectViewColumn -> {
+						if (Objects.equals(
+								objectViewColumn.getObjectFieldName(), "id")) {
+
+							addObjectEntryTitle.set(true);
+						}
+					}
+				).map(
+					objectViewColumn ->
+						_objectFieldLocalService.fetchObjectField(
+							defaultObjectView.getObjectDefinitionId(),
+							objectViewColumn.getObjectFieldName())
+				).collect(
+					Collectors.toList()
+				);
+			}
+		}
+
+		if (objectFields == null) {
+			objectFields = _objectFieldLocalService.getObjectFields(
+				objectDefinitionId);
+		}
+
 		for (String token : _tokenizeKeywords(keywords)) {
-			if (!Validator.isBlank(token)) {
+			if (addObjectEntryTitle.get() && !Validator.isBlank(token)) {
 				try {
 					booleanQuery.add(
 						new TermQueryImpl(Field.ENTRY_CLASS_PK, token),
@@ -121,9 +171,6 @@ public class ObjectEntryKeywordQueryContributor
 					throw new SystemException(parseException);
 				}
 			}
-
-			List<ObjectField> objectFields =
-				_objectFieldLocalService.getObjectFields(objectDefinitionId);
 
 			for (ObjectField objectField : objectFields) {
 				try {
@@ -181,7 +228,7 @@ public class ObjectEntryKeywordQueryContributor
 			SearchContext searchContext)
 		throws ParseException {
 
-		if (!objectField.isIndexed()) {
+		if ((objectField == null) || !objectField.isIndexed()) {
 			return;
 		}
 
@@ -215,15 +262,50 @@ public class ObjectEntryKeywordQueryContributor
 
 			queryConfig.addHighlightFieldNames(fieldName);
 		}
-		else if (Objects.equals(objectField.getDBType(), "BigDecimal")) {
+		else if (Objects.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
+				 Objects.equals(
+					 objectField.getDBType(),
+					 ObjectFieldConstants.DB_TYPE_CLOB) ||
+				 Objects.equals(
+					 objectField.getDBType(),
+					 ObjectFieldConstants.DB_TYPE_STRING)) {
+
+			String fieldName = "nestedFieldArray.value_text";
+
+			if (Objects.equals(
+					objectField.getIndexedLanguageId(),
+					searchContext.getLanguageId())) {
+
+				fieldName =
+					"nestedFieldArray.value_" +
+						objectField.getIndexedLanguageId();
+			}
+
+			nestedBooleanQuery.add(
+				new MatchQuery(fieldName, token), BooleanClauseOccur.MUST);
+
+			queryConfig.addHighlightFieldNames(fieldName);
+		}
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_BIG_DECIMAL)) {
+
 			_addNumericClause(
 				"nestedFieldArray.value_double", nestedBooleanQuery,
 				objectField, token);
 		}
-		else if (Objects.equals(objectField.getDBType(), "Blob")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_BLOB)) {
+
 			_log.error("Blob type is not indexable");
 		}
-		else if (Objects.equals(objectField.getDBType(), "Boolean")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_BOOLEAN)) {
+
 			String fieldName = null;
 
 			if (StringUtil.equalsIgnoreCase(token, "false") ||
@@ -245,48 +327,37 @@ public class ObjectEntryKeywordQueryContributor
 				queryConfig.addHighlightFieldNames(fieldName);
 			}
 		}
-		else if (Objects.equals(objectField.getDBType(), "Date")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_DATE)) {
+
 			_addNumericClause(
 				"nestedFieldArray.value_date", nestedBooleanQuery, objectField,
 				token);
 		}
-		else if (Objects.equals(objectField.getDBType(), "Double")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_DOUBLE)) {
+
 			_addNumericClause(
 				"nestedFieldArray.value_double", nestedBooleanQuery,
 				objectField, token);
 		}
-		else if (Objects.equals(objectField.getDBType(), "Integer")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_INTEGER)) {
+
 			_addNumericClause(
 				"nestedFieldArray.value_integer", nestedBooleanQuery,
 				objectField, token);
 		}
-		else if (Objects.equals(objectField.getDBType(), "Long")) {
+		else if (Objects.equals(
+					objectField.getDBType(),
+					ObjectFieldConstants.DB_TYPE_LONG)) {
+
 			_addNumericClause(
 				"nestedFieldArray.value_long", nestedBooleanQuery, objectField,
 				token);
-		}
-		else if (Objects.equals(objectField.getDBType(), "String")) {
-			if (Validator.isBlank(objectField.getIndexedLanguageId())) {
-				String fieldName = "nestedFieldArray.value_text";
-
-				nestedBooleanQuery.add(
-					new MatchQuery(fieldName, token), BooleanClauseOccur.MUST);
-
-				queryConfig.addHighlightFieldNames(fieldName);
-			}
-			else if (Objects.equals(
-						objectField.getIndexedLanguageId(),
-						LocaleUtil.toLanguageId(searchContext.getLocale()))) {
-
-				String fieldName =
-					"nestedFieldArray.value_" +
-						objectField.getIndexedLanguageId();
-
-				nestedBooleanQuery.add(
-					new MatchQuery(fieldName, token), BooleanClauseOccur.MUST);
-
-				queryConfig.addHighlightFieldNames(fieldName);
-			}
 		}
 
 		if (nestedBooleanQuery.hasClauses()) {
@@ -403,6 +474,7 @@ public class ObjectEntryKeywordQueryContributor
 	private static final Pattern _pattern = Pattern.compile("\\d{14}");
 
 	private final ObjectFieldLocalService _objectFieldLocalService;
+	private final ObjectViewLocalService _objectViewLocalService;
 
 	private class KeywordTokenizer {
 

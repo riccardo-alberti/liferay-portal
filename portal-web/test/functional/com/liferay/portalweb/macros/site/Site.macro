@@ -83,9 +83,13 @@ definition {
 			}
 		}
 
-		while (IsElementPresent(locator1 = "Button#ADD_DISABLED")) {
+		while (IsElementNotPresent(key_itemName = "Site Configuration", locator1 = "ListGroupItem#ITEM_TEXT")) {
 			WaitForPageLoad();
 		}
+
+		WaitForElementPresent(
+			key_itemName = "Site Configuration",
+			locator1 = "ListGroupItem#ITEM_TEXT");
 
 		Click(
 			key_itemName = "Site Configuration",
@@ -208,6 +212,13 @@ definition {
 			locator1 = "ListGroupItem#ITEM_TEXT");
 
 		Navigator.gotoNavTab(navTab = "Site URL");
+
+		if (isSet(pageVirtualHosts)) {
+			Type(
+				key_text = "Virtual Host",
+				locator1 = "TextInput#ANY",
+				value1 = "${pageVirtualHostURL}");
+		}
 
 		if (isSet(publicVirtualHosts)) {
 			Type(
@@ -861,7 +872,7 @@ definition {
 			LexiconList.viewListEntryNotPresent(listEntry = "${siteName}");
 		}
 		else if ("${membershipType}" == "Restricted") {
-			LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+			LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 			LexiconList.viewListEntrySubtitle(
 				listEntry = "${siteName}",
@@ -889,7 +900,7 @@ definition {
 				userRole = "${userRole}");
 		}
 		else {
-			LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+			LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 			LexiconList.viewListEntrySubtitle(
 				listEntry = "${siteName}",
@@ -902,7 +913,7 @@ definition {
 
 			Alert.viewSuccessMessage();
 
-			LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+			LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 			LexiconList.viewListEntrySubtitle(
 				listEntry = "${siteName}",
@@ -920,7 +931,7 @@ definition {
 	}
 
 	macro leaveViaMySitesPG {
-		LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+		LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 		LexiconList.viewListEntrySubtitle(
 			listEntry = "${siteName}",
@@ -928,7 +939,7 @@ definition {
 
 		Navigator.gotoNavItem(navItem = "Available Sites");
 
-		LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+		LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 		LexiconList.viewListEntrySubtitle(
 			listEntry = "${siteName}",
@@ -941,7 +952,7 @@ definition {
 
 		Alert.viewSuccessMessage();
 
-		LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+		LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 		LexiconList.viewListEntrySubtitle(
 			listEntry = "${siteName}",
@@ -1437,7 +1448,7 @@ definition {
 			locator1 = "NavBar#NAV_ITEM_LINK",
 			value1 = "My Sites");
 
-		LexiconList.viewListEntryTitle(listEntry = "${siteName}");
+		LexiconList.viewListEntryPresent(listEntry = "${siteName}");
 
 		LexiconList.viewListEntrySubtitle(
 			listEntry = "${siteName}",
@@ -1594,7 +1605,7 @@ definition {
 	macro viewSiteRoleViaSiteMembershipsCP {
 		LexiconEntry.changeDisplayStyle(displayStyle = "list");
 
-		LexiconList.viewListEntryTitle(listEntry = "${resourceName}");
+		LexiconList.viewListEntryPresent(listEntry = "${resourceName}");
 
 		LexiconList.viewListEntrySubtitle(
 			listEntry = "${resourceName}",

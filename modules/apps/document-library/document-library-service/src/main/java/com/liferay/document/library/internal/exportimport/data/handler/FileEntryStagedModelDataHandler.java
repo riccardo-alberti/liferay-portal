@@ -147,7 +147,7 @@ public class FileEntryStagedModelDataHandler
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return null;
@@ -311,7 +311,7 @@ public class FileEntryStagedModelDataHandler
 					inputStream.close();
 				}
 				catch (IOException ioException) {
-					_log.error(ioException, ioException);
+					_log.error(ioException);
 				}
 			}
 		}
@@ -496,8 +496,9 @@ public class FileEntryStagedModelDataHandler
 						fileEntry.getExternalReferenceCode(), userId,
 						repositoryId, folderId, fileEntry.getFileName(),
 						fileEntry.getMimeType(), fileEntryTitle,
-						fileEntry.getDescription(), null, inputStream,
-						fileEntry.getSize(), fileEntry.getExpirationDate(),
+						StringPool.BLANK, fileEntry.getDescription(), null,
+						inputStream, fileEntry.getSize(),
+						fileEntry.getExpirationDate(),
 						fileEntry.getReviewDate(), serviceContext);
 
 					if (fileEntry.isInTrash()) {
@@ -532,7 +533,7 @@ public class FileEntryStagedModelDataHandler
 						}
 						catch (Exception exception) {
 							if (_log.isDebugEnabled()) {
-								_log.debug(exception, exception);
+								_log.debug(exception);
 							}
 						}
 					}
@@ -569,6 +570,7 @@ public class FileEntryStagedModelDataHandler
 									userId, existingFileEntry.getFileEntryId(),
 									fileEntry.getFileName(),
 									fileEntry.getMimeType(), fileEntryTitle,
+									StringPool.BLANK,
 									fileEntry.getDescription(), null,
 									DLVersionNumberIncrease.MINOR, inputStream,
 									fileEntry.getSize(),
@@ -639,10 +641,10 @@ public class FileEntryStagedModelDataHandler
 				importedFileEntry = _dlAppLocalService.addFileEntry(
 					fileEntry.getExternalReferenceCode(), userId, repositoryId,
 					folderId, fileEntry.getFileName(), fileEntry.getMimeType(),
-					fileEntryTitle, fileEntry.getDescription(), null,
-					inputStream, fileEntry.getSize(),
-					fileEntry.getExpirationDate(), fileEntry.getReviewDate(),
-					serviceContext);
+					fileEntryTitle, StringPool.BLANK,
+					fileEntry.getDescription(), null, inputStream,
+					fileEntry.getSize(), fileEntry.getExpirationDate(),
+					fileEntry.getReviewDate(), serviceContext);
 			}
 
 			for (DLPluggableContentDataHandler<?>
@@ -681,7 +683,7 @@ public class FileEntryStagedModelDataHandler
 				}
 			}
 			catch (IOException ioException) {
-				_log.error(ioException, ioException);
+				_log.error(ioException);
 			}
 		}
 	}
@@ -775,7 +777,7 @@ public class FileEntryStagedModelDataHandler
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 			else if (_log.isWarnEnabled()) {
 				_log.warn(

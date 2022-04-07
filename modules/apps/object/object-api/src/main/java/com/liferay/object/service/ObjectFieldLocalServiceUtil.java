@@ -50,13 +50,15 @@ public class ObjectFieldLocalServiceUtil {
 			String businessType, String dbType, boolean indexed,
 			boolean indexedAsKeyword, String indexedLanguageId,
 			Map<java.util.Locale, String> labelMap, String name,
-			boolean required)
+			boolean required,
+			List<com.liferay.object.model.ObjectFieldSetting>
+				objectFieldSettings)
 		throws PortalException {
 
 		return getService().addCustomObjectField(
 			userId, listTypeDefinitionId, objectDefinitionId, businessType,
 			dbType, indexed, indexedAsKeyword, indexedLanguageId, labelMap,
-			name, required);
+			name, required, objectFieldSettings);
 	}
 
 	/**
@@ -139,6 +141,13 @@ public class ObjectFieldLocalServiceUtil {
 		throws PortalException {
 
 		return getService().deleteObjectField(objectField);
+	}
+
+	public static void deleteObjectFieldByObjectDefinitionId(
+			Long objectDefinitionId)
+		throws PortalException {
+
+		getService().deleteObjectFieldByObjectDefinitionId(objectDefinitionId);
 	}
 
 	/**
@@ -272,6 +281,13 @@ public class ObjectFieldLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static List<ObjectField> getActiveObjectFields(
+			List<ObjectField> objectFields)
+		throws PortalException {
+
+		return getService().getActiveObjectFields(objectFields);
+	}
+
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
 		getExportActionableDynamicQuery(
 			com.liferay.exportimport.kernel.lar.PortletDataContext
@@ -389,12 +405,15 @@ public class ObjectFieldLocalServiceUtil {
 			long objectFieldId, long listTypeDefinitionId, String businessType,
 			String dbType, boolean indexed, boolean indexedAsKeyword,
 			String indexedLanguageId, Map<java.util.Locale, String> labelMap,
-			String name, boolean required)
+			String name, boolean required,
+			List<com.liferay.object.model.ObjectFieldSetting>
+				objectFieldSettings)
 		throws PortalException {
 
 		return getService().updateCustomObjectField(
 			objectFieldId, listTypeDefinitionId, businessType, dbType, indexed,
-			indexedAsKeyword, indexedLanguageId, labelMap, name, required);
+			indexedAsKeyword, indexedLanguageId, labelMap, name, required,
+			objectFieldSettings);
 	}
 
 	/**

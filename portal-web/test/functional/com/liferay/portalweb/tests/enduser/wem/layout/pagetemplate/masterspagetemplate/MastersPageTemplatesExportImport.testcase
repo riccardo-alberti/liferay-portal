@@ -56,7 +56,9 @@ definition {
 		task ("Assert Export button is disabled") {
 			MastersPageTemplatesAdmin.selectMasters(masterLayoutName = "Custom Masters Page Template");
 
-			AssertElementPresent(locator1 = "Icon#EXPORT_DISABLED");
+			AssertElementPresent(
+				key_text = "upload",
+				locator1 = "Icon#ANY_DISABLED");
 		}
 	}
 
@@ -110,7 +112,7 @@ definition {
 
 			AssertElementPresent(
 				key_columnNumber = "1",
-				key_elementHeader = "//div[contains(@class,'page-editor')]//li[contains(.,'Button')]",
+				key_elementHeader = "//div[@aria-label='Button']",
 				key_position = "1",
 				locator1 = "PageEditor#GRID_COLUMN_NESTED_ELEMENT");
 
@@ -145,7 +147,7 @@ definition {
 			PageEditor.viewFragment(fragmentName = "Container");
 
 			AssertElementPresent(
-				key_elementHeader = "//div[contains(@class,'page-editor')]//li[contains(.,'Heading')]",
+				key_elementHeader = "//div[@aria-label='Heading']",
 				key_position = "1",
 				locator1 = "PageEditor#CONTAINER_CONTAINER_NESTED_ELEMENT");
 
@@ -153,7 +155,7 @@ definition {
 
 			AssertElementPresent(
 				key_columnNumber = "1",
-				key_elementHeader = "//div[contains(@class,'page-editor')]//li[contains(.,'Button')]",
+				key_elementHeader = "//div[@aria-label='Button']",
 				key_position = "1",
 				locator1 = "PageEditor#GRID_COLUMN_NESTED_ELEMENT");
 		}
@@ -185,7 +187,7 @@ definition {
 
 			PageEditor.editLayoutContainer(
 				backgroundImage = "Direct",
-				panelList = "Styles",
+				panel = "Styles",
 				uploadFileName = "Document_1.png");
 
 			PageEditor.viewContainerStyle(

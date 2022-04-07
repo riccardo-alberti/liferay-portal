@@ -33,7 +33,7 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashRenderer;
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -80,12 +80,13 @@ public class WikiPageAssetRenderer
 	}
 
 	public WikiPageAssetRenderer(
-		WikiPage page, WikiEngineRenderer wikiEngineRenderer,
-		TrashHelper trashHelper) {
+		HtmlParser htmlParser, TrashHelper trashHelper,
+		WikiEngineRenderer wikiEngineRenderer, WikiPage page) {
 
-		_page = page;
-		_wikiEngineRenderer = wikiEngineRenderer;
+		_htmlParser = htmlParser;
 		_trashHelper = trashHelper;
+		_wikiEngineRenderer = wikiEngineRenderer;
+		_page = page;
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class WikiPageAssetRenderer
 							_page.getGroupId(), WikiConstants.SERVICE_NAME));
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return null;
 			}
@@ -160,11 +161,11 @@ public class WikiPageAssetRenderer
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		try {
-			return HtmlUtil.extractText(
+			return _htmlParser.extractText(
 				_wikiEngineRenderer.convert(_page, null, null, null));
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			return _page.getContent();
 		}
@@ -404,7 +405,7 @@ public class WikiPageAssetRenderer
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			return false;
@@ -416,6 +417,7 @@ public class WikiPageAssetRenderer
 
 	private AssetDisplayPageFriendlyURLProvider
 		_assetDisplayPageFriendlyURLProvider;
+	private final HtmlParser _htmlParser;
 	private final WikiPage _page;
 	private final TrashHelper _trashHelper;
 	private final WikiEngineRenderer _wikiEngineRenderer;

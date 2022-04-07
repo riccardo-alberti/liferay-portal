@@ -19,6 +19,8 @@ package com.liferay.object.constants;
  */
 public class ObjectFieldConstants {
 
+	public static final String BUSINESS_TYPE_ATTACHMENT = "Attachment";
+
 	public static final String BUSINESS_TYPE_BOOLEAN = "Boolean";
 
 	public static final String BUSINESS_TYPE_DATE = "Date";
@@ -39,6 +41,8 @@ public class ObjectFieldConstants {
 		"PrecisionDecimal";
 
 	public static final String BUSINESS_TYPE_RELATIONSHIP = "Relationship";
+
+	public static final String BUSINESS_TYPE_RICH_TEXT = "RichText";
 
 	public static final String BUSINESS_TYPE_TEXT = "Text";
 

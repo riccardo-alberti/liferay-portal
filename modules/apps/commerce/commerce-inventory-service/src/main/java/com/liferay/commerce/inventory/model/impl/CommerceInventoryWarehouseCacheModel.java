@@ -81,7 +81,7 @@ public class CommerceInventoryWarehouseCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(43);
+		StringBundler sb = new StringBundler(53);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -103,6 +103,8 @@ public class CommerceInventoryWarehouseCacheModel
 		sb.append(name);
 		sb.append(", description=");
 		sb.append(description);
+		sb.append(", label=");
+		sb.append(label);
 		sb.append(", active=");
 		sb.append(active);
 		sb.append(", street1=");
@@ -125,6 +127,14 @@ public class CommerceInventoryWarehouseCacheModel
 		sb.append(longitude);
 		sb.append(", type=");
 		sb.append(type);
+		sb.append(", status=");
+		sb.append(status);
+		sb.append(", statusByUserId=");
+		sb.append(statusByUserId);
+		sb.append(", statusByUserName=");
+		sb.append(statusByUserName);
+		sb.append(", statusDate=");
+		sb.append(statusDate);
 		sb.append("}");
 
 		return sb.toString();
@@ -184,6 +194,13 @@ public class CommerceInventoryWarehouseCacheModel
 		}
 		else {
 			commerceInventoryWarehouseImpl.setDescription(description);
+		}
+
+		if (label == null) {
+			commerceInventoryWarehouseImpl.setLabel("");
+		}
+		else {
+			commerceInventoryWarehouseImpl.setLabel(label);
 		}
 
 		commerceInventoryWarehouseImpl.setActive(active);
@@ -249,6 +266,24 @@ public class CommerceInventoryWarehouseCacheModel
 			commerceInventoryWarehouseImpl.setType(type);
 		}
 
+		commerceInventoryWarehouseImpl.setStatus(status);
+		commerceInventoryWarehouseImpl.setStatusByUserId(statusByUserId);
+
+		if (statusByUserName == null) {
+			commerceInventoryWarehouseImpl.setStatusByUserName("");
+		}
+		else {
+			commerceInventoryWarehouseImpl.setStatusByUserName(
+				statusByUserName);
+		}
+
+		if (statusDate == Long.MIN_VALUE) {
+			commerceInventoryWarehouseImpl.setStatusDate(null);
+		}
+		else {
+			commerceInventoryWarehouseImpl.setStatusDate(new Date(statusDate));
+		}
+
 		commerceInventoryWarehouseImpl.resetOriginalValues();
 
 		return commerceInventoryWarehouseImpl;
@@ -269,6 +304,7 @@ public class CommerceInventoryWarehouseCacheModel
 		modifiedDate = objectInput.readLong();
 		name = objectInput.readUTF();
 		description = objectInput.readUTF();
+		label = objectInput.readUTF();
 
 		active = objectInput.readBoolean();
 		street1 = objectInput.readUTF();
@@ -283,6 +319,12 @@ public class CommerceInventoryWarehouseCacheModel
 
 		longitude = objectInput.readDouble();
 		type = objectInput.readUTF();
+
+		status = objectInput.readInt();
+
+		statusByUserId = objectInput.readLong();
+		statusByUserName = objectInput.readUTF();
+		statusDate = objectInput.readLong();
 	}
 
 	@Override
@@ -324,6 +366,13 @@ public class CommerceInventoryWarehouseCacheModel
 		}
 		else {
 			objectOutput.writeUTF(description);
+		}
+
+		if (label == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(label);
 		}
 
 		objectOutput.writeBoolean(active);
@@ -387,6 +436,19 @@ public class CommerceInventoryWarehouseCacheModel
 		else {
 			objectOutput.writeUTF(type);
 		}
+
+		objectOutput.writeInt(status);
+
+		objectOutput.writeLong(statusByUserId);
+
+		if (statusByUserName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(statusByUserName);
+		}
+
+		objectOutput.writeLong(statusDate);
 	}
 
 	public long mvccVersion;
@@ -399,6 +461,7 @@ public class CommerceInventoryWarehouseCacheModel
 	public long modifiedDate;
 	public String name;
 	public String description;
+	public String label;
 	public boolean active;
 	public String street1;
 	public String street2;
@@ -410,5 +473,9 @@ public class CommerceInventoryWarehouseCacheModel
 	public double latitude;
 	public double longitude;
 	public String type;
+	public int status;
+	public long statusByUserId;
+	public String statusByUserName;
+	public long statusDate;
 
 }

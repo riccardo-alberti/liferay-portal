@@ -106,6 +106,7 @@ definition {
 			fieldType = "${fieldType}",
 			indexed = "${indexed}",
 			indexedAsKeyword = "${indexedAsKeyword}",
+			indexedLanguageId = "${indexedLanguageId}",
 			isRequired = "${isRequired}",
 			objectName = "${objectName}",
 			picklistName = "${picklistName}",
@@ -122,16 +123,16 @@ definition {
 
 		if (isSet(fieldName)) {
 			Type(
-				locator1 = "ObjectAdmin#OBJECT_FIELDS_NAME_INPUT",
+				locator1 = "ObjectField#NAME_FIELD",
 				value1 = "${fieldName}");
 		}
 
-		Select(
-			locator1 = "ObjectAdmin#OBJECT_FIELDS_TYPE",
-			value1 = "${fieldType}");
+		if (isSet(fieldType)) {
+			ObjectField.selectType(fieldType = "${fieldType}");
+		}
 
 		if ("${isMandatory}" == "true") {
-			Check.checkToggleSwitch(locator1 = "ObjectAdmin#OBJECT_FIELDS_MANDATORY_TOGGLE_SWITCH");
+			ObjectField.checkToggleMandatory();
 		}
 
 		if (isSet(fieldPicklist)) {
@@ -242,6 +243,8 @@ definition {
 
 	macro addObjectStringFieldEntryViaUI {
 		LexiconEntry.gotoAdd();
+
+		WaitForSPARefresh();
 
 		Type(
 			locator1 = "ObjectAdmin#ENTRY_STRING_VALUE_FIELD",
@@ -419,11 +422,11 @@ definition {
 	}
 
 	macro assertKeywordAndTextNotPresent {
-		AssertNotVisible(
+		AssertElementNotPresent(
 			key_radioOption = "Keyword",
 			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
 
-		AssertNotVisible(
+		AssertElementNotPresent(
 			key_radioOption = "Text",
 			locator1 = "ObjectAdmin#FIELDS_RADIO_OPTION");
 	}
@@ -765,11 +768,11 @@ definition {
 			Type(
 				locator1 = "ObjectAdmin#VIEW_ACTION_NAME_ON_SIDE_PANEL",
 				value1 = "${newActionName}");
+
+			Button.clickSave();
+
+			Refresh();
 		}
-
-		Button.clickSave();
-
-		Refresh();
 	}
 
 	macro goToActionDetails {
@@ -949,11 +952,57 @@ definition {
 			value1 = "${fieldOption}");
 	}
 
+	macro selectSpecificKebabMenuOption {
+		Click(
+			key_objectLabel = "${objectLabel}",
+			locator1 = "ObjectAdmin#OBJECT_KEBAB_MENU");
+
+		MenuItem.click(menuItem = "${kebabOption}");
+	}
+
 	macro viewCustomObject {
 		AssertElementPresent(
 			key_name = "${name}",
 			key_system = "No",
 			locator1 = "ObjectAdmin#VIEW_OBJECT");
+	}
+
+	macro viewDescriptionForEachFieldType {
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a long integer up to 16 digits.",
+			type = "Long Integer");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add text up to 280 characters.",
+			type = "Text");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Choose from a picklist.",
+			type = "Picklist");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a date.",
+			type = "Date");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add an integer up to nine digits.",
+			type = "Integer");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a high precision decimal number without rounding.",
+			type = "Precision Decimal");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add a decimal number that supports fractional portions.",
+			type = "Decimal");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Select between true or false.",
+			type = "Boolean");
+
+		ObjectAdmin.assertRelationshipsTypeDescription(
+			description = "Add text up to 65,000 characters.",
+			type = "Long Text");
 	}
 
 	macro viewFieldDetails {
@@ -966,14 +1015,8 @@ definition {
 
 	macro viewFieldErrorMessage {
 		AssertTextEquals(
-			locator1 = "Message#ERROR",
+			locator1 = "ObjectAdmin#OBJECT_FIELDS_REQUIRED_ERROR_MESSAGE",
 			value1 = "${message}");
-	}
-
-	macro viewFieldSearchableSectionLanguage {
-		AssertElementPresent(locator1 = "ObjectAdmin#FIELD_SEARCHABLE_LANGUAGE_LABEL");
-
-		AssertElementPresent(locator1 = "ObjectAdmin#FIELD_SEARCHABLE_LANGUAGE_OPTION");
 	}
 
 	macro viewFieldValueDisabled {
@@ -990,6 +1033,20 @@ definition {
 		AssertElementPresent(
 			key_portlet = "${portlet}",
 			locator1 = "ProductMenu#PORTLET");
+	}
+
+	macro viewOptionTitleField {
+		if (isSet(optionNamePresent)) {
+			AssertElementPresent(
+				key_optionName = "${optionNamePresent}",
+				locator1 = "ObjectAdmin#VIEW_OPTION_TITLE_FIELD");
+		}
+
+		if (isSet(optionNameNotPresent)) {
+			AssertElementNotPresent(
+				key_optionName = "${optionNameNotPresent}",
+				locator1 = "ObjectAdmin#VIEW_OPTION_TITLE_FIELD");
+		}
 	}
 
 	macro viewRequiredAlert {

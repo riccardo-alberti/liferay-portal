@@ -19,6 +19,7 @@ import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.document.library.configuration.DLConfiguration;
+import com.liferay.document.library.configuration.FFFriendlyURLEntryFileEntryConfiguration;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.document.library.exception.DLStorageQuotaExceededException;
 import com.liferay.document.library.kernel.antivirus.AntivirusScannerException;
@@ -151,7 +152,10 @@ import org.osgi.service.component.annotations.Reference;
  * @author Kenneth Chang
  */
 @Component(
-	configurationPid = "com.liferay.document.library.configuration.DLConfiguration",
+	configurationPid = {
+		"com.liferay.document.library.configuration.DLConfiguration",
+		"com.liferay.document.library.configuration.FFFriendlyURLEntryFileEntryConfiguration"
+	},
 	property = {
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 		"javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY_ADMIN,
@@ -171,6 +175,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 	protected void activate(Map<String, Object> properties) {
 		_dlConfiguration = ConfigurableUtil.createConfigurable(
 			DLConfiguration.class, properties);
+		_ffFriendlyURLEntryFileEntryConfiguration =
+			ConfigurableUtil.createConfigurable(
+				FFFriendlyURLEntryFileEntryConfiguration.class, properties);
 	}
 
 	@Override
@@ -467,8 +474,8 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 			FileEntry fileEntry = _dlAppService.addFileEntry(
 				null, repositoryId, folderId, uniqueFileName,
-				tempFileEntry.getMimeType(), uniqueFileTitle, description,
-				changeLog, tempFileEntry.getContentStream(),
+				tempFileEntry.getMimeType(), uniqueFileTitle, StringPool.BLANK,
+				description, changeLog, tempFileEntry.getContentStream(),
 				tempFileEntry.getSize(), expirationDate, reviewDate,
 				serviceContext);
 
@@ -701,7 +708,7 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			String errorMessage = _language.get(
@@ -800,12 +807,13 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 				"please-enter-a-file-with-a-valid-file-name");
 		}
 		else if (exception instanceof FileSizeException) {
+			FileSizeException fileSizeException = (FileSizeException)exception;
+
 			errorMessage = _language.format(
 				themeDisplay.getLocale(),
 				"please-enter-a-file-with-a-valid-file-size-no-larger-than-x",
 				_language.formatStorageSize(
-					_dlValidator.getMaxAllowableSize(),
-					themeDisplay.getLocale()));
+					fileSizeException.getMaxSize(), themeDisplay.getLocale()));
 		}
 		else if (exception instanceof InvalidFileEntryTypeException) {
 			errorMessage = _language.get(
@@ -1004,7 +1012,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 				!cmd.equals(Constants.ADD_MULTIPLE) &&
 				!cmd.equals(Constants.ADD_TEMP)) {
 
-				if (exception instanceof AntivirusScannerException) {
+				if (exception instanceof AntivirusScannerException ||
+					exception instanceof FileSizeException) {
+
 					SessionErrors.add(
 						actionRequest, exception.getClass(), exception);
 				}
@@ -1035,7 +1045,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 					actionRequest, actionResponse, jsonObject);
 			}
 
-			if (exception instanceof AntivirusScannerException) {
+			if (exception instanceof AntivirusScannerException ||
+				exception instanceof FileSizeException) {
+
 				SessionErrors.add(
 					actionRequest, exception.getClass(), exception);
 			}
@@ -1142,6 +1154,13 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 			uploadPortletRequest, "fileName",
 			uploadPortletRequest.getFileName("file"));
 		String title = ParamUtil.getString(uploadPortletRequest, "title");
+
+		String urlTitle = StringPool.BLANK;
+
+		if (_ffFriendlyURLEntryFileEntryConfiguration.enabled()) {
+			urlTitle = ParamUtil.getString(uploadPortletRequest, "urlTitle");
+		}
+
 		String description = ParamUtil.getString(
 			uploadPortletRequest, "description");
 		String changeLog = ParamUtil.getString(
@@ -1238,7 +1257,7 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 				fileEntry = _dlAppService.addFileEntry(
 					null, repositoryId, folderId, sourceFileName, contentType,
-					title, description, changeLog, inputStream, size,
+					title, urlTitle, description, changeLog, inputStream, size,
 					expirationDate, reviewDate, serviceContext);
 			}
 			else if (cmd.equals(Constants.ADD_DYNAMIC)) {
@@ -1255,8 +1274,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 				fileEntry = _dlAppService.addFileEntry(
 					null, repositoryId, folderId, uniqueFileName, contentType,
-					uniqueFileTitle, description, changeLog, inputStream, size,
-					expirationDate, reviewDate, serviceContext);
+					uniqueFileTitle, StringPool.BLANK, description, changeLog,
+					inputStream, size, expirationDate, reviewDate,
+					serviceContext);
 
 				JSONObject jsonObject = JSONUtil.put(
 					"fileEntryId", fileEntry.getFileEntryId());
@@ -1275,9 +1295,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 					fileEntry = _dlAppService.updateFileEntryAndCheckIn(
 						fileEntryId, sourceFileName, contentType, title,
-						description, changeLog, dlVersionNumberIncrease,
-						inputStream, size, expirationDate, reviewDate,
-						serviceContext);
+						urlTitle, description, changeLog,
+						dlVersionNumberIncrease, inputStream, size,
+						expirationDate, reviewDate, serviceContext);
 				}
 				else {
 
@@ -1285,9 +1305,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 					fileEntry = _dlAppService.updateFileEntry(
 						fileEntryId, sourceFileName, contentType, title,
-						description, changeLog, dlVersionNumberIncrease,
-						inputStream, size, expirationDate, reviewDate,
-						serviceContext);
+						urlTitle, description, changeLog,
+						dlVersionNumberIncrease, inputStream, size,
+						expirationDate, reviewDate, serviceContext);
 				}
 			}
 
@@ -1353,6 +1373,9 @@ public class EditFileEntryMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private DLValidator _dlValidator;
+
+	private volatile FFFriendlyURLEntryFileEntryConfiguration
+		_ffFriendlyURLEntryFileEntryConfiguration;
 
 	@Reference
 	private Http _http;

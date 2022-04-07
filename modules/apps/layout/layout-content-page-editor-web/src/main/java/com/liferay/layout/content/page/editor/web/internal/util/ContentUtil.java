@@ -62,7 +62,6 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -125,12 +124,13 @@ public class ContentUtil {
 
 	public static JSONArray getPageContentsJSONArray(
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, long plid)
+			HttpServletResponse httpServletResponse, long plid,
+			long segmentsExperienceId)
 		throws PortalException {
 
 		return JSONUtil.concat(
 			_getLayoutClassedModelPageContentsJSONArray(
-				httpServletRequest, plid),
+				httpServletRequest, plid, segmentsExperienceId),
 			AssetListEntryUsagesUtil.getPageContentsJSONArray(
 				httpServletRequest, httpServletResponse, plid));
 	}
@@ -410,7 +410,8 @@ public class ContentUtil {
 	}
 
 	private static JSONArray _getLayoutClassedModelPageContentsJSONArray(
-			HttpServletRequest httpServletRequest, long plid)
+			HttpServletRequest httpServletRequest, long plid,
+			long segmentsExperienceId)
 		throws PortalException {
 
 		JSONArray mappedContentsJSONArray = JSONFactoryUtil.createJSONArray();
@@ -451,9 +452,7 @@ public class ContentUtil {
 
 				if (!Objects.equals(
 						fragmentEntryLink.getSegmentsExperienceId(),
-						ParamUtil.getLong(
-							httpServletRequest, "segmentExperienceId",
-							SegmentsExperienceConstants.ID_DEFAULT))) {
+						segmentsExperienceId)) {
 
 					continue;
 				}
@@ -553,11 +552,8 @@ public class ContentUtil {
 
 			if (!(layoutStructureItem instanceof
 					ContainerStyledLayoutStructureItem) ||
-				ListUtil.exists(
-					layoutStructure.getDeletedLayoutStructureItems(),
-					deletedLayoutStructureItem ->
-						deletedLayoutStructureItem.containsItemId(
-							layoutStructureItem.getItemId()))) {
+				layoutStructure.isItemMarkedForDeletion(
+					layoutStructureItem.getItemId())) {
 
 				continue;
 			}

@@ -462,6 +462,25 @@ public abstract class BaseObjectViewResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	@Test
+	public void testPostObjectViewCopy() throws Exception {
+		ObjectView randomObjectView = randomObjectView();
+
+		ObjectView postObjectView = testPostObjectViewCopy_addObjectView(
+			randomObjectView);
+
+		assertEquals(randomObjectView, postObjectView);
+		assertValid(postObjectView);
+	}
+
+	protected ObjectView testPostObjectViewCopy_addObjectView(
+			ObjectView objectView)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
 	protected ObjectView testGraphQLObjectView_addObjectView()
 		throws Exception {
 
@@ -594,6 +613,16 @@ public abstract class BaseObjectViewResourceTestCase {
 					"objectViewColumns", additionalAssertFieldName)) {
 
 				if (objectView.getObjectViewColumns() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"objectViewSortColumns", additionalAssertFieldName)) {
+
+				if (objectView.getObjectViewSortColumns() == null) {
 					valid = false;
 				}
 
@@ -776,6 +805,19 @@ public abstract class BaseObjectViewResourceTestCase {
 				if (!Objects.deepEquals(
 						objectView1.getObjectViewColumns(),
 						objectView2.getObjectViewColumns())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"objectViewSortColumns", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						objectView1.getObjectViewSortColumns(),
+						objectView2.getObjectViewSortColumns())) {
 
 					return false;
 				}
@@ -969,6 +1011,11 @@ public abstract class BaseObjectViewResourceTestCase {
 		}
 
 		if (entityFieldName.equals("objectViewColumns")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("objectViewSortColumns")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}

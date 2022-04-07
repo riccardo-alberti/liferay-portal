@@ -144,10 +144,11 @@ public class JabberImpl implements Jabber {
 					String middleName = (String)buddy[5];
 					String lastName = (String)buddy[3];
 
-					String fullName = ContactConstants.getFullName(
-						firstName, middleName, lastName);
-
-					roster.createEntry(jabberId, fullName, null);
+					roster.createEntry(
+						jabberId,
+						ContactConstants.getFullName(
+							firstName, middleName, lastName),
+						null);
 				}
 			}
 
@@ -238,12 +239,12 @@ public class JabberImpl implements Jabber {
 					}
 				}
 				catch (Exception exception) {
-					_log.error(exception, exception);
+					_log.error(exception);
 				}
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -312,7 +313,7 @@ public class JabberImpl implements Jabber {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -386,7 +387,7 @@ public class JabberImpl implements Jabber {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 

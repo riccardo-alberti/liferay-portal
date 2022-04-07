@@ -30,6 +30,11 @@ components:
                     enum: [COMPLETED, FAILED, INITIAL, STARTED]
                     example: INITIALIZED
                     type: string
+                externalReferenceCode:
+                    # @review
+                    description:
+                        The optional external key of this account.
+                    type: string
                 id:
                     description:
                         The task's ID.
@@ -101,6 +106,11 @@ components:
                     enum: [COMPLETED, FAILED, INITIAL, STARTED]
                     example: INITIALIZED
                     type: string
+                externalReferenceCode:
+                    # @review
+                    description:
+                        The optional external key of this account.
+                    type: string
                 failedItems:
                     items:
                         $ref: "#/components/schemas/FailedItem"
@@ -169,6 +179,10 @@ paths:
                       type: string
                 - in: query
                   name: callbackURL
+                  schema:
+                      type: string
+                - in: query
+                  name: externalReferenceCode
                   schema:
                       type: string
                 - in: query
@@ -252,6 +266,10 @@ paths:
                   schema:
                       type: string
                 - in: query
+                  name: externalReferenceCode
+                  schema:
+                      type: string
+                - in: query
                   name: importStrategy
                   schema:
                       enum: [ON_ERROR_CONTINUE, ON_ERROR_FAIL]
@@ -305,6 +323,10 @@ paths:
                       type: string
                 - in: query
                   name: callbackURL
+                  schema:
+                      type: string
+                - in: query
+                  name: externalReferenceCode
                   schema:
                       type: string
                 - in: query
@@ -365,6 +387,10 @@ paths:
                       type: string
                 - in: query
                   name: callbackURL
+                  schema:
+                      type: string
+                - in: query
+                  name: externalReferenceCode
                   schema:
                       type: string
                 - in: query
@@ -431,4 +457,42 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/ImportTask"
+            tags: ["ImportTask"]
+    /import-task/{importTaskId}/content:
+        get:
+            description:
+                Retrieves the exported content.
+            operationId: getImportTaskContent
+            parameters:
+                - in: path
+                  name: importTaskId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/octet-stream:
+                            schema:
+                                format: binary
+                                type: string
+            tags: ["ImportTask"]
+    /import-task/{importTaskId}/failed-items/report:
+        get:
+            operationId: getImportTaskFailedItemReport
+            parameters:
+                - in: path
+                  name: importTaskId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/octet-stream:
+                            schema:
+                                format: binary
+                                type: string
             tags: ["ImportTask"]

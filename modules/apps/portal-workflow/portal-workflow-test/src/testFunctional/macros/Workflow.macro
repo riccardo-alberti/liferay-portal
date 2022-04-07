@@ -849,11 +849,18 @@ definition {
 	}
 
 	macro saveDefinition {
-		AssertClick(
-			locator1 = "KaleoDesigner#SAVE_BUTTON",
-			value1 = "Save");
+		if ("${newKaleoDesigner}" == "True") {
+			AssertClick(
+				locator1 = "KaleoDesigner#SAVE_BUTTON",
+				value1 = "Save");
+		}
+		else {
+			AssertClick(
+				locator1 = "KaleoDesigner#SAVE_BUTTON",
+				value1 = "Save");
 
-		Alert.viewSuccessMessage();
+			Alert.viewSuccessMessage();
+		}
 	}
 
 	macro searchFieldPresent {
@@ -864,6 +871,15 @@ definition {
 		Click(locator1 = "WorkflowConfiguration#PROCESS_BUILDER_SEARCH_BAR_BUTTON");
 
 		Pause(locator1 = "1000");
+	}
+
+	macro setWorkflowToMiniumChannel {
+		Select(
+			key_title = "Buyer Order Approval Workflow",
+			locator1 = "CommerceEntry#CATALOGS_FORM",
+			value1 = "${workflowDefinition}");
+
+		Button.clickSave();
 	}
 
 	macro tearDownPortalWorkflow {

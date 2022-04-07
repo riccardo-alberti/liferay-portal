@@ -36,7 +36,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsExperienceConstants;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.translation.constants.TranslationPortletKeys;
 import com.liferay.translation.service.TranslationEntryService;
 import com.liferay.translation.web.internal.helper.TranslationRequestHelper;
@@ -74,12 +74,12 @@ public class UpdateTranslationMVCActionCommand extends BaseMVCActionCommand {
 			long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
 			long segmentsExperienceId = ParamUtil.getLong(
-				actionRequest, "segmentsExperienceId",
-				SegmentsExperienceConstants.ID_DEFAULT);
+				actionRequest, "segmentsExperienceId");
 
 			TranslationRequestHelper translationRequestHelper =
 				new TranslationRequestHelper(
-					_infoItemServiceTracker, actionRequest);
+					_infoItemServiceTracker, actionRequest,
+					_segmentsExperienceLocalService);
 
 			String className = translationRequestHelper.getClassName(
 				segmentsExperienceId);
@@ -122,7 +122,7 @@ public class UpdateTranslationMVCActionCommand extends BaseMVCActionCommand {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			SessionErrors.add(actionRequest, exception.getClass(), exception);
 
@@ -239,6 +239,9 @@ public class UpdateTranslationMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private InfoItemServiceTracker _infoItemServiceTracker;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	@Reference
 	private TranslationEntryService _translationEntryService;

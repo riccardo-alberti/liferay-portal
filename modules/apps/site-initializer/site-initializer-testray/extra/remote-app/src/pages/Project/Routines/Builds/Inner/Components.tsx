@@ -13,13 +13,37 @@
  */
 
 import Container from '../../../../../components/Layout/Container';
+import ListView from '../../../../../components/ListView/ListView';
+import {getComponents} from '../../../../../graphql/queries';
+import i18n from '../../../../../i18n';
 
-const Components = () => {
-	return (
-		<Container className="mt-4" title="Components">
-			Components
-		</Container>
-	);
-};
+const Components = () => (
+	<Container className="mt-4" title={i18n.translate('component')}>
+		<ListView
+			query={getComponents}
+			tableProps={{
+				columns: [
+					{
+						key: 'name',
+						value: i18n.translate('team'),
+					},
+					{
+						key: 'failed',
+						value: i18n.translate('failed'),
+					},
+					{
+						key: 'Total',
+						value: i18n.translate('total'),
+					},
+					{
+						key: 'metrics',
+						value: i18n.translate('metrics'),
+					},
+				],
+			}}
+			transformData={(data) => data?.c?.components}
+		/>
+	</Container>
+);
 
 export default Components;

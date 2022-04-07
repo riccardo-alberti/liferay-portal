@@ -19,60 +19,125 @@ import {
 	PARSE_FILE_CHUNK_SIZE,
 } from './constants';
 
-export function extractFieldsFromCSV(content, fieldSeparator = ',') {
-	if (content.indexOf('\n') > -1) {
-		const splitLines = content.split('\n');
+export function parseCSV(content, separator, delimiter) {
+	const rows = content.split(/\r?\n/);
 
-		const firstNoEmptyLine = splitLines.find((line) => line.length > 0);
+	const formattedRows = rows.map((row) => {
+		const columns = row.split(separator);
 
-		return firstNoEmptyLine.split(fieldSeparator);
+		const formattedColumns = delimiter
+			? columns.map((column) => {
+					if (column.charAt(0) === delimiter) {
+						return column.substring(1, column.length - 1);
+					}
+
+					return column;
+			  })
+			: columns;
+
+		return formattedColumns;
+	});
+
+	return formattedRows;
+}
+
+export function getItemDetails(itemData, headers) {
+	return itemData.reduce(
+		(data, value, index) => ({
+			...data,
+			[headers[index]]: value,
+		}),
+		{}
+	);
+}
+
+export function addColumnsNamesToCSVData(itemsData, headers) {
+	return itemsData.map((itemData) => getItemDetails(itemData, headers));
+}
+
+export function extractFieldsFromCSV(
+	content,
+	{CSVContainsHeaders, CSVDelimiter, CSVSeparator}
+) {
+	const rawFileContent = parseCSV(content, CSVSeparator, CSVDelimiter);
+
+	if (!rawFileContent) {
+		return;
 	}
+
+	let items;
+	let schema;
+	let fileContent;
+
+	if (CSVContainsHeaders) {
+		[schema, ...items] = rawFileContent;
+
+		fileContent = addColumnsNamesToCSVData(items, schema);
+	}
+	else {
+		schema = new Array(rawFileContent[0].length)
+			.fill()
+			.map((_, index) => index);
+
+		fileContent = addColumnsNamesToCSVData(rawFileContent, schema);
+	}
+
+	return {
+		fileContent,
+		schema,
+	};
 }
 
 export function extractFieldsFromJSONL(content) {
-	let contentToParse;
+	const fileContent = [];
+	const rows = content.split(/\r?\n/);
 
-	if (content.indexOf('\n') > -1) {
-		const splitLines = content.split('\n');
-
-		contentToParse = splitLines.find((line) => line.length > 0);
-	}
-	else {
-		contentToParse = content;
-	}
-
-	try {
-		const data = JSON.parse(contentToParse);
-
-		return Object.keys(data);
-	}
-	catch (error) {
-		console.error(error);
-
+	if (!rows?.length) {
 		return;
 	}
+
+	for (const row of rows) {
+		try {
+			fileContent.push(JSON.parse(row));
+		}
+		catch (error) {
+			break;
+		}
+	}
+
+	const schema = Object.keys(fileContent[0]);
+
+	return {
+		fileContent,
+		schema,
+	};
 }
 
 export function extractFieldsFromJSON(content) {
 	const jsonArray = content.split('');
 	let parsedJSON;
 
-	jsonArray.shift();
-
-	for (let index = 0; index < jsonArray.length - 1; index++) {
+	for (let index = jsonArray.length - 1; index >= 0; index--) {
 		if (jsonArray[index] === '}') {
-			const partialJson = jsonArray.slice(0, index + 1).join('');
+			const partialJson = jsonArray.slice(0, index + 1).join('') + ']';
 
 			try {
 				parsedJSON = JSON.parse(partialJson);
 
-				return Object.keys(parsedJSON);
+				break;
 			}
 			catch (error) {
 				console.error(error);
 			}
 		}
 	}
+
+	const schema = Object.keys(parsedJSON[0]);
+
+	return {
+		fileContent: parsedJSON,
+		schema,
+	};
 }
 
 function parseInChunk({
@@ -103,10 +168,17 @@ function parseInChunk({
 
 		offset += event.target.result.length;
 
-		const schema = chunkParser(event.target.result, options);
+		const parsedData = chunkParser(event.target.result, options);
 
-		if (schema) {
-			return onComplete({extension, schema});
+		if (
+			parsedData?.fileContent?.length &&
+			parsedData?.fileContent?.length
+		) {
+			return onComplete({
+				extension,
+				fileContent: parsedData.fileContent,
+				schema: parsedData.schema,
+			});
 		}
 		else if (offset >= fileSize) {
 			return onError();
@@ -128,11 +200,13 @@ const parseOperators = {
 	[JSONL_FORMAT]: extractFieldsFromJSONL,
 };
 
-export default function parseFile({file, onComplete, onError, options}) {
-	const extension = file.name
-		.substring(file.name.lastIndexOf('.') + 1)
-		.toLowerCase();
-
+export default function parseFile({
+	extension,
+	file,
+	onComplete,
+	onError,
+	options,
+}) {
 	parseInChunk({
 		chunkParser: parseOperators[extension],
 		extension,

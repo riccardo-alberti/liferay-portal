@@ -294,7 +294,7 @@ definition {
 	macro openSpecificURL {
 		Open(locator1 = "${url}");
 
-		Alert.confirmSecurity();
+		Alert.confirmSecurity(domain = "${domain}");
 	}
 
 	macro openStagingSiteURL {
@@ -364,6 +364,12 @@ definition {
 
 	macro selectSpecificWindow {
 		SelectWindow(locator1 = "title=${windowTitle}");
+	}
+
+	macro viewActivatedNavTab {
+		AssertElementPresent(
+			key_tab = "${navTab}",
+			locator1 = "NavTab#ACTIVE_TAB_LINK");
 	}
 
 	macro viewNoNavTab {

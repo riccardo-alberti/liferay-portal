@@ -12,21 +12,36 @@
  * details.
  */
 
-import {ApolloClient, InMemoryCache} from '@apollo/client';
+import {ApolloClient, InMemoryCache, from} from '@apollo/client';
+import {BatchHttpLink} from '@apollo/client/link/batch-http';
+import {RestLink} from 'apollo-link-rest';
 
 import {Liferay} from '../services/liferay/liferay';
+import {bodySerializers} from './serializers';
 
 const liferayHost =
 	process.env.REACT_APP_LIFERAY_HOST || window.location.origin;
 
 const graphqlPath = process.env.REACT_APP_GRAPHQL_PATH || '/o/graphql';
 
+const headers = {
+	'x-csrf-token': Liferay.authToken,
+};
+
+const httpLink = new BatchHttpLink({
+	headers,
+	uri: `${liferayHost}${graphqlPath}`,
+});
+
+const restLink = new RestLink({
+	bodySerializers,
+	headers,
+	uri: `${liferayHost}/o/c/`,
+});
+
 const client = new ApolloClient({
 	cache: new InMemoryCache(),
-	headers: {
-		'x-csrf-token': Liferay.authToken,
-	},
-	uri: `${liferayHost}${graphqlPath}`,
+	link: from([restLink, httpLink]),
 });
 
 export default client;

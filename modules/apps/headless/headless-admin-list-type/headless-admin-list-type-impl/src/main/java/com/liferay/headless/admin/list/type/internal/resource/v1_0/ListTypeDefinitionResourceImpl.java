@@ -172,6 +172,14 @@ public class ListTypeDefinitionResourceImpl
 						serviceBuilderListTypeDefinition.
 							getListTypeDefinitionId())
 				).put(
+					"permissions",
+					addAction(
+						ActionKeys.PERMISSIONS, "patchListTypeDefinition",
+						com.liferay.list.type.model.ListTypeDefinition.class.
+							getName(),
+						serviceBuilderListTypeDefinition.
+							getListTypeDefinitionId())
+				).put(
 					"update",
 					addAction(
 						ActionKeys.UPDATE, "putListTypeDefinition",

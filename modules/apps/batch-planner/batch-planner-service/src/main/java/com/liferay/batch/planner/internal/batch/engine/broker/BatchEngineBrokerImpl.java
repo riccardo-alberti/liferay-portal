@@ -14,10 +14,11 @@
 
 package com.liferay.batch.planner.internal.batch.engine.broker;
 
+import com.liferay.batch.engine.constants.BatchEngineImportTaskConstants;
 import com.liferay.batch.planner.batch.engine.broker.BatchEngineBroker;
 import com.liferay.batch.planner.constants.BatchPlannerLogConstants;
 import com.liferay.batch.planner.constants.BatchPlannerPlanConstants;
-import com.liferay.batch.planner.internal.jaxrs.uri.EmptyUriInfo;
+import com.liferay.batch.planner.internal.jaxrs.uri.BatchPlannerUriInfo;
 import com.liferay.batch.planner.model.BatchPlannerMapping;
 import com.liferay.batch.planner.model.BatchPlannerMappingModel;
 import com.liferay.batch.planner.model.BatchPlannerPlan;
@@ -50,6 +51,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -134,9 +137,39 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 		throws Exception {
 
 		BatchPlannerPolicy batchPlannerPolicy =
-			batchPlannerPlan.getBatchPlannerPolicy("importStrategy");
+			batchPlannerPlan.getBatchPlannerPolicy("onErrorFail");
 
-		return batchPlannerPolicy.getValue();
+		boolean onErrorFail = Boolean.valueOf(batchPlannerPolicy.getValue());
+
+		if (onErrorFail) {
+			return BatchEngineImportTaskConstants.
+				IMPORT_STRATEGY_STRING_ON_ERROR_FAIL;
+		}
+
+		return BatchEngineImportTaskConstants.
+			IMPORT_STRATEGY_STRING_ON_ERROR_CONTINUE;
+	}
+
+	private UriInfo _getImportTaskUriInfo(BatchPlannerPlan batchPlannerPlan) {
+		BatchPlannerUriInfo.Builder builder = new BatchPlannerUriInfo.Builder();
+
+		return builder.delimiter(
+			_getValue(batchPlannerPlan.fetchBatchPlannerPolicy("csvSeparator"))
+		).taskItemDelegateName(
+			batchPlannerPlan.getTaskItemDelegateName()
+		).queryParameter(
+			"containsHeaders",
+			_getValue(
+				batchPlannerPlan.fetchBatchPlannerPolicy("containsHeaders"))
+		).build();
+	}
+
+	private String _getValue(BatchPlannerPolicy batchPlannerPolicy) {
+		if (batchPlannerPolicy != null) {
+			return batchPlannerPolicy.getValue();
+		}
+
+		return null;
 	}
 
 	private void _submitExportTask(BatchPlannerPlan batchPlannerPlan)
@@ -145,7 +178,7 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 		_exportTaskResource.setContextCompany(
 			_companyLocalService.getCompany(batchPlannerPlan.getCompanyId()));
 		_exportTaskResource.setContextUriInfo(
-			new EmptyUriInfo(batchPlannerPlan.getTaskItemDelegateName()));
+			_getImportTaskUriInfo(batchPlannerPlan));
 		_exportTaskResource.setContextUser(
 			_userLocalService.getUser(batchPlannerPlan.getUserId()));
 
@@ -160,6 +193,7 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 		ExportTask exportTask = _exportTaskResource.postExportTask(
 			batchPlannerPlan.getInternalClassName(),
 			batchPlannerPlan.getExternalType(), null,
+			String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()),
 			StringUtil.merge(headerNames, StringPool.COMMA),
 			batchPlannerPlan.getTaskItemDelegateName());
 
@@ -177,7 +211,8 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 			_companyLocalService.getCompany(batchPlannerPlan.getCompanyId()));
 
 		_importTaskResource.setContextUriInfo(
-			new EmptyUriInfo(batchPlannerPlan.getTaskItemDelegateName()));
+			_getImportTaskUriInfo(batchPlannerPlan));
+
 		_importTaskResource.setContextUser(
 			_userLocalService.getUser(batchPlannerPlan.getUserId()));
 
@@ -186,6 +221,7 @@ public class BatchEngineBrokerImpl implements BatchEngineBroker {
 		try {
 			ImportTask importTask = _importTaskResource.postImportTask(
 				batchPlannerPlan.getInternalClassName(), null,
+				String.valueOf(batchPlannerPlan.getBatchPlannerPlanId()),
 				_getFieldNameMapping(
 					_batchPlannerMappingLocalService.getBatchPlannerMappings(
 						batchPlannerPlan.getBatchPlannerPlanId())),

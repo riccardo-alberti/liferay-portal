@@ -17,6 +17,7 @@ package com.liferay.headless.commerce.admin.inventory.internal.dto.v1_0;
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.inventory.service.CommerceInventoryWarehouseService;
 import com.liferay.headless.commerce.admin.inventory.dto.v1_0.Warehouse;
+import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
@@ -49,16 +50,20 @@ public class WarehouseDTOConverter
 
 		return new Warehouse() {
 			{
+				actions = dtoConverterContext.getActions();
 				active = commerceInventoryWarehouse.isActive();
 				city = commerceInventoryWarehouse.getCity();
 				countryISOCode =
 					commerceInventoryWarehouse.getCountryTwoLettersISOCode();
-				description = commerceInventoryWarehouse.getDescription();
+				description = LanguageUtils.getLanguageIdMap(
+					commerceInventoryWarehouse.getDescriptionMap());
 				externalReferenceCode =
 					commerceInventoryWarehouse.getExternalReferenceCode();
 				id =
 					commerceInventoryWarehouse.
 						getCommerceInventoryWarehouseId();
+				label = LanguageUtils.getLanguageIdMap(
+					commerceInventoryWarehouse.getLabelMap());
 				latitude = commerceInventoryWarehouse.getLatitude();
 				longitude = commerceInventoryWarehouse.getLongitude();
 				mvccVersion = commerceInventoryWarehouse.getMvccVersion();

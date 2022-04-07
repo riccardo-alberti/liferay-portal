@@ -2,19 +2,22 @@
 	"label": {
 		"en_US": "Testray Project"
 	},
-	"name": "TestrayProject",
+	"name": "Project",
 	"objectFields": [
 		{
-			"indexed": false,
+			"DBType": "String",
+			"indexed": true,
 			"indexedAsKeyword": false,
+			"indexedLanguageId": "",
 			"label": {
 				"en_US": "Name"
 			},
 			"name": "name",
-			"required": false,
+			"required": true,
 			"type": "String"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -25,10 +28,8 @@
 			"type": "String"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Projects"
 	},
-	"scope": "site"
+	"scope": "company"
 }

@@ -2,20 +2,11 @@
 	"label": {
 		"en_US": "Testray Routine"
 	},
-	"name": "TestrayRoutine",
+	"name": "Routine",
 	"objectFields": [
 		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Project Id"
-			},
-			"name": "testrayProjectId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
+			"DBType": "String",
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Name"
@@ -25,6 +16,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "Boolean",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -35,10 +27,8 @@
 			"type": "Boolean"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Routines"
 	},
-	"scope": "site"
+	"scope": "company"
 }

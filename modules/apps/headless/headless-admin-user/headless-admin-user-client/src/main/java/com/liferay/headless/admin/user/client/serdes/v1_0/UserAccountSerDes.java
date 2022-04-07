@@ -65,7 +65,7 @@ public class UserAccountSerDes {
 		sb.append("{");
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (userAccount.getAccountBriefs() != null) {
 			if (sb.length() > 1) {
@@ -402,6 +402,20 @@ public class UserAccountSerDes {
 			sb.append("]");
 		}
 
+		if (userAccount.getPassword() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"password\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(userAccount.getPassword()));
+
+			sb.append("\"");
+		}
+
 		if (userAccount.getProfileURL() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -487,7 +501,7 @@ public class UserAccountSerDes {
 		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (userAccount.getAccountBriefs() == null) {
 			map.put("accountBriefs", null);
@@ -666,6 +680,13 @@ public class UserAccountSerDes {
 			map.put(
 				"organizationBriefs",
 				String.valueOf(userAccount.getOrganizationBriefs()));
+		}
+
+		if (userAccount.getPassword() == null) {
+			map.put("password", null);
+		}
+		else {
+			map.put("password", String.valueOf(userAccount.getPassword()));
 		}
 
 		if (userAccount.getProfileURL() == null) {
@@ -864,6 +885,11 @@ public class UserAccountSerDes {
 						).toArray(
 							size -> new OrganizationBrief[size]
 						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "password")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setPassword((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "profileURL")) {

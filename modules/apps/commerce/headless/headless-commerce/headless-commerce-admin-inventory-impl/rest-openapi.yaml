@@ -1,5 +1,22 @@
 components:
     schemas:
+        Channel:
+            properties:
+                currencyCode:
+                    type: string
+                externalReferenceCode:
+                    type: string
+                id:
+                    format: int64
+                    type: integer
+                name:
+                    type: string
+                siteGroupId:
+                    format: int64
+                    type: integer
+                type:
+                    type: string
+            type: object
         Error:
             properties:
                 errorCode:
@@ -28,8 +45,32 @@ components:
                 - message
                 - status
             type: object
+        OrderType:
+            properties:
+                id:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+                name:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Hand Saw
+                        hr_HR: Product Name HR
+                        hu_HU: Product Name HU
+                    type: object
+            type: object
         Warehouse:
             properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
                 active:
                     example: true
                     type: boolean
@@ -40,8 +81,13 @@ components:
                     example: US
                     type: string
                 description:
-                    type: string
-                    example: "right stairs, first room on the left"
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Warehouse Title US
+                        hr_HR: Warehouse Title HR
+                        hu_HU: Warehouse Title HU
+                    type: object
                 externalReferenceCode:
                     example: AB-34098-789-N
                     type: string
@@ -50,6 +96,14 @@ components:
                     format: int64
                     minimum: 0
                     type: integer
+                label:
+                    additionalProperties:
+                        type: string
+                    example:
+                        en_US: Warehouse Label US
+                        hr_HR: Warehouse Label HR
+                        hu_HU: Warehouse Label HU
+                    type: object
                 latitude:
                     example: 33.9976884
                     format: double
@@ -62,7 +116,7 @@ components:
                     example: 0
                     type: number
                 name:
-                    example: "Alessio Antonio Rendina"
+                    example: Laptops, Beverages
                     type: string
                 regionISOCode:
                     example: CA
@@ -85,6 +139,44 @@ components:
                 zip:
                     example: "91765"
                     type: string
+            type: object
+        WarehouseChannel:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                channel:
+                    $ref: "#/components/schemas/Channel"
+                    readOnly: true
+                channelExternalReferenceCode:
+                    example: "PAB-34098-789-N"
+                    type: string
+                channelId:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                warehouseChannelId:
+                    example: 30643
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+                warehouseExternalReferenceCode:
+                    example: "DAB-34098-789-N"
+                    type: string
+                warehouseId:
+                    example: 30324
+                    format: int64
+                    minimum: 0
+                    type: integer
+            required:
+                - channelId
+                - warehouseId
             type: object
         WarehouseItem:
             properties:
@@ -121,6 +213,49 @@ components:
                     minimum: 0
                     type: integer
             type: object
+        WarehouseOrderType:
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    readOnly: true
+                    type: object
+                orderType:
+                    $ref: "#/components/schemas/OrderType"
+                    readOnly: true
+                orderTypeExternalReferenceCode:
+                    example: DAB-34098-789-N
+                    type: string
+                orderTypeId:
+                    example: 30324
+                    format: int64
+                    minimum: 0
+                    type: integer
+                priority:
+                    example: 1
+                    format: int32
+                    minimum: 0
+                    type: integer
+                warehouseExternalReferenceCode:
+                    example: PAB-34098-789-N
+                    type: string
+                warehouseId:
+                    example: 30130
+                    format: int64
+                    minimum: 0
+                    type: integer
+                warehouseOrderTypeId:
+                    example: 30643
+                    format: int64
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            required:
+                - orderTypeId
+                - warehouseId
+            type: object
     securitySchemes:
         BasicAuth:
             scheme: basic
@@ -144,7 +279,7 @@ info:
         name: "Commerce Team"
     description:
         "Liferay Commerce Admin Inventory API. A Java client JAR is available for use with the group ID 'com.liferay',
-        artifact ID 'com.liferay.headless.commerce.admin.inventory.client', and version '4.0.10'."
+        artifact ID 'com.liferay.headless.commerce.admin.inventory.client', and version '4.0.12'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -580,7 +715,7 @@ paths:
                 - WarehouseItem
     "/warehouses/by-externalReferenceCode/{externalReferenceCode}":
         delete:
-            operationId: deleteWarehousByExternalReferenceCode
+            operationId: deleteWarehouseByExternalReferenceCode
             parameters:
                 - in: path
                   name: externalReferenceCode
@@ -614,7 +749,7 @@ paths:
             tags:
                 - Warehouse
         get:
-            operationId: getWarehousByExternalReferenceCode
+            operationId: getWarehouseByExternalReferenceCode
             parameters:
                 - in: path
                   name: externalReferenceCode
@@ -678,7 +813,7 @@ paths:
             tags:
                 - Warehouse
         patch:
-            operationId: patchWarehousByExternalReferenceCode
+            operationId: patchWarehouseByExternalReferenceCode
             parameters:
                 - in: path
                   name: externalReferenceCode
@@ -748,7 +883,7 @@ paths:
                 - Warehouse
     "/warehouses/by-externalReferenceCode/{externalReferenceCode}/warehouseItems":
         get:
-            operationId: getWarehousByExternalReferenceCodeWarehouseItemsPage
+            operationId: getWarehouseByExternalReferenceCodeWarehouseItemsPage
             parameters:
                 - in: path
                   name: externalReferenceCode
@@ -826,7 +961,7 @@ paths:
             tags:
                 - WarehouseItem
         post:
-            operationId: postWarehousByExternalReferenceCodeWarehouseItem
+            operationId: postWarehouseByExternalReferenceCodeWarehouseItem
             parameters:
                 - in: path
                   name: externalReferenceCode
@@ -906,7 +1041,7 @@ paths:
                 - WarehouseItem
     "/warehouses/{id}":
         delete:
-            operationId: deleteWarehousId
+            operationId: deleteWarehouseId
             parameters:
                 - in: path
                   name: id
@@ -941,7 +1076,7 @@ paths:
             tags:
                 - Warehouse
         get:
-            operationId: getWarehousId
+            operationId: getWarehouseId
             parameters:
                 - in: path
                   name: id
@@ -1006,7 +1141,7 @@ paths:
             tags:
                 - Warehouse
         patch:
-            operationId: patchWarehousId
+            operationId: patchWarehouseId
             parameters:
                 - in: path
                   name: id
@@ -1077,7 +1212,7 @@ paths:
                 - Warehouse
     "/warehouses/{id}/warehouseItems":
         get:
-            operationId: getWarehousIdWarehouseItemsPage
+            operationId: getWarehouseIdWarehouseItemsPage
             parameters:
                 - in: path
                   name: id
@@ -1156,7 +1291,7 @@ paths:
             tags:
                 - WarehouseItem
         post:
-            operationId: postWarehousIdWarehouseItem
+            operationId: postWarehouseIdWarehouseItem
             parameters:
                 - in: path
                   name: id
@@ -1235,6 +1370,210 @@ paths:
             summary: "Creates or updates an Warehouse Item."
             tags:
                 - WarehouseItem
+    /warehouse-channels/{warehouseChannelId}:
+        delete:
+            operationId: deleteWarehouseChannel
+            parameters:
+                - in: path
+                  explode: false
+                  name: warehouseChannelId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - CommerceOpenApiAdmin.write
+            summary: Deletes a Warehouse Channel by ID.
+            tags: ["WarehouseChannel"]
+    /warehouse-channels/{warehouseChannelId}/channel:
+        get:
+            operationId: getWarehouseChannelChannel
+            parameters:
+                - in: path
+                  name: warehouseChannelId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Channel"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Channel"
+                    description:
+                        Successful operation
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - CommerceOpenApiAdmin.read
+            summary: Gets channel associated to the pricing object.
+            tags: ["Channel"]
+    /warehouse-order-types/{warehouseOrderTypeId}:
+        delete:
+            parameters:
+                - in: path
+                  explode: false
+                  name: warehouseOrderTypeId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - CommerceOpenApiAdmin.write
+            summary: Deletes a Warehouse Order Type by ID.
+            tags: ["WarehouseOrderType"]
+    /warehouse-order-types/{warehouseOrderTypeId}/order-type:
+        get:
+            parameters:
+                - in: path
+                  name: warehouseOrderTypeId
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/OrderType"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/OrderType"
+                    description:
+                        Successful operation
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - CommerceOpenApiAdmin.read
+            summary: Gets order type associated to the pricing object.
+            tags: ["OrderType"]
     /warehouseItems/updated:
         get:
             operationId: getWarehouseItemsUpdatedPage
@@ -1411,7 +1750,7 @@ paths:
             tags:
                 - Warehouse
         post:
-            operationId: postWarehous
+            operationId: postWarehouse
             requestBody:
                 content:
                     application/json:
@@ -1479,6 +1818,672 @@ paths:
             summary: "Creates or updates a Warehouse."
             tags:
                 - Warehouse
+    /warehouses/by-externalReferenceCode/{externalReferenceCode}/warehouse-channels:
+        get:
+            operationId: getWarehouseByExternalReferenceCodeWarehouseChannelsPage
+            parameters:
+                - in: path
+                  explode: false
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      description:
+                          The resource external reference code
+                      example: AB-34098-789-N
+                      minLength: 1
+                      type: string
+                  style: simple
+                - in: query
+                  explode: true
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseChannel"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseChannel"
+                                type: array
+                    description:
+                        Successful operation
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.read
+            summary: Gets a list of Warehouse Channels.
+            tags: ["WarehouseChannel"]
+        post:
+            operationId: postWarehouseByExternalReferenceCodeWarehouseChannel
+            parameters:
+                - in: path
+                  explode: false
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      description:
+                          The resource external reference code
+                      example: AB-34098-789-N
+                      minLength: 1
+                      type: string
+                  style: simple
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseChannel"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseChannel"
+                required: true
+            responses:
+                201:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseChannel"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseChannel"
+                    description:
+                        Created
+                202:
+                    description:
+                        Async
+                204:
+                    description:
+                        Updated
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.write
+            summary: Creates or updates a Warehouse Channel.
+            tags: ["WarehouseChannel"]
+    /warehouses/by-externalReferenceCode/{externalReferenceCode}/warehouse-order-types:
+        get:
+            parameters:
+                - in: path
+                  explode: false
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      description:
+                          The resource external reference code
+                      example: AB-34098-789-N
+                      minLength: 1
+                      type: string
+                  style: simple
+                - in: query
+                  explode: true
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+                - in: query
+                  explode: true
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                  style: form
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseOrderType"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseOrderType"
+                                type: array
+                    description:
+                        Successful operation
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.read
+            summary: Gets a list of Warehouse Order Types.
+            tags: ["WarehouseOrderType"]
+        post:
+            parameters:
+                - in: path
+                  explode: false
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      description:
+                          The resource external reference code
+                      example: AB-34098-789-N
+                      minLength: 1
+                      type: string
+                  style: simple
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseOrderType"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseOrderType"
+                required: true
+            responses:
+                201:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseOrderType"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseOrderType"
+                    description:
+                        Created
+                202:
+                    description:
+                        Async
+                204:
+                    description:
+                        Updated
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.write
+            summary: Creates or updates a Warehouse Order Type.
+            tags: ["WarehouseOrderType"]
+    /warehouses/{id}/warehouse-channels:
+        get:
+            operationId: getWarehouseIdWarehouseChannelsPage
+            parameters:
+                - in: path
+                  explode: false
+                  name: id
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: query
+                  name: filter
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseChannel"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseChannel"
+                                type: array
+                    description:
+                        Successful operation
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.read
+            summary: Gets a list of Warehouse Channels.
+            tags: ["WarehouseChannel"]
+        post:
+            operationId: postWarehouseIdWarehouseChannel
+            parameters:
+                - in: path
+                  explode: false
+                  name: id
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseChannel"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseChannel"
+                required: true
+            responses:
+                201:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseChannel"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseChannel"
+                    description:
+                        Created
+                202:
+                    description:
+                        Async
+                204:
+                    description:
+                        Updated
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.write
+            summary: Creates or updates a Warehouse Channel.
+            tags: ["WarehouseChannel"]
+    /warehouses/{id}/warehouse-order-types:
+        get:
+            parameters:
+                - in: path
+                  explode: false
+                  name: id
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+                - in: query
+                  name: filter
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  required: false
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  required: false
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  required: false
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseOrderType"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WarehouseOrderType"
+                                type: array
+                    description:
+                        Successful operation
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.read
+            summary: Gets a list of Warehouse Order Types.
+            tags: ["WarehouseOrderType"]
+        post:
+            parameters:
+                - in: path
+                  explode: false
+                  name: id
+                  required: true
+                  schema:
+                      description:
+                          The resource Id
+                      example: 30130
+                      format: int64
+                      minimum: 0
+                      type: integer
+                  style: simple
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseOrderType"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WarehouseOrderType"
+                required: true
+            responses:
+                201:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseOrderType"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WarehouseOrderType"
+                    description:
+                        Created
+                202:
+                    description:
+                        Async
+                204:
+                    description:
+                        Updated
+                400:
+                    description:
+                        Invalid input
+                401:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Authentication information is missing or invalid
+                404:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        The specified resource was not found
+                500:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    description:
+                        Unexpected error
+            security:
+                - BasicAuth: []
+                - BearerAuth: []
+                - OAuth2:
+                      - HeadlessCommerceAdminPricing.write
+            summary: Creates or updates a Warehouse Order Type.
+            tags: ["WarehouseOrderType"]
 servers:
     - description:
           "Liferay Commerce API server"

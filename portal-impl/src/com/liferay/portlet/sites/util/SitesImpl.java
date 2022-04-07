@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.LayoutType;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -494,7 +495,9 @@ public class SitesImpl implements Sites {
 		LayoutTypePortlet sourceLayoutTypePortlet =
 			(LayoutTypePortlet)sourceLayout.getLayoutType();
 
-		List<String> sourcePortletIds = sourceLayoutTypePortlet.getPortletIds();
+		List<String> sourcePortletIds = ListUtil.toList(
+			sourceLayoutTypePortlet.getAllPortlets(),
+			Portlet.PORTLET_ID_ACCESSOR);
 
 		for (String sourcePortletId : sourcePortletIds) {
 			PortletPreferences sourcePreferences =
@@ -1057,7 +1060,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1203,7 +1206,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1258,7 +1261,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -1803,7 +1806,7 @@ public class SitesImpl implements Sites {
 			throw ctTransactionException;
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 
 			prototypeTypeSettingsUnicodeProperties.setProperty(
 				MERGE_FAIL_COUNT, String.valueOf(++mergeFailCount));
@@ -2369,7 +2372,7 @@ public class SitesImpl implements Sites {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;

@@ -52,7 +52,8 @@
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
 		<field name="name" type="String" />
-		<field name="description" type="String" />
+		<field localized="true" name="description" type="String" />
+		<field localized="true" name="label" type="String" />
 		<field name="active" type="boolean" />
 		<field name="street1" type="String" />
 		<field name="street2" type="String" />
@@ -64,6 +65,10 @@
 		<field name="latitude" type="double" />
 		<field name="longitude" type="double" />
 		<field name="type" type="String" />
+		<field name="status" type="int" />
+		<field name="statusByUserId" type="long" />
+		<field name="statusByUserName" type="String" />
+		<field name="statusDate" type="Date" />
 	</model>
 	<model name="com.liferay.commerce.inventory.model.CommerceInventoryWarehouseItem">
 		<field name="mvccVersion" type="long" />
@@ -78,5 +83,19 @@
 		<field name="sku" type="String" />
 		<field name="quantity" type="int" />
 		<field name="reservedQuantity" type="int" />
+	</model>
+	<model name="com.liferay.commerce.inventory.model.CommerceInventoryWarehouseOrderTypeRel">
+		<field name="mvccVersion" type="long" />
+		<field name="uuid" type="String" />
+		<field name="commerceInventoryWarehouseOrderTypeRelId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="commerceInventoryWarehouseId" type="long" />
+		<field name="commerceOrderTypeId" type="long" />
+		<field name="priority" type="int" />
+		<field name="lastPublishDate" type="Date" />
 	</model>
 </model-hints>

@@ -16,13 +16,13 @@ package com.liferay.layout.page.template.internal.upgrade;
 
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
+import com.liferay.layout.helper.CollectionPaginationHelper;
 import com.liferay.layout.page.template.internal.upgrade.v1_1_0.LayoutPrototypeUpgradeProcess;
 import com.liferay.layout.page.template.internal.upgrade.v1_1_1.LayoutPageTemplateEntryUpgradeProcess;
 import com.liferay.layout.page.template.internal.upgrade.v1_2_0.LayoutPageTemplateStructureUpgradeProcess;
 import com.liferay.layout.page.template.internal.upgrade.v2_0_0.util.LayoutPageTemplateCollectionTable;
 import com.liferay.layout.page.template.internal.upgrade.v2_0_0.util.LayoutPageTemplateEntryTable;
 import com.liferay.layout.page.template.internal.upgrade.v2_1_0.LayoutUpgradeProcess;
-import com.liferay.layout.page.template.internal.upgrade.v3_0_1.util.LayoutPageTemplateStructureRelTable;
 import com.liferay.layout.page.template.internal.upgrade.v3_1_3.ResourcePermissionUpgradeProcess;
 import com.liferay.layout.page.template.internal.upgrade.v3_3_0.LayoutPageTemplateStructureRelUpgradeProcess;
 import com.liferay.layout.page.template.internal.upgrade.v3_4_1.FragmentEntryLinkEditableValuesUpgradeProcess;
@@ -89,8 +89,7 @@ public class LayoutPageTemplateServiceUpgrade
 		registry.register(
 			"3.0.0", "3.0.1",
 			UpgradeStepFactory.alterColumnTypes(
-				LayoutPageTemplateStructureRelTable.class, "TEXT null",
-				"data_"));
+				"LayoutPageTemplateStructureRel", "TEXT null", "data_"));
 
 		registry.register(
 			"3.0.1", "3.1.0",
@@ -165,7 +164,21 @@ public class LayoutPageTemplateServiceUpgrade
 			"3.4.3", "3.5.0",
 			new com.liferay.layout.page.template.internal.upgrade.v3_5_0.
 				LayoutPageTemplateStructureRelUpgradeProcess());
+
+		registry.register(
+			"3.5.0", "4.0.0",
+			new com.liferay.layout.page.template.internal.upgrade.v4_0_0.
+				LayoutPageTemplateStructureRelUpgradeProcess(
+					_collectionPaginationHelper));
+
+		registry.register(
+			"4.0.0", "5.0.0",
+			new com.liferay.layout.page.template.internal.upgrade.v5_0_0.
+				LayoutPageTemplateStructureUpgradeProcess());
 	}
+
+	@Reference
+	private CollectionPaginationHelper _collectionPaginationHelper;
 
 	@Reference
 	private CompanyLocalService _companyLocalService;

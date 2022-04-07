@@ -2,30 +2,11 @@
 	"label": {
 		"en_US": "Testray Component"
 	},
-	"name": "TestrayComponent",
+	"name": "Component",
 	"objectFields": [
 		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Project Id"
-			},
-			"name": "testrayProjectId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Team Id"
-			},
-			"name": "testrayTeamId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
+			"DBType": "String",
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Name"
@@ -33,22 +14,10 @@
 			"name": "name",
 			"required": false,
 			"type": "String"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Origination Key"
-			},
-			"name": "originationKey",
-			"required": false,
-			"type": "Long"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Components"
 	},
-	"scope": "site"
+	"scope": "company"
 }

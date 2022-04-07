@@ -539,6 +539,8 @@ public class UIItemsBuilder {
 			HashMapBuilder.<String, Object>put(
 				"analytics-file-entry-id", _fileEntry.getFileEntryId()
 			).put(
+				"analytics-file-entry-title", _fileEntry.getTitle()
+			).put(
 				"senna-off", "true"
 			).build());
 
@@ -560,6 +562,8 @@ public class UIItemsBuilder {
 		urlToolbarItem.setData(
 			HashMapBuilder.<String, Object>put(
 				"analytics-file-entry-id", _fileEntry.getFileEntryId()
+			).put(
+				"analytics-file-entry-title", _fileEntry.getTitle()
 			).build());
 
 		_addURLUIItem(
@@ -1334,7 +1338,7 @@ public class UIItemsBuilder {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return false;

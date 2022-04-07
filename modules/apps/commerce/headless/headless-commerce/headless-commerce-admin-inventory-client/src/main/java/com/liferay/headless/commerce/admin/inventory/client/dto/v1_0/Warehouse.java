@@ -19,6 +19,7 @@ import com.liferay.headless.commerce.admin.inventory.client.serdes.v1_0.Warehous
 
 import java.io.Serializable;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Generated;
@@ -33,6 +34,28 @@ public class Warehouse implements Cloneable, Serializable {
 	public static Warehouse toDTO(String json) {
 		return WarehouseSerDes.toDTO(json);
 	}
+
+	public Map<String, Map<String, String>> getActions() {
+		return actions;
+	}
+
+	public void setActions(Map<String, Map<String, String>> actions) {
+		this.actions = actions;
+	}
+
+	public void setActions(
+		UnsafeSupplier<Map<String, Map<String, String>>, Exception>
+			actionsUnsafeSupplier) {
+
+		try {
+			actions = actionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, Map<String, String>> actions;
 
 	public Boolean getActive() {
 		return active;
@@ -95,16 +118,17 @@ public class Warehouse implements Cloneable, Serializable {
 
 	protected String countryISOCode;
 
-	public String getDescription() {
+	public Map<String, String> getDescription() {
 		return description;
 	}
 
-	public void setDescription(String description) {
+	public void setDescription(Map<String, String> description) {
 		this.description = description;
 	}
 
 	public void setDescription(
-		UnsafeSupplier<String, Exception> descriptionUnsafeSupplier) {
+		UnsafeSupplier<Map<String, String>, Exception>
+			descriptionUnsafeSupplier) {
 
 		try {
 			description = descriptionUnsafeSupplier.get();
@@ -114,7 +138,7 @@ public class Warehouse implements Cloneable, Serializable {
 		}
 	}
 
-	protected String description;
+	protected Map<String, String> description;
 
 	public String getExternalReferenceCode() {
 		return externalReferenceCode;
@@ -155,6 +179,27 @@ public class Warehouse implements Cloneable, Serializable {
 	}
 
 	protected Long id;
+
+	public Map<String, String> getLabel() {
+		return label;
+	}
+
+	public void setLabel(Map<String, String> label) {
+		this.label = label;
+	}
+
+	public void setLabel(
+		UnsafeSupplier<Map<String, String>, Exception> labelUnsafeSupplier) {
+
+		try {
+			label = labelUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, String> label;
 
 	public Double getLatitude() {
 		return latitude;

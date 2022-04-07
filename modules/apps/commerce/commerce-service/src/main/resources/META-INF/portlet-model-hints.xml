@@ -102,6 +102,18 @@
 		<field name="purchaseOrderNumber" type="String" />
 		<field name="couponCode" type="String" />
 		<field name="lastPriceUpdateDate" type="Date" />
+		<field name="deliveryCommerceTermEntryId" type="long" />
+		<field name="deliveryCommerceTermEntryDescription" type="String">
+			<hint-collection name="CLOB" />
+			<sanitize content-type="text/plain" modes="ALL" />
+		</field>
+		<field name="deliveryCommerceTermEntryName" type="String" />
+		<field name="paymentCommerceTermEntryId" type="long" />
+		<field name="paymentCommerceTermEntryDescription" type="String">
+			<hint-collection name="CLOB" />
+			<sanitize content-type="text/plain" modes="ALL" />
+		</field>
+		<field name="paymentCommerceTermEntryName" type="String" />
 		<field name="subtotal" type="BigDecimal" />
 		<field name="subtotalDiscountAmount" type="BigDecimal" />
 		<field name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
@@ -288,6 +300,7 @@
 	</model>
 	<model name="com.liferay.commerce.model.CommerceShipment">
 		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="commerceShipmentId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -309,6 +322,7 @@
 	</model>
 	<model name="com.liferay.commerce.model.CommerceShipmentItem">
 		<field name="mvccVersion" type="long" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="commerceShipmentItemId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -340,6 +354,19 @@
 			<validator name="number" />
 		</field>
 		<field name="active" type="boolean" />
+	</model>
+	<model name="com.liferay.commerce.model.CommerceShippingOptionAccountEntryRel">
+		<field name="mvccVersion" type="long" />
+		<field name="CommerceShippingOptionAccountEntryRelId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="userId" type="long" />
+		<field name="userName" type="String" />
+		<field name="createDate" type="Date" />
+		<field name="modifiedDate" type="Date" />
+		<field name="accountEntryId" type="long" />
+		<field name="commerceChannelId" type="long" />
+		<field name="commerceShippingMethodKey" type="String" />
+		<field name="commerceShippingOptionKey" type="String" />
 	</model>
 	<model name="com.liferay.commerce.model.CommerceSubscriptionEntry">
 		<field name="mvccVersion" type="long" />
@@ -394,6 +421,7 @@
 	</model>
 	<model name="com.liferay.commerce.model.CPDefinitionInventory">
 		<field name="mvccVersion" type="long" />
+		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
 		<field name="CPDefinitionInventoryId" type="long" />
 		<field name="groupId" type="long" />

@@ -96,18 +96,6 @@ Export-Package:\
 	\
 	com.ibm.crypto.provider,\
 	\
-	com.liferay.ibm.icu.*;version='4.0.1',\
-	\
-	com.rometools.rome;version='1.16.0',\
-	com.rometools.rome.feed;version='1.16.0',\
-	com.rometools.rome.feed.atom;version='1.16.0',\
-	com.rometools.rome.feed.impl;version='1.16.0',\
-	com.rometools.rome.feed.module;version='1.16.0',\
-	com.rometools.rome.feed.rss;version='1.16.0',\
-	com.rometools.rome.feed.synd;version='1.16.0',\
-	com.rometools.rome.io;version='1.16.0',\
-	com.rometools.utils;version='1.16.0',\
-	\
 	com.sun.security.auth.module,\
 	\
 	java_cup.runtime.*;version='2.7.1',\
@@ -120,8 +108,6 @@ Export-Package:\
 	javax.persistence.*;version='2.2.1',\
 	\
 	javax.portlet.*;version='2.0',\
-	\
-	javax.rmi;version='1.0.5.Final',\
 	\
 	javax.servlet.*;version='3.1.0',\
 	\
@@ -194,7 +180,6 @@ Export-Package:\
 	org.apache.commons.collections.map;version='3.2.1',\
 	org.apache.commons.collections.set;version='3.2.1',\
 	org.apache.commons.compress.*;version='1.21.0',\
-	org.apache.commons.discovery.*;version='0.4.0',\
 	org.apache.commons.lang;version='2.6',\
 	org.apache.commons.lang.builder;version='2.6',\
 	org.apache.commons.lang.enum;version='2.6',\
@@ -207,7 +192,6 @@ Export-Package:\
 	org.apache.commons.lang.time;version='2.6',\
 	org.apache.commons.logging;version="1.2",\
 	org.apache.commons.logging.impl;version="1.2",\
-	org.apache.commons.validator.routines;version='1.5.1',\
 	org.apache.log4j;version='2.17.1',\
 	org.apache.log4j.spi;version='2.17.1',\
 	org.apache.logging.log4j;version='2.17.1',\
@@ -223,14 +207,11 @@ Export-Package:\
 	org.apache.logging.log4j.message;version='2.17.1',\
 	org.apache.logging.log4j.spi;version='2.17.1',\
 	org.apache.naming.java,\
-	org.apache.tika.*;version='1.26.0',\
-	org.apache.tools.ant.*;version='1.9.15',\
 	org.apache.xerces.*;version='2.11.0',\
 	org.apache.xml.dtm.*;version='2.7.1',\
 	org.apache.xml.res.*;version='2.7.1',\
 	org.apache.xml.security.*;version='1.4.5',\
 	org.apache.xml.serialize;version='2.11.0',\
-	org.apache.xml.serializer;version='2.7.1',\
 	org.apache.xml.utils.*;version='2.7.1',\
 	org.apache.xmlcommons;version='1.4.01',\
 	org.apache.xpath.*;version='2.7.1',\
@@ -240,8 +221,6 @@ Export-Package:\
 	org.hibernate.*;version='3.6.10',\
 	\
 	org.jaxen.*;version='1.1.6',\
-	\
-	org.jdom2.*;version='2.0.6',\
 	\
 	org.json.*;version='20180813',\
 	\
@@ -301,7 +280,6 @@ Provide-Capability:\
 	@../../../lib/development/activation.jar,\
 	@../../../lib/development/mail.jar,\
 	@../../../lib/development/servlet-api.jar,\
-	@../../../lib/portal/ant.jar,\
 	@../../../lib/portal/asm-analysis.jar,\
 	@../../../lib/portal/asm-commons.jar,\
 	@../../../lib/portal/asm-tree.jar,\
@@ -311,27 +289,22 @@ Provide-Capability:\
 	@../../../lib/portal/commons-codec.jar,\
 	@../../../lib/portal/commons-collections.jar,\
 	@../../../lib/portal/commons-compress.jar,\
-	@../../../lib/portal/commons-discovery.jar,\
 	@../../../lib/portal/commons-lang.jar,\
 	@../../../lib/portal/commons-logging.jar,\
 	@../../../lib/portal/dom4j.jar,\
 	@../../../lib/portal/hibernate-core.jar,\
 	@../../../lib/portal/jaxen.jar,\
 	@../../../lib/portal/jaxrpc.jar,\
-	@../../../lib/portal/jdom2.jar!/org/**,\
 	@../../../lib/portal/jodd-json.jar,\
 	@../../../lib/portal/jodd-proxetta.jar,\
 	@../../../lib/portal/jodd-util.jar,\
 	@../../../lib/portal/json-java.jar,\
-	@../../../lib/portal/liferay-icu4j.jar,\
 	@../../../lib/portal/log4j-1.2-api.jar,\
 	@../../../lib/portal/log4j-api.jar,\
 	@../../../lib/portal/log4j-core.jar,\
 	@../../../lib/portal/persistence.jar,\
 	@../../../lib/portal/portlet.jar,\
 	@../../../lib/portal/portletmvc4spring-framework.jar,\
-	@../../../lib/portal/rometools-utils.jar,\
-	@../../../lib/portal/rometools.jar,\
 	@../../../lib/portal/slf4j-api.jar,\
 	@../../../lib/portal/spring-aop.jar,\
 	@../../../lib/portal/spring-aspects.jar,\
@@ -347,8 +320,6 @@ Provide-Capability:\
 	@../../../lib/portal/spring-tx.jar,\
 	@../../../lib/portal/spring-web.jar,\
 	@../../../lib/portal/spring-webmvc.jar,\
-	@../../../lib/portal/tika-core.jar,\
-	@../../../lib/portal/tika-parsers.jar,\
 	@../../../lib/portal/xercesImpl.jar,\
 	@../../../lib/portal/xml-apis.jar,\
 	@../../../lib/portal/xmlsec.jar,\

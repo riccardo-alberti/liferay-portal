@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the remote service utility for CommerceInventoryWarehouse. This utility wraps
@@ -62,6 +63,22 @@ public class CommerceInventoryWarehouseServiceUtil {
 	}
 
 	public static CommerceInventoryWarehouse addCommerceInventoryWarehouse(
+			String externalReferenceCode, String name,
+			Map<java.util.Locale, String> labelMap,
+			Map<java.util.Locale, String> descriptionMap, boolean active,
+			String street1, String street2, String street3, String city,
+			String zip, String commerceRegionCode, String commerceCountryCode,
+			double latitude, double longitude,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().addCommerceInventoryWarehouse(
+			externalReferenceCode, name, labelMap, descriptionMap, active,
+			street1, street2, street3, city, zip, commerceRegionCode,
+			commerceCountryCode, latitude, longitude, serviceContext);
+	}
+
+	public static CommerceInventoryWarehouse addCommerceInventoryWarehouse(
 			String externalReferenceCode, String name, String description,
 			boolean active, String street1, String street2, String street3,
 			String city, String zip, String commerceRegionCode,
@@ -80,6 +97,14 @@ public class CommerceInventoryWarehouseServiceUtil {
 		throws PortalException {
 
 		return getService().deleteCommerceInventoryWarehouse(
+			commerceInventoryWarehouseId);
+	}
+
+	public static CommerceInventoryWarehouse fetchByCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId)
+		throws PortalException {
+
+		return getService().fetchByCommerceInventoryWarehouse(
 			commerceInventoryWarehouseId);
 	}
 
@@ -213,6 +238,23 @@ public class CommerceInventoryWarehouseServiceUtil {
 	}
 
 	public static CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId, String name,
+			Map<java.util.Locale, String> labelMap,
+			Map<java.util.Locale, String> descriptionMap, boolean active,
+			String street1, String street2, String street3, String city,
+			String zip, String commerceRegionCode, String commerceCountryCode,
+			double latitude, double longitude, long mvccVersion,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().updateCommerceInventoryWarehouse(
+			commerceInventoryWarehouseId, name, labelMap, descriptionMap,
+			active, street1, street2, street3, city, zip, commerceRegionCode,
+			commerceCountryCode, latitude, longitude, mvccVersion,
+			serviceContext);
+	}
+
+	public static CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
 			long commerceInventoryWarehouseId, String name, String description,
 			boolean active, String street1, String street2, String street3,
 			String city, String zip, String commerceRegionCode,
@@ -226,6 +268,16 @@ public class CommerceInventoryWarehouseServiceUtil {
 			street2, street3, city, zip, commerceRegionCode,
 			commerceCountryCode, latitude, longitude, mvccVersion,
 			serviceContext);
+	}
+
+	public static CommerceInventoryWarehouse
+			updateCommerceInventoryWarehouseExternalReferenceCode(
+				String externalReferenceCode, long commerceInventoryWarehouseId)
+		throws PortalException {
+
+		return getService().
+			updateCommerceInventoryWarehouseExternalReferenceCode(
+				externalReferenceCode, commerceInventoryWarehouseId);
 	}
 
 	public static CommerceInventoryWarehouseService getService() {

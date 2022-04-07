@@ -21,9 +21,8 @@ import {getDevelopmentLicenseKey} from '../../../../../common/services/liferay/r
 import downloadFromBlob from '../../../../../common/utils/downloadFromBlob';
 import {
 	ALERT_DOWNLOAD_TYPE,
-	AUTO_CLOSE_DOWNLOAD_ALERT_TIME,
+	AUTO_CLOSE_ALERT_TIME,
 	EXTENSION_FILE_TYPES,
-	LIST_TYPES,
 	STATUS_CODE,
 } from '../../../utils/constants';
 
@@ -36,6 +35,8 @@ const DeveloperKeysInputs = ({
 	accountKey,
 	downloadTextHelper,
 	dxpVersion,
+	listType,
+	productName,
 	projectName,
 	sessionId,
 }) => {
@@ -55,32 +56,34 @@ const DeveloperKeysInputs = ({
 			const {data} = await client.query({
 				query: getListTypeDefinitions,
 				variables: {
-					filter: `name eq '${LIST_TYPES.dxpVersion}'`,
+					filter: `name eq '${listType}'`,
 				},
 			});
 
-			if (data) {
-				const items = data.listTypeDefinitions.items[0].listTypeEntries;
-				const orderedItems = [...items].sort((a, b) => b.name - a.name);
+			const items = data?.listTypeDefinitions?.items[0]?.listTypeEntries;
 
-				setDxpVersions(orderedItems);
+			if (items?.length) {
+				const sortedItems = [...items].sort();
+				setDxpVersions(sortedItems);
 
 				setSelectedVersion(
-					orderedItems.find((item) => item.name === dxpVersion)
-						?.name || orderedItems[0]?.name
+					sortedItems.find((item) => item.name === dxpVersion)
+						?.name || sortedItems[0].name
 				);
 			}
 		};
 
 		fetchListTypeDefinitions();
-	}, [dxpVersion]);
+	}, [dxpVersion, listType]);
 
 	const developerKeyDownload = async () => {
+		const [selectedVersionSplitted] = selectedVersion.split(' ');
 		const license = await getDevelopmentLicenseKey(
 			accountKey,
 			licenseKeyDownloadURL,
 			sessionId,
-			selectedVersion
+			encodeURI(selectedVersionSplitted),
+			productName
 		);
 
 		if (license.status === STATUS_CODE.success) {
@@ -96,7 +99,7 @@ const DeveloperKeysInputs = ({
 
 			return downloadFromBlob(
 				licenseBlob,
-				`activation-key-dxpdevelopment-${selectedVersion}-${projectFileName}${extensionFile}`
+				`activation-key-${productName.toLowerCase()}development-${selectedVersionSplitted}-${projectFileName}${extensionFile}`
 			);
 		}
 
@@ -167,9 +170,7 @@ const DeveloperKeysInputs = ({
 				<ClayAlert.ToastContainer>
 					<ClayAlert
 						autoClose={
-							AUTO_CLOSE_DOWNLOAD_ALERT_TIME[
-								developerKeysDownloadStatus
-							]
+							AUTO_CLOSE_ALERT_TIME[developerKeysDownloadStatus]
 						}
 						className="cp-activation-key-download-alert px-4 py-3 text-paragraph"
 						displayType={

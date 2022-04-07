@@ -68,7 +68,6 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.ThemeFactoryUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -117,62 +116,6 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		return addLayoutPageTemplateEntry(
 			company.getGroupId(), layoutPrototype);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addLayoutPageTemplateEntry(long, long, long, long, long,
-	 *             String, int, long, boolean, long, long, long, int,
-	 *             ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
-			long userId, long groupId, long layoutPageTemplateCollectionId,
-			long classNameId, long classTypeId, String name, int type,
-			boolean defaultTemplate, long layoutPrototypeId,
-			long previewFileEntryId, long plid, int status,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		return addLayoutPageTemplateEntry(
-			userId, groupId, layoutPageTemplateCollectionId, classNameId,
-			classTypeId, name, type, previewFileEntryId, defaultTemplate,
-			layoutPrototypeId, plid, 0, status, serviceContext);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addLayoutPageTemplateEntry(long, long, long, long, long,
-	 *             String, int, long, int, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
-			long userId, long groupId, long layoutPageTemplateCollectionId,
-			long classNameId, long classTypeId, String name, int type,
-			int status, ServiceContext serviceContext)
-		throws PortalException {
-
-		// Layout page template entry
-
-		validate(classNameId, classTypeId, groupId, serviceContext.getLocale());
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			addLayoutPageTemplateEntry(
-				userId, groupId, layoutPageTemplateCollectionId, classNameId,
-				classTypeId, name, type, false, 0, 0, 0, status,
-				serviceContext);
-
-		// Dynamic data mapping structure link
-
-		_ddmStructureLinkLocalService.addStructureLink(
-			_classNameLocalService.getClassNameId(
-				LayoutPageTemplateEntry.class),
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
-			classTypeId);
-
-		return layoutPageTemplateEntry;
 	}
 
 	@Override
@@ -302,23 +245,6 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		return layoutPageTemplateEntry;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #addLayoutPageTemplateEntry(long, long, long, String, int,
-	 *             long, int, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
-			long userId, long groupId, long layoutPageTemplateCollectionId,
-			String name, int type, int status, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addLayoutPageTemplateEntry(
-			userId, groupId, layoutPageTemplateCollectionId, 0, 0, name, type,
-			false, 0, 0, 0, status, serviceContext);
-	}
-
 	@Override
 	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
 			long userId, long groupId, long layoutPageTemplateCollectionId,
@@ -354,9 +280,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			userId, groupId, layoutPageTemplateCollectionId,
 			sourceLayoutPageTemplateEntry.getClassNameId(),
 			sourceLayoutPageTemplateEntry.getClassTypeId(), name,
-			sourceLayoutPageTemplateEntry.getType(), false, 0,
-			previewFileEntryId, 0, sourceLayoutPageTemplateEntry.getStatus(),
-			serviceContext);
+			sourceLayoutPageTemplateEntry.getType(), previewFileEntryId, false,
+			0, 0, 0, sourceLayoutPageTemplateEntry.getStatus(), serviceContext);
 	}
 
 	@Override
@@ -773,41 +698,6 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 	}
 
 	@Override
-	public LayoutPageTemplateEntry updateLayoutPageTemplateEntry(
-			long layoutPageTemplateEntryId, String name,
-			long[] fragmentEntryIds, String editableValues,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		// Layout page template entry
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			layoutPageTemplateEntryPersistence.findByPrimaryKey(
-				layoutPageTemplateEntryId);
-
-		if (!Objects.equals(layoutPageTemplateEntry.getName(), name)) {
-			validate(
-				layoutPageTemplateEntry.getGroupId(), name,
-				layoutPageTemplateEntry.getType());
-		}
-
-		layoutPageTemplateEntry.setModifiedDate(new Date());
-		layoutPageTemplateEntry.setName(name);
-
-		layoutPageTemplateEntry = layoutPageTemplateEntryPersistence.update(
-			layoutPageTemplateEntry);
-
-		// Fragment entry instance links
-
-		_fragmentEntryLinkLocalService.updateFragmentEntryLinks(
-			serviceContext.getUserId(), layoutPageTemplateEntry.getGroupId(),
-			layoutPageTemplateEntry.getPlid(), fragmentEntryIds, editableValues,
-			serviceContext);
-
-		return layoutPageTemplateEntry;
-	}
-
-	@Override
 	public LayoutPageTemplateEntry updateStatus(
 			long userId, long layoutPageTemplateEntryId, int status)
 		throws PortalException {
@@ -851,8 +741,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		return addLayoutPageTemplateEntry(
 			layoutPrototype.getUserId(), groupId, 0, 0, 0,
 			nameMap.get(defaultLocale),
-			LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE, false,
-			layoutPrototype.getLayoutPrototypeId(), 0, layout.getPlid(), status,
+			LayoutPageTemplateEntryTypeConstants.TYPE_WIDGET_PAGE, 0, false,
+			layoutPrototype.getLayoutPrototypeId(), layout.getPlid(), 0, status,
 			new ServiceContext());
 	}
 
@@ -867,7 +757,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		}
 		catch (RuntimeException runtimeException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(runtimeException, runtimeException);
+				_log.debug(runtimeException);
 			}
 
 			throw new NoSuchClassNameException(
@@ -981,39 +871,33 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		serviceContext.setAttribute(
 			"layout.instanceable.allowed", Boolean.TRUE);
+		serviceContext.setAttribute("layout.page.template.entry.type", type);
 
 		Layout layout = _layoutLocalService.addLayout(
 			userId, groupId, privateLayout, 0, 0, 0, titleMap, titleMap, null,
 			null, null, layoutType, typeSettings, true, true, new HashMap<>(),
 			masterLayoutPlid, serviceContext);
 
-		serviceContext.setModifiedDate(layout.getModifiedDate());
-
-		Layout draftLayout = _layoutLocalService.addLayout(
-			userId, groupId, privateLayout, layout.getParentLayoutId(),
-			_classNameLocalService.getClassNameId(Layout.class),
-			layout.getPlid(), layout.getNameMap(), titleMap,
-			layout.getDescriptionMap(), layout.getKeywordsMap(),
-			layout.getRobotsMap(), layoutType, layout.getTypeSettings(), true,
-			true, Collections.emptyMap(), masterLayoutPlid, serviceContext);
+		Layout draftLayout = layout.fetchDraftLayout();
 
 		if ((type == LayoutPageTemplateEntryTypeConstants.TYPE_MASTER_LAYOUT) ||
 			(masterLayoutPlid > 0)) {
 
-			String defaultRegularThemeId =
-				ThemeFactoryUtil.getDefaultRegularThemeId(
-					layout.getCompanyId());
+			LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
+				groupId, false);
+
+			String themeId = layoutSet.getThemeId();
 
 			String colorSchemeId = _getColorSchemeId(
-				layout.getCompanyId(), defaultRegularThemeId, StringPool.BLANK);
+				layout.getCompanyId(), themeId, StringPool.BLANK);
 
 			draftLayout = _layoutLocalService.updateLookAndFeel(
-				groupId, privateLayout, draftLayout.getLayoutId(),
-				defaultRegularThemeId, colorSchemeId, StringPool.BLANK);
+				groupId, privateLayout, draftLayout.getLayoutId(), themeId,
+				colorSchemeId, StringPool.BLANK);
 
 			layout = _layoutLocalService.updateLookAndFeel(
-				groupId, privateLayout, layout.getLayoutId(),
-				defaultRegularThemeId, colorSchemeId, StringPool.BLANK);
+				groupId, privateLayout, layout.getLayoutId(), themeId,
+				colorSchemeId, StringPool.BLANK);
 		}
 
 		if (status == WorkflowConstants.STATUS_DRAFT) {

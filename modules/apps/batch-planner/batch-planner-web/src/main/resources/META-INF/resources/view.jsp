@@ -41,7 +41,7 @@ SearchContainer<BatchPlannerLogDisplay> batchPlannerLogDisplaySearchContainer = 
 			modelVar="batchPlannerLogDisplay"
 		>
 			<liferay-ui:search-container-column-text
-				cssClass="important table-cell-expand"
+				cssClass="font-weight-bold important table-cell-expand"
 				href='<%=
 					PortletURLBuilder.createRenderURL(
 						renderResponse
@@ -53,7 +53,7 @@ SearchContainer<BatchPlannerLogDisplay> batchPlannerLogDisplaySearchContainer = 
 						"batchPlannerLogId", batchPlannerLogDisplay.getBatchPlannerLogId()
 					).buildPortletURL()
 				%>'
-				name="title"
+				name="name"
 				value="<%= batchPlannerLogDisplay.getTitle() %>"
 			/>
 
@@ -86,18 +86,23 @@ SearchContainer<BatchPlannerLogDisplay> batchPlannerLogDisplaySearchContainer = 
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
-				name="rows-imported"
-				value="<%= dateFormatDateTime.format(batchPlannerLogDisplay.getCreateDate()) %>"
-			/>
-
-			<liferay-ui:search-container-column-text
-				name="rows-warnings"
-				value="<%= dateFormatDateTime.format(batchPlannerLogDisplay.getCreateDate()) %>"
+				name="rows-processed"
+				value="<%= String.valueOf(batchPlannerLogDisplay.getProcessedItemsCount()) %>"
 			/>
 
 			<liferay-ui:search-container-column-text
 				name="rows-failed"
-				value="<%= dateFormatDateTime.format(batchPlannerLogDisplay.getCreateDate()) %>"
+				value="<%= String.valueOf(batchPlannerLogDisplay.getFailedItemsCount()) %>"
+			/>
+
+			<liferay-ui:search-container-column-text
+				name="total"
+				value="<%= String.valueOf(batchPlannerLogDisplay.getTotalItemsCount()) %>"
+			/>
+
+			<liferay-ui:search-container-column-jsp
+				cssClass="entry-action-column"
+				path="/batch_planner_log_action.jsp"
 			/>
 		</liferay-ui:search-container-row>
 

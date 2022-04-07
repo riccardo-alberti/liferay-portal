@@ -20,6 +20,7 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
 import com.liferay.object.service.ObjectFieldLocalServiceUtil;
+import com.liferay.object.util.ObjectEntryFieldValueUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -85,9 +86,8 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 					objectDefinition.getTitleObjectFieldId());
 
 			if (objectField != null) {
-				Map<String, Serializable> values = getValues();
-
-				return String.valueOf(values.get(objectField.getName()));
+				return ObjectEntryFieldValueUtil.getValueString(
+					objectField, getValues());
 			}
 		}
 
@@ -105,7 +105,7 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 				_values = ObjectEntryLocalServiceUtil.getValues(this);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 
 				return new HashMap<>();
 			}

@@ -1302,14 +1302,13 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		return LiferaySeleniumUtil.getNumberIncrement(value);
 	}
 
-	@Override
-	public String getOcularResultImageDirName() {
-		return _OCULAR_RESULT_IMAGE_DIR_NAME;
+	public String getOcularBaselineImageDirName() {
+		return _OCULAR_BASELINE_IMAGE_DIR_NAME;
 	}
 
 	@Override
-	public String getOcularSnapImageDirName() {
-		return _OCULAR_SNAP_IMAGE_DIR_NAME;
+	public String getOcularResultImageDirName() {
+		return _OCULAR_RESULT_IMAGE_DIR_NAME;
 	}
 
 	@Override
@@ -1805,6 +1804,11 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
+	public void javaScriptMouseOver(String locator) {
+		executeJavaScriptEvent(locator, "MouseEvent", "mouseover");
+	}
+
+	@Override
 	public void javaScriptMouseUp(String locator) {
 		executeJavaScriptEvent(locator, "MouseEvent", "mouseup");
 	}
@@ -2031,15 +2035,16 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void ocularAssertElementImage(String locator, String fileName)
+	public void ocularAssertElementImage(
+			String locator, String fileName, String match)
 		throws Exception {
 
-		File snapFile = new File(
-			PropsValues.TEST_BASE_DIR_NAME + getOcularSnapImageDirName() + "/" +
-				fileName);
+		File baselineFile = new File(
+			PropsValues.TEST_BASE_DIR_NAME + getOcularBaselineImageDirName() +
+				"/" + fileName);
 
-		if (!snapFile.exists()) {
-			File snapParentFile = snapFile.getParentFile();
+		if (!baselineFile.exists()) {
+			File snapParentFile = baselineFile.getParentFile();
 
 			snapParentFile.mkdirs();
 		}
@@ -2055,6 +2060,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		OcularConfiguration ocularConfiguration = Ocular.config();
 
 		ocularConfiguration.resultPath(Paths.get(resultParentFile.getPath()));
+
+		ocularConfiguration.globalSimilarity(GetterUtil.getInteger(match));
 
 		WebElement webElement = getWebElement(locator);
 
@@ -3076,19 +3083,30 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void uploadCommonFile(String location, String value)
+	public void uploadCommonFile(String locator, String commonFilePath)
 		throws Exception {
 
-		String fileName =
+		String filePath =
 			FileUtil.getSeparator() + getTestDependenciesDirName() +
-				FileUtil.getSeparator() + value;
+				FileUtil.getSeparator() + commonFilePath;
 
-		fileName = LiferaySeleniumUtil.getSourceDirFilePath(fileName);
+		filePath = LiferaySeleniumUtil.getSourceDirFilePath(filePath);
 
-		if (value.endsWith(".jar") || value.endsWith(".lar") ||
-			value.endsWith(".war") || value.endsWith(".zip")) {
+		uploadFile(locator, FileUtil.fixFilePath(filePath));
+	}
 
-			File file = new File(fileName);
+	@Override
+	public void uploadFile(String locator, String filePath) {
+		makeVisible(locator);
+
+		WebElement webElement = getWebElement(locator);
+
+		filePath = FileUtil.getCanonicalPath(filePath);
+
+		if (filePath.endsWith(".jar") || filePath.endsWith(".lar") ||
+			filePath.endsWith(".war") || filePath.endsWith(".zip")) {
+
+			File file = new File(filePath);
 
 			if (file.isDirectory()) {
 				String archiveFilePath =
@@ -3097,24 +3115,15 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 				archiveFilePath = FileUtil.getCanonicalPath(archiveFilePath);
 
-				ArchiveUtil.archive(fileName, archiveFilePath);
+				ArchiveUtil.archive(filePath, archiveFilePath);
 
-				fileName = archiveFilePath;
+				filePath = archiveFilePath;
 			}
 		}
 
-		fileName = FileUtil.fixFilePath(fileName);
+		filePath = FileUtil.fixFilePath(filePath);
 
-		uploadFile(location, fileName);
-	}
-
-	@Override
-	public void uploadFile(String location, String value) {
-		makeVisible(location);
-
-		WebElement webElement = getWebElement(location);
-
-		webElement.sendKeys(FileUtil.getCanonicalPath(value));
+		webElement.sendKeys(filePath);
 	}
 
 	@Override
@@ -4369,7 +4378,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		OcularConfiguration ocularConfiguration = Ocular.config();
 
 		ocularConfiguration = ocularConfiguration.snapshotPath(
-			Paths.get(testBaseDirName, getOcularSnapImageDirName()));
+			Paths.get(testBaseDirName, getOcularBaselineImageDirName()));
 
 		FileUtil.delete(
 			new File(testBaseDirName, getOcularResultImageDirName()));
@@ -4526,9 +4535,9 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	}
 
-	private static final String _OCULAR_RESULT_IMAGE_DIR_NAME;
+	private static final String _OCULAR_BASELINE_IMAGE_DIR_NAME;
 
-	private static final String _OCULAR_SNAP_IMAGE_DIR_NAME;
+	private static final String _OCULAR_RESULT_IMAGE_DIR_NAME;
 
 	private static final String _OUTPUT_DIR_NAME;
 
@@ -4568,8 +4577,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		String ocularResultImageDirName =
 			testDependenciesDirName + "//ocular//result";
-		String ocularSnapImageDirName =
-			testDependenciesDirName + "//ocular//snap";
+		String ocularBaselineImageDirName =
+			testDependenciesDirName + "//ocular//baseline";
 		String sikuliImagesDirName =
 			testDependenciesDirName + "//sikuli//linux//";
 
@@ -4582,8 +4591,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		else if (OSDetector.isWindows()) {
 			ocularResultImageDirName = StringUtil.replace(
 				ocularResultImageDirName, "//", "\\");
-			ocularSnapImageDirName = StringUtil.replace(
-				ocularSnapImageDirName, "//", "\\");
+			ocularBaselineImageDirName = StringUtil.replace(
+				ocularBaselineImageDirName, "//", "\\");
 			outputDirName = StringUtil.replace(outputDirName, "//", "\\");
 			sikuliImagesDirName = StringUtil.replace(
 				sikuliImagesDirName, "//", "\\");
@@ -4596,7 +4605,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		_OUTPUT_DIR_NAME = outputDirName;
 		_OCULAR_RESULT_IMAGE_DIR_NAME = ocularResultImageDirName;
-		_OCULAR_SNAP_IMAGE_DIR_NAME = ocularSnapImageDirName;
+		_OCULAR_BASELINE_IMAGE_DIR_NAME = ocularBaselineImageDirName;
 		_SIKULI_IMAGES_DIR_NAME = sikuliImagesDirName;
 		_TEST_DEPENDENCIES_DIR_NAME = testDependenciesDirName;
 	}

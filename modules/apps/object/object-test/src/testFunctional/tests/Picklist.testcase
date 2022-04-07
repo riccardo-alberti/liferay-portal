@@ -1,6 +1,7 @@
 @component-name = "portal-object"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -529,6 +530,15 @@ definition {
 			itemName = "Item Test");
 	}
 
+	@description = "LPS-136595 - Verify that the translated Picklist item's name will be displayed on Forms"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test ViewTranslatedPicklistItemNameOnForms {
+
+		// TODO LPS-147730 ViewTranslatedPicklistItemNameOnForms pending implementation
+
+	}
+
 	@description = "LPS-136595 - Verify that the translated Picklist item's name will be displayed on the Object layout"
 	@priority = "3"
 	test ViewTranslatedPicklistItemNameOnObjectLayout {
@@ -556,13 +566,13 @@ definition {
 		Navigator.openURL();
 
 		ObjectAdmin.addObjectViaAPI(
-			labelName = "Custom Object",
-			objectName = "CustomObject",
-			pluralLabelName = "Custom Objects");
+			labelName = "Custom Object 298",
+			objectName = "CustomObject298",
+			pluralLabelName = "Custom Objects 298");
 
 		ObjectAdmin.openObjectAdmin();
 
-		ObjectPortlet.selectCustomObject(label = "Custom Object");
+		ObjectPortlet.selectCustomObject(label = "Custom Object 298");
 
 		ObjectAdmin.goToFieldsTab();
 
@@ -573,9 +583,9 @@ definition {
 
 		Navigator.openURL();
 
-		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject");
+		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject298");
 
-		ObjectAdmin.goToCustomObject(objectName = "CustomObject");
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject298");
 
 		ObjectAdmin.addObjectPicklistFieldEntryViaUI(picklistOption = "Entry Test");
 
@@ -587,7 +597,7 @@ definition {
 
 		Navigator.openURL();
 
-		ObjectAdmin.goToCustomObject(objectName = "CustomObject");
+		ObjectAdmin.goToCustomObject(objectName = "CustomObject298");
 
 		ObjectPortlet.viewEntry(entry = "Teste de entrada");
 
@@ -596,6 +606,33 @@ definition {
 		Picklist.assertEntryRelationshipFieldPicklist(
 			newEntry = "Teste de entrada",
 			selectField = "Escolha");
+	}
+
+	@description = "LPS-136595 - Verify that the translated Picklist item's name will be displayed on the Object view"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test ViewTranslatedPicklistItemNameOnObjectView {
+
+		// TODO LPS-147729 ViewTranslatedPicklistItemNameOnObjectView pending implementation
+
+	}
+
+	@description = "LPS-136595 - Verify that the translated Picklist name will be displayed on the Object Admin"
+	@ignore = "Test Stub"
+	@priority = "3"
+	test ViewTranslatedPicklistNameOnObjectAdmin {
+
+		// TODO LPS-147728 ViewTranslatedPicklistNameOnObjectAdmin pending implementation
+
+	}
+
+	@description = "LPS-136595 - Verify that the updated Picklist item's name will be displayed on the object's portlet"
+	@ignore = "Test Stub"
+	@priority = "4"
+	test ViewUpdatedPicklistItemNameOnObjectPortlet {
+
+		// TODO LPS-147727 ViewUpdatedPicklistItemNameOnObjectPortlet pending implementation
+
 	}
 
 	@description = "LPS-136595 - Verify that the updating or deleting a picklist item warn message is displayed"

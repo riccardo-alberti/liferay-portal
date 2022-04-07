@@ -35,6 +35,8 @@ const fileContents = `currencyCode,type,name
 const fileSchema = ['currencyCode', 'type', 'name'];
 const file = new Blob([fileContents], {type: 'text/csv'});
 
+file.name = 'test.csv';
+
 describe('FileUpload', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -54,11 +56,15 @@ describe('FileUpload', () => {
 		const {getByLabelText} = render(<FileUpload portletNamespace="test" />);
 
 		act(() => {
-			fireEvent.change(getByLabelText('file'), {target: {files: [file]}});
+			fireEvent.change(getByLabelText(/file \((.*)\)/), {
+				target: {files: [file]},
+			});
 		});
 
-		expect(mockFileSchemaListener.mock.calls[0][0].schema).toStrictEqual(
-			fileSchema
+		expect(mockFileSchemaListener).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				schema: fileSchema,
+			})
 		);
 	});
 
@@ -82,7 +88,9 @@ describe('FileUpload', () => {
 		);
 
 		act(() => {
-			fireEvent.change(getByLabelText('file'), {target: {files: [file]}});
+			fireEvent.change(getByLabelText(/file \((.*)\)/), {
+				target: {files: [file]},
+			});
 		});
 
 		expect(testInput.value).toBe('TST');

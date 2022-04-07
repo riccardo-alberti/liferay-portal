@@ -14,7 +14,7 @@
 
 package com.liferay.commerce.order.web.internal.portlet.action;
 
-import com.liferay.commerce.account.model.CommerceAccount;
+import com.liferay.account.model.AccountEntry;
 import com.liferay.commerce.constants.CommerceAddressConstants;
 import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.constants.CommercePortletKeys;
@@ -35,6 +35,7 @@ import com.liferay.commerce.service.CommerceShipmentService;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -44,6 +45,9 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
+
+import java.io.IOException;
 
 import java.math.BigDecimal;
 
@@ -126,6 +130,12 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 			else if (cmd.equals("updateShippingAddress")) {
 				_updateShippingAddress(actionRequest);
 			}
+			else if (cmd.equals("updatePaymentTerms")) {
+				_updatePaymentTerms(actionRequest, actionResponse);
+			}
+			else if (cmd.equals("updateDeliveryTerms")) {
+				_updateDeliveryTerms(actionRequest, actionResponse);
+			}
 		}
 		catch (Exception exception) {
 			hideDefaultErrorMessage(actionRequest);
@@ -177,7 +187,7 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 
 		CommerceAddress commerceAddress =
 			_commerceAddressService.addCommerceAddress(
-				CommerceAccount.class.getName(),
+				AccountEntry.class.getName(),
 				commerceOrder.getCommerceAccountId(), name, description,
 				street1, street2, street3, city, zip, regionId, countryId,
 				phoneNumber, CommerceAddressConstants.ADDRESS_TYPE_BILLING,
@@ -224,7 +234,7 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 
 		CommerceAddress commerceAddress =
 			_commerceAddressService.addCommerceAddress(
-				CommerceAccount.class.getName(),
+				AccountEntry.class.getName(),
 				commerceOrder.getCommerceAccountId(), name, description,
 				street1, street2, street3, city, zip, regionId, countryId,
 				phoneNumber, CommerceAddressConstants.ADDRESS_TYPE_SHIPPING,
@@ -399,6 +409,33 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 			zip, regionId, countryId, phoneNumber, serviceContext);
 	}
 
+	private void _updateDeliveryTerms(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws IOException, PortalException {
+
+		long commerceOrderId = ParamUtil.getLong(
+			actionRequest, "commerceOrderId");
+
+		String commerceDeliveryTermId = ParamUtil.getString(
+			actionRequest, "commerceDeliveryTermId");
+
+		if (!Validator.isNumber(commerceDeliveryTermId)) {
+			SessionErrors.add(actionRequest, "deliveryTermsInvalid");
+
+			String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+			sendRedirect(actionRequest, actionResponse, redirect);
+		}
+
+		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
+			commerceOrderId);
+
+		_commerceOrderService.updateTermsAndConditions(
+			commerceOrder.getCommerceOrderId(),
+			GetterUtil.getLong(commerceDeliveryTermId), 0,
+			LanguageUtil.getLanguageId(actionRequest.getLocale()));
+	}
+
 	private void _updateOrderSummary(ActionRequest actionRequest)
 		throws PortalException {
 
@@ -469,6 +506,33 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 		_commercePaymentEngine.updateOrderPaymentStatus(
 			commerceOrderId, paymentStatus, commerceOrder.getTransactionId(),
 			StringPool.BLANK);
+	}
+
+	private void _updatePaymentTerms(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws IOException, PortalException {
+
+		String commercePaymentTermId = ParamUtil.getString(
+			actionRequest, "commercePaymentTermId");
+
+		if (!Validator.isNumber(commercePaymentTermId)) {
+			SessionErrors.add(actionRequest, "paymentTermsInvalid");
+
+			String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+			sendRedirect(actionRequest, actionResponse, redirect);
+		}
+
+		long commerceOrderId = ParamUtil.getLong(
+			actionRequest, "commerceOrderId");
+
+		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
+			commerceOrderId);
+
+		_commerceOrderService.updateTermsAndConditions(
+			commerceOrder.getCommerceOrderId(), 0,
+			GetterUtil.getLong(commercePaymentTermId),
+			LanguageUtil.getLanguageId(actionRequest.getLocale()));
 	}
 
 	private void _updatePrintedNote(ActionRequest actionRequest)
@@ -573,6 +637,7 @@ public class EditCommerceOrderMVCActionCommand extends BaseMVCActionCommand {
 				CommerceWebKeys.COMMERCE_CONTEXT);
 
 		_commerceOrderService.updateCommerceOrder(
+			commerceOrder.getExternalReferenceCode(),
 			commerceOrder.getCommerceOrderId(),
 			commerceOrder.getBillingAddressId(),
 			commerceOrder.getShippingAddressId(),

@@ -19,6 +19,7 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -198,6 +199,14 @@ public class JSONUtil {
 		return false;
 	}
 
+	public static boolean isEmpty(JSONArray jsonArray) {
+		if ((jsonArray == null) || (jsonArray.length() == 0)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static boolean isValid(String json) {
 		try {
 			_createJSONObject(json);
@@ -205,6 +214,10 @@ public class JSONUtil {
 			return true;
 		}
 		catch (JSONException jsonException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(jsonException);
+			}
+
 			return false;
 		}
 	}
@@ -240,14 +253,6 @@ public class JSONUtil {
 		jsonArray.put(value);
 
 		return jsonArray;
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link #putAll(Object...)}
-	 */
-	@Deprecated
-	public static JSONArray put(Object... values) {
-		return putAll(values);
 	}
 
 	public static JSONObject put(String key, Object value) {
@@ -1335,5 +1340,7 @@ public class JSONUtil {
 
 		return sb.toString();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(JSONUtil.class);
 
 }

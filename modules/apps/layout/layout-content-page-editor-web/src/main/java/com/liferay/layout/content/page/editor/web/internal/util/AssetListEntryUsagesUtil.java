@@ -60,7 +60,6 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -181,7 +180,7 @@ public class AssetListEntryUsagesUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -227,7 +226,7 @@ public class AssetListEntryUsagesUtil {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 		}
 
@@ -269,7 +268,7 @@ public class AssetListEntryUsagesUtil {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -306,7 +305,7 @@ public class AssetListEntryUsagesUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -418,7 +417,7 @@ public class AssetListEntryUsagesUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -543,7 +542,7 @@ public class AssetListEntryUsagesUtil {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 
@@ -608,11 +607,8 @@ public class AssetListEntryUsagesUtil {
 			layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
 				fragmentEntryLink.getFragmentEntryLinkId());
 
-		if (ListUtil.exists(
-				layoutStructure.getDeletedLayoutStructureItems(),
-				deletedLayoutStructureItem ->
-					deletedLayoutStructureItem.containsItemId(
-						layoutStructureItem.getItemId()))) {
+		if (layoutStructure.isItemMarkedForDeletion(
+				layoutStructureItem.getItemId())) {
 
 			return true;
 		}

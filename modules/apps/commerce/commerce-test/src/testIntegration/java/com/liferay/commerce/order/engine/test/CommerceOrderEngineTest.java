@@ -203,10 +203,10 @@ public class CommerceOrderEngineTest {
 			commerceInventoryWarehouses.get(0);
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment1.getCommerceShipmentId(),
+			null, _commerceShipment1.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			commerceOrderItem.getQuantity(), _serviceContext);
+			commerceOrderItem.getQuantity(), true, _serviceContext);
 
 		_commerceShipment1 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment1.getCommerceShipmentId(),
@@ -282,10 +282,10 @@ public class CommerceOrderEngineTest {
 			commerceInventoryWarehouses.get(0);
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment1.getCommerceShipmentId(),
+			null, _commerceShipment1.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			commerceOrderItem.getQuantity() / 2, _serviceContext);
+			commerceOrderItem.getQuantity() / 2, true, _serviceContext);
 
 		_commerceShipment1 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment1.getCommerceShipmentId(),
@@ -347,10 +347,10 @@ public class CommerceOrderEngineTest {
 			commerceInventoryWarehouses.get(0);
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment1.getCommerceShipmentId(),
+			null, _commerceShipment1.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			commerceOrderItem.getQuantity(), _serviceContext);
+			commerceOrderItem.getQuantity(), true, _serviceContext);
 
 		_commerceShipment1 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment1.getCommerceShipmentId(),
@@ -804,10 +804,10 @@ public class CommerceOrderEngineTest {
 			commerceInventoryWarehouses.get(0);
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment1.getCommerceShipmentId(),
+			null, _commerceShipment1.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			commerceOrderItem.getQuantity() / 2, _serviceContext);
+			commerceOrderItem.getQuantity() / 2, true, _serviceContext);
 
 		_commerceShipment1 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment1.getCommerceShipmentId(),
@@ -825,10 +825,10 @@ public class CommerceOrderEngineTest {
 				commerceOrderItem.getShippedQuantity();
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment2.getCommerceShipmentId(),
+			null, _commerceShipment2.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			remainingQuantity, _serviceContext);
+			remainingQuantity, true, _serviceContext);
 
 		_commerceShipment2 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment2.getCommerceShipmentId(),
@@ -916,10 +916,10 @@ public class CommerceOrderEngineTest {
 			commerceInventoryWarehouses.get(0);
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment1.getCommerceShipmentId(),
+			null, _commerceShipment1.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			commerceOrderItem.getQuantity() / 2, _serviceContext);
+			commerceOrderItem.getQuantity() / 2, true, _serviceContext);
 
 		_commerceShipment1 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment1.getCommerceShipmentId(),
@@ -937,10 +937,10 @@ public class CommerceOrderEngineTest {
 				commerceOrderItem.getShippedQuantity();
 
 		_commerceShipmentItemLocalService.addCommerceShipmentItem(
-			_commerceShipment2.getCommerceShipmentId(),
+			null, _commerceShipment2.getCommerceShipmentId(),
 			commerceOrderItem.getCommerceOrderItemId(),
 			commerceInventoryWarehouse.getCommerceInventoryWarehouseId(),
-			remainingQuantity, _serviceContext);
+			remainingQuantity, true, _serviceContext);
 
 		_commerceShipment2 = _commerceShipmentLocalService.updateStatus(
 			_commerceShipment2.getCommerceShipmentId(),

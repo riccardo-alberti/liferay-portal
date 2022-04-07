@@ -147,7 +147,7 @@ public class DocumentImpl implements Document {
 
 	@Override
 	public void addFile(String name, InputStream inputStream, String fileExt) {
-		addText(name, FileUtil.extractText(inputStream, fileExt));
+		addText(name, FileUtil.extractText(inputStream));
 	}
 
 	@Override
@@ -155,8 +155,7 @@ public class DocumentImpl implements Document {
 		String name, InputStream inputStream, String fileExt,
 		int maxStringLength) {
 
-		addText(
-			name, FileUtil.extractText(inputStream, fileExt, maxStringLength));
+		addText(name, FileUtil.extractText(inputStream, maxStringLength));
 	}
 
 	@Override
@@ -1097,22 +1096,6 @@ public class DocumentImpl implements Document {
 		}
 
 		sb.append(StringPool.CLOSE_CURLY_BRACE);
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #toString(StringBundler, Collection)}
-	 */
-	@Deprecated
-	protected void toString(
-		com.liferay.portal.kernel.util.StringBundler sb,
-		Collection<Field> fields) {
-
-		StringBundler petraSB = new StringBundler();
-
-		toString(petraSB, fields);
-
-		sb.append(petraSB.getStrings());
 	}
 
 	private void _createSortableTextField(

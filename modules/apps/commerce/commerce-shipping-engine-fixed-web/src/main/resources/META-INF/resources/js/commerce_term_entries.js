@@ -15,6 +15,7 @@
 import ServiceProvider from 'commerce-frontend-js/ServiceProvider/index';
 import itemFinder from 'commerce-frontend-js/components/item_finder/entry';
 import {UPDATE_DATASET_DISPLAY} from 'commerce-frontend-js/utilities/eventsDefinitions';
+import {openToast} from 'frontend-js-web';
 
 export default function ({
 	apiUrl,
@@ -39,6 +40,21 @@ export default function ({
 				Liferay.fire(UPDATE_DATASET_DISPLAY, {
 					id: datasetId,
 				});
+			})
+			.catch((error) => {
+				const errorsMap = {
+					'the-qualifier-is-already-linked': Liferay.Language.get(
+						'the-qualifier-is-already-linked'
+					),
+				};
+
+				openToast({
+					message:
+						errorsMap[error.message] ||
+						Liferay.Language.get('an-unexpected-error-occurred'),
+					title: Liferay.Language.get('error'),
+					type: 'danger',
+				});
 			});
 	}
 
@@ -47,7 +63,7 @@ export default function ({
 		getSelectedItems: () => Promise.resolve([]),
 		inputPlaceholder: Liferay.Language.get('find-a-delivery-term'),
 		itemCreation: false,
-		itemSelectedMessage: Liferay.Language.get('delivery-term-selected'),
+		itemSelectedMessage: Liferay.Language.get('delivery-terms-selected'),
 		itemsKey: 'id',
 		linkedDatasetsId: [datasetId],
 		onItemSelected: selectItem,

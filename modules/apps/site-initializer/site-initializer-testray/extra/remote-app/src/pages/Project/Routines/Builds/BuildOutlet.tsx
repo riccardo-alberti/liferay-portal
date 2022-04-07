@@ -21,197 +21,117 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import BarChartComponent from '../../../../components/Charts/BarChart';
-import PieChartComponent from '../../../../components/Charts/PieChart';
-import Container from '../../../../components/Layout/Container';
-import QATable from '../../../../components/Table/QATable';
 import {
-	CType,
 	TestrayBuild,
-	getTestrayBuild,
+	TypePagination,
+	getBuild,
 } from '../../../../graphql/queries';
+import {TestrayTask, getTasks} from '../../../../graphql/queries/testrayTask';
 import useHeader from '../../../../hooks/useHeader';
-import {DATA_COLORS} from '../../../../util/constants';
-import {runs} from '../../../../util/mock';
+import i18n from '../../../../i18n';
+import BuildAlertBar from './BuildAlertBar';
+import BuildOverview from './BuildOverview';
 
-type BuildOverviewProps = {
-	testrayBuild: TestrayBuild;
+type BuildOutletProps = {
+	ignorePath: string;
 };
 
-const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
-	return (
-		<>
-			<Container title="Details">
-				<QATable
-					items={[
-						{title: 'product version', value: '7.0.x'},
-						{
-							title: 'description',
-							value: testrayBuild.description,
-						},
-						{
-							title: 'git hash',
-							value:
-								testrayBuild.gitHash ||
-								'c33e85e8b067d805a45956c76ad053ca98ffcc8a',
-						},
-						{title: 'create date', value: testrayBuild.dateCreated},
-						{title: 'created by', value: 'John Doe'},
-						{title: 'all issues found', value: '-'},
-					]}
-				/>
-
-				<div className="d-flex mt-4">
-					<dl>
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">TOTAL ESTIMATED TIME</dd>
-					</dl>
-
-					<dl className="ml-3">
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">REMAINING ESTIMATED</dd>
-					</dl>
-
-					<dl className="ml-3">
-						<dd>0 minutes</dd>
-
-						<dd className="small-heading">TIME 0 TOTAL ISSUES</dd>
-					</dl>
-				</div>
-			</Container>
-
-			<Container className="mt-4" title="Total Test Cases">
-				<div className="row">
-					<div className="col-3">
-						<PieChartComponent
-							data={[
-								{
-									color: DATA_COLORS['metrics.passed'],
-									name: 'passed',
-									value: 30529,
-								},
-								{
-									color: DATA_COLORS['metrics.failed'],
-									name: 'failed',
-									value: 5374,
-								},
-								{
-									color: DATA_COLORS['metrics.blocked'],
-									name: 'blocked',
-									value: 0,
-								},
-								{
-									color: DATA_COLORS['metrics.test-fix'],
-									name: 'test fix',
-									value: 0,
-								},
-								{
-									color: DATA_COLORS['metrics.incomplete'],
-									name: 'incomplete',
-									value: 21,
-								},
-							]}
-							pieProps={{dataKey: 'value'}}
-						/>
-					</div>
-
-					<div className="col-8 ml-6">
-						<BarChartComponent
-							bars={[
-								{
-									dataKey: 'failed',
-									fill: DATA_COLORS['metrics.failed'],
-								},
-								{
-									dataKey: 'incomplete',
-									fill: DATA_COLORS['metrics.incomplete'],
-								},
-								{
-									dataKey: 'test_fix',
-									fill: DATA_COLORS['metrics.test-fix'],
-								},
-								{
-									dataKey: 'blocked',
-									fill: DATA_COLORS['metrics.blocked'],
-								},
-								{
-									dataKey: 'passed',
-									fill: DATA_COLORS['metrics.passed'],
-								},
-							]}
-							data={runs}
-						/>
-					</div>
-				</div>
-			</Container>
-		</>
-	);
-};
-
-const BuildOutlet = () => {
+const BuildOutlet: React.FC<BuildOutletProps> = ({ignorePath}) => {
 	const {pathname} = useLocation();
-	const {projectId, routineId, testrayBuildId} = useParams();
+	const {buildId, projectId, routineId} = useParams();
 	const {testrayProject, testrayRoutine}: any = useOutletContext();
-	const {data} = useQuery<CType<'testrayBuild', TestrayBuild>>(
-		getTestrayBuild,
-		{
-			variables: {
-				testrayBuildId,
-			},
-		}
-	);
-
-	const testrayBuild = data?.c?.testrayBuild;
-
-	const basePath = `/project/${projectId}/routines/${routineId}/build/${testrayBuildId}`;
-
-	const {setHeading} = useHeader({
-		timeout: 5,
-		useTabs: [
-			{
-				active: pathname === basePath,
-				path: basePath,
-				title: 'Results',
-			},
-			{
-				active: pathname === `${basePath}/runs`,
-				path: `${basePath}/runs`,
-				title: 'Runs',
-			},
-			{
-				active: pathname === `${basePath}/teams`,
-				path: `${basePath}/teams`,
-				title: 'Teams',
-			},
-			{
-				active: pathname === `${basePath}/components`,
-				path: `${basePath}/components`,
-				title: 'Components',
-			},
-			{
-				active: pathname === `${basePath}/case-types`,
-				path: `${basePath}/case-types`,
-				title: 'Case Types',
-			},
-		],
+	const {data} = useQuery<{build: TestrayBuild}>(getBuild, {
+		variables: {
+			buildId,
+		},
 	});
 
-	useEffect(() => {
-		if (testrayProject && testrayRoutine && testrayBuild) {
-			setHeading([
-				{category: 'PROJECT', title: testrayProject.name},
-				{category: 'ROUTINE', title: testrayRoutine.name},
-				{category: 'BUILD', title: testrayBuild.name},
-			]);
-		}
-	}, [setHeading, testrayProject, testrayRoutine, testrayBuild]);
+	const {data: testrayTasksData} = useQuery<
+		TypePagination<'tasks', TestrayTask>
+	>(getTasks);
 
-	if (testrayProject && testrayRoutine && testrayBuild) {
+	const testrayBuild = data?.build;
+	const testrayTasks = testrayTasksData?.tasks.items || [];
+	const testrayTask = testrayTasks.find(
+		(testrayTask) => testrayTask?.build?.id === Number(buildId)
+	);
+
+	const isCurrentPathIgnored = pathname.includes(ignorePath);
+
+	const basePath = `/project/${projectId}/routines/${routineId}/build/${buildId}`;
+
+	const {setHeading, setTabs} = useHeader({shouldUpdate: false});
+
+	useEffect(() => {
+		if (testrayBuild) {
+			setTimeout(() => {
+				setHeading([
+					{
+						category: i18n.translate('project').toUpperCase(),
+						path: `/project/${testrayProject.id}/routines`,
+						title: testrayProject.name,
+					},
+					{
+						category: i18n.translate('routine').toUpperCase(),
+						path: `/project/${testrayProject.id}/routines/${testrayRoutine.id}`,
+						title: testrayRoutine.name,
+					},
+					{
+						category: i18n.translate('build').toUpperCase(),
+						path: basePath,
+						title: testrayBuild.name,
+					},
+				]);
+			});
+		}
+	}, [basePath, setHeading, testrayBuild, testrayProject, testrayRoutine]);
+
+	useEffect(() => {
+		if (!isCurrentPathIgnored) {
+			setTimeout(() => {
+				setTabs([
+					{
+						active: pathname === basePath,
+						path: basePath,
+						title: i18n.translate('results'),
+					},
+					{
+						active: pathname === `${basePath}/runs`,
+						path: `${basePath}/runs`,
+						title: i18n.translate('runs'),
+					},
+					{
+						active: pathname === `${basePath}/teams`,
+						path: `${basePath}/teams`,
+						title: i18n.translate('teams'),
+					},
+					{
+						active: pathname === `${basePath}/components`,
+						path: `${basePath}/components`,
+						title: i18n.translate('components'),
+					},
+					{
+						active: pathname === `${basePath}/case-types`,
+						path: `${basePath}/case-types`,
+						title: i18n.translate('case-types'),
+					},
+				]);
+			}, 5);
+		}
+	}, [basePath, isCurrentPathIgnored, pathname, setTabs]);
+
+	if (testrayBuild) {
 		return (
 			<>
-				<BuildOverview testrayBuild={testrayBuild} />
+				{!isCurrentPathIgnored && (
+					<>
+						{testrayTask && (
+							<BuildAlertBar testrayTask={testrayTask} />
+						)}
+
+						<BuildOverview testrayBuild={testrayBuild} />
+					</>
+				)}
 
 				<Outlet />
 			</>

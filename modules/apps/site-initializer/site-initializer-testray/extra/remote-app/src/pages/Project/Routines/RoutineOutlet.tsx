@@ -21,34 +21,38 @@ import {
 	useParams,
 } from 'react-router-dom';
 
-import {getTestrayRoutine} from '../../../graphql/queries';
+import {CType, TestrayRoutine, getRoutine} from '../../../graphql/queries';
 import useHeader from '../../../hooks/useHeader';
+import i18n from '../../../i18n';
 
 const RoutineOutlet = () => {
 	const {pathname} = useLocation();
-	const {projectId, routineId} = useParams();
+	const {projectId, routineId, ...otherParams} = useParams();
 	const {testrayProject}: any = useOutletContext();
-	const {data} = useQuery(getTestrayRoutine, {
+	const {data} = useQuery<CType<'routine', TestrayRoutine>>(getRoutine, {
 		variables: {
-			testrayRoutineId: routineId,
+			routineId,
 		},
 	});
 
-	const testrayRoutine = data?.c?.testrayRoutine;
+	const testrayRoutine = data?.c?.routine;
 
 	const basePath = `/project/${projectId}/routines/${routineId}`;
 
+	const hasOtherParams = !!Object.values(otherParams).length;
+
 	const {setHeading} = useHeader({
+		shouldUpdate: true,
 		useTabs: [
 			{
 				active: pathname === basePath,
 				path: basePath,
-				title: 'Current',
+				title: i18n.translate('current'),
 			},
 			{
 				active: pathname !== basePath,
 				path: `${basePath}/archived`,
-				title: 'Archived',
+				title: i18n.translate('archived'),
 			},
 		],
 	});
@@ -56,11 +60,19 @@ const RoutineOutlet = () => {
 	useEffect(() => {
 		if (testrayProject && testrayRoutine) {
 			setHeading([
-				{category: 'PROJECT', title: testrayProject.name},
-				{category: 'ROUTINE', title: testrayRoutine.name},
+				{
+					category: i18n.translate('project').toUpperCase(),
+					path: `/project/${testrayProject.id}/routines`,
+					title: testrayProject.name,
+				},
+				{
+					category: i18n.translate('routine').toUpperCase(),
+					path: `/project/${testrayProject.id}/routines/${testrayRoutine.id}`,
+					title: testrayRoutine.name,
+				},
 			]);
 		}
-	}, [setHeading, testrayProject, testrayRoutine]);
+	}, [setHeading, testrayProject, testrayRoutine, hasOtherParams]);
 
 	if (testrayProject && testrayRoutine) {
 		return <Outlet context={{testrayProject, testrayRoutine}} />;

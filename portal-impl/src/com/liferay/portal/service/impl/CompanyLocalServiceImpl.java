@@ -408,7 +408,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(portalException, portalException);
+				_log.debug(portalException);
 			}
 
 			throw portalException;
@@ -1500,7 +1500,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			}
 			catch (UnknownHostException unknownHostException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(unknownHostException, unknownHostException);
+					_log.debug(unknownHostException);
 				}
 
 				throw new CompanyVirtualHostException(
@@ -1632,7 +1632,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		}
 		catch (CompanyVirtualHostException companyVirtualHostException) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(companyVirtualHostException.getMessage());
+				_log.warn(companyVirtualHostException);
 			}
 
 			throw companyVirtualHostException;
@@ -1658,8 +1658,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			_actionableDynamicQuery.setCompanyId(companyId);
 			_actionableDynamicQuery.setPerformActionMethod(
 				(ExpandoColumn expandoColumn) ->
-					_expandoColumnLocalService.deleteExpandoColumn(
-						expandoColumn));
+					_expandoColumnLocalService.deleteColumn(expandoColumn));
 		}
 
 		protected void performActions() throws PortalException {

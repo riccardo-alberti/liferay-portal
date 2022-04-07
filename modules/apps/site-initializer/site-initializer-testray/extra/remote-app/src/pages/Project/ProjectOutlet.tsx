@@ -16,23 +16,36 @@ import {useQuery} from '@apollo/client';
 import {useCallback, useEffect} from 'react';
 import {Outlet, useLocation, useParams} from 'react-router-dom';
 
+import {CType, CTypePagination} from '../../graphql/queries';
 import {
-	TestrayProjectQuery,
-	getTestrayProject,
+	TestrayProject,
+	getProject,
+	getProjects,
 } from '../../graphql/queries/testrayProject';
 import useHeader from '../../hooks/useHeader';
+import i18n from '../../i18n';
 
 const ProjectOutlet = () => {
 	const {projectId, ...otherParams} = useParams();
 	const {pathname} = useLocation();
-	const {setHeading, setTabs} = useHeader();
+	const {setActions, setDropdown, setHeading, setTabs} = useHeader();
 
-	const {data} = useQuery<TestrayProjectQuery>(getTestrayProject, {
-		variables: {testrayProjectId: projectId},
+	const {data} = useQuery<CType<'project', TestrayProject>>(getProject, {
+		variables: {projectId},
 	});
 
+	const {data: dataTestrayProjects} = useQuery<
+		CTypePagination<'projects', TestrayProject>
+	>(getProjects, {
+		variables: {
+			pageSize: 100,
+		},
+	});
+
+	const testrayProjects = dataTestrayProjects?.c?.projects?.items;
+
 	const hasOtherParams = !!Object.values(otherParams).length;
-	const testrayProject = data?.c.testrayProject;
+	const testrayProject = data?.c.project;
 
 	const getPath = useCallback(
 		(path: string) => {
@@ -47,8 +60,72 @@ const ProjectOutlet = () => {
 	);
 
 	useEffect(() => {
-		if (testrayProject && !hasOtherParams) {
-			setHeading([{category: 'PROJECT', title: testrayProject.name}]);
+		setActions([
+			{
+				items: [
+					{
+						label: i18n.translate('edit-project'),
+					},
+					{
+						label: i18n.translate('delete-project'),
+					},
+				],
+				title: i18n.translate('project'),
+			},
+			{
+				items: [
+					{
+						label: i18n.translate('manage-components'),
+					},
+					{
+						label: i18n.translate('manage-teams'),
+					},
+					{
+						label: i18n.translate('manage-product-version'),
+					},
+				],
+				title: i18n.translate('manage'),
+			},
+			{
+				items: [
+					{
+						label: i18n.translate('export-cases'),
+					},
+				],
+				title: i18n.translate('reports'),
+			},
+		]);
+	}, [setActions]);
+
+	useEffect(() => {
+		if (testrayProjects) {
+			setDropdown([
+				{
+					items: [
+						{
+							divider: true,
+							label: i18n.translate('project-directory'),
+							path: '/',
+						},
+						...testrayProjects.map((testrayProject) => ({
+							label: testrayProject.name,
+							path: `/project/${testrayProject.id}/routines`,
+						})),
+					],
+				},
+			]);
+		}
+	}, [setDropdown, testrayProjects]);
+
+	useEffect(() => {
+		if (testrayProject) {
+			setHeading([
+				{
+					category: i18n.translate('project').toUpperCase(),
+					path: `/project/${testrayProject.id}/routines`,
+					title: testrayProject.name,
+				},
+			]);
 		}
 	}, [setHeading, testrayProject, hasOtherParams]);
 
@@ -58,23 +135,23 @@ const ProjectOutlet = () => {
 				setTabs([
 					{
 						...getPath('overview'),
-						title: 'Overview',
+						title: i18n.translate('overview'),
 					},
 					{
 						...getPath('routines'),
-						title: 'Routines',
+						title: i18n.translate('routines'),
 					},
 					{
 						...getPath('suites'),
-						title: 'Suites',
+						title: i18n.translate('suites'),
 					},
 					{
 						...getPath('cases'),
-						title: 'Cases',
+						title: i18n.translate('cases'),
 					},
 					{
 						...getPath('requirements'),
-						title: 'Requirements',
+						title: i18n.translate('requirements'),
 					},
 				]);
 			}, 0);

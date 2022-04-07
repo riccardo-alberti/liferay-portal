@@ -68,7 +68,9 @@ definition {
 
 			ACNavigation.openItem(itemName = "${dataSource}");
 
-			ACSettings.assertDataSourceStatus(status = "Active");
+			ACSettings.assertDataSourceStatus(
+				section = "Current Status",
+				status = "Active");
 		}
 	}
 
@@ -115,8 +117,12 @@ definition {
 	}
 
 	@description = "Automation ID: LRAC-9094 | Test Summary: Admin can remove data sources"
+	@ignore = "true"
 	@priority = "3"
 	test AdminCanRemoveDataSources {
+
+		// AC Bug ticket: LRAC-10534
+
 		task ("Logout AC and login as an admin user") {
 			ACWorkspace.signOut();
 
@@ -154,7 +160,9 @@ definition {
 
 			ACNavigation.openItem(itemName = "${dataSource}");
 
-			ACSettings.assertDataSourceStatus(status = "Active");
+			ACSettings.assertDataSourceStatus(
+				section = "Current Status",
+				status = "Active");
 		}
 
 		task ("Assert that the data source was removed") {
@@ -550,7 +558,9 @@ definition {
 
 			ACNavigation.openItem(itemName = "${dataSource}");
 
-			ACSettings.assertDataSourceStatus(status = "Active");
+			ACSettings.assertDataSourceStatus(
+				section = "Current Status",
+				status = "Active");
 		}
 	}
 
@@ -598,8 +608,12 @@ definition {
 	}
 
 	@description = "Automation ID: LRAC-9091 | Test Summary: Owner can remove data sources"
+	@ignore = "true"
 	@priority = "5"
 	test OwnerCanRemoveDataSources {
+
+		// AC Bug ticket: LRAC-10534
+
 		task ("Connect DXP to AC") {
 			ACSettings.takeTokenFromAnalyticsCloud();
 

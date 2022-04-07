@@ -55,6 +55,16 @@ public class WarehouseSerDes {
 
 		sb.append("{");
 
+		if (warehouse.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(warehouse.getActions()));
+		}
+
 		if (warehouse.getActive() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -100,11 +110,7 @@ public class WarehouseSerDes {
 
 			sb.append("\"description\": ");
 
-			sb.append("\"");
-
-			sb.append(_escape(warehouse.getDescription()));
-
-			sb.append("\"");
+			sb.append(_toJSON(warehouse.getDescription()));
 		}
 
 		if (warehouse.getExternalReferenceCode() != null) {
@@ -129,6 +135,16 @@ public class WarehouseSerDes {
 			sb.append("\"id\": ");
 
 			sb.append(warehouse.getId());
+		}
+
+		if (warehouse.getLabel() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"label\": ");
+
+			sb.append(_toJSON(warehouse.getLabel()));
 		}
 
 		if (warehouse.getLatitude() != null) {
@@ -297,6 +313,13 @@ public class WarehouseSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		if (warehouse.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(warehouse.getActions()));
+		}
+
 		if (warehouse.getActive() == null) {
 			map.put("active", null);
 		}
@@ -341,6 +364,13 @@ public class WarehouseSerDes {
 		}
 		else {
 			map.put("id", String.valueOf(warehouse.getId()));
+		}
+
+		if (warehouse.getLabel() == null) {
+			map.put("label", null);
+		}
+		else {
+			map.put("label", String.valueOf(warehouse.getLabel()));
 		}
 
 		if (warehouse.getLatitude() == null) {
@@ -443,7 +473,14 @@ public class WarehouseSerDes {
 			Warehouse warehouse, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "active")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					warehouse.setActions(
+						(Map)WarehouseSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "active")) {
 				if (jsonParserFieldValue != null) {
 					warehouse.setActive((Boolean)jsonParserFieldValue);
 				}
@@ -460,7 +497,9 @@ public class WarehouseSerDes {
 			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				if (jsonParserFieldValue != null) {
-					warehouse.setDescription((String)jsonParserFieldValue);
+					warehouse.setDescription(
+						(Map)WarehouseSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(
@@ -474,6 +513,13 @@ public class WarehouseSerDes {
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					warehouse.setId(Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "label")) {
+				if (jsonParserFieldValue != null) {
+					warehouse.setLabel(
+						(Map)WarehouseSerDes.toMap(
+							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "latitude")) {

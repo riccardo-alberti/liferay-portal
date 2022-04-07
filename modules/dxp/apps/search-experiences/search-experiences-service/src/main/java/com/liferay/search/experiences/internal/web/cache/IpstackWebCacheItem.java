@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.webcache.WebCacheItem;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
+import com.liferay.search.experiences.blueprint.exception.InvalidWebCacheItemException;
 import com.liferay.search.experiences.blueprint.exception.PrivateIPAddressException;
 import com.liferay.search.experiences.internal.configuration.IpstackConfiguration;
 
@@ -60,7 +61,7 @@ public class IpstackWebCacheItem implements WebCacheItem {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			exceptionListener.exceptionThrown(exception);
@@ -101,7 +102,7 @@ public class IpstackWebCacheItem implements WebCacheItem {
 			return jsonObject;
 		}
 		catch (IOException | JSONException exception) {
-			throw new RuntimeException(exception);
+			throw new InvalidWebCacheItemException(exception);
 		}
 	}
 
@@ -140,7 +141,7 @@ public class IpstackWebCacheItem implements WebCacheItem {
 			return;
 		}
 
-		throw new RuntimeException(
+		throw new InvalidWebCacheItemException(
 			StringBundler.concat(
 				"IPStack: ",
 				JSONUtil.getValueAsString(

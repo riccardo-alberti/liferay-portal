@@ -72,6 +72,8 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		jsonObject.put(
 			"gutters", _gutters
 		).put(
+			"indexed", _indexed
+		).put(
 			"modulesPerRow", getModulesPerRow()
 		).put(
 			"numberOfColumns", _numberOfColumns
@@ -81,7 +83,7 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 			"verticalAlignment", _verticalAlignment
 		);
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (viewportSize.equals(ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -154,15 +156,6 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		return _viewportConfigurations;
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getViewportConfigurations()}
-	 */
-	@Deprecated
-	public Map<String, JSONObject> getViewportSizeConfigurations() {
-		return getViewportConfigurations();
-	}
-
 	@Override
 	public int hashCode() {
 		return HashUtil.hash(0, getItemId());
@@ -172,12 +165,20 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		return _gutters;
 	}
 
+	public boolean isIndexed() {
+		return _indexed;
+	}
+
 	public boolean isReverseOrder() {
 		return _reverseOrder;
 	}
 
 	public void setGutters(boolean gutters) {
 		_gutters = gutters;
+	}
+
+	public void setIndexed(boolean indexed) {
+		_indexed = indexed;
 	}
 
 	public void setModulesPerRow(int modulesPerRow) {
@@ -235,17 +236,6 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 			));
 	}
 
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #setViewportConfiguration(String, JSONObject)}
-	 */
-	@Deprecated
-	public void setViewportSizeConfiguration(
-		String viewportSizeId, JSONObject configurationJSONObject) {
-
-		setViewportConfiguration(viewportSizeId, configurationJSONObject);
-	}
-
 	@Override
 	public void updateItemConfig(JSONObject itemConfigJSONObject) {
 		super.updateItemConfig(itemConfigJSONObject);
@@ -256,6 +246,10 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 
 		if (itemConfigJSONObject.has("modulesPerRow")) {
 			setModulesPerRow(itemConfigJSONObject.getInt("modulesPerRow"));
+		}
+
+		if (itemConfigJSONObject.has("indexed")) {
+			setIndexed(itemConfigJSONObject.getBoolean("indexed"));
 		}
 
 		if (itemConfigJSONObject.has("numberOfColumns")) {
@@ -271,7 +265,7 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 				itemConfigJSONObject.getString("verticalAlignment"));
 		}
 
-		for (ViewportSize viewportSize : ViewportSize.values()) {
+		for (ViewportSize viewportSize : _viewportSizes) {
 			if (viewportSize.equals(ViewportSize.DESKTOP)) {
 				continue;
 			}
@@ -285,7 +279,10 @@ public class RowStyledLayoutStructureItem extends StyledLayoutStructureItem {
 		}
 	}
 
+	private static final ViewportSize[] _viewportSizes = ViewportSize.values();
+
 	private boolean _gutters = true;
+	private boolean _indexed = true;
 	private Integer _modulesPerRow;
 	private int _numberOfColumns;
 	private boolean _reverseOrder;

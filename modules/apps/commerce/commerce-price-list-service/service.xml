@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
 
-<service-builder auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.commerce.price.list">
+<service-builder auto-namespace-tables="false" change-tracking-enabled="true" mvcc-enabled="true" package-path="com.liferay.commerce.price.list">
 	<author>Alessio Antonio Rendina</author>
 	<namespace>Commerce</namespace>
 	<entity external-reference-code="true" local-service="true" name="CommercePriceEntry" remote-service="true" uuid="true">
@@ -57,7 +57,7 @@
 		<finder name="CPInstanceUuid" return-type="Collection">
 			<finder-column name="CPInstanceUuid" />
 		</finder>
-		<finder name="C_C" return-type="CommercePriceEntry" unique="true">
+		<finder name="C_C" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 			<finder-column name="CPInstanceUuid" />
 		</finder>
@@ -69,7 +69,7 @@
 			<finder-column comparator="&lt;" name="expirationDate" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="C_C_S" return-type="CommercePriceEntry" unique="true">
+		<finder name="C_C_S" return-type="Collection">
 			<finder-column name="commercePriceListId" />
 			<finder-column name="CPInstanceUuid" />
 			<finder-column name="status" />

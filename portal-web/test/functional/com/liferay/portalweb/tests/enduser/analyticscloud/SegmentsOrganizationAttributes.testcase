@@ -39,7 +39,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyDateModified {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Team not sure of which steps should be done to assert Date modified
 		// AC Refactor ticket: LRAC-9277
@@ -80,7 +79,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -98,7 +97,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyHierarchyPath {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Team not sure of which values or what steps are expected in this test
 		// AC Refactor ticket: LRAC-9279
@@ -191,7 +189,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -215,7 +213,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyName {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Team not sure of which steps should be done to assert property Name, please check steps and update if necessary
 		// AC Refactor ticket: LRAC-9278
@@ -291,7 +288,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test 1");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test 1");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -315,7 +312,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test 2");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test 2");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -359,13 +356,11 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyOrganization {
-		property portal.upstream = "quarantine";
 
-		// AC Refactor: Team not sure of which steps should be done to assert property Type, please check steps and update if necessary.
+		// AC Refactor: the data takes some time to appear in the segment
 		// AC Refactor ticket: LRAC-9324
-		// AC Bug ticket: LRAC-9263
 
-		task ("Add users") {
+		task ("Add user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
 				userFirstName = "userfn",
@@ -382,19 +377,17 @@ definition {
 			JSONOrganization.addOrganization(organizationName = "Organization Name");
 
 			JSONOrganization.assignUserToOrganization(
-				organizationName = "Organization Name ",
+				organizationName = "Organization Name",
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Add blog") {
-			ACUtils.createBlogsAndAddToPage();
+		task ("Connect DXP to AC and sync by organization") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(
+				orgName = "Organization Name",
+				siteName = "Site Name");
 		}
 
-		task ("Connect to AC") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
-		}
-
-		task ("Interact with DXP with user") {
+		task ("Interact in DXP with the user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
@@ -414,12 +407,12 @@ definition {
 			ACProperties.switchProperty(propertyName = "${propertyName}");
 		}
 
-		task ("Add a new segment using the organization property Organization") {
+		task ("Add a new dynamic segment using the parent organization criteria") {
 			ACNavigation.goToSegments();
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -430,7 +423,7 @@ definition {
 			ACSegments.saveSegment();
 		}
 
-		task ("Assert Organization is present in Segment Criteria") {
+		task ("Assert Organization is present in segment criteria") {
 			ACSegments.assertCriteriaTable(criteriaName = "Organization");
 		}
 
@@ -455,13 +448,11 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyParentOrganization {
-		property portal.upstream = "quarantine";
 
-		// AC Refactor: Team not sure of which steps should be done to assert property Type, please check steps and update if necessary.
+		// AC Refactor: the data takes some time to appear in the segment
 		// AC Refactor ticket: LRAC-9323
-		// AC Bug ticket: LRAC-9263
 
-		task ("Add users") {
+		task ("Add user") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
 				userFirstName = "userfn",
@@ -478,7 +469,7 @@ definition {
 			JSONOrganization.addOrganization(organizationName = "Organization Name");
 
 			JSONOrganization.addOrganization(
-				organizationName = "Organization Name child}",
+				organizationName = "Organization Name child",
 				parentOrganizationName = "Organization Name");
 
 			JSONOrganization.assignUserToOrganization(
@@ -486,15 +477,13 @@ definition {
 				userEmailAddress = "userea@liferay.com");
 		}
 
-		task ("Add blog") {
-			ACUtils.createBlogsAndAddToPage();
+		task ("Connect DXP to AC and sync by organization") {
+			ACDXPSettings.connectDXPtoAnalyticsCloud(
+				orgName = "Organization Name child",
+				siteName = "Site Name");
 		}
 
-		task ("Connect to AC") {
-			var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
-		}
-
-		task ("Interact with DXP with user") {
+		task ("Interact in DXP with the user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
@@ -514,12 +503,12 @@ definition {
 			ACProperties.switchProperty(propertyName = "${propertyName}");
 		}
 
-		task ("Add a new segment using the organization property Parent Organization") {
+		task ("Add a new dynamic segment using the parent organization criteria") {
 			ACNavigation.goToSegments();
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 
@@ -530,7 +519,7 @@ definition {
 			ACSegments.saveSegment();
 		}
 
-		task ("Assert Organization is present in Segment Criteria") {
+		task ("Assert Parent Organization is present in segment criteria") {
 			ACSegments.assertCriteriaTable(criteriaName = "Parent Organization");
 		}
 
@@ -555,7 +544,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanCreateSegmentUsingOrganizationPropertyType {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Team not sure of which steps should be done to assert property Type, please check steps and update if necessary
 		// AC Refactor ticket: LRAC-9280
@@ -614,7 +602,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+			ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 

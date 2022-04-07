@@ -14,30 +14,15 @@
 
 import ClayAutocomplete from '@clayui/autocomplete';
 import ClayDropDown from '@clayui/drop-down';
-import ClayForm from '@clayui/form';
-import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {ReactNode, useRef, useState} from 'react';
+
+import FieldBase from '../FieldBase';
 
 import './CustomSelect.scss';
-import ErrorFeedback from '../ErrorFeedback';
-import FeedbackMessage from '../FeedbackMessage';
-import RequiredMask from '../RequiredMask';
 
-interface ICustomSelectProps extends React.HTMLAttributes<HTMLElement> {
-	children: (item: any) => React.ReactNode;
-	disabled?: boolean;
-	error?: string;
-	feedbackMessage?: string;
-	label: string;
-	options: any[];
-	required?: boolean;
-	value: string;
-}
-
-const CustomSelect: React.FC<ICustomSelectProps> = ({
-	children,
+export default function CustomSelect<T extends IItem = IItem>({
 	className,
-	disabled = false,
+	disabled,
 	error,
 	feedbackMessage,
 	id,
@@ -46,26 +31,24 @@ const CustomSelect: React.FC<ICustomSelectProps> = ({
 	options,
 	required,
 	value,
-	...otherProps
-}) => {
+}: IProps<T>) {
 	const [active, setActive] = useState<boolean>(false);
 	const inputRef = useRef(null);
 
 	return (
-		<ClayForm.Group
-			className={classNames('object__custom-select', className, {
-				'has-error': error,
-			})}
+		<FieldBase
+			className={className}
+			disabled={disabled}
+			error={error}
+			feedbackMessage={feedbackMessage}
+			id={id}
+			label={label}
+			required={required}
 		>
-			<label className={classNames({disabled})} htmlFor={id}>
-				{label}
-
-				{required && <RequiredMask />}
-			</label>
-
 			<ClayAutocomplete>
 				<ClayAutocomplete.Input
 					className="object__custom-select-input"
+					disabled={disabled}
 					onClick={() => setActive(!active)}
 					placeholder={Liferay.Language.get('choose-an-option')}
 					ref={inputRef}
@@ -73,37 +56,49 @@ const CustomSelect: React.FC<ICustomSelectProps> = ({
 				/>
 
 				<ClayAutocomplete.DropDown
-					{...otherProps}
 					active={active}
 					alignElementRef={inputRef}
 					closeOnClickOutside
 					onSetActive={setActive}
 				>
 					<ClayDropDown.ItemList>
-						{options?.map((option, index) => {
-							return (
-								<ClayDropDown.Item
-									key={index}
-									onClick={() => {
-										setActive(false);
-										onChange && onChange(option);
-									}}
-								>
-									{children && children(option)}
-								</ClayDropDown.Item>
-							);
-						})}
+						{options?.map((option, index) => (
+							<ClayDropDown.Item
+								key={index}
+								onClick={() => {
+									setActive(false);
+									onChange?.(option);
+								}}
+							>
+								<div>{option.label}</div>
+
+								<span className="text-small">
+									{option.description}
+								</span>
+							</ClayDropDown.Item>
+						))}
 					</ClayDropDown.ItemList>
 				</ClayAutocomplete.DropDown>
 			</ClayAutocomplete>
-
-			{error && <ErrorFeedback error={error} />}
-
-			{feedbackMessage && (
-				<FeedbackMessage feedbackMessage={feedbackMessage} />
-			)}
-		</ClayForm.Group>
+		</FieldBase>
 	);
-};
+}
 
-export default CustomSelect;
+interface IItem {
+	description?: string;
+	label: string;
+	value?: string;
+}
+interface IProps<T extends IItem = IItem> {
+	children?: ReactNode;
+	className?: string;
+	disabled?: boolean;
+	error?: string;
+	feedbackMessage?: string;
+	id?: string;
+	label: string;
+	onChange?: (selected: T) => void;
+	options: T[];
+	required?: boolean;
+	value?: string | number | string[];
+}

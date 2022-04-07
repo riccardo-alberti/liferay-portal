@@ -84,9 +84,7 @@ public class CPPublisherWebHelper {
 			}
 			catch (NoSuchCPDefinitionException noSuchCPDefinitionException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						noSuchCPDefinitionException,
-						noSuchCPDefinitionException);
+					_log.debug(noSuchCPDefinitionException);
 				}
 
 				missingAssetCPDefinitionIds.add(cpDefinitionId);
@@ -295,15 +293,12 @@ public class CPPublisherWebHelper {
 
 		cpQuery.setOrderByCol2(orderByColumn2);
 
-		String orderByType1 = GetterUtil.getString(
-			portletPreferences.getValue("orderByType1", "DESC"));
-
-		cpQuery.setOrderByType1(orderByType1);
-
-		String orderByType2 = GetterUtil.getString(
-			portletPreferences.getValue("orderByType2", "ASC"));
-
-		cpQuery.setOrderByType2(orderByType2);
+		cpQuery.setOrderByType1(
+			GetterUtil.getString(
+				portletPreferences.getValue("orderByType1", "DESC")));
+		cpQuery.setOrderByType2(
+			GetterUtil.getString(
+				portletPreferences.getValue("orderByType2", "ASC")));
 	}
 
 	private long[] _filterAssetCategoryIds(long[] assetCategoryIds) {

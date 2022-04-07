@@ -198,6 +198,12 @@
 		<column name="purchaseOrderNumber" type="String" />
 		<column name="couponCode" type="String" />
 		<column name="lastPriceUpdateDate" type="Date" />
+		<column name="deliveryCommerceTermEntryId" type="long" />
+		<column db-name="deliveryCTermEntryDescription" name="deliveryCommerceTermEntryDescription" type="String" />
+		<column name="deliveryCommerceTermEntryName" type="String" />
+		<column name="paymentCommerceTermEntryId" type="long" />
+		<column db-name="paymentCTermEntryDescription" name="paymentCommerceTermEntryDescription" type="String" />
+		<column name="paymentCommerceTermEntryName" type="String" />
 		<column name="subtotal" type="BigDecimal" />
 		<column name="subtotalDiscountAmount" type="BigDecimal" />
 		<column db-name="subtotalDiscountPercentLevel1" name="subtotalDiscountPercentageLevel1" type="BigDecimal" />
@@ -573,7 +579,7 @@
 			<finder-column name="commerceOrderTypeId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceShipment" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceShipment" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -623,7 +629,7 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CommerceShipmentItem" remote-service="true">
+	<entity external-reference-code="true" local-service="true" name="CommerceShipmentItem" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -720,6 +726,43 @@
 		<finder name="G_A" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="active" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceShippingOptionAccountEntryRel" remote-service="true" table="CSOptionAccountEntryRel">
+
+		<!-- PK fields -->
+
+		<column db-name="CSOptionAccountEntryRelId" name="CommerceShippingOptionAccountEntryRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="accountEntryId" type="long" />
+		<column name="commerceChannelId" type="long" />
+		<column name="commerceShippingMethodKey" type="String" />
+		<column name="commerceShippingOptionKey" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="AccountEntryId" return-type="Collection">
+			<finder-column name="accountEntryId" />
+		</finder>
+		<finder name="CommerceChannelId" return-type="Collection">
+			<finder-column name="commerceChannelId" />
+		</finder>
+		<finder name="CommerceShippingOptionKey" return-type="Collection">
+			<finder-column name="commerceShippingOptionKey" />
+		</finder>
+		<finder name="A_C" return-type="CommerceShippingOptionAccountEntryRel" unique="true">
+			<finder-column name="accountEntryId" />
+			<finder-column name="commerceChannelId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="CommerceSubscriptionEntry" remote-service="true" uuid="true">
@@ -828,7 +871,7 @@
 			<finder-column name="CProductId" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="CPDefinitionInventory" remote-service="true" uuid="true">
+	<entity change-tracking-enabled="true" local-service="true" name="CPDefinitionInventory" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -877,6 +920,7 @@
 		<exception>CommerceOrderAccountLimit</exception>
 		<exception>CommerceOrderBillingAddress</exception>
 		<exception>CommerceOrderDate</exception>
+		<exception>CommerceOrderDefaultBillingAddress</exception>
 		<exception>CommerceOrderGuestCheckout</exception>
 		<exception>CommerceOrderItemRequestedDeliveryDate</exception>
 		<exception>CommerceOrderNoteContent</exception>
@@ -906,6 +950,7 @@
 		<exception>CommerceSubscriptionType</exception>
 		<exception>DuplicateCommerceOrderNote</exception>
 		<exception>DuplicateCommerceOrderTypeRel</exception>
+		<exception>DuplicateCommerceShippingOptionAccountEntryRel</exception>
 		<exception>GuestCartItemMaxAllowed</exception>
 		<exception>GuestCartMaxAllowed</exception>
 		<exception>ProductBundle</exception>

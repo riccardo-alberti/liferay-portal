@@ -20,10 +20,11 @@ import {
 	getStructuredContentFolders,
 	getUserAccount,
 } from '../../../common/services/liferay/graphql/queries';
-import {searchParams} from '../../../common/services/liferay/searchParams';
 import {getCurrentSession} from '../../../common/services/okta/rest/sessions';
-import {ROLE_TYPES, SEARCH_PARAMS_KEYS} from '../../../common/utils/constants';
+import {ROLE_TYPES, ROUTE_TYPES} from '../../../common/utils/constants';
+import {getAccountKey} from '../../../common/utils/getAccountKey';
 import {isValidPage} from '../../../common/utils/page.validation';
+import usePaginatedKoroneikiAccounts from '../hooks/usePaginatedKoroneikiAccounts';
 import {CUSTOM_EVENT_TYPES} from '../utils/constants';
 import reducer, {actionTypes} from './reducer';
 
@@ -41,17 +42,22 @@ const EVENT_OPTION = {
 	fireOnce: true,
 };
 
+const eventUserAccount = Liferay.publish(
+	CUSTOM_EVENT_TYPES.userAccount,
+	EVENT_OPTION
+);
+
+const eventProject = Liferay.publish(CUSTOM_EVENT_TYPES.project, EVENT_OPTION);
+
+const eventKoroneikiAccounts = Liferay.publish(
+	CUSTOM_EVENT_TYPES.koroneikiAccounts,
+	{
+		async: true,
+	}
+);
+
 const AppContextProvider = ({assetsPath, children, page}) => {
 	const {oktaSessionURL} = useApplicationProvider();
-	const eventUserAccount = Liferay.publish(
-		CUSTOM_EVENT_TYPES.userAccount,
-		EVENT_OPTION
-	);
-	const eventSubscriptionGroups = Liferay.publish(
-		CUSTOM_EVENT_TYPES.subscriptionGroups,
-		EVENT_OPTION
-	);
-
 	const [state, dispatch] = useReducer(reducer, {
 		assetsPath,
 		isQuickLinksExpanded: true,
@@ -64,17 +70,39 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 		userAccount: undefined,
 	});
 
+	const [
+		{initialTotalCount, items, totalCount},
+		{fetchMore, search},
+	] = usePaginatedKoroneikiAccounts(state.userAccount);
+
 	useEffect(() => {
-		const handler = ({detail}) =>
-			dispatch({
-				payload: detail,
-				type: actionTypes.UPDATE_PAGE,
+		if (items) {
+			eventKoroneikiAccounts.fire({
+				detail: {
+					initialTotalCount,
+					koroneikiAccounts: items,
+					totalCount,
+				},
 			});
+		}
+	}, [initialTotalCount, items, totalCount]);
 
-		Liferay.on(CUSTOM_EVENT_TYPES.menuPage, handler);
+	useEffect(() => {
+		Liferay.on(CUSTOM_EVENT_TYPES.fetchMoreKoroneikiAccounts, () =>
+			fetchMore()
+		);
 
-		return () => Liferay.detach(CUSTOM_EVENT_TYPES.menuPage, handler);
-	}, []);
+		return () =>
+			Liferay.detach(CUSTOM_EVENT_TYPES.fetchMoreKoroneikiAccounts);
+	}, [fetchMore]);
+
+	useEffect(() => {
+		Liferay.on(CUSTOM_EVENT_TYPES.searchKoroneikiAccounts, ({detail}) =>
+			search(detail)
+		);
+
+		return () => Liferay.detach(CUSTOM_EVENT_TYPES.searchKoroneikiAccounts);
+	}, [search]);
 
 	useEffect(() => {
 		const getUser = async (projectExternalReferenceCode) => {
@@ -96,9 +124,14 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 						({name}) => name === ROLE_TYPES.admin.key
 					);
 
+				const isStaff = data.userAccount?.roleBriefs?.some(
+					(role) => role.name === 'Administrator'
+				);
+
 				const userAccount = {
 					...data.userAccount,
 					isAdmin: isAccountAdministrator,
+					isStaff,
 				};
 
 				dispatch({
@@ -123,13 +156,19 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 			});
 
 			if (projects) {
+				const currentProject = {
+					...projects.c.koroneikiAccounts.items[0],
+					id: accountBrief.id,
+					name: accountBrief.name,
+				};
+
 				dispatch({
-					payload: {
-						...projects.c.koroneikiAccounts.items[0],
-						id: accountBrief.id,
-						name: accountBrief.name,
-					},
+					payload: currentProject,
 					type: actionTypes.UPDATE_PROJECT,
+				});
+
+				eventProject.fire({
+					detail: currentProject,
 				});
 			}
 		};
@@ -148,10 +187,6 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 				dispatch({
 					payload: items,
 					type: actionTypes.UPDATE_SUBSCRIPTION_GROUPS,
-				});
-
-				eventSubscriptionGroups.fire({
-					detail: items,
 				});
 			}
 		};
@@ -187,16 +222,15 @@ const AppContextProvider = ({assetsPath, children, page}) => {
 		};
 
 		const fetchData = async () => {
-			const projectExternalReferenceCode = searchParams.get(
-				SEARCH_PARAMS_KEYS.accountKey
-			);
+			const projectExternalReferenceCode = getAccountKey();
+
 			const user = await getUser(projectExternalReferenceCode);
 
-			if (user && getCurrentPageName() === 'overview') {
+			if (user && getCurrentPageName() === ROUTE_TYPES.project) {
 				const isValid = await isValidPage(
 					user,
 					projectExternalReferenceCode,
-					'overview'
+					ROUTE_TYPES.project
 				);
 
 				if (isValid) {

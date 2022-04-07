@@ -15,7 +15,12 @@ import {isEdge} from 'react-flow-renderer';
 import {defaultLanguageId} from '../constants';
 import {removeNewLine, replaceTabSpaces} from '../util/utils';
 import {DEFAULT_LANGUAGE} from './constants';
-import parseAssignments from './utils';
+import {
+	parseActions,
+	parseAssignments,
+	parseNotifications,
+	parseTimers,
+} from './utils';
 import XMLDefinition from './xmlDefinition';
 
 export default function DeserializeUtil(content) {
@@ -32,8 +37,32 @@ DeserializeUtil.prototype = {
 
 		const elements = [];
 
+		const transitionsIDs = [];
+
+		const nodesIDs = [];
+
+		instance.definition.forEachField((_, fieldData) => {
+			fieldData.results.forEach((node) => {
+				nodesIDs.push(node.name);
+			});
+		});
+
 		instance.definition.forEachField((tagName, fieldData) => {
 			fieldData.results.forEach((node) => {
+				if (node.actions?.length) {
+					node.notifications = node.actions.filter((item) => {
+						if (item.template) {
+							return item;
+						}
+					});
+
+					node.actions = node.actions.filter((item) => {
+						if (item.script) {
+							return item;
+						}
+					});
+				}
+
 				const position = {};
 				let type = tagName;
 
@@ -70,13 +99,41 @@ DeserializeUtil.prototype = {
 				};
 
 				if (type === 'task') {
+					node.assignments?.forEach((assignment) => {
+						var roleTypes = assignment['role-type'];
+
+						roleTypes?.forEach((type, index) => {
+							if (type === 'depot') {
+								roleTypes[index] = 'asset library';
+							}
+						});
+					});
+
 					if (node.assignments) {
 						data.assignments = parseAssignments(node);
+					}
+					if (node.taskTimers) {
+						data.taskTimers = parseTimers(node);
 					}
 
 					data.scriptLanguage =
 						node.scriptLanguage || DEFAULT_LANGUAGE;
 				}
+
+				data.actions = node.actions?.length && parseActions(node);
+
+				data.notifications =
+					node.notifications?.length && parseNotifications(node);
+
+				node.notifications?.forEach((notification) => {
+					var roleTypes = notification['role-type'];
+
+					roleTypes?.forEach((type, index) => {
+						if (type === 'depot') {
+							roleTypes[index] = 'asset library';
+						}
+					});
+				});
 
 				let nodeId;
 
@@ -126,6 +183,16 @@ DeserializeUtil.prototype = {
 						}
 						else {
 							return;
+						}
+
+						if (
+							transitionsIDs.includes(transitionId) ||
+							nodesIDs.includes(transitionId)
+						) {
+							transitionId = `${nodeId}_${transitionId}_${transition.target}`;
+						}
+						else {
+							transitionsIDs.push(transitionId);
 						}
 
 						const hasDefaultEdge = elements.find(

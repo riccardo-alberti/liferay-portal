@@ -29,13 +29,11 @@ import com.liferay.portal.upgrade.util.BaseUpgradeResourceBlock;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Types;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +41,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Preston Crary
  */
-@Ignore
 @RunWith(Arquillian.class)
 public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 
@@ -154,7 +151,7 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 			"delete from ResourcePermission where name = '" +
 				UpgradeResourceBlockTest.class.getName() + "'");
 
-		runSQL(TableClass.TABLE_SQL_DROP);
+		runSQL("drop table " + getTableName());
 
 		connection.close();
 	}
@@ -169,25 +166,6 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 		_testUpgrade(true);
 	}
 
-	public static class TableClass {
-
-		public static final Object[][] TABLE_COLUMNS = {
-			{"id_", Types.BIGINT}, {"userId", Types.BIGINT}
-		};
-
-		public static final String TABLE_NAME = "UpgradeResourceBlockTest";
-
-		public static final String[] TABLE_SQL_ADD_INDEXES = {};
-
-		public static final String TABLE_SQL_CREATE =
-			"create table UpgradeResourceBlockTest(id_ LONG not null primary " +
-				"key, userId LONG, resourceBlockId LONG)";
-
-		public static final String TABLE_SQL_DROP =
-			"drop table UpgradeResourceBlockTest";
-
-	}
-
 	@Override
 	protected String getClassName() {
 		return UpgradeResourceBlockTest.class.getName();
@@ -199,8 +177,8 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 	}
 
 	@Override
-	protected Class<?> getTableClass() {
-		return TableClass.class;
+	protected String getTableName() {
+		return "UpgradeResourceBlockTest";
 	}
 
 	@Override
@@ -261,7 +239,7 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 		_hasUserId = hasUserId;
 
 		DBAssertionUtil.assertColumns(
-			TableClass.TABLE_NAME, "id_", "userId", "resourceBlockId");
+			getTableName(), "id_", "userId", "resourceBlockId");
 
 		doUpgrade();
 
@@ -298,7 +276,7 @@ public class UpgradeResourceBlockTest extends BaseUpgradeResourceBlock {
 			Assert.assertFalse(resultSet.next());
 		}
 
-		DBAssertionUtil.assertColumns(TableClass.TABLE_NAME, "id_", "userId");
+		DBAssertionUtil.assertColumns(getTableName(), "id_", "userId");
 
 		_assertRowsRemoved("ResourceBlock", "resourceBlockId");
 		_assertRowsRemoved(

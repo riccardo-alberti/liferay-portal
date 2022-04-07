@@ -16,7 +16,15 @@ import {defaultLanguageId} from '../../../constants';
 import BaseNode from './BaseNode';
 
 export default function TaskNode({
-	data: {assignments, description, label, newNode} = {},
+	data: {
+		actions,
+		assignments,
+		description,
+		label,
+		newNode,
+		notifications,
+		taskTimers,
+	} = {},
 	descriptionSidebar,
 	id,
 	...otherProps
@@ -27,8 +35,13 @@ export default function TaskNode({
 		};
 	}
 
+	if (!assignments) {
+		assignments = {assignmentType: ['user']};
+	}
+
 	return (
 		<BaseNode
+			actions={actions}
 			assignments={assignments}
 			className="task-node"
 			description={description}
@@ -37,6 +50,8 @@ export default function TaskNode({
 			id={id}
 			label={label}
 			newNode={newNode}
+			notifications={notifications}
+			taskTimers={taskTimers}
 			type="task"
 			{...otherProps}
 		/>

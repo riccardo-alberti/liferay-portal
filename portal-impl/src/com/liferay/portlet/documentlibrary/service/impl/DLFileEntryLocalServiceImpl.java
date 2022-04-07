@@ -21,7 +21,6 @@ import com.liferay.document.library.kernel.exception.DuplicateFileEntryExternalR
 import com.liferay.document.library.kernel.exception.DuplicateFolderNameException;
 import com.liferay.document.library.kernel.exception.FileExtensionException;
 import com.liferay.document.library.kernel.exception.FileNameException;
-import com.liferay.document.library.kernel.exception.ImageSizeException;
 import com.liferay.document.library.kernel.exception.InvalidFileEntryTypeException;
 import com.liferay.document.library.kernel.exception.InvalidFileVersionException;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
@@ -79,8 +78,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.image.ImageBag;
-import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.interval.IntervalActionProcessor;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lock.InvalidLockException;
@@ -89,7 +86,6 @@ import com.liferay.portal.kernel.lock.LockManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -144,7 +140,6 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SubscriptionSender;
@@ -155,7 +150,6 @@ import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
-import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.RepositoryUtil;
 import com.liferay.portlet.documentlibrary.DLGroupServiceSettings;
@@ -164,10 +158,7 @@ import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryImpl;
 import com.liferay.portlet.documentlibrary.service.base.DLFileEntryLocalServiceBaseImpl;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
 
-import java.awt.image.RenderedImage;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -202,36 +193,14 @@ import java.util.regex.Pattern;
 public class DLFileEntryLocalServiceImpl
 	extends DLFileEntryLocalServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link
-	 *             #addFileEntry(String, long, long, long, long, String, String,
-	 *             String, String, String, long, Map, File, InputStream, long,
-	 *             Date, Date, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DLFileEntry addFileEntry(
-			long userId, long groupId, long repositoryId, long folderId,
-			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, long fileEntryTypeId,
-			Map<String, DDMFormValues> ddmFormValuesMap, File file,
-			InputStream inputStream, long size, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addFileEntry(
-			null, userId, groupId, repositoryId, folderId, sourceFileName,
-			mimeType, title, description, changeLog, fileEntryTypeId,
-			ddmFormValuesMap, file, inputStream, size, null, null,
-			serviceContext);
-	}
-
 	@Override
 	public DLFileEntry addFileEntry(
 			String externalReferenceCode, long userId, long groupId,
 			long repositoryId, long folderId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			long fileEntryTypeId, Map<String, DDMFormValues> ddmFormValuesMap,
-			File file, InputStream inputStream, long size, Date expirationDate,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, long fileEntryTypeId,
+			Map<String, DDMFormValues> ddmFormValuesMap, File file,
+			InputStream inputStream, long size, Date expirationDate,
 			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -635,7 +604,7 @@ public class DLFileEntryLocalServiceImpl
 		DLFileEntry newDLFileEntry = addFileEntry(
 			null, userId, groupId, repositoryId, destFolderId, sourceFileName,
 			dlFileEntry.getMimeType(), dlFileEntry.getTitle(),
-			dlFileEntry.getDescription(), null,
+			dlFileEntry.getTitle(), dlFileEntry.getDescription(), null,
 			dlFileEntry.getFileEntryTypeId(), null, null, inputStream,
 			dlFileEntry.getSize(), dlFileEntry.getExpirationDate(),
 			dlFileEntry.getReviewDate(), serviceContext);
@@ -808,7 +777,7 @@ public class DLFileEntryLocalServiceImpl
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(exception, exception);
+				_log.warn(exception);
 			}
 		}
 
@@ -1485,7 +1454,7 @@ public class DLFileEntryLocalServiceImpl
 						exception) {
 
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 
@@ -1765,8 +1734,8 @@ public class DLFileEntryLocalServiceImpl
 	@Override
 	public DLFileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
 			long fileEntryTypeId, Map<String, DDMFormValues> ddmFormValuesMap,
 			File file, InputStream inputStream, long size, Date expirationDate,
 			Date reviewDate, ServiceContext serviceContext)
@@ -1823,27 +1792,6 @@ public class DLFileEntryLocalServiceImpl
 			expirationDate, reviewDate, serviceContext);
 	}
 
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #updateFileEntry(long, long, String, String, String, String, String, DLVersionNumberIncrease, long, Map, File, InputStream, long, Date, Date, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DLFileEntry updateFileEntry(
-			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
-			long fileEntryTypeId, Map<String, DDMFormValues> ddmFormValuesMap,
-			File file, InputStream inputStream, long size,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		return updateFileEntry(
-			userId, fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, dlVersionNumberIncrease, fileEntryTypeId,
-			ddmFormValuesMap, file, inputStream, size, null, null,
-			serviceContext);
-	}
-
 	@Override
 	public DLFileEntry updateFileEntryType(
 			long userId, long fileEntryId, long fileEntryTypeId,
@@ -1870,53 +1818,6 @@ public class DLFileEntryLocalServiceImpl
 		_dlFileVersionLocalService.updateDLFileVersion(dlFileVersion);
 
 		return dlFileEntry;
-	}
-
-	/**
-	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void updateSmallImage(long smallImageId, long largeImageId)
-		throws PortalException {
-
-		try {
-			Image largeImage = _imageLocalService.getImage(largeImageId);
-
-			byte[] bytes = largeImage.getTextObj();
-
-			if (bytes == null) {
-				return;
-			}
-
-			ImageBag imageBag = ImageToolUtil.read(bytes);
-
-			RenderedImage renderedImage = imageBag.getRenderedImage();
-
-			if (renderedImage == null) {
-				return;
-			}
-
-			int height = PrefsPropsUtil.getInteger(
-				PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT);
-			int width = PrefsPropsUtil.getInteger(
-				PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH);
-
-			RenderedImage thumbnailRenderedImage = ImageToolUtil.scale(
-				renderedImage, height, width);
-
-			_imageLocalService.updateImage(
-				smallImageId,
-				ImageToolUtil.getBytes(
-					thumbnailRenderedImage, largeImage.getType()));
-		}
-		catch (IOException ioException) {
-			throw new ImageSizeException(
-				StringBundler.concat(
-					"Unable to update small image with smallImageId ",
-					smallImageId, ", largeImageId ", largeImageId),
-				ioException);
-		}
 	}
 
 	@Override
@@ -2411,9 +2312,7 @@ public class DLFileEntryLocalServiceImpl
 			// LPS-52675
 
 			if (_log.isDebugEnabled()) {
-				_log.debug(
-					invalidFileEntryTypeException,
-					invalidFileEntryTypeException);
+				_log.debug(invalidFileEntryTypeException);
 			}
 
 			return _dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(
@@ -2643,7 +2542,7 @@ public class DLFileEntryLocalServiceImpl
 					cancelCheckOut(userId, fileEntryId);
 				}
 				catch (Exception exception2) {
-					_log.error(exception2, exception2);
+					_log.error(exception2);
 				}
 			}
 

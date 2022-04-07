@@ -1,9 +1,11 @@
 @component-name = "portal-security"
 definition {
 
+	property custom.properties = "company.default.time.zone=America/Los_Angeles";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "OpenID Connect";
+	property user.time.zone = "America/Los_Angeles";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -26,7 +28,7 @@ definition {
 		AssertElementNotPresent(locator1 = "OpenIDConnect#TOKEN_REFRESH_OFFSET");
 	}
 
-	@description = "This is a use case for LPS-124900 TC-4: Users should be logged out when they don't have a valid access token because a misconfigured refresh token lifetime at Portal. "
+	@description = "This is a use case for LPS-124900 TC-4: Users should be logged out when they don't have a valid access token because a misconfigured refresh token lifetime at Portal."
 	@priority = "4"
 	test AssertUserIsLoggedOutWithHigherRefreshToken {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
@@ -64,9 +66,9 @@ definition {
 	@priority = "4"
 	test ConfigureMultipleOpenIDConnectProviders {
 		property dummy.socket.proxy.disabled = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#MultipleOpenIDConnectProvider";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;";
+		property test.name.skip.portal.instance = "OpenIDConnect#MultipleOpenIDConnectProvider";
 
 		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
 		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
@@ -89,7 +91,7 @@ definition {
 				virtualHost = "www.baker.com");
 		}
 
-		task ("Add SSO openID connect provider") {
+		task ("Add SSO OpenID Connect provider") {
 			SystemSettings.openSystemSettingsAdmin();
 
 			SystemSettings.gotoConfiguration(
@@ -103,7 +105,7 @@ definition {
 				providerName = "Google");
 		}
 
-		task ("Login at www.able.com and add SSO openID connect provider") {
+		task ("Login at www.able.com and add SSO OpenID Connect provider") {
 			User.firstLoginPG(
 				password = "test",
 				userEmailAddress = "test@www.able.com",
@@ -128,7 +130,7 @@ definition {
 			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
 		}
 
-		task ("View provider and assert openID connect login option") {
+		task ("View provider and assert OpenID Connect login option") {
 			OpenIDConnect.viewProvider();
 
 			AssertElementPresent(
@@ -144,7 +146,9 @@ definition {
 
 			UserBar.signOut();
 
-			Navigator.openSpecificURL(url = "http://www.baker.com:8080/");
+			Navigator.openSpecificURL(
+				domain = "www.baker.com",
+				url = "http://www.baker.com:8080/");
 
 			OpenIDConnect.viewProvider();
 		}
@@ -154,6 +158,7 @@ definition {
 	@priority = "4"
 	test EnabledOpenIDConnectOnSystemLevel {
 		property dummy.socket.proxy.disabled = "true";
+		property portal.ssl.enabled = "true";
 		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
 
 		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
@@ -169,13 +174,15 @@ definition {
 		}
 
 		task ("Goto new CP url and sign in") {
-			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
+			Navigator.openSpecificURL(
+				domain = "www.able.com",
+				url = "https://www.able.com:8443/");
 
 			OpenIDConnect.viewNoProvider();
 		}
 
 		task ("Enable openID connect CP") {
-			Navigator.openURL();
+			Navigator.openURL(baseURL = "https://localhost:8443");
 
 			SystemSettings.openSystemSettingsAdmin();
 
@@ -202,50 +209,11 @@ definition {
 		}
 
 		task ("Go to able.com and assert openId connect") {
-			Navigator.openSpecificURL(url = "http://www.able.com:8080/");
+			Navigator.openSpecificURL(
+				domain = "www.able.com",
+				url = "https://www.able.com:8443/");
 
 			OpenIDConnect.viewProvider();
-		}
-	}
-
-	@description = "This is a use case for LRQA-27624. Users could login and logout using their Facebook profile."
-	@priority = "4"
-	test FacebookSSOSmoke {
-		property portal.ssl.enabled = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#FacebookSSOSmoke";
-
-		var facebookApplicationId = PropsUtil.get("facebook.application.id");
-		var facebookApplicationSecret = PropsUtil.get("facebook.application.secret");
-		var facebookEmail = PropsUtil.get("facebook.email");
-		var facebookPassword = PropsUtil.get("facebook.password");
-
-		task ("Edit facebook authentication") {
-			var siteName = TestCase.getSiteName(siteName = "${siteName}");
-
-			PortalSettings.gotoConfiguration(
-				baseURL = "http://localhost:8080",
-				configurationCategory = "SSO",
-				configurationName = "Facebook Connect",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.editConfigurationAuthenticationFacebook(
-				facebookApplicationId = "${facebookApplicationId}",
-				facebookApplicationSecret = "${facebookApplicationSecret}");
-		}
-
-		task ("Logout and login with facebook SSO") {
-			User.logoutPG();
-
-			User.loginUserWithFacebookSSOEnabledPG(
-				facebookEmail = "${facebookEmail}",
-				facebookPassword = "${facebookPassword}",
-				siteName = "${siteName}");
-		}
-
-		task ("Logout and login") {
-			User.logoutPG();
-
-			User.firstLoginUI();
 		}
 	}
 
@@ -254,6 +222,7 @@ definition {
 	test OpenIDConnectOnInstanceLevelSmoke {
 		property dummy.socket.proxy.disabled = "true";
 		property portal.acceptance = "true";
+		property portal.ssl.enabled = "true";
 		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectOnInstanceLevelSmoke";
 
 		var openIdConnectClientId = PropsUtil.get("google.client.id.1");
@@ -270,12 +239,13 @@ definition {
 
 		task ("Login at able.com and enable OpenId connect CP") {
 			User.firstLoginUI(
+				domain = "www.able.com",
 				password = "test",
-				specificURL = "http://www.able.com:8080",
+				specificURL = "https://www.able.com:8443",
 				userEmailAddress = "test@www.able.com");
 
 			PortalSettings.gotoConfiguration(
-				baseURL = "http://www.able.com:8080",
+				baseURL = "https://www.able.com:8443",
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect",
 				configurationScope = "Virtual Instance Scope");
@@ -284,7 +254,7 @@ definition {
 		}
 
 		task ("Add SSO openID connect provider") {
-			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
+			PortalSettings.openInstanceSettingsAdmin(baseURL = "https://www.able.com:8443");
 
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
@@ -297,21 +267,21 @@ definition {
 				providerName = "Google");
 		}
 
-		task ("Sign out and login at able.com with openID connect enabled") {
+		task ("Sign out and Login at able.com with OpenID Connect enabled") {
 			UserBar.signOut();
 
 			User.loginUserWithOpenIDConnectEnabledPG(
-				specificURL = "http://www.able.com:8080",
+				specificURL = "https://www.able.com:8443",
 				userEmailAddress = "${userEmailAddress}",
 				userPassword = "${userPassword}");
 		}
 
-		task ("Sign out and login") {
+		task ("Sign out and Login") {
 			UserBar.signOut();
 
 			User.firstLoginUI(
 				password = "test",
-				specificURL = "http://www.able.com:8080",
+				specificURL = "https://www.able.com:8443",
 				userEmailAddress = "test@www.able.com");
 		}
 	}
@@ -328,7 +298,7 @@ definition {
 		var userEmailAddress = PropsUtil.get("email.address.2");
 		var userPassword = PropsUtil.get("email.password.2");
 
-		task ("Add SSO openID connect provider") {
+		task ("Add SSO OpenID Connect provider") {
 			PortalSettings.gotoConfiguration(
 				baseURL = "http://localhost:8080",
 				configurationCategory = "SSO",
@@ -350,7 +320,7 @@ definition {
 				providerName = "Google");
 		}
 
-		task ("Logout and login with openID connect") {
+		task ("Logout and login with OpenID Connect") {
 			User.logoutPG();
 
 			User.loginUserWithOpenIDConnectEnabledPG(
@@ -367,10 +337,10 @@ definition {
 	@priority = "5"
 	test OpenIDConnectSmokeWithAuth0 {
 		property dummy.socket.proxy.disabled = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAuth0";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAuth0";
 
 		var userEmailAddress = PropsUtil.get("openid.provider.auth0.test.account.email.address");
 		var userPassword = PropsUtil.get("openid.provider.auth0.test.account.password");
@@ -394,14 +364,15 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LRQA-72792. Users could login and logout using Azure as OpenID Connect provider."
+	@description = "This is a use case for LRQA-72792. Users could login and logout using Azure as OpenID Connect provider. Blocked by LRQA-73513."
 	@priority = "5"
 	test OpenIDConnectSmokeWithAzure {
 		property dummy.socket.proxy.disabled = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAzure";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.release = "quarantine";
+		property portal.upstream = "quarantine";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithAzure";
 
 		var userEmailAddress = PropsUtil.get("openid.provider.azure.test.account.email.address");
 		var userPassword = PropsUtil.get("openid.provider.azure.test.account.password");
@@ -429,10 +400,10 @@ definition {
 	@priority = "5"
 	test OpenIDConnectSmokeWithOkta {
 		property dummy.socket.proxy.disabled = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithOkta";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithOkta";
 
 		var userEmailAddress = PropsUtil.get("openid.provider.okta.test.account.email.address");
 		var userPassword = PropsUtil.get("openid.provider.okta.test.account.password");
@@ -460,10 +431,10 @@ definition {
 	@priority = "5"
 	test OpenIDConnectSmokeWithPingOne {
 		property dummy.socket.proxy.disabled = "true";
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithPingOne";
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.configuration.OpenIdConnectConfiguration.config";
 		property osgi.module.configurations = "enabled=&quot;true&quot;${line.separator}tokenRefreshOffset=&quot;120&quot;";
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "OpenIDConnect#OpenIDConnectSmokeWithPingOne";
 
 		var userName = PropsUtil.get("openid.provider.pingone.test.account.username");
 		var userPassword = PropsUtil.get("openid.provider.pingone.test.account.password");
@@ -487,139 +458,67 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LRQA-43015. Ignore test due to OpenAM 12 doesn't support Tomcat 9."
-	@ignore = "true"
-	@priority = "5"
-	test OpenSSOSmoke {
+	@description = "This is a use case for LPS-148619. User could log in and log out using Google as OpenID Connect provider, using custom parameters for the connection."
+	test OpenIDConnectWithGoogleCustomParameters {
 		property dummy.socket.proxy.disabled = "true";
-		property openam.enabled = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#OpenSSOSmoke";
+		property test.name.skip.portal.instance = "OpenIDConnect#EnabledOpenIDConnectOnSystemLevel";
 
-		task ("Go to http://test.able.com:8080/openam and run ant command") {
-			Navigator.openSpecificURL(url = "http://test.able.com:8080/openam");
+		var customTokenRequestParameters = "resource=https://contacts.google.com";
+		var customAuthorizationRequestParameters = "access_type=offline";
+		var openIdConnectClientId = PropsUtil.get("google.client.id.2");
+		var openIdConnectClientSecret = PropsUtil.get("google.client.secret.2");
+		var userEmailAddress = PropsUtil.get("email.address.2");
+		var userPassword = PropsUtil.get("email.password.2");
 
-			AntCommand(
-				locator1 = "build-test-authentication.xml",
-				value1 = "run-openam-tools");
+		task ("Given the correct log levels are set to DEBUG") {
+			OpenIDConnect.enableOpenIDConnectDebugLogs();
+
+			OpenIDConnect.enableOpenIDConnectCustomParametersDebugLogs();
 		}
 
-		task ("Wait for OpenAM setup") {
-			var pauseCount = "0";
-
-			while ((IsElementNotPresent(locator1 = "TextInput#TEXT")) && ("${pauseCount}" != "20")) {
-				Refresh();
-
-				Pause(locator1 = "30000");
-
-				var pauseCount = ${pauseCount} + 1;
-
-				echo("Pause count: ${pauseCount}");
-			}
-
-			if ("${pauseCount}" == "20") {
-				fail("OpenAM setup timed out after 10 minutes.");
-			}
-		}
-
-		task ("Configure open SSO") {
-			Pause(locator1 = "30000");
-
-			PortalSettings.gotoConfiguration(
-				baseURL = "http://localhost:8080",
-				configurationCategory = "SSO",
-				configurationName = "OpenSSO",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.configureOpenSSO(
-				openSsoLoginURL = "http://test.able.com:8080/openam/UI/Login?goto=http://www.able.com:8080/c/portal/login",
-				openSsoLogoutURL = "http://test.able.com:8080/openam/UI/Logout?goto=http://www.able.com:8080/web/guest/home",
-				openSsoServiceURL = "http://test.able.com:8080/openam");
-		}
-
-		task ("Test SSO connection") {
-			PortalSettings.gotoConfiguration(
-				baseURL = "http://localhost:8080",
-				configurationCategory = "SSO",
-				configurationName = "OpenSSO",
-				configurationScope = "Virtual Instance Scope");
-
-			PortalSettings.testOpenSSOConnection();
-		}
-
-		task ("Logout and login with open SSO") {
-			User.logoutPG();
-
-			User.loginUserWithOpenSSOEnabledPG(
-				hostsURL = "http://www.able.com:8080",
-				password = "password",
-				userScreenName = "test");
-		}
-	}
-
-	@description = "This is a use case for LRQA-27622. Users could login using Token Based SSO."
-	@priority = "5"
-	test TokenBasedSSOSmoke {
-		property portal.acceptance = "true";
-		property test.name.skip.portal.instance = "OpenIDConnect#TokenBasedSSOSmoke";
-
-		task ("Reset token based SSO configuration") {
+		task ("When OpenID Connect provider is set to Google and the connection is established with custom parameters") {
 			SystemSettings.openSystemSettingsAdmin();
 
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
-				configurationName = "Token Based SSO",
+				configurationName = "OpenID Connect",
 				configurationScope = "System Scope");
 
-			SystemSettings.resetConfiguration();
-		}
+			PortalSettings.enableOpenIDConnectCP(systemLevel = "true");
 
-		task ("Enable and save configuration") {
-			FormFields.enableCheckbox(fieldName = "Enabled");
-
-			SystemSettings.saveConfiguration();
-		}
-
-		task ("Run and command") {
-			AntCommand(
-				locator1 = "build-test-authentication.xml",
-				value1 = "verify-token-based-login -Dportal.url=http://localhost:8080/web/guest -Duser.token=test@liferay.com");
-		}
-
-		task ("Disable configuration") {
-			FormFields.disableCheckbox(fieldName = "Enabled");
-
-			SystemSettings.saveConfiguration();
-		}
-
-		task ("Add CP able.com") {
-			HeadlessPortalInstanceAPI.addPortalInstance(
-				domain = "www.able.com",
-				portalInstanceId = "www.able.com",
-				virtualHost = "www.able.com");
-		}
-
-		task ("Login at able.com and enable token based SSO") {
-			User.firstLoginUI(
-				password = "test",
-				specificURL = "http://www.able.com:8080",
-				userEmailAddress = "test@www.able.com");
-
-			PortalSettings.openInstanceSettingsAdmin(baseURL = "http://www.able.com:8080");
+			SystemSettings.openSystemSettingsAdmin();
 
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
-				configurationName = "Token Based SSO",
+				configurationName = "OpenID Connect Provider Connection",
 				configurationScope = "Virtual Instance Scope");
 
-			FormFields.enableCheckbox(fieldName = "enabled");
-
-			SystemSettings.saveConfiguration();
+			OpenIDConnect.addProvider(
+				customAuthorizationRequestParameters = "${customAuthorizationRequestParameters}",
+				customTokenRequestParameters = "${customTokenRequestParameters}",
+				openIdConnectClientId = "${openIdConnectClientId}",
+				openIdConnectClientSecret = "${openIdConnectClientSecret}",
+				providerName = "Google");
 		}
 
-		task ("Run ant command") {
-			AntCommand(
-				locator1 = "build-test-authentication.xml",
-				value1 = "verify-token-based-login -Dportal.url=http://www.able.com:8080/web/guest -Duser.token=test@www.able.com");
+		task ("Then the user can log in and log out through the provider and the correct parameters are shown in the console") {
+			UserBar.signOut();
+
+			User.loginUserWithOpenIDConnectEnabledPG(
+				userEmailAddress = "${userEmailAddress}",
+				userPassword = "${userPassword}");
+
+			AssertConsoleTextPresent(value1 = "${customAuthorizationRequestParameters}");
+
+			AssertConsoleTextPresent(value1 = "resource");
+		}
+
+		task (" And the user is still logged in after the first access token's lifetime is over and they receive a new access token in the background") {
+			Pause(locator1 = "65000");
+
+			Refresh();
+
+			User.viewLoggedInPG();
 		}
 	}
 
@@ -635,7 +534,7 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-124898 TC-5: Verify Token Refresh Offset cannot be saved with a value under 30 second. Blocked by LPS-138193"
+	@description = "This is a use case for LPS-124898 TC-5: Verify Token Refresh Offset cannot be saved with a value under 30 second. Blocked by LPS-138193."
 	@priority = "4"
 	test VerifyTokenRefreshOffsetMinimum {
 		property osgi.module.configuration.file.names = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~default.config";

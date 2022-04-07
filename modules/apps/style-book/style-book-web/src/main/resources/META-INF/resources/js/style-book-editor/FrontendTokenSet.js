@@ -12,11 +12,11 @@
  * details.
  */
 
+import {Collapse} from '@liferay/layout-content-page-editor-web';
 import PropTypes from 'prop-types';
 import React, {useContext} from 'react';
 
 import {config} from '../style-book-editor/config';
-import Collapse from './Collapse';
 import {StyleBookContext} from './StyleBookContext';
 import {FRONTEND_TOKEN_TYPES} from './constants/frontendTokenTypes';
 import BooleanFrontendToken from './frontend_tokens/BooleanFrontendToken';
@@ -54,7 +54,7 @@ const getColorFrontendTokens = (
 	return tokens;
 };
 
-export default function FrontendTokenSet({frontendTokens, label}) {
+export default function FrontendTokenSet({frontendTokens, label, open}) {
 	const {frontendTokensValues = {}, setFrontendTokensValues} = useContext(
 		StyleBookContext
 	);
@@ -76,51 +76,45 @@ export default function FrontendTokenSet({frontendTokens, label}) {
 				...frontendTokensValues,
 				[name]: {
 					cssVariableMapping: cssVariableMapping.value,
-					value:
-						(config.tokenReuseEnabled &&
-							tokenValues[value]?.value) ||
-						value,
-					...(config.tokenReuseEnabled && {
-						name: tokenValues[value]?.name,
-					}),
+					name: tokenValues[value]?.name,
+					value: tokenValues[value]?.value || value,
 				},
 			});
 		}
 	};
 
 	return (
-		<Collapse label={label}>
+		<Collapse label={label} open={open}>
 			{frontendTokens.map((frontendToken) => {
 				const FrontendTokenComponent = getFrontendTokenComponent(
 					frontendToken
 				);
 
-				return config.tokenReuseEnabled ? (
-					<FrontendTokenComponent
-						frontendToken={frontendToken}
-						frontendTokensValues={frontendTokensValues}
-						key={frontendToken.name}
-						onValueSelect={(_, value) => {
+				let props = {
+					frontendToken,
+					onValueSelect: (value) =>
+						updateFrontendTokensValues(frontendToken, value),
+					value:
+						frontendTokensValues[frontendToken.name]?.name ||
+						frontendTokensValues[frontendToken.name]?.value ||
+						frontendToken.defaultValue,
+				};
+
+				if (frontendToken.editorType === 'ColorPicker') {
+					props = {
+						...props,
+						frontendTokensValues,
+						onValueSelect: (_, value) => {
 							updateFrontendTokensValues(frontendToken, value);
-						}}
-						tokenValues={tokenValues}
-						value={
-							frontendTokensValues[frontendToken.name]?.name ||
-							frontendTokensValues[frontendToken.name]?.value ||
-							frontendToken.defaultValue
-						}
-					/>
-				) : (
+						},
+						tokenValues,
+					};
+				}
+
+				return (
 					<FrontendTokenComponent
-						frontendToken={frontendToken}
 						key={frontendToken.name}
-						onValueSelect={(value) =>
-							updateFrontendTokensValues(frontendToken, value)
-						}
-						value={
-							frontendTokensValues[frontendToken.name]?.value ||
-							frontendToken.defaultValue
-						}
+						{...props}
 					/>
 				);
 			})}

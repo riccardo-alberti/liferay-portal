@@ -23,8 +23,8 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.searcher.SearchRequest;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.web.internal.custom.facet.constants.CustomFacetPortletKeys;
-import com.liferay.portal.search.web.internal.custom.facet.display.context.CustomFacetDisplayBuilder;
 import com.liferay.portal.search.web.internal.custom.facet.display.context.CustomFacetDisplayContext;
+import com.liferay.portal.search.web.internal.custom.facet.display.context.builder.CustomFacetDisplayContextBuilder;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
 
@@ -69,7 +69,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/custom/facet/view.jsp",
 		"javax.portlet.name=" + CustomFacetPortletKeys.CUSTOM_FACET,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -106,8 +107,8 @@ public class CustomFacetPortlet extends MVCPortlet {
 			RenderRequest renderRequest)
 		throws ConfigurationException {
 
-		CustomFacetDisplayBuilder customFacetDisplayBuilder =
-			new CustomFacetDisplayBuilder(
+		CustomFacetDisplayContextBuilder customFacetDisplayContextBuilder =
+			new CustomFacetDisplayContextBuilder(
 				_getHttpServletRequest(renderRequest));
 
 		CustomFacetPortletPreferences customFacetPortletPreferences =
@@ -125,7 +126,7 @@ public class CustomFacetPortlet extends MVCPortlet {
 			_getParameterValuesOptional(
 				parameterName, portletSharedSearchResponse, renderRequest);
 
-		return customFacetDisplayBuilder.setCustomDisplayCaption(
+		return customFacetDisplayContextBuilder.setCustomDisplayCaption(
 			customFacetPortletPreferences.getCustomHeadingOptional()
 		).setFacet(
 			facet

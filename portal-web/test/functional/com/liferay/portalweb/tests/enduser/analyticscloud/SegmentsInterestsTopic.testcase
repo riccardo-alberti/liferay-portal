@@ -70,7 +70,6 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanSearchListOfPagesForInterestTopic {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Interests in the static segment takes too long to appear.
 		// AC Refactor ticket: LRAC-9171
@@ -109,7 +108,7 @@ definition {
 
 			ACSegments.createStaticSegment();
 
-			ACSegments.nameSegment(segmentName = "Static Segment Test");
+			ACUtils.setItemName(itemName = "Static Segment Test");
 
 			ACSegments.addStaticMember(tableMember = "${usernameList} ${usernameList}");
 
@@ -154,7 +153,6 @@ definition {
 	@ignore = "true"
 	@priority = "3"
 	test PaginateSegmentProfileInInterestsTab {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Interests in the static segment takes too long to appear.
 		// AC Refactor ticket: LRAC-9172
@@ -189,7 +187,7 @@ definition {
 		task ("Create a static segment and add a member to it") {
 			ACSegments.createStaticSegment();
 
-			ACSegments.nameSegment(segmentName = "Static Segment Test");
+			ACUtils.setItemName(itemName = "Static Segment Test");
 
 			ACSegments.addStaticMember(tableMember = "${usernameList} ${usernameList}");
 
@@ -234,7 +232,6 @@ definition {
 	@ignore = "true"
 	@priority = "5"
 	test ViewInterestTopicShowsPagesContributeToInterest {
-		property portal.upstream = "quarantine";
 
 		// AC Refactor: Interests in the static segment takes too long to appear.
 		// AC Refactor ticket: LRAC-9170
@@ -271,7 +268,7 @@ definition {
 		task ("Create a static segment and add a member to it") {
 			ACSegments.createStaticSegment();
 
-			ACSegments.nameSegment(segmentName = "Static Segment Test");
+			ACUtils.setItemName(itemName = "Static Segment Test");
 
 			ACSegments.addStaticMember(tableMember = "${usernameList} ${usernameList}");
 

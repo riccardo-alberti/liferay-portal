@@ -95,7 +95,7 @@ public class PendingCommerceOrderItemDataSetDataProvider
 			return _getOrderItems(commerceOrderItems, httpServletRequest);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 
 		return Collections.emptyList();
@@ -237,11 +237,10 @@ public class PendingCommerceOrderItemDataSetDataProvider
 			HttpServletRequest httpServletRequest)
 		throws Exception {
 
-		List<CommerceOrderItem> childCommerceOrderItems =
+		return _getOrderItems(
 			_commerceOrderItemService.getChildCommerceOrderItems(
-				commerceOrderItem.getCommerceOrderItemId());
-
-		return _getOrderItems(childCommerceOrderItems, httpServletRequest);
+				commerceOrderItem.getCommerceOrderItemId()),
+			httpServletRequest);
 	}
 
 	private long _getCommerceOptionValueCPDefinitionId(

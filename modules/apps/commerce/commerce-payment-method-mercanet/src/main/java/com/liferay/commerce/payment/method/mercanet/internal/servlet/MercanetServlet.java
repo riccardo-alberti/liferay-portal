@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
@@ -98,7 +97,7 @@ public class MercanetServlet extends HttpServlet {
 			requestDispatcher.forward(httpServletRequest, httpServletResponse);
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 
@@ -121,11 +120,9 @@ public class MercanetServlet extends HttpServlet {
 						httpServletRequest.getSession());
 				}
 
-				PermissionChecker permissionChecker =
+				PermissionThreadLocal.setPermissionChecker(
 					PermissionCheckerFactoryUtil.create(
-						_portal.getUser(httpServletRequest));
-
-				PermissionThreadLocal.setPermissionChecker(permissionChecker);
+						_portal.getUser(httpServletRequest)));
 
 				String redirect = ParamUtil.getString(
 					httpServletRequest, "redirect");
@@ -202,7 +199,7 @@ public class MercanetServlet extends HttpServlet {
 			}
 		}
 		catch (Exception exception) {
-			_log.error(exception, exception);
+			_log.error(exception);
 		}
 	}
 

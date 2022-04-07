@@ -16,7 +16,10 @@ package com.liferay.object.admin.rest.internal.dto.v1_0.util;
 
 import com.liferay.object.admin.rest.dto.v1_0.ObjectView;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectViewColumn;
+import com.liferay.object.admin.rest.dto.v1_0.ObjectViewSortColumn;
 import com.liferay.object.util.LocalizedMapUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import java.util.Map;
@@ -49,6 +52,10 @@ public class ObjectViewUtil {
 					serviceBuilderObjectView.getObjectViewColumns(),
 					ObjectViewUtil::_toObjectViewColumn,
 					ObjectViewColumn.class);
+				objectViewSortColumns = TransformUtil.transformToArray(
+					serviceBuilderObjectView.getObjectViewSortColumns(),
+					ObjectViewUtil::_toObjectViewSortColumn,
+					ObjectViewSortColumn.class);
 			}
 		};
 
@@ -65,12 +72,47 @@ public class ObjectViewUtil {
 			return null;
 		}
 
+		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-149119"))) {
+			return new ObjectViewColumn() {
+				{
+					id = serviceBuilderObjectViewColumn.getObjectViewColumnId();
+					label = LocalizedMapUtil.getLanguageIdMap(
+						serviceBuilderObjectViewColumn.getLabelMap());
+					objectFieldName =
+						serviceBuilderObjectViewColumn.getObjectFieldName();
+					priority = serviceBuilderObjectViewColumn.getPriority();
+				}
+			};
+		}
+
 		return new ObjectViewColumn() {
 			{
 				id = serviceBuilderObjectViewColumn.getObjectViewColumnId();
 				objectFieldName =
 					serviceBuilderObjectViewColumn.getObjectFieldName();
 				priority = serviceBuilderObjectViewColumn.getPriority();
+			}
+		};
+	}
+
+	private static ObjectViewSortColumn _toObjectViewSortColumn(
+		com.liferay.object.model.ObjectViewSortColumn
+			serviceBuilderObjectViewSortColumn) {
+
+		if (serviceBuilderObjectViewSortColumn == null) {
+			return null;
+		}
+
+		return new ObjectViewSortColumn() {
+			{
+				id =
+					serviceBuilderObjectViewSortColumn.
+						getObjectViewSortColumnId();
+				objectFieldName =
+					serviceBuilderObjectViewSortColumn.getObjectFieldName();
+				priority = serviceBuilderObjectViewSortColumn.getPriority();
+				sortOrder = ObjectViewSortColumn.SortOrder.create(
+					serviceBuilderObjectViewSortColumn.getSortOrder());
 			}
 		};
 	}

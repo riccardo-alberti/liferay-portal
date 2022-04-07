@@ -147,9 +147,9 @@ public class CMISRepository extends BaseCmisRepository {
 	public FileEntry addFileEntry(
 			String externalReferenceCode, long userId, long folderId,
 			String sourceFileName, String mimeType, String title,
-			String description, String changeLog, InputStream inputStream,
-			long size, Date expirationDate, Date reviewDate,
-			ServiceContext serviceContext)
+			String urlTitle, String description, String changeLog,
+			InputStream inputStream, long size, Date expirationDate,
+			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
 
 		if (Validator.isNull(title)) {
@@ -760,12 +760,10 @@ public class CMISRepository extends BaseCmisRepository {
 			foldersAndFileEntries = new ArrayList<>();
 
 			foldersAndFileEntries.addAll(getFolders(folderId));
-
-			List<FileEntry> fileEntries = getFileEntries(
-				folderId, mimeTypes, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-				null);
-
-			foldersAndFileEntries.addAll(fileEntries);
+			foldersAndFileEntries.addAll(
+				getFileEntries(
+					folderId, mimeTypes, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null));
 
 			if (mimeTypes == null) {
 				_cmisModelCache.putFoldersAndFileEntries(
@@ -1191,7 +1189,7 @@ public class CMISRepository extends BaseCmisRepository {
 
 			updateFileEntry(
 				userId, fileEntryId, contentStream.getFileName(), mimeType,
-				title, StringPool.BLANK, changeLog,
+				title, StringPool.BLANK, StringPool.BLANK, changeLog,
 				DLVersionNumberIncrease.MAJOR, contentStream.getStream(),
 				contentStream.getLength(), null, null, serviceContext);
 		}
@@ -1299,8 +1297,8 @@ public class CMISRepository extends BaseCmisRepository {
 	@Override
 	public FileEntry updateFileEntry(
 			long userId, long fileEntryId, String sourceFileName,
-			String mimeType, String title, String description, String changeLog,
-			DLVersionNumberIncrease dlVersionNumberIncrease,
+			String mimeType, String title, String urlTitle, String description,
+			String changeLog, DLVersionNumberIncrease dlVersionNumberIncrease,
 			InputStream inputStream, long size, Date expirationDate,
 			Date reviewDate, ServiceContext serviceContext)
 		throws PortalException {
@@ -1852,9 +1850,7 @@ public class CMISRepository extends BaseCmisRepository {
 							noSuchRepositoryEntryException) {
 
 					if (_log.isWarnEnabled()) {
-						_log.warn(
-							noSuchRepositoryEntryException,
-							noSuchRepositoryEntryException);
+						_log.warn(noSuchRepositoryEntryException);
 					}
 				}
 			}

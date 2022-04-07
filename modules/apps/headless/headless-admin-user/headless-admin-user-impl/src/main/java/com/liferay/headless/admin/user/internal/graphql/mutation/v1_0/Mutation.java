@@ -518,6 +518,72 @@ public class Mutation {
 		return true;
 	}
 
+	@GraphQLField
+	public boolean deleteAccountByExternalReferenceCodeOrganization(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.
+					deleteAccountByExternalReferenceCodeOrganization(
+						externalReferenceCode, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createAccountByExternalReferenceCodeOrganization(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.
+					postAccountByExternalReferenceCodeOrganization(
+						externalReferenceCode, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean deleteAccountOrganization(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteAccountOrganization(
+					accountId, organizationId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public boolean createAccountOrganization(
+			@GraphQLName("accountId") Long accountId,
+			@GraphQLName("organizationId") String organizationId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.postAccountOrganization(
+					accountId, organizationId));
+
+		return true;
+	}
+
 	@GraphQLField(description = "Creates a new organization")
 	public Organization createOrganization(
 			@GraphQLName("organization") Organization organization)
@@ -541,6 +607,53 @@ public class Mutation {
 			this::_populateResourceContext,
 			organizationResource -> organizationResource.postOrganizationBatch(
 				callbackURL, object));
+	}
+
+	@GraphQLField(description = "Deletes an organization.")
+	public boolean deleteOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.deleteOrganizationByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the organization with information sent in the request body. Only the provided fields are updated."
+	)
+	public Organization patchOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organization") Organization organization)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.patchOrganizationByExternalReferenceCode(
+					externalReferenceCode, organization));
+	}
+
+	@GraphQLField(
+		description = "Replaces the organization with information sent in the request body. Any missing fields are deleted unless they are required."
+	)
+	public Organization updateOrganizationByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("organization") Organization organization)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_organizationResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			organizationResource ->
+				organizationResource.putOrganizationByExternalReferenceCode(
+					externalReferenceCode, organization));
 	}
 
 	@GraphQLField(description = "Deletes an organization.")

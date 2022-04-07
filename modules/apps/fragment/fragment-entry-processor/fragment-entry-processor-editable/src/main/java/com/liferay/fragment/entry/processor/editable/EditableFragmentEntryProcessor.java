@@ -145,8 +145,7 @@ public class EditableFragmentEntryProcessor implements FragmentEntryProcessor {
 			jsonObject.put(
 				clazz.getName(),
 				getDefaultEditableValuesJSONObject(
-					fragmentEntryLink.getHtml(),
-					fragmentEntryLink.getConfiguration()));
+					html, fragmentEntryLink.getConfiguration()));
 		}
 
 		Document document = _getDocument(html);
@@ -339,7 +338,16 @@ public class EditableFragmentEntryProcessor implements FragmentEntryProcessor {
 			for (Element element : document.select("lfr-editable")) {
 				element.removeAttr("id");
 				element.removeAttr("type");
-				element.tagName("div");
+
+				String tagName = element.attr("view-tag-name");
+
+				if (!Objects.equals(tagName, "span")) {
+					tagName = "div";
+				}
+
+				element.tagName(tagName);
+
+				element.removeAttr("view-tag-name");
 			}
 		}
 

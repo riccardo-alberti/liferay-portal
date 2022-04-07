@@ -18,12 +18,13 @@ import aQute.bnd.annotation.metatype.Meta;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.test.SwappableSecurityManager;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.rule.NewEnv;
+import com.liferay.portal.kernel.test.util.ReflectionUtilTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.test.aspects.ReflectionUtilAdvice;
 import com.liferay.portal.test.rule.AdviseWith;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.PropsImpl;
@@ -65,21 +66,21 @@ public class ConfigurableUtilTest {
 		_testBigString(65536);
 	}
 
-	@AdviseWith(adviceClasses = ReflectionUtilAdvice.class)
 	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
 	public void testClassInitializationFailure() throws Exception {
-		Throwable throwable = new Throwable();
+		SecurityException securityException = new SecurityException();
 
-		ReflectionUtilAdvice.setDeclaredMethodThrowable(throwable);
+		try (SwappableSecurityManager swappableSecurityManager =
+				ReflectionUtilTestUtil.throwForSuppressAccessChecks(
+					securityException)) {
 
-		try {
 			Class.forName(ConfigurableUtil.class.getName());
 
 			Assert.fail();
 		}
 		catch (ExceptionInInitializerError eiie) {
-			Assert.assertSame(throwable, eiie.getCause());
+			Assert.assertSame(securityException, eiie.getCause());
 		}
 	}
 
@@ -271,6 +272,9 @@ public class ConfigurableUtilTest {
 			new String[] {"test_string_1", "test_string_2"},
 			testConfiguration.testStringArray());
 		Assert.assertArrayEquals(
+			new String[0],
+			testConfiguration.testStringArrayWithEmptyStringAsDefault());
+		Assert.assertArrayEquals(
 			new String[] {"a=b", "c=d,e=f"},
 			testConfiguration.testStringEscapeMultiValuedAttribute());
 		Assert.assertEquals(
@@ -338,6 +342,9 @@ public class ConfigurableUtilTest {
 
 		@Meta.AD(deflt = "test_string_1|test_string_2", required = false)
 		public String[] testStringArray();
+
+		@Meta.AD(deflt = "", required = false)
+		public String[] testStringArrayWithEmptyStringAsDefault();
 
 		@Meta.AD(deflt = "a=b,c=d\\,e=f", required = false)
 		public String[] testStringEscapeMultiValuedAttribute();

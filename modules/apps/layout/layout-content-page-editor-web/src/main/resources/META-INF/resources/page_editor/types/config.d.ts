@@ -36,8 +36,8 @@ export interface Config {
 
 	availableSegmentsEntries: {
 		[key: string]: {
-			segmentsEntryId: string;
 			name: string;
+			segmentsEntryId: string;
 		};
 	};
 
@@ -53,7 +53,6 @@ export interface Config {
 
 	changeMasterLayoutURL: string;
 	changeStyleBookEntryURL: string;
-	createLayoutPageTemplateEntryURL: string;
 	collectionSelectorURL: string;
 
 	commonStyles: Array<{
@@ -76,6 +75,15 @@ export interface Config {
 		}>;
 	}>;
 
+	commonStylesFields: {
+		[key: string]: {
+			cssTemplate: string;
+			defaultValue: string;
+		};
+	};
+
+	createLayoutPageTemplateEntryURL: string;
+
 	defaultEditorConfigurations: Record<
 		'comment' | 'rich-text' | 'text',
 		{
@@ -85,10 +93,10 @@ export interface Config {
 	>;
 
 	defaultLanguageId: string;
-	defaultStyleBookEntryName: string;
-	defaultStyleBookEntryImagePreviewURL: string;
 	defaultSegmentsEntryId: string;
 	defaultSegmentsExperienceId: string;
+	defaultStyleBookEntryImagePreviewURL: string;
+	defaultStyleBookEntryName: string;
 	deleteFragmentEntryLinkCommentURL: string;
 	deleteSegmentsExperienceURL: string;
 	discardDraftURL: string;
@@ -99,6 +107,9 @@ export interface Config {
 	editFragmentEntryLinkURL: string;
 	editSegmentsEntryURL: string;
 	frontendTokens: {
+		getAvailableImageConfigurationsURL: string;
+		getAvailableListItemRenderersURL: string;
+		getAvailableListRenderersURL: string;
 		[key: string]: {
 			cssVariable: string;
 			editorType: string;
@@ -107,9 +118,6 @@ export interface Config {
 			value: string;
 		};
 	};
-	getAvailableImageConfigurationsURL: string;
-	getAvailableListRenderersURL: string;
-	getAvailableListItemRenderersURL: string;
 	getAvailableTemplatesURL: string;
 	getCollectionConfigurationURL: string;
 	getCollectionFieldURL: string;
@@ -174,12 +182,12 @@ export interface Config {
 	singleSegmentsExperienceMode: boolean;
 	siteNavigationMenuItemSelectorURL: string;
 	styleBookEnabled: boolean;
-	stylebookEntryId: string;
 	styleBooks: Array<{
 		imagePreviewURL: string;
 		name: string;
 		styleBookEntryId: string;
 	}>;
+	stylebookEntryId: string;
 	themeColorCssClasses: string[];
 	toolbarId: string;
 
@@ -190,8 +198,8 @@ export interface Config {
 	}>;
 
 	unmarkItemForDeletionURL: string;
-	updateConfigurationValuesURL: string;
 	updateCollectionDisplayConfigURL: string;
+	updateConfigurationValuesURL: string;
 	updateItemConfigURL: string;
 	updateLayoutPageTemplateDataURL: string;
 	updateRowColumnsURL: string;

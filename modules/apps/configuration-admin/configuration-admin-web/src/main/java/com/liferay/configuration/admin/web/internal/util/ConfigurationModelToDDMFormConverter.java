@@ -76,6 +76,12 @@ public class ConfigurationModelToDDMFormConverter {
 		_addRequiredDDMFormFields(ddmForm);
 		_addOptionalDDMFormFields(ddmForm);
 
+		if (_configurationModel.isReadOnly()) {
+			for (DDMFormField ddmFormField : ddmForm.getDDMFormFields()) {
+				ddmFormField.setReadOnly(true);
+			}
+		}
+
 		return ddmForm;
 	}
 
@@ -90,8 +96,7 @@ public class ConfigurationModelToDDMFormConverter {
 			}
 			catch (IllegalArgumentException illegalArgumentException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(
-						illegalArgumentException, illegalArgumentException);
+					_log.debug(illegalArgumentException);
 				}
 			}
 		}

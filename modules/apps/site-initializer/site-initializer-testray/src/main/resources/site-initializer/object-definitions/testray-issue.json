@@ -2,9 +2,10 @@
 	"label": {
 		"en_US": "Testray Issue"
 	},
-	"name": "TestrayIssue",
+	"name": "Issue",
 	"objectFields": [
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -15,10 +16,8 @@
 			"type": "String"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Issues"
 	},
-	"scope": "site"
+	"scope": "company"
 }

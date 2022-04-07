@@ -343,6 +343,18 @@ definition {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
+		if ("${portlet}" == "AWS Translator") {
+			var portletId = "com.liferay.translation.translator.aws.internal.configuration.AWSTranslatorConfiguration";
+		}
+
+		if ("${portlet}" == "Azure Translator") {
+			var portletId = "com.liferay.translation.translator.azure.internal.configuration.AzureTranslatorConfiguration";
+		}
+
+		if ("${portlet}" == "Documents and Media Size Limits") {
+			var portletId = "com.liferay.document.library.internal.configuration.DLSizeLimitConfiguration";
+		}
+
 		if ("${portlet}" == "File Entries") {
 			var portletId = "com.liferay.document.library.configuration.DLFileEntryConfiguration";
 		}
@@ -359,8 +371,20 @@ definition {
 			var portletId = "com.liferay.translation.translator.google.cloud.internal.configuration.GoogleCloudTranslatorConfiguration";
 		}
 
+		if ("${portlet}" == "Google Drive") {
+			var portletId = "com.liferay.document.library.google.drive.configuration.DLGoogleDriveCompanyConfiguration";
+		}
+
+		if ("${portlet}" == "One Drive") {
+			var portletId = "com.liferay.document.library.opener.onedrive.web.internal.configuration.DLOneDriveCompanyConfiguration";
+		}
+
 		if ("${portlet}" == "Service") {
 			var portletId = "com.liferay.document.library.configuration.DLConfiguration";
+		}
+
+		if ("${portlet}" == "Cache Control") {
+			var portletId = "com.liferay.document.library.web.internal.configuration.CacheControlConfiguration";
 		}
 
 		Open(locator1 = "${baseURL}/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_factoryPid=${portletId}&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fedit_configuration");

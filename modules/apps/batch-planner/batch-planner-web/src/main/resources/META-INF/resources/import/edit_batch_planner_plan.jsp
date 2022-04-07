@@ -17,15 +17,16 @@
 <%@ include file="/init.jsp" %>
 
 <%
-String backURL = ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL()));
-
 long batchPlannerPlanId = ParamUtil.getLong(renderRequest, "batchPlannerPlanId");
 
 boolean editable = ParamUtil.getBoolean(renderRequest, "editable");
 
-renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : LanguageUtil.get(request, "import"));
-
 EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBatchPlannerPlanDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(ParamUtil.getString(request, "backURL", String.valueOf(renderResponse.createRenderURL())));
+
+renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : LanguageUtil.get(request, "import"));
 %>
 
 <clay:container
@@ -37,65 +38,85 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 		<input id="<portlet:namespace />taskItemDelegateName" name="<portlet:namespace />taskItemDelegateName" type="hidden" value="DEFAULT" />
 
 		<div class="row">
-			<div class="col-lg-6">
-				<div class="card">
+			<div class="col-lg-6 d-flex flex-column">
+				<div class="card flex-fill">
 					<h4 class="card-header"><%= LanguageUtil.get(request, "import-settings") %></h4>
 
 					<div class="card-body">
 						<liferay-frontend:edit-form-body>
 							<div id="<portlet:namespace />templateSelect"></div>
 
-							<div class="row">
-								<div class="col">
-									<clay:select
-										id='<%= liferayPortletResponse.getNamespace() + "headlessEndpoint" %>'
-										label='<%= LanguageUtil.get(request, "headless-endpoint") %>'
-										name="headlessEndpoint"
-										options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
-									/>
+							<clay:select
+								id='<%= liferayPortletResponse.getNamespace() + "headlessEndpoint" %>'
+								label='<%= LanguageUtil.get(request, "headless-endpoint") %>'
+								name="headlessEndpoint"
+								options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
+							/>
 
-									<div class="mt-2">
-										<clay:select
-											disabled="<%= true %>"
-											id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
-											label='<%= LanguageUtil.get(request, "entity-name") %>'
-											name="internalClassName"
-											options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
-										/>
-									</div>
+							<div class="mt-2">
+								<clay:select
+									disabled="<%= true %>"
+									id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
+									label='<%= LanguageUtil.get(request, "entity-name") %>'
+									name="internalClassName"
+									options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
+								/>
+							</div>
 
-									<div class="mt-2">
-										<clay:checkbox
-											checked="<%= true %>"
-											label='<%= LanguageUtil.get(request, "detect-category-names-from-CSV-file") %>'
-											name="headerCheckbox"
-										/>
-									</div>
+							<clay:alert
+								displayType="info"
+								title="download-a-sample-file-for-this-entity"
+							>
+								<clay:link
+									cssClass="link-primary single-link"
+									disabled="<%= true %>"
+									href="#"
+									label="download"
+								/>
+							</clay:alert>
 
-									<div class="mt-2">
-										<clay:checkbox
-											checked="<%= true %>"
-											label='<%= LanguageUtil.get(request, "override-existing-records") %>'
-											name="headerCheckbox"
-										/>
-									</div>
+							<div class="mt-2">
+								<clay:checkbox
+									checked="<%= false %>"
+									disabled="<%= true %>"
+									label='<%= LanguageUtil.get(request, "detect-category-names-from-CSV-file") %>'
+									name="headerCheckbox"
+								/>
+							</div>
 
-									<div class="mt-2">
-										<clay:checkbox
-											checked="<%= true %>"
-											label='<%= LanguageUtil.get(request, "ignore-blank-field-values-during-import") %>'
-											name="headerCheckbox"
-										/>
-									</div>
-								</div>
+							<div class="mt-2">
+								<clay:checkbox
+									checked="<%= false %>"
+									disabled="<%= true %>"
+									label='<%= LanguageUtil.get(request, "override-existing-records") %>'
+									name="headerCheckbox"
+								/>
+							</div>
+
+							<div class="mt-2">
+								<clay:checkbox
+									checked="<%= true %>"
+									disabled="<%= true %>"
+									label='<%= LanguageUtil.get(request, "ignore-blank-field-values-during-import") %>'
+									name="headerCheckbox"
+								/>
+							</div>
+
+							<div class="mt-2">
+								<clay:checkbox
+									checked="<%= true %>"
+									id='<%= liferayPortletResponse.getNamespace() + "onErrorFail" %>'
+									label='<%= LanguageUtil.get(request, "stop-the-import-on-error") %>'
+									name='<%= liferayPortletResponse.getNamespace() + "onErrorFail" %>'
+								/>
 							</div>
 						</liferay-frontend:edit-form-body>
 					</div>
 				</div>
 			</div>
 
-			<div class="col-lg-6">
-				<div class="card">
+			<div class="col-lg-6 d-flex flex-column">
+				<div class="card flex-fill">
 					<h4 class="card-header"><%= LanguageUtil.get(request, "file-settings") %></h4>
 
 					<div class="card-body">
@@ -105,12 +126,13 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 							<div class="form-group">
 								<clay:radio
 									checked="<%= true %>"
-									label='<%= LanguageUtil.get(request, "upload-a-csv-file-from-my-computer") %>'
+									label='<%= LanguageUtil.get(request, "upload-a-file-from-my-computer") %>'
 									name="selectFile"
 									value="computer"
 								/>
 
 								<clay:radio
+									disabled="<%= true %>"
 									label='<%= LanguageUtil.get(request, "use-a-file-already-on-the-server") %>'
 									name="selectFile"
 									value="server"
@@ -121,23 +143,6 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 								<react:component
 									module="js/components/FileUpload"
 								/>
-							</div>
-
-							<clay:checkbox
-								checked="<%= true %>"
-								id='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
-								label='<%= LanguageUtil.get(request, "this-file-contains-headers") %>'
-								name='<%= liferayPortletResponse.getNamespace() + "containsHeaders" %>'
-							/>
-
-							<div class="row">
-								<div class="col-lg-6">
-									<aui:input name="field-separator" placeholder="," type="input" />
-								</div>
-
-								<div class="col-lg-6">
-									<aui:input name="field-enclosure" placeholder="'" type="input" />
-								</div>
 							</div>
 						</liferay-frontend:edit-form-body>
 					</div>
@@ -150,8 +155,6 @@ EditBatchPlannerPlanDisplayContext editBatchPlannerPlanDisplayContext = (EditBat
 				module="js/import/ImportForm"
 				props='<%=
 					HashMapBuilder.<String, Object>put(
-						"backUrl", backURL
-					).put(
 						"formDataQuerySelector", "#" + liferayPortletResponse.getNamespace() + "fm"
 					).put(
 						"formImportURL",

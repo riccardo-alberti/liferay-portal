@@ -133,7 +133,8 @@
 		<!-- Other fields -->
 
 		<column name="name" type="String" />
-		<column name="description" type="String" />
+		<column localized="true" name="description" type="String" />
+		<column localized="true" name="label" type="String" />
 		<column name="active" type="boolean" />
 		<column name="street1" type="String" />
 		<column name="street2" type="String" />
@@ -145,6 +146,10 @@
 		<column name="latitude" type="double" />
 		<column name="longitude" type="double" />
 		<column name="type" type="String" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
 
 		<!-- Order -->
 
@@ -207,6 +212,46 @@
 		<finder name="C_S" return-type="CommerceInventoryWarehouseItem" unique="true">
 			<finder-column name="commerceInventoryWarehouseId" />
 			<finder-column name="sku" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="CommerceInventoryWarehouseOrderTypeRel" remote-service="true" table="CIWarehouseOrderTypeRel" uuid="true">
+
+		<!-- PK fields -->
+
+		<column db-name="CIWarehouseOrderTypeRelId" name="commerceInventoryWarehouseOrderTypeRelId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="commerceInventoryWarehouseId" type="long" />
+		<column name="commerceOrderTypeId" type="long" />
+		<column name="priority" type="int" />
+		<column name="lastPublishDate" type="Date" />
+
+		<!-- Order -->
+
+		<order by="asc">
+			<order-column name="priority" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="CommerceInventoryWarehouseId" return-type="Collection">
+			<finder-column name="commerceInventoryWarehouseId" />
+		</finder>
+		<finder name="CommerceOrderTypeId" return-type="Collection">
+			<finder-column name="commerceOrderTypeId" />
+		</finder>
+		<finder name="CIW_COTI" return-type="CommerceInventoryWarehouseOrderTypeRel" unique="true">
+			<finder-column name="commerceInventoryWarehouseId" />
+			<finder-column name="commerceOrderTypeId" />
 		</finder>
 	</entity>
 	<exceptions>

@@ -21,6 +21,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DISABLED_BUTTON</td>
+	<td>//button[@disabled]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_ADDRESS</td>
 	<td>//a[contains(@class,'add-address')]</td>
 	<td></td>
@@ -122,12 +127,17 @@
 </tr>
 <tr>
 	<td>ANY_DISABLED</td>
-	<td>//button[@disabled][contains(@class,'btn')][normalize-space()='${key_text}']</td>
+	<td>//button[@disabled][contains(@class,'btn')][normalize-space()='${key_text}'] | //button[@disabled][contains(@class,'btn')][@*='${key_text}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>TRASH_DISABLED</td>
 	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TRASH_ENABLED</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -178,6 +188,11 @@
 <tr>
 	<td>CANCEL_CHECKOUT</td>
 	<td>//a[contains(@class,'btn') and contains(.,'Cancel Checkout')] | //button[contains(.,'Cancel Checkout')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CANCEL_SPECIAL</td>
+	<td>//div[contains(text(),'Cancel')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -581,11 +596,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>PROPAGATE</td>
-	<td>//button[@*='Propagate']</td>
-	<td></td>
-</tr>
-<tr>
 	<td>PUBLISH</td>
 	<td>//button[span[contains(.,'Publish')]] | //div[contains(@class,'button-holder')]//button[contains(text(),'Publish')]</td>
 	<td></td>
@@ -788,6 +798,11 @@
 <tr>
 	<td>SEND_INVITATIONS</td>
 	<td>//button[contains(@id,'InviteMembersPortlet')]//span[contains(.,'Send Invitations')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEND_NEW_PASSWORD</td>
+	<td>//button[contains(.,'Send New Password')]</td>
 	<td></td>
 </tr>
 <tr>

@@ -61,6 +61,12 @@ public class SimilarResultsPortletPreferencesImpl
 	}
 
 	@Override
+	public String getLinkBehavior() {
+		return _portletPreferencesHelper.getString(
+			PREFERENCE_KEY_LINK_BEHAVIOR, "show-content");
+	}
+
+	@Override
 	public Integer getMaxDocFrequency() {
 		return _getIntegerNullable(PREFERENCE_KEY_MAX_DOC_FREQUENCY);
 	}
@@ -99,6 +105,12 @@ public class SimilarResultsPortletPreferencesImpl
 	@Override
 	public Integer getMinWordLength() {
 		return _getIntegerNullable(PREFERENCE_KEY_MIN_WORD_LENGTH);
+	}
+
+	@Override
+	public String getSearchScope() {
+		return _portletPreferencesHelper.getString(
+			PREFERENCE_KEY_SEARCH_SCOPE, "this-site");
 	}
 
 	@Override

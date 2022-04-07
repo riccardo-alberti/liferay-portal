@@ -28,6 +28,8 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Luca Pellizzon
@@ -56,6 +58,31 @@ public class CommerceInventoryWarehouseServiceImpl
 			externalReferenceCode, name, description, active, street1, street2,
 			street3, city, zip, commerceRegionCode, commerceCountryCode,
 			latitude, longitude, serviceContext);
+	}
+
+	@Override
+	public CommerceInventoryWarehouse addCommerceInventoryWarehouse(
+			String externalReferenceCode, String name,
+			Map<Locale, String> labelMap, Map<Locale, String> descriptionMap,
+			boolean active, String street1, String street2, String street3,
+			String city, String zip, String commerceRegionCode,
+			String commerceCountryCode, double latitude, double longitude,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		PortletResourcePermission portletResourcePermission =
+			_commerceInventoryWarehouseModelResourcePermission.
+				getPortletResourcePermission();
+
+		portletResourcePermission.check(
+			getPermissionChecker(), null,
+			CommerceInventoryActionKeys.ADD_WAREHOUSE);
+
+		return commerceInventoryWarehouseLocalService.
+			addCommerceInventoryWarehouse(
+				externalReferenceCode, name, labelMap, descriptionMap, active,
+				street1, street2, street3, city, zip, commerceRegionCode,
+				commerceCountryCode, latitude, longitude, serviceContext);
 	}
 
 	@Override
@@ -93,6 +120,24 @@ public class CommerceInventoryWarehouseServiceImpl
 
 		return commerceInventoryWarehouseLocalService.
 			deleteCommerceInventoryWarehouse(commerceInventoryWarehouseId);
+	}
+
+	@Override
+	public CommerceInventoryWarehouse fetchByCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId)
+		throws PortalException {
+
+		CommerceInventoryWarehouse commerceInventoryWarehouse =
+			commerceInventoryWarehouseLocalService.
+				fetchCommerceInventoryWarehouse(commerceInventoryWarehouseId);
+
+		if (commerceInventoryWarehouse != null) {
+			_commerceInventoryWarehouseModelResourcePermission.check(
+				getPermissionChecker(), commerceInventoryWarehouse,
+				ActionKeys.VIEW);
+		}
+
+		return commerceInventoryWarehouse;
 	}
 
 	/**
@@ -317,6 +362,28 @@ public class CommerceInventoryWarehouseServiceImpl
 
 	@Override
 	public CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
+			long commerceInventoryWarehouseId, String name,
+			Map<Locale, String> labelMap, Map<Locale, String> descriptionMap,
+			boolean active, String street1, String street2, String street3,
+			String city, String zip, String commerceRegionCode,
+			String commerceCountryCode, double latitude, double longitude,
+			long mvccVersion, ServiceContext serviceContext)
+		throws PortalException {
+
+		_commerceInventoryWarehouseModelResourcePermission.check(
+			getPermissionChecker(), commerceInventoryWarehouseId,
+			ActionKeys.UPDATE);
+
+		return commerceInventoryWarehouseLocalService.
+			updateCommerceInventoryWarehouse(
+				commerceInventoryWarehouseId, name, labelMap, descriptionMap,
+				active, street1, street2, street3, city, zip,
+				commerceRegionCode, commerceCountryCode, latitude, longitude,
+				mvccVersion, serviceContext);
+	}
+
+	@Override
+	public CommerceInventoryWarehouse updateCommerceInventoryWarehouse(
 			long commerceInventoryWarehouseId, String name, String description,
 			boolean active, String street1, String street2, String street3,
 			String city, String zip, String commerceRegionCode,
@@ -334,6 +401,21 @@ public class CommerceInventoryWarehouseServiceImpl
 				street1, street2, street3, city, zip, commerceRegionCode,
 				commerceCountryCode, latitude, longitude, mvccVersion,
 				serviceContext);
+	}
+
+	@Override
+	public CommerceInventoryWarehouse
+			updateCommerceInventoryWarehouseExternalReferenceCode(
+				String externalReferenceCode, long commerceInventoryWarehouseId)
+		throws PortalException {
+
+		_commerceInventoryWarehouseModelResourcePermission.check(
+			getPermissionChecker(), commerceInventoryWarehouseId,
+			ActionKeys.UPDATE);
+
+		return commerceInventoryWarehouseLocalService.
+			updateCommerceInventoryWarehouseExternalReferenceCode(
+				externalReferenceCode, commerceInventoryWarehouseId);
 	}
 
 	private static volatile ModelResourcePermission<CommerceInventoryWarehouse>

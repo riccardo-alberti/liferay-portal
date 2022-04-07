@@ -29,12 +29,18 @@ import com.liferay.portal.kernel.dao.orm.Query;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -7762,6 +7768,12 @@ public class CommerceOrderPersistenceImpl
 
 		dbColumnNames.put("uuid", "uuid_");
 		dbColumnNames.put(
+			"deliveryCommerceTermEntryDescription",
+			"deliveryCTermEntryDescription");
+		dbColumnNames.put(
+			"paymentCommerceTermEntryDescription",
+			"paymentCTermEntryDescription");
+		dbColumnNames.put(
 			"subtotalDiscountPercentageLevel1",
 			"subtotalDiscountPercentLevel1");
 		dbColumnNames.put(
@@ -8105,6 +8117,41 @@ public class CommerceOrderPersistenceImpl
 			else {
 				commerceOrder.setModifiedDate(
 					serviceContext.getModifiedDate(date));
+			}
+		}
+
+		long userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
+
+		if (userId > 0) {
+			long companyId = commerceOrder.getCompanyId();
+
+			long groupId = commerceOrder.getGroupId();
+
+			long commerceOrderId = 0;
+
+			if (!isNew) {
+				commerceOrderId = commerceOrder.getPrimaryKey();
+			}
+
+			try {
+				commerceOrder.setDeliveryCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getDeliveryCommerceTermEntryDescription(),
+						null));
+
+				commerceOrder.setPaymentCommerceTermEntryDescription(
+					SanitizerUtil.sanitize(
+						companyId, groupId, userId,
+						CommerceOrder.class.getName(), commerceOrderId,
+						ContentTypes.TEXT_PLAIN, Sanitizer.MODE_ALL,
+						commerceOrder.getPaymentCommerceTermEntryDescription(),
+						null));
+			}
+			catch (SanitizerException sanitizerException) {
+				throw new SystemException(sanitizerException);
 			}
 		}
 
@@ -8750,7 +8797,9 @@ public class CommerceOrderPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {
-			"uuid", "subtotalDiscountPercentageLevel1",
+			"uuid", "deliveryCommerceTermEntryDescription",
+			"paymentCommerceTermEntryDescription",
+			"subtotalDiscountPercentageLevel1",
 			"subtotalDiscountPercentageLevel2",
 			"subtotalDiscountPercentageLevel3",
 			"subtotalDiscountPercentageLevel4",

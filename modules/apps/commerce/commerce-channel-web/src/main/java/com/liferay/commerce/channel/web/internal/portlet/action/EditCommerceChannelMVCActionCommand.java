@@ -24,8 +24,10 @@ import com.liferay.commerce.product.constants.CPPortletKeys;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.permission.CommerceChannelPermission;
 import com.liferay.commerce.product.service.CommerceChannelService;
+import com.liferay.commerce.report.exporter.CommerceReportExporter;
 import com.liferay.commerce.util.AccountEntryAllowedTypesUtil;
 import com.liferay.document.library.kernel.exception.FileExtensionException;
+import com.liferay.document.library.kernel.exception.InvalidFileException;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
@@ -98,8 +100,12 @@ public class EditCommerceChannelMVCActionCommand extends BaseMVCActionCommand {
 				_selectSite(actionRequest);
 			}
 		}
-		catch (FileExtensionException | PrincipalException exception) {
-			if (exception instanceof FileExtensionException) {
+		catch (FileExtensionException | InvalidFileException |
+			   PrincipalException exception) {
+
+			if (exception instanceof FileExtensionException ||
+				exception instanceof InvalidFileException) {
+
 				hideDefaultErrorMessage(actionRequest);
 
 				SessionErrors.add(
@@ -369,7 +375,17 @@ public class EditCommerceChannelMVCActionCommand extends BaseMVCActionCommand {
 		FileEntry newFileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
 
 		if (!Objects.equals(newFileEntry.getExtension(), "jrxml")) {
+			_dlAppLocalService.deleteFileEntry(newFileEntry.getFileEntryId());
+
 			throw new FileExtensionException();
+		}
+
+		if (!_commerceReportExporter.isValidJRXMLTemplate(
+				newFileEntry.getContentStream())) {
+
+			_dlAppLocalService.deleteFileEntry(newFileEntry.getFileEntryId());
+
+			throw new InvalidFileException();
 		}
 
 		if (existingFileEntry == null) {
@@ -389,8 +405,8 @@ public class EditCommerceChannelMVCActionCommand extends BaseMVCActionCommand {
 					DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 					newFileEntry.getFileName(), newFileEntry.getMimeType(),
 					formattedFileName, StringPool.BLANK, StringPool.BLANK,
-					newFileEntry.getContentStream(), newFileEntry.getSize(),
-					null, null, new ServiceContext());
+					StringPool.BLANK, newFileEntry.getContentStream(),
+					newFileEntry.getSize(), null, null, new ServiceContext());
 			}
 			finally {
 				_dlAppLocalService.deleteFileEntry(fileEntryId);
@@ -400,7 +416,7 @@ public class EditCommerceChannelMVCActionCommand extends BaseMVCActionCommand {
 			_dlAppLocalService.updateFileEntry(
 				commerceChannel.getUserId(), existingFileEntry.getFileEntryId(),
 				newFileEntry.getFileName(), newFileEntry.getMimeType(),
-				existingFileEntry.getTitle(),
+				existingFileEntry.getTitle(), StringPool.BLANK,
 				existingFileEntry.getDescription(), StringPool.BLANK,
 				DLVersionNumberIncrease.NONE, newFileEntry.getContentStream(),
 				newFileEntry.getSize(), null, null, new ServiceContext());
@@ -415,6 +431,9 @@ public class EditCommerceChannelMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private CommerceChannelService _commerceChannelService;
+
+	@Reference
+	private CommerceReportExporter _commerceReportExporter;
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;

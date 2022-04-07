@@ -66,8 +66,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8565 | Test Summary: Add segment using an individual property 'role'"
 	@priority = "4"
 	test CanAddSegmentUsingIndividualPropertyRole {
-		property portal.upstream = "quarantine";
-
 		task ("Add a new regular role and assign to the user") {
 			JSONRole.addRegularRole(
 				roleKey = "AC Seg Reg Role",
@@ -107,7 +105,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property Role");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property Role");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -132,7 +130,7 @@ definition {
 	test CanAddSegmentUsingIndividualPropertySite {
 		property portal.upstream = "quarantine";
 
-		// AC Refactor ticket: LRAC-9707
+		// AC Quarantine Reason: Not navigating DXP with the correct user line 162
 
 		task ("Add a new user") {
 			JSONUser.addUser(
@@ -181,7 +179,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property Site");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property Site");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -327,7 +325,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property Team");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property Team");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -351,11 +349,9 @@ definition {
 	@ignore = "true"
 	@priority = "4"
 	test CanAddSegmentUsingIndividualPropertyUser {
-		property portal.upstream = "quarantine";
 
-		// AC Refactor: DXP User never appears
-		// AC Refactor ticket: LRAC-9281
-		// AC Bug ticket: LRAC-9263
+		// AC Refactor ticket: LRAC-9332
+		// AC Bug ticket: LRAC-10593
 
 		task ("Sync the Contact Data") {
 			ACDXPSettings.syncNewContactData();
@@ -369,10 +365,6 @@ definition {
 			ACUtils.navigateToSitePage(
 				pageName = "AC Page",
 				siteName = "Site Name");
-
-			JSONBlog.addEntry(
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title");
 		}
 
 		task ("Close sessions") {
@@ -385,12 +377,12 @@ definition {
 			ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 		}
 
-		task ("Add a new dynamic segment using Individual Property User") {
+		task ("Add a new dynamic segment using Individual Property User criteria") {
 			ACNavigation.goToSegments();
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property User");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property User");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -403,7 +395,7 @@ definition {
 				indexField = "1");
 		}
 
-		task ("View and asset user") {
+		task ("View and assert that the user is in the list") {
 			ACSegments.previewSegmentMembership();
 
 			ACUtils.viewNameList(nameList = "ac ac");
@@ -411,7 +403,7 @@ definition {
 			ACSegments.saveSegment();
 		}
 
-		task ("Asset user present in the Segments") {
+		task ("Go to membership tab and assert that the user is in the list") {
 			ACNavigation.switchTab(tabName = "Membership");
 
 			ACUtils.viewNameList(nameList = "ac ac");
@@ -421,8 +413,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8567 | Test Summary: Add segment using an individual property 'user group'"
 	@priority = "4"
 	test CanAddSegmentUsingIndividualPropertyUserGroup {
-		property portal.upstream = "quarantine";
-
 		task ("Add a new user group and assign to the user") {
 			JSONUserGroup.addUserGroup(
 				userGroupDescription = "UG UserGroup Description",
@@ -462,7 +452,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property User Group");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property User Group");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -483,15 +473,8 @@ definition {
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8569 | Test Summary: Add segment with custom field for individuals"
-	@ignore = "true"
 	@priority = "4"
 	test CanAddSegmentWithCustomFieldsForIndividuals {
-		property portal.upstream = "quarantine";
-
-		// AC Refactor: DXP User never appears
-		// AC Refactor ticket: LRAC-9351
-		// AC Bug ticket: LRAC-9350
-
 		task ("Add a user custom field") {
 			ApplicationsMenu.gotoPortlet(
 				category = "Configuration",
@@ -522,6 +505,23 @@ definition {
 			ACDXPSettings.syncNewUserData(fieldNameList = "user custom field");
 		}
 
+		task ("Redefine the value of the custom field") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Users",
+				panel = "Control Panel",
+				portlet = "Users and Organizations");
+
+			User.gotoEditCP(userScreenName = "ac");
+
+			User.editUserInformation(
+				userCustomField = "VIP AC",
+				userCustomFieldLabel = "User Custom Field");
+		}
+
+		task ("Sync the Contact Data") {
+			ACDXPSettings.syncNewContactData();
+		}
+
 		task ("View the page as the new added user") {
 			User.logoutAndLoginPG(
 				userLoginEmailAddress = "ac@liferay.com",
@@ -547,7 +547,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Individual Property Custom Fields");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Individual Property Custom Fields");
 
 			ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -555,10 +555,10 @@ definition {
 
 			ACSegments.selectOperator(operator = "contains");
 
-			ACSegments.editTextCriterion(textInput = "VIP");
+			ACSegments.editTextCriterion(textInput = "VIP AC");
 		}
 
-		task ("View the user showns on the Preview mode") {
+		task ("View the user shown on the Preview mode") {
 			ACSegments.previewSegmentMembership();
 
 			ACUtils.viewNameList(nameList = "ac ac");
@@ -617,7 +617,7 @@ definition {
 
 			ACSegments.createDynamicSegment();
 
-			ACSegments.nameSegment(segmentName = "Dynamic Segment Using Organization Custom Fields");
+			ACUtils.setItemName(itemName = "Dynamic Segment Using Organization Custom Fields");
 
 			ACSegments.goToSidebarAttributes(criterion = "Organization Attributes");
 

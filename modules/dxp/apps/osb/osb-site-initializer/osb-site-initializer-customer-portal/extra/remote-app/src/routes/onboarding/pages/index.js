@@ -10,44 +10,87 @@
  */
 
 import InviteTeamMembersForm from '../../../common/containers/setup-forms/InviteTeamMembersForm';
+import SetupAnalyticsCloud from '../../../common/containers/setup-forms/SetupAnalyticsCloudForm';
 import SetupDXPCloud from '../../../common/containers/setup-forms/SetupDXPCloudForm';
-import {
-	API_BASE_URL,
-	SEARCH_PARAMS_KEYS,
-} from '../../../common/utils/constants';
-import getLiferaySiteName from '../../../common/utils/getLiferaySiteName';
+import {PAGE_ROUTER_TYPES} from '../../../common/utils/constants';
+import {PRODUCT_TYPES} from '../../customer-portal/utils/constants';
 import {useOnboarding} from '../context';
 import {actionTypes} from '../context/reducer';
 import {ONBOARDING_STEP_TYPES} from '../utils/constants';
-import SuccessDXPCloud from './SuccessDXPCloud';
+import SuccessCloud from './SuccessCloud';
 import Welcome from './Welcome';
 
 const Pages = () => {
-	const [{project, step, subscriptionGroups}, dispatch] = useOnboarding();
+	const [
+		{
+			analyticsCloudActivationSubmittedStatus,
+			dxpCloudActivationSubmittedStatus,
+			project,
+			sessionId,
+			step,
+			subscriptionGroups,
+			totalAdministratorAccounts,
+		},
+		dispatch,
+	] = useOnboarding();
+
+	const subscriptionDXPCloud = subscriptionGroups?.find(
+		(subscriptionGroup) => subscriptionGroup.name === PRODUCT_TYPES.dxpCloud
+	);
+
+	const subscriptionAnalyticsCloud = subscriptionGroups?.find(
+		(subscriptionGroup) =>
+			subscriptionGroup.name === PRODUCT_TYPES.analyticsCloud
+	);
 
 	const invitesPageHandle = () => {
-		const hasSubscriptionsDXPCloud = !!subscriptionGroups?.length;
-
-		if (hasSubscriptionsDXPCloud) {
-			dispatch({
+		if (subscriptionDXPCloud && !dxpCloudActivationSubmittedStatus) {
+			return dispatch({
 				payload: ONBOARDING_STEP_TYPES.dxpCloud,
 				type: actionTypes.CHANGE_STEP,
 			});
 		}
-		else {
-			window.location.href = `${API_BASE_URL}/${getLiferaySiteName()}/overview?${
-				SEARCH_PARAMS_KEYS.accountKey
-			}=${project.accountKey}`;
+		if (
+			subscriptionAnalyticsCloud &&
+			!analyticsCloudActivationSubmittedStatus
+		) {
+			return dispatch({
+				payload: ONBOARDING_STEP_TYPES.analyticsCloud,
+				type: actionTypes.CHANGE_STEP,
+			});
 		}
+		window.location.href = PAGE_ROUTER_TYPES.project(project.accountKey);
 	};
+
+	const dxpCloudPageHandle = () => {
+		if (
+			subscriptionAnalyticsCloud &&
+			!analyticsCloudActivationSubmittedStatus
+		) {
+			return dispatch({
+				payload: ONBOARDING_STEP_TYPES.analyticsCloud,
+				type: actionTypes.CHANGE_STEP,
+			});
+		}
+		window.location.href = PAGE_ROUTER_TYPES.project(project.accountKey);
+	};
+
+	const analyticsCloudPageHandle = () => {
+		window.location.href = PAGE_ROUTER_TYPES.project(project.accountKey);
+	};
+
+	const availableAdministratorAssets =
+		project && project.maxRequestors - totalAdministratorAccounts;
 
 	const StepsLayout = {
 		[ONBOARDING_STEP_TYPES.invites]: {
 			Component: (
 				<InviteTeamMembersForm
+					availableAdministratorAssets={availableAdministratorAssets}
 					handlePage={invitesPageHandle}
 					leftButton="Skip for now"
 					project={project}
+					sessionId={sessionId}
 				/>
 			),
 		},
@@ -56,32 +99,61 @@ const Pages = () => {
 				<SetupDXPCloud
 					handlePage={(isSuccess) => {
 						if (isSuccess) {
-							dispatch({
+							return dispatch({
 								payload: ONBOARDING_STEP_TYPES.successDxpCloud,
 								type: actionTypes.CHANGE_STEP,
 							});
 						}
-						else {
-							window.location.href = `${API_BASE_URL}/${getLiferaySiteName()}/overview?${
-								SEARCH_PARAMS_KEYS.accountKey
-							}=${project.accountKey}`;
-						}
+						dxpCloudPageHandle();
 					}}
 					leftButton="Skip for now"
 					project={project}
 					subscriptionGroupId={
-						!!subscriptionGroups?.length &&
-						subscriptionGroups[0].accountSubscriptionGroupId
+						subscriptionDXPCloud?.accountSubscriptionGroupId
 					}
 				/>
 			),
 		},
 		[ONBOARDING_STEP_TYPES.successDxpCloud]: {
-			Component: <SuccessDXPCloud project={project} />,
+			Component: (
+				<SuccessCloud
+					handlePage={dxpCloudPageHandle}
+					productType={PRODUCT_TYPES.dxpCloud}
+				/>
+			),
 		},
 		[ONBOARDING_STEP_TYPES.welcome]: {
 			Component: <Welcome />,
 			Skeleton: <Welcome.Skeleton />,
+		},
+		[ONBOARDING_STEP_TYPES.analyticsCloud]: {
+			Component: (
+				<SetupAnalyticsCloud
+					handlePage={(isSuccess) => {
+						if (isSuccess) {
+							return dispatch({
+								payload:
+									ONBOARDING_STEP_TYPES.successAnalyticsCloud,
+								type: actionTypes.CHANGE_STEP,
+							});
+						}
+						analyticsCloudPageHandle();
+					}}
+					leftButton="Skip for now"
+					project={project}
+					subscriptionGroupId={
+						subscriptionAnalyticsCloud?.accountSubscriptionGroupId
+					}
+				/>
+			),
+		},
+		[ONBOARDING_STEP_TYPES.successAnalyticsCloud]: {
+			Component: (
+				<SuccessCloud
+					handlePage={analyticsCloudPageHandle}
+					productType={PRODUCT_TYPES.analyticsCloud}
+				/>
+			),
 		},
 	};
 

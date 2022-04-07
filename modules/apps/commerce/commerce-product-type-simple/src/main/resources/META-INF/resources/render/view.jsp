@@ -256,45 +256,22 @@ long commerceAccountId = CommerceUtil.getCommerceAccountId((CommerceContext)requ
 	</div>
 </div>
 
-<aui:script>
-	window.document.addEventListener('DOMContentLoaded', () => {
-		var thumbElements = window.document.querySelectorAll('.thumb');
-
-		Array.from(thumbElements).forEach((thumbElement) => {
-			thumbElement.addEventListener('click', (event) => {
-				window.document
-					.querySelector('#<portlet:namespace />full-image')
-					.setAttribute(
-						'src',
-						event.currentTarget.getAttribute('data-url')
-					);
-			});
-		});
-	});
-</aui:script>
-
 <liferay-portlet:actionURL name="/cp_content_web/check_cp_instance" portletName="com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet" var="checkCPInstanceURL">
 	<portlet:param name="cpDefinitionId" value="<%= String.valueOf(cpDefinitionId) %>" />
 	<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getScopeGroupId()) %>" />
 </liferay-portlet:actionURL>
 
-<aui:script use="liferay-commerce-product-content">
-	var productContent = new Liferay.Portlet.ProductContent({
-		checkCPInstanceActionURL: '<%= checkCPInstanceURL %>',
-		cpDefinitionId: <%= cpDefinitionId %>,
-		fullImageSelector: '#<portlet:namespace />full-image',
-		namespace: '<portlet:namespace />',
-		productContentAuthToken:
-			'<%= AuthTokenUtil.getToken(request, plid, CPPortletKeys.CP_CONTENT_WEB) %>',
-		productContentSelector:
-			'#<portlet:namespace /><%= cpDefinitionId %>ProductContent',
-		thumbsContainerSelector: '#<portlet:namespace />thumbs-container',
-		viewAttachmentURL:
-			'<%= String.valueOf(cpContentHelper.getViewAttachmentURL(liferayPortletRequest, liferayPortletResponse)) %>',
-	});
-
-	Liferay.component(
-		'<portlet:namespace /><%= cpDefinitionId %>ProductContent',
-		productContent
-	);
-</aui:script>
+<liferay-frontend:component
+	context='<%=
+		HashMapBuilder.<String, Object>put(
+			"authToken", AuthTokenUtil.getToken(request, plid, CPPortletKeys.CP_CONTENT_WEB)
+		).put(
+			"checkCPInstanceURL", checkCPInstanceURL
+		).put(
+			"cpDefinitionId", cpDefinitionId
+		).put(
+			"viewAttachmentURL", cpContentHelper.getViewAttachmentURL(liferayPortletRequest, liferayPortletResponse)
+		).build()
+	%>'
+	module="../js/view"
+/>

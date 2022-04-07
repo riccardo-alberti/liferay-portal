@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -25,6 +25,15 @@ definition {
 
 			MessageboardsPortlet.tearDownConfigurationGeneralCP();
 		}
+	}
+
+	@description = "This test covers LPS-84585. It ensures that a user can delete the reply of MB in Japanese."
+	@ignore = "Test Stub"
+	@priority = "4"
+	test CanDeleteThreadReplyInJapanese {
+
+		// TODO LPS-150083 CanDeleteThreadReply pending implementation
+
 	}
 
 	@description = "This is a test for LPS-136929. It checks that categories can be viewed in Arabic."

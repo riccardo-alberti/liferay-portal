@@ -78,6 +78,8 @@ definition {
 	@description = "Feature ID: LRAC-7185 | Automation ID: LRAC-10200 | Test Summary: Change data type from description"
 	@priority = "5"
 	test CanChangeDataTypeFromDescription {
+		property test.name.skip.portal.instance = "CustomEventsChangeDataType#CanChangeDataTypeFromDescription";
+
 		var attributeName = "animal";
 		var attributeValue = "dog";
 
@@ -121,15 +123,15 @@ definition {
 
 			ACEventAnalysis.viewChangedAttributeDataType(
 				attributeName = "${attributeName}",
-				newDataType = "NUMBER");
+				newDataType = "Number");
 		}
 	}
 
 	@description = "Feature ID: LRAC-7185 | Automation ID: LRAC-10201 | Test Summary: Change data type from filter"
 	@priority = "5"
 	test CanChangeDataTypeFromFilter {
-		var attributeName = "animal";
-		var attributeValue = "dog";
+		var attributeName = "phone";
+		var attributeValue = "87900809";
 
 		task ("Fill fields and create custom event") {
 			var customEventName = ACCustomEvents.generateCustomEventName();
@@ -171,9 +173,9 @@ definition {
 
 			ACEventAnalysis.viewChangedAttributeDataType(
 				attributeName = "${attributeName}",
-				newDataType = "DATE");
+				newDataType = "Date");
 
-			ACCustomEvents.viewDataType(typeValue = "DATE");
+			ACCustomEvents.viewDataType(typeValue = "Date");
 		}
 	}
 
@@ -223,7 +225,7 @@ definition {
 
 			ACEventAnalysis.viewChangedAttributeDataType(
 				attributeName = "${attributeName}",
-				newDataType = "BOOLEAN");
+				newDataType = "Boolean");
 		}
 	}
 
@@ -273,9 +275,9 @@ definition {
 
 			ACEventAnalysis.viewChangedAttributeDataType(
 				attributeName = "${attributeName}",
-				newDataType = "DURATION");
+				newDataType = "Duration");
 
-			ACCustomEvents.viewDataType(typeValue = "DURATION");
+			ACCustomEvents.viewDataType(typeValue = "Duration");
 		}
 	}
 

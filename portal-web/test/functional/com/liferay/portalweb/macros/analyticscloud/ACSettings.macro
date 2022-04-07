@@ -232,10 +232,10 @@ definition {
 
 	@summary = "Assert data source status"
 	macro assertDataSourceStatus {
-		AssertTextEquals(
-			key_dataSourceStatus = "${status}",
-			locator1 = "ACSettings#DATA_SOURCE_STATUS",
-			value1 = "${status}");
+		var key_dataSourceStatus = "${status}";
+		var key_sectionStatus = "${section}";
+
+		AssertElementPresent(locator1 = "ACSettings#DATA_SOURCE_STATUS");
 	}
 
 	@summary = "Asserts the individuals usage value \  @param individualUsageValue"
@@ -289,6 +289,13 @@ definition {
 				key_metricName = "${metricName}",
 				locator1 = "ACUsage#USAGE_SINCE",
 				value1 = "${usageSince}");
+		}
+
+		if (isSet(notEquals)) {
+			AssertTextNotEquals(
+				key_metricName = "${metricName}",
+				locator1 = "ACUsage#USAGE_CURRENT_NUMBER",
+				value1 = "${notEquals}");
 		}
 	}
 
@@ -472,7 +479,9 @@ definition {
 
 		ACSettings.goToDataControlAndPrivacy();
 
-		Click(locator1 = "ACDataControlAndPrivacy#REQUEST_LOG");
+		ACSettings.navigateToRequestOrSuppressedOptions(
+			optionName = "Request Log",
+			optionValue = "Manage");
 
 		Click(locator1 = "ACDataControlAndPrivacy#CREATE_REQUEST");
 
@@ -757,7 +766,7 @@ definition {
 			title = "${propertyName}");
 
 		var propertyId = selenium.getText("ACSettings#HEADER_DESCRIPTION");
-		var propertyId = StringUtil.extractDigits("${propertyId}");
+		var propertyId = StringUtil.extractLast("${propertyId}", " ");
 
 		return "${propertyId}";
 	}
@@ -840,6 +849,13 @@ definition {
 
 	macro goToWorkspace {
 		ACSettings.goToSettingsNavigation(settingsNavigation = "settings/workspace");
+	}
+
+	macro navigateToRequestOrSuppressedOptions {
+		var key_optionName = "${optionName}";
+		var key_optionValue = "${optionValue}";
+
+		Click(locator1 = "ACDataControlAndPrivacy#REQUEST_SUPPRESSED_OPTIONS");
 	}
 
 	@summary = "Takes the token from Analytics Clouds to use on during the DXP connection process"

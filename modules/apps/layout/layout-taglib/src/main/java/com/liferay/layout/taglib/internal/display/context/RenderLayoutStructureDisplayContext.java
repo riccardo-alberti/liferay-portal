@@ -60,6 +60,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -283,32 +284,36 @@ public class RenderLayoutStructureDisplayContext {
 			StyledLayoutStructureItem styledLayoutStructureItem)
 		throws Exception {
 
-		StringBundler cssClassSB = new StringBundler(33);
+		StringBundler cssClassSB = new StringBundler(35);
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getAlign())) {
+		String align = styledLayoutStructureItem.getAlign();
+
+		if (Validator.isNotNull(align)) {
 			cssClassSB.append(" ");
-			cssClassSB.append(styledLayoutStructureItem.getAlign());
+			cssClassSB.append(align);
 		}
 
-		if (Validator.isNotNull(
-				styledLayoutStructureItem.getBackgroundColorCssClass())) {
+		String backgroundColorCssClass =
+			styledLayoutStructureItem.getBackgroundColorCssClass();
 
+		if (Validator.isNotNull(backgroundColorCssClass)) {
 			cssClassSB.append(" bg-");
-			cssClassSB.append(
-				styledLayoutStructureItem.getBackgroundColorCssClass());
+			cssClassSB.append(backgroundColorCssClass);
 		}
 
-		if (Validator.isNotNull(
-				styledLayoutStructureItem.getBorderColorCssClass())) {
+		String borderColorCssClass =
+			styledLayoutStructureItem.getBorderColorCssClass();
 
+		if (Validator.isNotNull(borderColorCssClass)) {
 			cssClassSB.append(" border-");
-			cssClassSB.append(
-				styledLayoutStructureItem.getBorderColorCssClass());
+			cssClassSB.append(borderColorCssClass);
 		}
 
-		if (Objects.equals(styledLayoutStructureItem.getDisplay(), "none")) {
+		String display = styledLayoutStructureItem.getDisplay();
+
+		if (Objects.equals(display, "none")) {
 			cssClassSB.append(" d-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getDisplay());
+			cssClassSB.append(display);
 		}
 		else if (Objects.equals(
 					styledLayoutStructureItem.getContentDisplay(),
@@ -322,14 +327,23 @@ public class RenderLayoutStructureDisplayContext {
 
 			cssClassSB.append(" d-flex flex-row");
 		}
-		else if (Validator.isNotNull(styledLayoutStructureItem.getDisplay())) {
+		else if (Validator.isNotNull(display)) {
 			cssClassSB.append(" d-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getDisplay());
+			cssClassSB.append(display);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getJustify())) {
+		String flexWrap = styledLayoutStructureItem.getFlexWrap();
+
+		if (Validator.isNotNull(flexWrap)) {
 			cssClassSB.append(" ");
-			cssClassSB.append(styledLayoutStructureItem.getJustify());
+			cssClassSB.append(flexWrap);
+		}
+
+		String justify = styledLayoutStructureItem.getJustify();
+
+		if (Validator.isNotNull(justify)) {
+			cssClassSB.append(" ");
+			cssClassSB.append(justify);
 		}
 
 		boolean addHorizontalMargin = true;
@@ -352,50 +366,62 @@ public class RenderLayoutStructureDisplayContext {
 			}
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMarginBottom())) {
+		String marginBottom = styledLayoutStructureItem.getMarginBottom();
+
+		if (Validator.isNotNull(marginBottom)) {
 			cssClassSB.append(" mb-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getMarginBottom());
+			cssClassSB.append(marginBottom);
 		}
 
 		if (addHorizontalMargin) {
-			if (Validator.isNotNull(
-					styledLayoutStructureItem.getMarginLeft())) {
+			String marginLeft = styledLayoutStructureItem.getMarginLeft();
 
+			if (Validator.isNotNull(marginLeft)) {
 				cssClassSB.append(" ml-lg-");
-				cssClassSB.append(styledLayoutStructureItem.getMarginLeft());
+				cssClassSB.append(marginLeft);
 			}
 
-			if (Validator.isNotNull(
-					styledLayoutStructureItem.getMarginRight())) {
+			String marginRight = styledLayoutStructureItem.getMarginRight();
 
+			if (Validator.isNotNull(marginRight)) {
 				cssClassSB.append(" mr-lg-");
-				cssClassSB.append(styledLayoutStructureItem.getMarginRight());
+				cssClassSB.append(marginRight);
 			}
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMarginTop())) {
+		String marginTop = styledLayoutStructureItem.getMarginTop();
+
+		if (Validator.isNotNull(marginTop)) {
 			cssClassSB.append(" mt-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getMarginTop());
+			cssClassSB.append(marginTop);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getPaddingBottom())) {
+		String paddingBottom = styledLayoutStructureItem.getPaddingBottom();
+
+		if (Validator.isNotNull(paddingBottom)) {
 			cssClassSB.append(" pb-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getPaddingBottom());
+			cssClassSB.append(paddingBottom);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getPaddingLeft())) {
+		String paddingLeft = styledLayoutStructureItem.getPaddingLeft();
+
+		if (Validator.isNotNull(paddingLeft)) {
 			cssClassSB.append(" pl-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getPaddingLeft());
+			cssClassSB.append(paddingLeft);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getPaddingRight())) {
+		String paddingRight = styledLayoutStructureItem.getPaddingRight();
+
+		if (Validator.isNotNull(paddingRight)) {
 			cssClassSB.append(" pr-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getPaddingRight());
+			cssClassSB.append(paddingRight);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getPaddingTop())) {
+		String paddingTop = styledLayoutStructureItem.getPaddingTop();
+
+		if (Validator.isNotNull(paddingTop)) {
 			cssClassSB.append(" pt-lg-");
-			cssClassSB.append(styledLayoutStructureItem.getPaddingTop());
+			cssClassSB.append(paddingTop);
 		}
 
 		String textAlignCssClass =
@@ -411,14 +437,15 @@ public class RenderLayoutStructureDisplayContext {
 				cssClassSB.append(StringPool.SPACE);
 			}
 
-			cssClassSB.append(styledLayoutStructureItem.getTextAlignCssClass());
+			cssClassSB.append(textAlignCssClass);
 		}
 
-		if (Validator.isNotNull(
-				styledLayoutStructureItem.getTextColorCssClass())) {
+		String textColorCssClass =
+			styledLayoutStructureItem.getTextColorCssClass();
 
+		if (Validator.isNotNull(textColorCssClass)) {
 			cssClassSB.append(" text-");
-			cssClassSB.append(styledLayoutStructureItem.getTextColorCssClass());
+			cssClassSB.append(textColorCssClass);
 		}
 
 		String responsiveCssClassValues =
@@ -481,6 +508,12 @@ public class RenderLayoutStructureDisplayContext {
 		return _layoutStructure;
 	}
 
+	public String getLayoutStructureItemCssClass(
+		LayoutStructureItem layoutStructureItem) {
+
+		return "lfr-layout-structure-item-" + layoutStructureItem.getItemId();
+	}
+
 	public List<String> getMainChildrenItemIds() {
 		LayoutStructure layoutStructure = getLayoutStructure();
 
@@ -495,28 +528,8 @@ public class RenderLayoutStructureDisplayContext {
 
 		StringBundler styleSB = new StringBundler(59);
 
-		if (Validator.isNotNull(
-				styledLayoutStructureItem.getBackgroundColor())) {
-
-			styleSB.append("background-color: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getBackgroundColor()));
-			styleSB.append(StringPool.SEMICOLON);
-		}
-
 		JSONObject backgroundImageJSONObject =
 			styledLayoutStructureItem.getBackgroundImageJSONObject();
-
-		String backgroundImage = _getBackgroundImage(backgroundImageJSONObject);
-
-		if (Validator.isNotNull(backgroundImage)) {
-			styleSB.append("background-position: 50% 50%; background-repeat: ");
-			styleSB.append("no-repeat; background-size: cover; ");
-			styleSB.append("background-image: url(");
-			styleSB.append(backgroundImage);
-			styleSB.append(");");
-		}
 
 		long fileEntryId = 0;
 
@@ -558,126 +571,164 @@ public class RenderLayoutStructureDisplayContext {
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getBorderColor())) {
+		String backgroundImageURL = _getBackgroundImage(
+			backgroundImageJSONObject);
+
+		if (isCommonStylesFFEnabled()) {
+			if (Validator.isNotNull(backgroundImageURL)) {
+				styleSB.append("--lfr-background-image-");
+				styleSB.append(styledLayoutStructureItem.getItemId());
+				styleSB.append(": url(");
+				styleSB.append(backgroundImageURL);
+				styleSB.append(");");
+			}
+
+			return styleSB.toString();
+		}
+
+		if (Validator.isNotNull(backgroundImageURL)) {
+			styleSB.append("background-position: 50% 50%; background-repeat: ");
+			styleSB.append("no-repeat; background-size: cover; ");
+			styleSB.append("background-image: url(");
+			styleSB.append(backgroundImageURL);
+			styleSB.append(");");
+		}
+
+		String backgroundColor = styledLayoutStructureItem.getBackgroundColor();
+
+		if (Validator.isNotNull(backgroundColor)) {
+			styleSB.append("background-color: ");
+			styleSB.append(getStyleFromStyleBookEntry(backgroundColor));
+			styleSB.append(StringPool.SEMICOLON);
+		}
+
+		String borderColor = styledLayoutStructureItem.getBorderColor();
+
+		if (Validator.isNotNull(borderColor)) {
 			styleSB.append("border-color: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getBorderColor()));
+			styleSB.append(getStyleFromStyleBookEntry(borderColor));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getBorderRadius())) {
+		String borderRadius = styledLayoutStructureItem.getBorderRadius();
+
+		if (Validator.isNotNull(borderRadius)) {
 			styleSB.append("border-radius: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getBorderRadius()));
+			styleSB.append(getStyleFromStyleBookEntry(borderRadius));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getBorderWidth())) {
+		String borderWidth = styledLayoutStructureItem.getBorderWidth();
+
+		if (Validator.isNotNull(borderWidth)) {
 			styleSB.append("border-style: solid; border-width: ");
-			styleSB.append(styledLayoutStructureItem.getBorderWidth());
+			styleSB.append(borderWidth);
 			styleSB.append("px;");
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getShadow())) {
+		String shadow = styledLayoutStructureItem.getShadow();
+
+		if (Validator.isNotNull(shadow)) {
 			styleSB.append("box-shadow: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getShadow()));
+			styleSB.append(getStyleFromStyleBookEntry(shadow));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getFontFamily())) {
+		String fontFamily = styledLayoutStructureItem.getFontFamily();
+
+		if (Validator.isNotNull(fontFamily)) {
 			styleSB.append("font-family: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getFontFamily()));
+			styleSB.append(getStyleFromStyleBookEntry(fontFamily));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getFontSize())) {
+		String fontSize = styledLayoutStructureItem.getFontSize();
+
+		if (Validator.isNotNull(fontSize)) {
 			styleSB.append("font-size: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getFontSize()));
+			styleSB.append(getStyleFromStyleBookEntry(fontSize));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getFontWeight())) {
+		String fontWeight = styledLayoutStructureItem.getFontWeight();
+
+		if (Validator.isNotNull(fontWeight)) {
 			styleSB.append("font-weight: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getFontWeight()));
+			styleSB.append(getStyleFromStyleBookEntry(fontWeight));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getHeight())) {
+		String height = styledLayoutStructureItem.getHeight();
+
+		if (Validator.isNotNull(height)) {
 			styleSB.append("height: ");
-			styleSB.append(styledLayoutStructureItem.getHeight());
+			styleSB.append(height);
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMaxHeight())) {
+		String maxHeight = styledLayoutStructureItem.getMaxHeight();
+
+		if (Validator.isNotNull(maxHeight)) {
 			styleSB.append("max-height: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getMaxHeight()));
+			styleSB.append(getStyleFromStyleBookEntry(maxHeight));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMaxWidth())) {
+		String maxWidth = styledLayoutStructureItem.getMaxWidth();
+
+		if (Validator.isNotNull(maxWidth)) {
 			styleSB.append("max-width: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getMaxWidth()));
+			styleSB.append(getStyleFromStyleBookEntry(maxWidth));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMinHeight())) {
+		String minHeight = styledLayoutStructureItem.getMinHeight();
+
+		if (Validator.isNotNull(minHeight)) {
 			styleSB.append("min-height: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getMinHeight()));
+			styleSB.append(getStyleFromStyleBookEntry(minHeight));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getMinWidth())) {
+		String minWidth = styledLayoutStructureItem.getMinWidth();
+
+		if (Validator.isNotNull(minWidth)) {
 			styleSB.append("min-width: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getMinWidth()));
+			styleSB.append(getStyleFromStyleBookEntry(minWidth));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getOpacity())) {
-			int opacity = GetterUtil.getInteger(
-				styledLayoutStructureItem.getOpacity(), 100);
+		String opacityValue = styledLayoutStructureItem.getOpacity();
+
+		if (Validator.isNotNull(opacityValue)) {
+			int opacity = GetterUtil.getInteger(opacityValue, 100);
 
 			styleSB.append("opacity: ");
 			styleSB.append(opacity / 100.0);
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getOverflow())) {
+		String overflow = styledLayoutStructureItem.getOverflow();
+
+		if (Validator.isNotNull(overflow)) {
 			styleSB.append("overflow: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getOverflow()));
+			styleSB.append(getStyleFromStyleBookEntry(overflow));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getTextColor())) {
+		String textColor = styledLayoutStructureItem.getTextColor();
+
+		if (Validator.isNotNull(textColor)) {
 			styleSB.append("color: ");
-			styleSB.append(
-				getStyleFromStyleBookEntry(
-					styledLayoutStructureItem.getTextColor()));
+			styleSB.append(getStyleFromStyleBookEntry(textColor));
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
-		if (Validator.isNotNull(styledLayoutStructureItem.getWidth())) {
+		String width = styledLayoutStructureItem.getWidth();
+
+		if (Validator.isNotNull(width)) {
 			styleSB.append("width: ");
-			styleSB.append(styledLayoutStructureItem.getWidth());
+			styleSB.append(width);
 			styleSB.append(StringPool.SEMICOLON);
 		}
 
@@ -701,6 +752,14 @@ public class RenderLayoutStructureDisplayContext {
 			FrontendTokenMapping.TYPE_CSS_VARIABLE);
 
 		return "var(--" + cssVariable + ")";
+	}
+
+	public boolean isCommonStylesFFEnabled() {
+		if (GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-132571"))) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private String _getBackgroundImage(JSONObject jsonObject) throws Exception {
@@ -885,24 +944,6 @@ public class RenderLayoutStructureDisplayContext {
 
 		_frontendTokensJSONObject = JSONFactoryUtil.createJSONObject();
 
-		StyleBookEntry styleBookEntry = null;
-
-		boolean styleBookEntryPreview = ParamUtil.getBoolean(
-			_httpServletRequest, "styleBookEntryPreview");
-
-		if (!styleBookEntryPreview) {
-			styleBookEntry = DefaultStyleBookEntryUtil.getDefaultStyleBookEntry(
-				_themeDisplay.getLayout());
-		}
-
-		JSONObject frontendTokenValuesJSONObject =
-			JSONFactoryUtil.createJSONObject();
-
-		if (styleBookEntry != null) {
-			frontendTokenValuesJSONObject = JSONFactoryUtil.createJSONObject(
-				styleBookEntry.getFrontendTokensValues());
-		}
-
 		FrontendTokenDefinitionRegistry frontendTokenDefinitionRegistry =
 			ServletContextUtil.getFrontendTokenDefinitionRegistry();
 
@@ -914,12 +955,30 @@ public class RenderLayoutStructureDisplayContext {
 				layoutSet.getThemeId());
 
 		if (frontendTokenDefinition == null) {
-			return JSONFactoryUtil.createJSONObject();
+			return _frontendTokensJSONObject;
+		}
+
+		StyleBookEntry styleBookEntry = null;
+
+		if (!ParamUtil.getBoolean(
+				_httpServletRequest, "styleBookEntryPreview")) {
+
+			styleBookEntry = DefaultStyleBookEntryUtil.getDefaultStyleBookEntry(
+				_themeDisplay.getLayout());
+		}
+
+		JSONObject frontendTokenValuesJSONObject = null;
+
+		if (styleBookEntry != null) {
+			frontendTokenValuesJSONObject = JSONFactoryUtil.createJSONObject(
+				styleBookEntry.getFrontendTokensValues());
+		}
+		else {
+			frontendTokenValuesJSONObject = JSONFactoryUtil.createJSONObject();
 		}
 
 		JSONObject frontendTokenDefinitionJSONObject =
-			JSONFactoryUtil.createJSONObject(
-				frontendTokenDefinition.getJSON(_themeDisplay.getLocale()));
+			frontendTokenDefinition.getJSONObject(_themeDisplay.getLocale());
 
 		JSONArray frontendTokenCategoriesJSONArray =
 			frontendTokenDefinitionJSONObject.getJSONArray(

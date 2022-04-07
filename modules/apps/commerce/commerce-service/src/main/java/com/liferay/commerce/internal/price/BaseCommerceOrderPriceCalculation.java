@@ -532,13 +532,13 @@ public abstract class BaseCommerceOrderPriceCalculation
 	}
 
 	private boolean _greaterThanZero(BigDecimal value) {
-		if ((value != null) ||
-			CommerceBigDecimalUtil.gt(value, BigDecimal.ZERO)) {
+		if ((value == null) ||
+			CommerceBigDecimalUtil.lte(value, BigDecimal.ZERO)) {
 
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	private void _updateDiscounts(
@@ -567,13 +567,11 @@ public abstract class BaseCommerceOrderPriceCalculation
 
 		commerceOrderItemPrice.setDiscountAmount(
 			commerceMoneyFactory.create(commerceCurrency, discountAmount));
-
-		BigDecimal discountPercentage = _getDiscountPercentage(
-			activePrice.multiply(BigDecimal.valueOf(quantity)), discountAmount,
-			RoundingMode.valueOf(commerceCurrency.getRoundingMode()));
-
-		commerceOrderItemPrice.setDiscountPercentage(discountPercentage);
-
+		commerceOrderItemPrice.setDiscountPercentage(
+			_getDiscountPercentage(
+				activePrice.multiply(BigDecimal.valueOf(quantity)),
+				discountAmount,
+				RoundingMode.valueOf(commerceCurrency.getRoundingMode())));
 		commerceOrderItemPrice.setDiscountPercentageLevel1(
 			discountPercentageLevel1);
 		commerceOrderItemPrice.setDiscountPercentageLevel2(

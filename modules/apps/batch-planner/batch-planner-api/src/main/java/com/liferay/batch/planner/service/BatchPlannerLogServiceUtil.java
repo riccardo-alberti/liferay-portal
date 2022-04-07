@@ -39,33 +39,10 @@ public class BatchPlannerLogServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.batch.planner.service.impl.BatchPlannerLogServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
-	public static BatchPlannerLog addBatchPlannerLog(
-			long batchPlannerPlanId, String batchEngineExportERC,
-			String batchEngineImportERC, String dispatchTriggerERC, int size,
-			int status)
-		throws PortalException {
-
-		return getService().addBatchPlannerLog(
-			batchPlannerPlanId, batchEngineExportERC, batchEngineImportERC,
-			dispatchTriggerERC, size, status);
-	}
-
-	public static BatchPlannerLog deleteBatchPlannerLog(long batchPlannerLogId)
-		throws PortalException {
-
-		return getService().deleteBatchPlannerLog(batchPlannerLogId);
-	}
-
 	public static BatchPlannerLog getBatchPlannerLog(long batchPlannerLogId)
 		throws PortalException {
 
 		return getService().getBatchPlannerLog(batchPlannerLogId);
-	}
-
-	public static int getBatchPlannerLogsCount(long batchPlannerPlanId)
-		throws PortalException {
-
-		return getService().getBatchPlannerLogsCount(batchPlannerPlanId);
 	}
 
 	public static BatchPlannerLog getBatchPlannerPlanBatchPlannerLog(
@@ -86,12 +63,30 @@ public class BatchPlannerLogServiceUtil {
 	}
 
 	public static List<BatchPlannerLog> getCompanyBatchPlannerLogs(
+			long companyId, boolean export, String searchByKeyword, int start,
+			int end, OrderByComparator<BatchPlannerLog> orderByComparator)
+		throws PortalException {
+
+		return getService().getCompanyBatchPlannerLogs(
+			companyId, export, searchByKeyword, start, end, orderByComparator);
+	}
+
+	public static List<BatchPlannerLog> getCompanyBatchPlannerLogs(
 			long companyId, int start, int end,
 			OrderByComparator<BatchPlannerLog> orderByComparator)
 		throws PortalException {
 
 		return getService().getCompanyBatchPlannerLogs(
 			companyId, start, end, orderByComparator);
+	}
+
+	public static List<BatchPlannerLog> getCompanyBatchPlannerLogs(
+			long companyId, String searchByKeyword, int start, int end,
+			OrderByComparator<BatchPlannerLog> orderByComparator)
+		throws PortalException {
+
+		return getService().getCompanyBatchPlannerLogs(
+			companyId, searchByKeyword, start, end, orderByComparator);
 	}
 
 	public static int getCompanyBatchPlannerLogsCount(long companyId)
@@ -105,6 +100,22 @@ public class BatchPlannerLogServiceUtil {
 		throws PortalException {
 
 		return getService().getCompanyBatchPlannerLogsCount(companyId, export);
+	}
+
+	public static int getCompanyBatchPlannerLogsCount(
+			long companyId, boolean export, String searchByKeyword)
+		throws PortalException {
+
+		return getService().getCompanyBatchPlannerLogsCount(
+			companyId, export, searchByKeyword);
+	}
+
+	public static int getCompanyBatchPlannerLogsCount(
+			long companyId, String searchByKeyword)
+		throws PortalException {
+
+		return getService().getCompanyBatchPlannerLogsCount(
+			companyId, searchByKeyword);
 	}
 
 	/**

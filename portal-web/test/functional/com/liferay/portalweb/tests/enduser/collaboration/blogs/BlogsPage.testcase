@@ -1,4 +1,4 @@
-@component-name = "portal-collaboration"
+@component-name = "portal-lima"
 definition {
 
 	property portal.acceptance = "true";
@@ -420,8 +420,8 @@ definition {
 	@priority = "3"
 	@refactordone
 	test CanSubscribeToComment {
-		property testray.component.names = "Comment";
 		property test.name.skip.portal.instance = "BlogsPage#CanSubscribeToComment";
+		property testray.component.names = "Comment";
 
 		JSONBlog.addEntry(
 			entryContent = "Blogs Entry Content",
@@ -508,12 +508,12 @@ definition {
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		BlogsEntry.viewAbstractDisplay(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsNavigator.gotoEntryWithAbstractPG(
-			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares represent...",
+			entryAbstractDescription = "Liferay Portal provides an excellent platform for building web applications, websites, and portals, but it can additionally be used for a new category of web applications called social applications. The definition is simple: a social application is a web application that additionally leverages social identity, data, and features or services. In the left figure, the light blue squares...",
 			entryTitle = "Blogs Entry Title");
 
 		BlogsEntry.viewEntryPG(
@@ -607,6 +607,15 @@ definition {
 		BlogsEntry.viewPG(
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
+	}
+
+	@description = "This is a test for LPS-94990. It checks that a blog entry can be viewed when using a display page template."
+	@ignore = "Test Stub"
+	@priority = "5"
+	test CanViewEntryUsingDisplayPageTemplate {
+
+		// TODO LPS-148504 CanViewEntryUsingDisplayPageTemplate pending implementation
+
 	}
 
 	@description = "This test checks that blog entry can be added with special charaters."
@@ -785,6 +794,24 @@ definition {
 				locator1 = "Relatedassets#ASSET_EDIT",
 				rowNumber = "2");
 		}
+	}
+
+	@description = "This test checks that the javascript in the user name will not be executed when viewing an entry on page."
+	@priority = "3"
+	test XSSIsNotExecutedWhenViewingUsernameInBlog {
+		Navigator.openURL();
+
+		UserBar.gotoDropdownItem(dropdownItem = "Account Settings");
+
+		User.editUserInformation(userLastNameEdit = '''Test<script>alert('hello!')</script>''');
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		Blogs.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		AssertAlertNotPresent();
 	}
 
 }

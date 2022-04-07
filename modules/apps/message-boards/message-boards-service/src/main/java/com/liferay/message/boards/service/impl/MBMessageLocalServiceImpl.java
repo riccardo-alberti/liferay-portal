@@ -114,9 +114,10 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.EscapableLocalizableFunction;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
+import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HtmlParser;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -1902,7 +1903,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 			throw new MessageBodyException("Body is null");
 		}
 
-		subject = HtmlUtil.extractText(body);
+		subject = _htmlParser.extractText(body);
 
 		if (subject.length() <= MBMessageConstants.MESSAGE_SUBJECT_MAX_LENGTH) {
 			return subject;
@@ -2220,7 +2221,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				notifyDiscussionSubscribers(userId, message, serviceContext);
 			}
 			catch (Exception exception) {
-				_log.error(exception, exception);
+				_log.error(exception);
 			}
 
 			return;
@@ -2611,6 +2612,22 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 			MBMessage message, String portletId, ServiceContext serviceContext)
 		throws PortalException {
 
+		List<Layout> layouts = _layoutLocalService.getPublishedLayouts(
+			message.getGroupId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		for (Layout curLayout : layouts) {
+			PortletPreferences portletPreferences =
+				_portletPreferencesLocalService.fetchPortletPreferences(
+					PortletKeys.PREFS_OWNER_ID_DEFAULT,
+					PortletKeys.PREFS_OWNER_TYPE_LAYOUT, curLayout.getPlid(),
+					portletId);
+
+			if (portletPreferences != null) {
+				return _portal.getLayoutFullURL(
+					curLayout, serviceContext.getThemeDisplay(), false);
+			}
+		}
+
 		String layoutFullURL = StringPool.BLANK;
 
 		Layout layout = _layoutLocalService.fetchLayout(
@@ -2628,22 +2645,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		if (Validator.isNotNull(layoutFullURL)) {
 			return layoutFullURL;
-		}
-
-		List<Layout> layouts = _layoutLocalService.getPublishedLayouts(
-			message.getGroupId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
-
-		for (Layout curLayout : layouts) {
-			PortletPreferences portletPreferences =
-				_portletPreferencesLocalService.fetchPortletPreferences(
-					PortletKeys.PREFS_OWNER_ID_DEFAULT,
-					PortletKeys.PREFS_OWNER_TYPE_LAYOUT, curLayout.getPlid(),
-					portletId);
-
-			if (portletPreferences != null) {
-				return _portal.getLayoutFullURL(
-					curLayout, serviceContext.getThemeDisplay(), false);
-			}
 		}
 
 		return null;
@@ -2687,7 +2688,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 			subject = String.valueOf(id);
 		}
 		else {
-			subject = FriendlyURLNormalizerUtil.normalizeWithPeriodsAndSlashes(
+			subject = _friendlyURLNormalizer.normalizeWithPeriodsAndSlashes(
 				subject);
 		}
 
@@ -2913,7 +2914,13 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 	private ExpandoRowLocalService _expandoRowLocalService;
 
 	@Reference
+	private FriendlyURLNormalizer _friendlyURLNormalizer;
+
+	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private HtmlParser _htmlParser;
 
 	@Reference
 	private Http _http;

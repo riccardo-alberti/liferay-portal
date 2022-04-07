@@ -73,6 +73,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testCommentStyling() throws Exception {
+		test("CommentStyling.testjava");
+	}
+
+	@Test
 	public void testConstructorParameterOrder() throws Exception {
 		test("ConstructorParameterOrder.testjava");
 	}
@@ -119,6 +124,21 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testExceedMaxLineLength() throws Exception {
 		test("ExceedMaxLineLength.testjava", "> 80", 37);
+	}
+
+	@Test
+	public void testExceptionMapper() throws Exception {
+		test(
+			"ExceptionMapperService.testjava",
+				"The value of 'osgi.jaxrs.name' should end with " +
+					"'ExceptionMapper'", 30);
+	}
+
+	@Test
+	public void testExceptionPrintStackTrace() throws Exception {
+		test(
+			"ExceptionPrintStackTrace.testjava",
+			"Avoid using method 'printStackTrace'" ,31);
 	}
 
 	@Test
@@ -323,6 +343,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testLogParameters() throws Exception {
+		test("LogParameters.testjava");
+	}
+
+	@Test
 	public void testMissingAuthor() throws Exception {
 		test("MissingAuthor.testjava", "Missing author", 20);
 	}
@@ -432,6 +457,16 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			"Use SecureRandomUtil or com.liferay.portal.kernel.security." +
 				"SecureRandom instead of java.security.SecureRandom, see " +
 					"LPS-39058");
+	}
+
+	@Test
+	public void testServiceProxyFactoryNewServiceTrackedInstance() throws Exception {
+		test(
+			"ServiceProxyFactoryNewServiceTrackedInstance.testjava",
+			"Pass 'ServiceProxyFactoryNewServiceTrackedInstance.class' as " +
+				"the second parameter when calling method " +
+					"'ServiceProxyFactory.newServiceTrackedInstance'",
+			30);
 	}
 
 	@Test

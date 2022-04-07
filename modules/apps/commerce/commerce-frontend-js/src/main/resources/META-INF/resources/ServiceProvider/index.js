@@ -17,6 +17,7 @@ import AdminCatalogAPI from './commerce-admin-catalog/index';
 import AdminChannelAPI from './commerce-admin-channel/index';
 import AdminOrderAPI from './commerce-admin-order/index';
 import AdminPricingAPI from './commerce-admin-pricing/index';
+import AdminInventoryAPI from './commerce-admin-inventory/index';
 import DeliveryCartAPI from './commerce-delivery-cart/index';
 import DeliveryCatalogAPI from './commerce-delivery-catalog/index';
 
@@ -26,6 +27,7 @@ const ServiceProvider = {
 	AdminChannelAPI,
 	AdminOrderAPI,
 	AdminPricingAPI,
+	AdminInventoryAPI,
 	DeliveryCartAPI,
 	DeliveryCatalogAPI,
 };

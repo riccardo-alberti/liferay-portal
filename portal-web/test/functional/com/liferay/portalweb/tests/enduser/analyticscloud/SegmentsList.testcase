@@ -66,10 +66,6 @@ definition {
 	@description = "Search for specific segment"
 	@priority = "5"
 	test CanSearchForSegment {
-		property portal.upstream = "quarantine";
-
-		// AC Refactor ticket: LRAC-9707
-
 		var usernameList = "ac,userea";
 		var emailList = "ac@liferay.com,userea@liferay.com";
 
@@ -96,7 +92,7 @@ definition {
 
 		ACSegments.createStaticSegment();
 
-		ACSegments.nameSegment(segmentName = "Static Segment Test");
+		ACUtils.setItemName(itemName = "Static Segment Test");
 
 		ACSegments.addStaticMember(tableMember = "ac ac");
 
@@ -106,7 +102,7 @@ definition {
 
 		ACSegments.createStaticSegment();
 
-		ACSegments.nameSegment(segmentName = "Static Segment Test 2");
+		ACUtils.setItemName(itemName = "Static Segment Test 2");
 
 		ACSegments.addStaticMember(tableMember = "userea userea");
 
@@ -152,7 +148,7 @@ definition {
 
 		ACSegments.createStaticSegment();
 
-		ACSegments.nameSegment(segmentName = "Static Segment Test");
+		ACUtils.setItemName(itemName = "Static Segment Test");
 
 		ACSegments.addStaticMember(tableMember = "userfn userln");
 
@@ -162,7 +158,7 @@ definition {
 
 		ACSegments.createDynamicSegment();
 
-		ACSegments.nameSegment(segmentName = "Dynamic Segment Test");
+		ACUtils.setItemName(itemName = "Dynamic Segment Test");
 
 		ACSegments.goToSidebarAttributes(criterion = "Individual Attributes");
 
@@ -183,6 +179,9 @@ definition {
 	@priority = "4"
 	test OrderSegmentListByMembership {
 		property portal.upstream = "quarantine";
+
+		// AC Quarantine Reason: Segment membership takes long time to load
+		// AC refactor ticket: LRAC-10769
 
 		var usernameList = "user1,user2,user3";
 		var emailList = "user1@liferay.com,user2@liferay.com,user3@liferay.com";
@@ -225,7 +224,7 @@ definition {
 
 				ACSegments.createStaticSegment();
 
-				ACSegments.nameSegment(segmentName = "${segmentName}");
+				ACUtils.setItemName(itemName = "${segmentName}");
 
 				if ("${segmentName}" == "Static Segment Test1") {
 					ACSegments.addStaticMultiMember(tableMember = "user1 user1,user2 user2,user3 user3");
@@ -328,7 +327,7 @@ definition {
 
 				ACSegments.createStaticSegment();
 
-				ACSegments.nameSegment(segmentName = "${segmentName}");
+				ACUtils.setItemName(itemName = "${segmentName}");
 
 				ACSegments.addStaticMember(tableMember = "userfn userln");
 
@@ -380,10 +379,6 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8461 | Test Summary: Paginate Segment list"
 	@priority = "3"
 	test PaginateSegmentList {
-		property portal.upstream = "quarantine";
-
-		// AC Refactor ticket: LRAC-9707
-
 		task ("Add a new user in DXP") {
 			JSONUser.addUser(
 				userEmailAddress = "userea@liferay.com",
@@ -427,7 +422,7 @@ definition {
 
 				ACSegments.createStaticSegment();
 
-				ACSegments.nameSegment(segmentName = "${segmentName}");
+				ACUtils.setItemName(itemName = "${segmentName}");
 
 				ACSegments.addStaticMember(tableMember = "userfn userln");
 

@@ -1,6 +1,7 @@
 @component-name = "portal-object"
 definition {
 
+	property portal.acceptance = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Object";
@@ -28,15 +29,6 @@ definition {
 	test CanSearchForObjectEntryOnSearchExperience {
 
 		// TODO LPS-145750 CanSearchForObjectEntryOnSearchExperience pending implementation
-
-	}
-
-	@description = "LPS-135388 - Verify that the search result will only bring the results based on the fixed pre-filters"
-	@ignore = "Test Stub"
-	@priority = "4"
-	test ResultWillOnlyBringBasedOnFixedPreFilters {
-
-		// TODO LPS-145766 ResultWillOnlyBringBasedOnFixedPreFilters pending implementation
 
 	}
 

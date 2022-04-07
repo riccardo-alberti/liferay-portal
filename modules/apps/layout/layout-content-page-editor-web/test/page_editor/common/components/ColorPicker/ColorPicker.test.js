@@ -17,11 +17,9 @@ import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import {StoreContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
+import {StyleErrorsContextProvider} from '../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StyleErrorsContext';
 import {ColorPicker} from '../../../../../src/main/resources/META-INF/resources/page_editor/common/components/ColorPicker/ColorPicker';
 
-const CONFIG = {
-	tokenReuseEnabled: true,
-};
 const COLOR_PICKER_CLASS = '.page-editor__color-picker';
 const INPUT_NAME = 'Color Picker';
 const TOKEN_VALUES = {
@@ -69,14 +67,15 @@ const renderColorPicker = ({
 }) =>
 	render(
 		<StoreContextProvider initialState={{}} reducer={(state) => state}>
-			<ColorPicker
-				config={CONFIG}
-				editedTokenValues={editedTokenValues}
-				field={field}
-				onValueSelect={onValueSelect}
-				tokenValues={TOKEN_VALUES}
-				value={value}
-			/>
+			<StyleErrorsContextProvider>
+				<ColorPicker
+					editedTokenValues={editedTokenValues}
+					field={field}
+					onValueSelect={onValueSelect}
+					tokenValues={TOKEN_VALUES}
+					value={value}
+				/>
+			</StyleErrorsContextProvider>
 		</StoreContextProvider>
 	);
 
@@ -325,6 +324,20 @@ describe('ColorPicker', () => {
 				expect(
 					getByText('this-token-does-not-exist')
 				).toBeInTheDocument();
+			});
+
+			it('Clears an error when the clear selection button is clicked', async () => {
+				const {getByRole, getByTitle, queryByText} = renderColorPicker({
+					value: '#fff',
+				});
+
+				onTypeValue(getByRole('combobox'), 'prim');
+
+				fireEvent.click(getByTitle('clear-selection'));
+
+				expect(
+					queryByText('this-token-does-not-exist')
+				).not.toBeInTheDocument();
 			});
 
 			it('renders an error when the written token is the same that the name field', async () => {

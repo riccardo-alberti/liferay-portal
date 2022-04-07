@@ -153,6 +153,8 @@ public class CommerceInventoryWarehousePersistenceTest {
 		newCommerceInventoryWarehouse.setDescription(
 			RandomTestUtil.randomString());
 
+		newCommerceInventoryWarehouse.setLabel(RandomTestUtil.randomString());
+
 		newCommerceInventoryWarehouse.setActive(RandomTestUtil.randomBoolean());
 
 		newCommerceInventoryWarehouse.setStreet1(RandomTestUtil.randomString());
@@ -176,6 +178,16 @@ public class CommerceInventoryWarehousePersistenceTest {
 		newCommerceInventoryWarehouse.setLongitude(RandomTestUtil.nextDouble());
 
 		newCommerceInventoryWarehouse.setType(RandomTestUtil.randomString());
+
+		newCommerceInventoryWarehouse.setStatus(RandomTestUtil.nextInt());
+
+		newCommerceInventoryWarehouse.setStatusByUserId(
+			RandomTestUtil.nextLong());
+
+		newCommerceInventoryWarehouse.setStatusByUserName(
+			RandomTestUtil.randomString());
+
+		newCommerceInventoryWarehouse.setStatusDate(RandomTestUtil.nextDate());
 
 		_commerceInventoryWarehouses.add(
 			_persistence.update(newCommerceInventoryWarehouse));
@@ -220,6 +232,9 @@ public class CommerceInventoryWarehousePersistenceTest {
 			existingCommerceInventoryWarehouse.getDescription(),
 			newCommerceInventoryWarehouse.getDescription());
 		Assert.assertEquals(
+			existingCommerceInventoryWarehouse.getLabel(),
+			newCommerceInventoryWarehouse.getLabel());
+		Assert.assertEquals(
 			existingCommerceInventoryWarehouse.isActive(),
 			newCommerceInventoryWarehouse.isActive());
 		Assert.assertEquals(
@@ -252,6 +267,20 @@ public class CommerceInventoryWarehousePersistenceTest {
 		Assert.assertEquals(
 			existingCommerceInventoryWarehouse.getType(),
 			newCommerceInventoryWarehouse.getType());
+		Assert.assertEquals(
+			existingCommerceInventoryWarehouse.getStatus(),
+			newCommerceInventoryWarehouse.getStatus());
+		Assert.assertEquals(
+			existingCommerceInventoryWarehouse.getStatusByUserId(),
+			newCommerceInventoryWarehouse.getStatusByUserId());
+		Assert.assertEquals(
+			existingCommerceInventoryWarehouse.getStatusByUserName(),
+			newCommerceInventoryWarehouse.getStatusByUserName());
+		Assert.assertEquals(
+			Time.getShortTimestamp(
+				existingCommerceInventoryWarehouse.getStatusDate()),
+			Time.getShortTimestamp(
+				newCommerceInventoryWarehouse.getStatusDate()));
 	}
 
 	@Test
@@ -331,10 +360,12 @@ public class CommerceInventoryWarehousePersistenceTest {
 			"CIWarehouse", "mvccVersion", true, "externalReferenceCode", true,
 			"commerceInventoryWarehouseId", true, "companyId", true, "userId",
 			true, "userName", true, "createDate", true, "modifiedDate", true,
-			"name", true, "description", true, "active", true, "street1", true,
-			"street2", true, "street3", true, "city", true, "zip", true,
-			"commerceRegionCode", true, "countryTwoLettersISOCode", true,
-			"latitude", true, "longitude", true, "type", true);
+			"name", true, "description", true, "label", true, "active", true,
+			"street1", true, "street2", true, "street3", true, "city", true,
+			"zip", true, "commerceRegionCode", true, "countryTwoLettersISOCode",
+			true, "latitude", true, "longitude", true, "type", true, "status",
+			true, "statusByUserId", true, "statusByUserName", true,
+			"statusDate", true);
 	}
 
 	@Test
@@ -680,6 +711,8 @@ public class CommerceInventoryWarehousePersistenceTest {
 		commerceInventoryWarehouse.setDescription(
 			RandomTestUtil.randomString());
 
+		commerceInventoryWarehouse.setLabel(RandomTestUtil.randomString());
+
 		commerceInventoryWarehouse.setActive(RandomTestUtil.randomBoolean());
 
 		commerceInventoryWarehouse.setStreet1(RandomTestUtil.randomString());
@@ -703,6 +736,15 @@ public class CommerceInventoryWarehousePersistenceTest {
 		commerceInventoryWarehouse.setLongitude(RandomTestUtil.nextDouble());
 
 		commerceInventoryWarehouse.setType(RandomTestUtil.randomString());
+
+		commerceInventoryWarehouse.setStatus(RandomTestUtil.nextInt());
+
+		commerceInventoryWarehouse.setStatusByUserId(RandomTestUtil.nextLong());
+
+		commerceInventoryWarehouse.setStatusByUserName(
+			RandomTestUtil.randomString());
+
+		commerceInventoryWarehouse.setStatusDate(RandomTestUtil.nextDate());
 
 		_commerceInventoryWarehouses.add(
 			_persistence.update(commerceInventoryWarehouse));

@@ -15,21 +15,26 @@
 package com.liferay.batch.planner.service.impl;
 
 import com.liferay.batch.planner.model.BatchPlannerLog;
-import com.liferay.batch.planner.model.BatchPlannerPlan;
+import com.liferay.batch.planner.model.BatchPlannerLogTable;
+import com.liferay.batch.planner.model.BatchPlannerPlanTable;
 import com.liferay.batch.planner.service.base.BatchPlannerLogServiceBaseImpl;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.query.FromStep;
+import com.liferay.petra.sql.dsl.query.JoinStep;
+import com.liferay.petra.string.CharPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.GroupConstants;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.InlineSQLHelper;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Igor Beslic
@@ -44,58 +49,14 @@ import org.osgi.service.component.annotations.Component;
 public class BatchPlannerLogServiceImpl extends BatchPlannerLogServiceBaseImpl {
 
 	@Override
-	public BatchPlannerLog addBatchPlannerLog(
-			long batchPlannerPlanId, String batchEngineExportERC,
-			String batchEngineImportERC, String dispatchTriggerERC, int size,
-			int status)
-		throws PortalException {
-
-		_batchPlannerPlanModelResourcePermission.check(
-			getPermissionChecker(), batchPlannerPlanId, ActionKeys.UPDATE);
-
-		return batchPlannerLogLocalService.addBatchPlannerLog(
-			getUserId(), batchPlannerPlanId, batchEngineExportERC,
-			batchEngineImportERC, dispatchTriggerERC, size, status);
-	}
-
-	@Override
-	public BatchPlannerLog deleteBatchPlannerLog(long batchPlannerLogId)
-		throws PortalException {
-
-		BatchPlannerLog batchPlannerLog =
-			batchPlannerLogPersistence.findByPrimaryKey(batchPlannerLogId);
-
-		_batchPlannerPlanModelResourcePermission.check(
-			getPermissionChecker(), batchPlannerLog.getBatchPlannerPlanId(),
-			ActionKeys.UPDATE);
-
-		return batchPlannerLogLocalService.deleteBatchPlannerLog(
-			batchPlannerLogId);
-	}
-
-	@Override
 	public BatchPlannerLog getBatchPlannerLog(long batchPlannerLogId)
 		throws PortalException {
 
-		BatchPlannerLog batchPlannerLog =
-			batchPlannerLogPersistence.fetchByPrimaryKey(batchPlannerLogId);
+		_batchPlannerLogModelResourcePermission.check(
+			getPermissionChecker(), batchPlannerLogId, ActionKeys.VIEW);
 
-		_batchPlannerPlanModelResourcePermission.check(
-			getPermissionChecker(), batchPlannerLog.getBatchPlannerPlanId(),
-			ActionKeys.VIEW);
-
-		return batchPlannerLog;
-	}
-
-	@Override
-	public int getBatchPlannerLogsCount(long batchPlannerPlanId)
-		throws PortalException {
-
-		_batchPlannerPlanModelResourcePermission.check(
-			getPermissionChecker(), batchPlannerPlanId, ActionKeys.VIEW);
-
-		return batchPlannerLogLocalService.getBatchPlannerLogsCount(
-			batchPlannerPlanId);
+		return batchPlannerLogLocalService.getBatchPlannerLog(
+			batchPlannerLogId);
 	}
 
 	@Override
@@ -103,11 +64,15 @@ public class BatchPlannerLogServiceImpl extends BatchPlannerLogServiceBaseImpl {
 			long batchPlannerPlanId)
 		throws PortalException {
 
-		_batchPlannerPlanModelResourcePermission.check(
-			getPermissionChecker(), batchPlannerPlanId, ActionKeys.VIEW);
+		BatchPlannerLog batchPlannerLog =
+			batchPlannerLogLocalService.getBatchPlannerPlanBatchPlannerLog(
+				batchPlannerPlanId);
 
-		return batchPlannerLogLocalService.getBatchPlannerPlanBatchPlannerLog(
-			batchPlannerPlanId);
+		_batchPlannerLogModelResourcePermission.check(
+			getPermissionChecker(), batchPlannerLog.getBatchPlannerLogId(),
+			ActionKeys.VIEW);
+
+		return batchPlannerLog;
 	}
 
 	@Override
@@ -116,10 +81,59 @@ public class BatchPlannerLogServiceImpl extends BatchPlannerLogServiceBaseImpl {
 			OrderByComparator<BatchPlannerLog> orderByComparator)
 		throws PortalException {
 
-		checkPermission(companyId, ActionKeys.VIEW);
+		return batchPlannerLogPersistence.dslQuery(
+			_getJoinStep(
+				DSLQueryFactoryUtil.select(BatchPlannerLogTable.INSTANCE)
+			).where(
+				BatchPlannerLogTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.export.eq(export)
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			).orderBy(
+				BatchPlannerLogTable.INSTANCE, orderByComparator
+			).limit(
+				start, end
+			));
+	}
 
-		return batchPlannerLogLocalService.getCompanyBatchPlannerLogs(
-			companyId, export, start, end, orderByComparator);
+	@Override
+	public List<BatchPlannerLog> getCompanyBatchPlannerLogs(
+			long companyId, boolean export, String searchByKeyword, int start,
+			int end, OrderByComparator<BatchPlannerLog> orderByComparator)
+		throws PortalException {
+
+		searchByKeyword = StringUtil.quote(searchByKeyword, CharPool.PERCENT);
+
+		return batchPlannerLogPersistence.dslQuery(
+			_getJoinStep(
+				DSLQueryFactoryUtil.select(BatchPlannerLogTable.INSTANCE)
+			).where(
+				BatchPlannerPlanTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.export.eq(export)
+				).and(
+					BatchPlannerPlanTable.INSTANCE.internalClassName.like(
+						searchByKeyword
+					).or(
+						BatchPlannerPlanTable.INSTANCE.name.like(
+							searchByKeyword)
+					).withParentheses()
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			).orderBy(
+				BatchPlannerLogTable.INSTANCE, orderByComparator
+			).limit(
+				start, end
+			));
 	}
 
 	@Override
@@ -128,51 +142,146 @@ public class BatchPlannerLogServiceImpl extends BatchPlannerLogServiceBaseImpl {
 			OrderByComparator<BatchPlannerLog> orderByComparator)
 		throws PortalException {
 
-		checkPermission(companyId, ActionKeys.VIEW);
-
-		return batchPlannerLogLocalService.getCompanyBatchPlannerLogs(
+		return batchPlannerLogPersistence.filterFindByCompanyId(
 			companyId, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<BatchPlannerLog> getCompanyBatchPlannerLogs(
+			long companyId, String searchByKeyword, int start, int end,
+			OrderByComparator<BatchPlannerLog> orderByComparator)
+		throws PortalException {
+
+		searchByKeyword = StringUtil.quote(searchByKeyword, CharPool.PERCENT);
+
+		return batchPlannerLogPersistence.dslQuery(
+			_getJoinStep(
+				DSLQueryFactoryUtil.select(BatchPlannerLogTable.INSTANCE)
+			).where(
+				BatchPlannerPlanTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.internalClassName.like(
+						searchByKeyword
+					).or(
+						BatchPlannerPlanTable.INSTANCE.name.like(
+							searchByKeyword)
+					).withParentheses()
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			).orderBy(
+				BatchPlannerLogTable.INSTANCE, orderByComparator
+			).limit(
+				start, end
+			));
 	}
 
 	@Override
 	public int getCompanyBatchPlannerLogsCount(long companyId)
 		throws PortalException {
 
-		checkPermission(companyId, ActionKeys.VIEW);
-
-		return batchPlannerLogLocalService.getCompanyBatchPlannerLogsCount(
-			companyId);
+		return batchPlannerLogPersistence.filterCountByCompanyId(companyId);
 	}
 
 	@Override
 	public int getCompanyBatchPlannerLogsCount(long companyId, boolean export)
 		throws PortalException {
 
-		checkPermission(companyId, ActionKeys.VIEW);
-
-		return batchPlannerLogLocalService.getCompanyBatchPlannerLogsCount(
-			companyId, export);
+		return batchPlannerLogPersistence.dslQueryCount(
+			_getJoinStep(
+				DSLQueryFactoryUtil.count()
+			).where(
+				BatchPlannerPlanTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.export.eq(export)
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			));
 	}
 
-	protected void checkPermission(long companyId, String actionKey)
+	@Override
+	public int getCompanyBatchPlannerLogsCount(
+			long companyId, boolean export, String searchByKeyword)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
+		searchByKeyword = StringUtil.quote(searchByKeyword, CharPool.PERCENT);
 
-		if (!permissionChecker.hasPermission(
-				GroupConstants.DEFAULT_LIVE_GROUP_ID,
-				BatchPlannerPlan.class.getName(), companyId, actionKey)) {
-
-			throw new PrincipalException.MustHavePermission(
-				getUserId(), actionKey);
-		}
+		return batchPlannerLogPersistence.dslQueryCount(
+			_getJoinStep(
+				DSLQueryFactoryUtil.count()
+			).where(
+				BatchPlannerPlanTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.export.eq(export)
+				).and(
+					BatchPlannerPlanTable.INSTANCE.internalClassName.like(
+						searchByKeyword
+					).or(
+						BatchPlannerPlanTable.INSTANCE.name.like(
+							searchByKeyword)
+					).withParentheses()
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			));
 	}
 
-	private static volatile ModelResourcePermission<BatchPlannerPlan>
-		_batchPlannerPlanModelResourcePermission =
+	@Override
+	public int getCompanyBatchPlannerLogsCount(
+			long companyId, String searchByKeyword)
+		throws PortalException {
+
+		searchByKeyword = StringUtil.quote(searchByKeyword, CharPool.PERCENT);
+
+		return batchPlannerLogPersistence.dslQueryCount(
+			_getJoinStep(
+				DSLQueryFactoryUtil.count()
+			).where(
+				BatchPlannerLogTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					BatchPlannerPlanTable.INSTANCE.internalClassName.like(
+						searchByKeyword
+					).or(
+						BatchPlannerPlanTable.INSTANCE.name.like(
+							searchByKeyword)
+					).withParentheses()
+				).and(
+					_inlineSQLHelper.getPermissionWherePredicate(
+						BatchPlannerLog.class,
+						BatchPlannerLogTable.INSTANCE.batchPlannerLogId)
+				)
+			));
+	}
+
+	private JoinStep _getJoinStep(FromStep fromStep) {
+		return fromStep.from(
+			BatchPlannerLogTable.INSTANCE
+		).innerJoinON(
+			BatchPlannerPlanTable.INSTANCE,
+			BatchPlannerLogTable.INSTANCE.batchPlannerPlanId.eq(
+				BatchPlannerPlanTable.INSTANCE.batchPlannerPlanId)
+		);
+	}
+
+	private static volatile ModelResourcePermission<BatchPlannerLog>
+		_batchPlannerLogModelResourcePermission =
 			ModelResourcePermissionFactory.getInstance(
-				BatchPlannerPlanServiceImpl.class,
-				"_batchPlannerPlanModelResourcePermission",
-				BatchPlannerPlan.class);
+				BatchPlannerLogServiceImpl.class,
+				"_batchPlannerLogModelResourcePermission",
+				BatchPlannerLog.class);
+
+	@Reference
+	private InlineSQLHelper _inlineSQLHelper;
 
 }

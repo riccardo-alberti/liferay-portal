@@ -50,7 +50,8 @@ create table CIWarehouse (
 	createDate DATE null,
 	modifiedDate DATE null,
 	name VARCHAR(75) null,
-	description VARCHAR(75) null,
+	description STRING null,
+	label STRING null,
 	active_ BOOLEAN,
 	street1 VARCHAR(75) null,
 	street2 VARCHAR(75) null,
@@ -61,7 +62,11 @@ create table CIWarehouse (
 	countryTwoLettersISOCode VARCHAR(75) null,
 	latitude DOUBLE,
 	longitude DOUBLE,
-	type_ VARCHAR(75) null
+	type_ VARCHAR(75) null,
+	status INTEGER,
+	statusByUserId LONG,
+	statusByUserName VARCHAR(75) null,
+	statusDate DATE null
 );
 
 create table CIWarehouseGroupRel (
@@ -89,4 +94,19 @@ create table CIWarehouseItem (
 	sku VARCHAR(75) null,
 	quantity INTEGER,
 	reservedQuantity INTEGER
+);
+
+create table CIWarehouseOrderTypeRel (
+	mvccVersion LONG default 0 not null,
+	uuid_ VARCHAR(75) null,
+	CIWarehouseOrderTypeRelId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	commerceInventoryWarehouseId LONG,
+	commerceOrderTypeId LONG,
+	priority INTEGER,
+	lastPublishDate DATE null
 );

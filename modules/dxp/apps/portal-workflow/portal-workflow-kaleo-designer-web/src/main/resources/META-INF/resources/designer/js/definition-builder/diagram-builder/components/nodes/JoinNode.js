@@ -16,7 +16,7 @@ import {defaultLanguageId} from '../../../constants';
 import BaseNode from './BaseNode';
 
 export default function JoinNode({
-	data: {description, label, newNode} = {},
+	data: {actions, description, label, newNode, notifications} = {},
 	descriptionSidebar,
 	id,
 	...otherProps
@@ -29,6 +29,7 @@ export default function JoinNode({
 
 	return (
 		<BaseNode
+			actions={actions}
 			className="join-node"
 			description={description}
 			descriptionSidebar={descriptionSidebar}
@@ -36,6 +37,7 @@ export default function JoinNode({
 			id={id}
 			label={label}
 			newNode={newNode}
+			notifications={notifications}
 			type="join"
 			{...otherProps}
 		/>

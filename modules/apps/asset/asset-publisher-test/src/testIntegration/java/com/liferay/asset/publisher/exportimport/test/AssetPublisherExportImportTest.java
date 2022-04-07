@@ -501,7 +501,7 @@ public class AssetPublisherExportImportTest
 
 		groups.add(layoutGroup1);
 
-		Layout layout2 = LayoutTestUtil.addLayout(group);
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(group);
 
 		Group layoutGroup2 = GroupTestUtil.addGroup(
 			TestPropsValues.getUserId(), layout2);
@@ -814,7 +814,7 @@ public class AssetPublisherExportImportTest
 		Company company = _companyLocalService.getCompany(
 			layout.getCompanyId());
 
-		Layout secondLayout = LayoutTestUtil.addLayout(group);
+		Layout secondLayout = LayoutTestUtil.addTypePortletLayout(group);
 
 		GroupTestUtil.addGroup(TestPropsValues.getUserId(), secondLayout);
 
@@ -855,7 +855,7 @@ public class AssetPublisherExportImportTest
 
 	@Test
 	public void testSeveralLegacyLayoutScopeIds() throws Exception {
-		Layout secondLayout = LayoutTestUtil.addLayout(group);
+		Layout secondLayout = LayoutTestUtil.addTypePortletLayout(group);
 
 		GroupTestUtil.addGroup(TestPropsValues.getUserId(), secondLayout);
 
@@ -1129,10 +1129,10 @@ public class AssetPublisherExportImportTest
 			assetEntries = addAssetEntries(
 				scopeGroup, 3, assetEntries, serviceContext);
 
-			String scopeId = _assetPublisherHelper.getScopeId(
-				scopeGroup, group.getGroupId());
-
-			scopeIds = ArrayUtil.append(scopeIds, scopeId);
+			scopeIds = ArrayUtil.append(
+				scopeIds,
+				_assetPublisherHelper.getScopeId(
+					scopeGroup, group.getGroupId()));
 		}
 
 		PortletPreferences importedPortletPreferences =
@@ -1141,6 +1141,8 @@ public class AssetPublisherExportImportTest
 					"assetEntryXml", getAssetEntriesXmls(assetEntries)
 				).put(
 					"scopeIds", scopeIds
+				).put(
+					"selectionStyle", new String[] {"dynamic"}
 				).build());
 
 		String[] importedScopeIds = importedPortletPreferences.getValues(
@@ -1208,7 +1210,7 @@ public class AssetPublisherExportImportTest
 				" does not belong to group ", expectedGroupId),
 			expectedGroupId, importedVocabulary.getGroupId());
 
-		_assetVocabularyLocalService.deleteAssetVocabulary(assetVocabulary);
+		_assetVocabularyLocalService.deleteVocabulary(assetVocabulary);
 	}
 
 	private static Configuration _assetPublisherWebConfiguration;

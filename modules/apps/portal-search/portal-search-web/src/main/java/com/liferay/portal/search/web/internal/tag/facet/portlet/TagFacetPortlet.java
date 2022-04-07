@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.search.searcher.SearchRequest;
 import com.liferay.portal.search.searcher.SearchResponse;
-import com.liferay.portal.search.web.internal.facet.display.builder.AssetTagsSearchFacetDisplayBuilder;
 import com.liferay.portal.search.web.internal.facet.display.context.AssetTagsSearchFacetDisplayContext;
+import com.liferay.portal.search.web.internal.facet.display.context.builder.AssetTagsSearchFacetDisplayContextBuilder;
 import com.liferay.portal.search.web.internal.tag.facet.builder.AssetTagsFacetConfiguration;
 import com.liferay.portal.search.web.internal.tag.facet.builder.AssetTagsFacetConfigurationImpl;
 import com.liferay.portal.search.web.internal.tag.facet.constants.TagFacetPortletKeys;
@@ -64,7 +64,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/tag/facet/view.jsp",
 		"javax.portlet.name=" + TagFacetPortletKeys.TAG_FACET,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -114,38 +115,42 @@ public class TagFacetPortlet extends MVCPortlet {
 		AssetTagsFacetConfiguration assetTagsFacetConfiguration =
 			new AssetTagsFacetConfigurationImpl(facet.getFacetConfiguration());
 
-		AssetTagsSearchFacetDisplayBuilder assetTagsSearchFacetDisplayBuilder =
-			_createTagsSearchFacetDisplayBuilder(renderRequest);
+		AssetTagsSearchFacetDisplayContextBuilder
+			assetTagsSearchFacetDisplayContextBuilder =
+				_createTagsSearchFacetDisplayContextBuilder(renderRequest);
 
-		assetTagsSearchFacetDisplayBuilder.setDisplayStyle(
+		assetTagsSearchFacetDisplayContextBuilder.setDisplayStyle(
 			tagFacetPortletPreferences.getDisplayStyle());
-		assetTagsSearchFacetDisplayBuilder.setFacet(facet);
-		assetTagsSearchFacetDisplayBuilder.setFrequenciesVisible(
+		assetTagsSearchFacetDisplayContextBuilder.setFacet(facet);
+		assetTagsSearchFacetDisplayContextBuilder.setFrequenciesVisible(
 			tagFacetPortletPreferences.isFrequenciesVisible());
-		assetTagsSearchFacetDisplayBuilder.setFrequencyThreshold(
+		assetTagsSearchFacetDisplayContextBuilder.setFrequencyThreshold(
 			assetTagsFacetConfiguration.getFrequencyThreshold());
-		assetTagsSearchFacetDisplayBuilder.setMaxTerms(
+		assetTagsSearchFacetDisplayContextBuilder.setMaxTerms(
 			assetTagsFacetConfiguration.getMaxTerms());
-		assetTagsSearchFacetDisplayBuilder.setPaginationStartParameterName(
-			_getPaginationStartParameterName(portletSharedSearchResponse));
+		assetTagsSearchFacetDisplayContextBuilder.
+			setPaginationStartParameterName(
+				_getPaginationStartParameterName(portletSharedSearchResponse));
 
 		String parameterName = tagFacetPortletPreferences.getParameterName();
 
-		assetTagsSearchFacetDisplayBuilder.setParameterName(parameterName);
+		assetTagsSearchFacetDisplayContextBuilder.setParameterName(
+			parameterName);
 
 		SearchOptionalUtil.copy(
 			() -> portletSharedSearchResponse.getParameterValues(
 				parameterName, renderRequest),
-			assetTagsSearchFacetDisplayBuilder::setParameterValues);
+			assetTagsSearchFacetDisplayContextBuilder::setParameterValues);
 
-		return assetTagsSearchFacetDisplayBuilder.build();
+		return assetTagsSearchFacetDisplayContextBuilder.build();
 	}
 
-	private AssetTagsSearchFacetDisplayBuilder
-		_createTagsSearchFacetDisplayBuilder(RenderRequest renderRequest) {
+	private AssetTagsSearchFacetDisplayContextBuilder
+		_createTagsSearchFacetDisplayContextBuilder(
+			RenderRequest renderRequest) {
 
 		try {
-			return new AssetTagsSearchFacetDisplayBuilder(renderRequest);
+			return new AssetTagsSearchFacetDisplayContextBuilder(renderRequest);
 		}
 		catch (ConfigurationException configurationException) {
 			throw new RuntimeException(configurationException);

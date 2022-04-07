@@ -1,9 +1,9 @@
 @component-name = "portal-liferay-online"
 definition {
 
-	property osgi.modules.includes = "site-initializer-team-extranet";
 	property database.types = "mysql";
 	property liferay.online.properties = "true";
+	property osgi.modules.includes = "site-initializer-team-extranet";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Liferay Online";
@@ -36,8 +36,8 @@ definition {
 	@description = "This is a test for LPS-135077. I can create a Virtual Instance with Default Initializer"
 	@priority = "5"
 	test AddVirtualInstanceWithDefaultInitializer {
-		property portal.acceptance = "true";
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.baker.com";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "LiferayOnline#AddVirtualInstanceWithDefaultInitializer";
 
 		task ("Add virtual instance able.com with a blank Initializer") {
@@ -62,8 +62,8 @@ definition {
 	@description = "This is a test for LPS-135077. I can create a New Virtual Instance with the initializer"
 	@priority = "5"
 	test AddVirtualInstanceWithInitializer {
-		property portal.acceptance = "true";
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+		property portal.acceptance = "true";
 		property test.name.skip.portal.instance = "LiferayOnline#AddVirtualInstanceWithInitializer";
 
 		task ("Add virtual instance raylife.com with the Masterclass Initializer") {
@@ -156,6 +156,8 @@ definition {
 	@description = "This is a test for LPS-143786. Verify Remote Apps can be created in Liferay Online"
 	@priority = "4"
 	test RemoteAppsCanBeCreatedInLiferayOnline {
+		property portal.acceptance = "true";
+
 		task ("Go to Remote Apps Portlet") {
 			RemoteApps.goToRemoteAppsPortlet();
 		}
@@ -177,6 +179,8 @@ definition {
 	@description = "This is a test for LPS-143786. Verify Remote Apps can be deleted in Liferay Online"
 	@priority = "4"
 	test RemoteAppsCanBeDeletedInLiferayOnline {
+		property portal.acceptance = "true";
+
 		task ("Create a New Remote App with JSON") {
 			JSONRemoteApp.addIFrameRemoteAppEntry(
 				iFrameURL = "http://www.liferay.com/my_new_remote_app",
@@ -199,6 +203,8 @@ definition {
 	@description = "This is a test for LPS-143786. Verify Remote Apps can be displayed in Liferay Online"
 	@priority = "4"
 	test RemoteAppsCanBeDisplayedInLiferayOnline {
+		property portal.acceptance = "true";
+
 		task ("Add a public page with JSON") {
 			JSONLayout.addPublicLayout(
 				groupName = "Guest",
@@ -229,6 +235,49 @@ definition {
 			Navigator.gotoPage(pageName = "Test Page");
 
 			AssertElementPresent(locator1 = "RemoteApps#VANILLA_COUNTER_REMOTE_APP");
+		}
+	}
+
+	@description = "This is a test for LPS-148448. Search bar is available in Team Extranet Virtual instance and it works"
+	@priority = "3"
+	test SearchBarWorkingInTeamExtranetVirtualInstanceByAPI {
+		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+		property test.name.skip.portal.instance = "LiferayOnline#SearchBarWorkingInTeamExtranetVirtualInstanceByAPI";
+
+		task ("Create Virtual Instance by Json") {
+			HeadlessPortalInstanceAPI.addPortalInstanceWithVirtualInstanceInitializer(
+				domain = "www.able.com",
+				portalInstanceId = "www.able.com",
+				siteInitializerKey = "com.liferay.site.initializer.team.extranet",
+				virtualHost = "www.able.com");
+		}
+
+		task ("Go to the Virtual Instance Created and Assert the Team Extranet Logo") {
+			Navigator.openSpecificURL(url = "http://www.able.com:8080");
+
+			AssertElementPresent(
+				key_title = "Welcome to the team!",
+				locator1 = "TeamExtranet#FRAGMENT_HEADER");
+		}
+
+		task ("Assert the Search Bar presence") {
+			AssertElementPresent(locator1 = "Search#EMBEDDED_SEARCH_BAR");
+		}
+
+		task ("Search for Careers in Search Bar to get results") {
+			SearchPortlets.searchEmbedded(searchTerm = "careers");
+
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "Careers",
+				searchAssetType = "Page");
+		}
+
+		task ("Search for texs in Search Bar to not get results") {
+			SearchPortlets.searchEmbedded(searchTerm = "texs");
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "No results were found that matched the keywords");
 		}
 	}
 

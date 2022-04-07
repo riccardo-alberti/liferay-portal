@@ -492,6 +492,7 @@ create table ExpandoColumn (
 	ctCollectionId LONG default 0 not null,
 	columnId LONG not null,
 	companyId LONG,
+	modifiedDate DATE null,
 	tableId LONG,
 	name VARCHAR(75) null,
 	type_ INTEGER,
@@ -561,6 +562,7 @@ create table Group_ (
 	groupId LONG not null,
 	companyId LONG,
 	creatorUserId LONG,
+	modifiedDate DATE null,
 	classNameId LONG,
 	classPK LONG,
 	parentGroupId LONG,
@@ -1137,8 +1139,9 @@ create table Release_ (
 
 create table Repository (
 	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	repositoryId LONG not null primary key,
+	repositoryId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -1151,13 +1154,15 @@ create table Repository (
 	portletId VARCHAR(200) null,
 	typeSettings TEXT null,
 	dlFolderId LONG,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (repositoryId, ctCollectionId)
 );
 
 create table RepositoryEntry (
 	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	repositoryEntryId LONG not null primary key,
+	repositoryEntryId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -1167,7 +1172,8 @@ create table RepositoryEntry (
 	repositoryId LONG,
 	mappedId VARCHAR(255) null,
 	manualCheckInRequired BOOLEAN,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (repositoryEntryId, ctCollectionId)
 );
 
 create table ResourceAction (

@@ -175,26 +175,16 @@ public class LayoutStructureUtil {
 			layoutPageTemplateStructure.getData(segmentsExperienceId));
 	}
 
-	public static boolean isPortletMarkedForDeletion(
-			long groupId, long plid, String portletId,
-			long segmentsExperienceId)
+	public static LayoutStructure getLayoutStructure(
+			long groupId, long plid, String segmentsExperienceKey)
 		throws PortalException {
 
-		LayoutStructure layoutStructure = getLayoutStructure(
-			groupId, plid, segmentsExperienceId);
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			LayoutPageTemplateStructureLocalServiceUtil.
+				fetchLayoutPageTemplateStructure(groupId, plid, true);
 
-		List<DeletedLayoutStructureItem> deletedLayoutStructureItems =
-			layoutStructure.getDeletedLayoutStructureItems();
-
-		for (DeletedLayoutStructureItem deletedLayoutStructureItem :
-				deletedLayoutStructureItems) {
-
-			if (deletedLayoutStructureItem.contains(portletId)) {
-				return true;
-			}
-		}
-
-		return false;
+		return LayoutStructure.of(
+			layoutPageTemplateStructure.getData(segmentsExperienceKey));
 	}
 
 	public static JSONObject updateLayoutPageTemplateData(

@@ -24,6 +24,8 @@ import com.liferay.portal.search.searcher.SearchRequest;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.web.constants.SearchBarPortletKeys;
 import com.liferay.portal.search.web.internal.portlet.preferences.PortletPreferencesLookup;
+import com.liferay.portal.search.web.internal.search.bar.portlet.display.context.SearchBarPortletDisplayContext;
+import com.liferay.portal.search.web.internal.search.bar.portlet.display.context.builder.SearchBarPortletDisplayContextBuilder;
 import com.liferay.portal.search.web.internal.search.bar.portlet.helper.SearchBarPrecedenceHelper;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
@@ -67,7 +69,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/search/bar/view.jsp",
 		"javax.portlet.name=" + SearchBarPortletKeys.SEARCH_BAR,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user"
+		"javax.portlet.security-role-ref=guest,power-user,user",
+		"javax.portlet.version=3.0"
 	},
 	service = Portlet.class
 )
@@ -196,9 +199,10 @@ public class SearchBarPortlet extends MVCPortlet {
 			SearchBarPortletPreferences searchBarPortletPreferences)
 		throws PortletException {
 
-		SearchBarPortletDisplayBuilder searchBarPortletDisplayBuilder =
-			new SearchBarPortletDisplayBuilder(
-				http, layoutLocalService, portal, renderRequest);
+		SearchBarPortletDisplayContextBuilder
+			searchBarPortletDisplayContextBuilder =
+				new SearchBarPortletDisplayContextBuilder(
+					http, layoutLocalService, portal, renderRequest);
 
 		ThemeDisplay themeDisplay = portletSharedSearchResponse.getThemeDisplay(
 			renderRequest);
@@ -216,7 +220,7 @@ public class SearchBarPortlet extends MVCPortlet {
 
 		SearchRequest searchRequest = searchResponse.getRequest();
 
-		return searchBarPortletDisplayBuilder.setDestination(
+		return searchBarPortletDisplayContextBuilder.setDestination(
 			searchBarPortletPreferences.getDestinationString()
 		).setEmptySearchEnabled(
 			isEmptySearchEnabled(portletSharedSearchResponse)

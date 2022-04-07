@@ -38,6 +38,8 @@ boolean hasPermission = commercePaymentMethodGroupRelQualifiersDisplayContext.ha
 	<aui:input name="termEntryQualifiers" type="hidden" value="<%= termEntryQualifiers %>" />
 	<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_SAVE_DRAFT) %>" />
 
+	<liferay-ui:error exception="<%= DuplicateCommercePaymentMethodGroupRelQualifierException.class %>" message="the-qualifier-is-already-linked" />
+
 	<aui:model-context bean="<%= commercePaymentMethodGroupRel %>" model="<%= CommercePaymentMethodGroupRel.class %>" />
 
 	<div class="row">
@@ -68,7 +70,7 @@ boolean hasPermission = commercePaymentMethodGroupRelQualifiersDisplayContext.ha
 				bodyClasses="flex-fill"
 				collapsed="<%= false %>"
 				collapsible="<%= false %>"
-				title='<%= LanguageUtil.get(request, "payment-term-eligibility") %>'
+				title='<%= LanguageUtil.get(request, "payment-terms-eligibility") %>'
 			>
 				<div class="row">
 					<aui:fieldset markupView="lexicon">

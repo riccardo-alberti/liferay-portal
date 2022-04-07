@@ -65,6 +65,10 @@ public interface LayoutPageTemplateStructure
 
 	public String getData(long segmentsExperienceId);
 
+	public String getData(String segmentsExperienceKey);
+
+	public String getDefaultSegmentsExperienceData();
+
 	public long getPlid();
 
 }

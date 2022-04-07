@@ -21,7 +21,6 @@ import com.liferay.dynamic.data.mapping.exception.StructureDefinitionException;
 import com.liferay.dynamic.data.mapping.exception.StructureLayoutException;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializer;
 import com.liferay.dynamic.data.mapping.form.builder.context.DDMFormContextDeserializerRequest;
-import com.liferay.dynamic.data.mapping.form.web.internal.configuration.activator.FFSubmissionsSettingsConfigurationActivator;
 import com.liferay.dynamic.data.mapping.form.web.internal.portlet.action.util.DDMFormInstanceFieldSettingsValidator;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -274,7 +273,7 @@ public class SaveFormInstanceMVCCommandHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return valueString;
@@ -321,7 +320,7 @@ public class SaveFormInstanceMVCCommandHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -373,12 +372,6 @@ public class SaveFormInstanceMVCCommandHelper {
 	private void _validateExpirationDate(DDMFormValues ddmFormValues)
 		throws Exception {
 
-		if (!_ffSubmissionsSettingsConfigurationActivator.
-				expirationDateEnabled()) {
-
-			return;
-		}
-
 		Map<String, List<DDMFormFieldValue>> ddmFormFieldValuesMap =
 			ddmFormValues.getDDMFormFieldValuesMap(false);
 
@@ -395,7 +388,7 @@ public class SaveFormInstanceMVCCommandHelper {
 			}
 			catch (DateTimeParseException dateTimeParseException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(dateTimeParseException, dateTimeParseException);
+					_log.debug(dateTimeParseException);
 				}
 
 				DDMForm ddmForm = ddmFormValues.getDDMForm();
@@ -483,8 +476,7 @@ public class SaveFormInstanceMVCCommandHelper {
 					}
 					catch (UnknownHostException unknownHostException) {
 						if (_log.isDebugEnabled()) {
-							_log.debug(
-								unknownHostException, unknownHostException);
+							_log.debug(unknownHostException);
 						}
 					}
 				}
@@ -535,10 +527,6 @@ public class SaveFormInstanceMVCCommandHelper {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SaveFormInstanceMVCCommandHelper.class);
-
-	@Reference
-	private FFSubmissionsSettingsConfigurationActivator
-		_ffSubmissionsSettingsConfigurationActivator;
 
 	@Reference
 	private Portal _portal;

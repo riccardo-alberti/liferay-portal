@@ -13,15 +13,20 @@
  */
 
 import React from 'react';
-interface IInputProps extends React.HTMLAttributes<HTMLElement> {
+declare const Input: React.ForwardRefExoticComponent<
+	IProps & React.RefAttributes<HTMLInputElement>
+>;
+export default Input;
+interface IProps
+	extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+	component?: 'input' | 'textarea' | React.ForwardRefExoticComponent<any>;
 	disabled?: boolean;
 	error?: string;
 	feedbackMessage?: string;
 	id?: string;
 	label: string;
-	name: string;
+	name?: string;
 	required?: boolean;
-	value: string;
+	type?: 'number' | 'text';
+	value?: string | number | string[];
 }
-declare const Input: React.FC<IInputProps>;
-export default Input;

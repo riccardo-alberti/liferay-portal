@@ -36,6 +36,96 @@ definition {
 		User.logoutPG();
 	}
 
+	@description = "This is a functional test for COMMERCE-8145 - Without an account, add to cart and quantity selector are disabled for admin user"
+	@priority = "4"
+	test AddToCartButtonAndQuantitySelectorAreDisabledForAdminUser {
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoSite(site = "Minium");
+
+		Pagination.changePagination(itemsPerPage = "60");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+
+		Click(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_VIEW_ALL_VARIANTS");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+	}
+
+	@description = "This is a functional test for COMMERCE-8145 - Without an account, add to cart and quantity selector are disabled for non-admin user"
+	@priority = "4"
+	test AddToCartButtonAndQuantitySelectorAreDisabledForNewUser {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property portal.acceptance = "false";
+
+		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		JSONUser.addUser(
+			userEmailAddress = "testuser@liferay.com",
+			userFirstName = "test",
+			userLastName = "user",
+			userScreenName = "testuser");
+
+		JSONUser.setFirstPassword(
+			agreeToTermsAndAnswerReminderQuery = "true",
+			requireReset = "false",
+			userEmailAddress = "testuser@liferay.com");
+
+		JSONUser.addUserToSite(
+			groupName = "Minium",
+			userEmailAddress = "testuser@liferay.com");
+
+		User.logoutPG();
+
+		CommerceLogin.miniumLogin(
+			password = "test",
+			urlAppend = "web/minium",
+			userEmailAddress = "testuser@liferay.com");
+
+		Pagination.changePagination(itemsPerPage = "60");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+
+		Click(
+			key_productName = "Brake Fluid",
+			locator1 = "CommerceAccelerators#PRODUCT_CARD_VIEW_ALL_VARIANTS");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+
+		CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+
+		CommerceAcceleratorsInitializer.gotoMiniumProductDetailsPage(productName = "U-Joint");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_ADD_TO_CART_BUTTON_ENABLED");
+
+		AssertElementNotPresent(locator1 = "CommerceAccelerators#GENERAL_QUANTITY_SELECTOR_INPUT_FIELD_ENABLED");
+	}
+
 	@description = "COMMERCE-5725. New functional test for COMMERCE-5485"
 	@priority = "3"
 	test AssertCheckoutMinicart {
@@ -117,8 +207,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -180,7 +270,7 @@ definition {
 	}
 
 	@description = "This is a test for COMMERCE-4958."
-	test CheckoutWithOneShippingOption {
+	test CheckoutWithDefaultShippingOption {
 		property portal.acceptance = "true";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Speedwell");
@@ -230,7 +320,8 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1",
 			productUnitPrice = "24",
-			shippingMethod = "Standard");
+			shippingMethod = "Standard",
+			singleShippingOption = "true");
 	}
 
 	test DeactivateCommerceAccount {
@@ -271,8 +362,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -352,8 +443,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -599,8 +690,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -745,8 +836,8 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -908,8 +999,8 @@ definition {
 		CommerceLogin.speedwellLogout();
 
 		CommerceLogin.speedwellLogin(
+			newPassword = "test",
 			password = "ttest",
-			resetPassword = "test",
 			urlAppend = "web/speedwell",
 			userEmailAddress = "buyer@liferay.com");
 

@@ -30,16 +30,27 @@ export declare type TObjectField = {
 	type: string;
 };
 export declare type TObjectViewColumn = {
-	label: string;
+	fieldLabel: string;
+	isDefaultSort: boolean;
+	label: TName;
 	objectFieldName: string;
 	priority?: number;
+};
+export declare type TObjectViewSortColumn = {
+	fieldLabel: string;
+	label: TName;
+	objectFieldName: string;
+	priority?: number;
+	sortOrder?: string;
 };
 export declare type TObjectView = {
 	defaultObjectView: boolean;
 	name: TName;
 	objectViewColumns: TObjectViewColumn[];
+	objectViewSortColumns: TObjectViewSortColumn[];
 };
 export declare type TState = {
+	isFFObjectViewColumnAliasEnabled: boolean;
 	isViewOnly: boolean;
 	objectFields: TObjectField[];
 	objectView: TObjectView;

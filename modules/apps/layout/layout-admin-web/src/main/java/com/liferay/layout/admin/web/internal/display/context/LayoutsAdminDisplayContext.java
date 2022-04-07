@@ -329,18 +329,6 @@ public class LayoutsAdminDisplayContext {
 		).buildString();
 	}
 
-	public String getConvertLayoutURL(Layout layout) {
-		return PortletURLBuilder.createActionURL(
-			_liferayPortletResponse
-		).setActionName(
-			"/layout_admin/convert_layout"
-		).setRedirect(
-			themeDisplay.getURLCurrent()
-		).setParameter(
-			"selPlid", layout.getPlid()
-		).buildString();
-	}
-
 	public String getCopyLayoutRenderURL(Layout layout) throws Exception {
 		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
@@ -422,6 +410,41 @@ public class LayoutsAdminDisplayContext {
 			"miller-columns");
 
 		return _displayStyle;
+	}
+
+	public Layout getDraftLayout(Layout layout) throws Exception {
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		if (draftLayout != null) {
+			return draftLayout;
+		}
+
+		if (!layout.isTypeContent()) {
+			return null;
+		}
+
+		UnicodeProperties unicodeProperties =
+			layout.getTypeSettingsProperties();
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			httpServletRequest);
+
+		draftLayout = LayoutLocalServiceUtil.addLayout(
+			layout.getUserId(), layout.getGroupId(), layout.isPrivateLayout(),
+			layout.getParentLayoutId(), PortalUtil.getClassNameId(Layout.class),
+			layout.getPlid(), layout.getNameMap(), layout.getTitleMap(),
+			layout.getDescriptionMap(), layout.getKeywordsMap(),
+			layout.getRobotsMap(), layout.getType(),
+			unicodeProperties.toString(), true, true, Collections.emptyMap(),
+			layout.getMasterLayoutPlid(), serviceContext);
+
+		draftLayout = _layoutCopyHelper.copyLayout(layout, draftLayout);
+
+		serviceContext.setAttribute("published", Boolean.TRUE);
+
+		return LayoutLocalServiceUtil.updateStatus(
+			draftLayout.getUserId(), draftLayout.getPlid(),
+			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
 	public String getEditLayoutURL(Layout layout) throws Exception {
@@ -620,17 +643,19 @@ public class LayoutsAdminDisplayContext {
 
 		OrderByComparator<Layout> orderByComparator = null;
 
+		String keywords = getKeywords();
+
 		if (Objects.equals(_getOrderByCol(), "create-date")) {
 			orderByComparator = new LayoutCreateDateComparator(orderByAsc);
 		}
-		else if (Objects.equals(_getOrderByCol(), "relevance")) {
+		else if (Objects.equals(_getOrderByCol(), "relevance") &&
+				 Validator.isNotNull(keywords)) {
+
 			orderByComparator = new LayoutRelevanceComparator(orderByAsc);
 		}
 
 		layoutsSearchContainer.setOrderByComparator(orderByComparator);
 		layoutsSearchContainer.setOrderByType(_getOrderByType());
-
-		String keywords = getKeywords();
 
 		int[] statuses = null;
 
@@ -1232,7 +1257,14 @@ public class LayoutsAdminDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		String virtualHostname = PortalUtil.getVirtualHostname(layoutSet);
+		String virtualHostname = null;
+
+		TreeMap<String, String> virtualHostnames =
+			PortalUtil.getVirtualHostnames(layoutSet);
+
+		if (!virtualHostnames.isEmpty()) {
+			virtualHostname = virtualHostnames.firstKey();
+		}
 
 		Group scopeGroup = themeDisplay.getScopeGroup();
 
@@ -1245,7 +1277,14 @@ public class LayoutsAdminDisplayContext {
 				liveGroupLayoutSet = liveGroup.getPrivateLayoutSet();
 			}
 
-			virtualHostname = PortalUtil.getVirtualHostname(liveGroupLayoutSet);
+			virtualHostname = null;
+
+			virtualHostnames = PortalUtil.getVirtualHostnames(
+				liveGroupLayoutSet);
+
+			if (!virtualHostnames.isEmpty()) {
+				virtualHostname = virtualHostnames.firstKey();
+			}
 		}
 
 		return virtualHostname;
@@ -1853,35 +1892,8 @@ public class LayoutsAdminDisplayContext {
 	}
 
 	private String _getDraftLayoutURL(Layout layout) throws Exception {
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		if (draftLayout == null) {
-			UnicodeProperties unicodeProperties =
-				layout.getTypeSettingsProperties();
-
-			ServiceContext serviceContext = ServiceContextFactory.getInstance(
-				httpServletRequest);
-
-			draftLayout = LayoutLocalServiceUtil.addLayout(
-				layout.getUserId(), layout.getGroupId(),
-				layout.isPrivateLayout(), layout.getParentLayoutId(),
-				PortalUtil.getClassNameId(Layout.class), layout.getPlid(),
-				layout.getNameMap(), layout.getTitleMap(),
-				layout.getDescriptionMap(), layout.getKeywordsMap(),
-				layout.getRobotsMap(), layout.getType(),
-				unicodeProperties.toString(), true, true,
-				Collections.emptyMap(), layout.getMasterLayoutPlid(),
-				serviceContext);
-
-			draftLayout = _layoutCopyHelper.copyLayout(layout, draftLayout);
-
-			LayoutLocalServiceUtil.updateStatus(
-				draftLayout.getUserId(), draftLayout.getPlid(),
-				WorkflowConstants.STATUS_APPROVED, serviceContext);
-		}
-
 		String layoutFullURL = HttpUtil.setParameter(
-			PortalUtil.getLayoutFullURL(draftLayout, themeDisplay),
+			PortalUtil.getLayoutFullURL(getDraftLayout(layout), themeDisplay),
 			"p_l_back_url", _getBackURL());
 
 		return HttpUtil.setParameter(layoutFullURL, "p_l_mode", Constants.EDIT);
@@ -1894,7 +1906,7 @@ public class LayoutsAdminDisplayContext {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 		}
 

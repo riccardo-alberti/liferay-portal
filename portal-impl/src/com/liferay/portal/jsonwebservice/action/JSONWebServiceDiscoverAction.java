@@ -18,13 +18,13 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.data.FileData;
 import com.liferay.portal.json.transformer.BeanAnalyzerTransformer;
+import com.liferay.portal.jsonwebservice.JSONWebServiceNamingUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONSerializable;
 import com.liferay.portal.kernel.json.JSONSerializer;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionMapping;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceNaming;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -74,14 +74,6 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 			ParamUtil.getString(
 				httpServletRequest, "contextName",
 				servletContext.getServletContextName()));
-
-		_jsonWebServiceNaming =
-			JSONWebServiceActionsManagerUtil.getJSONWebServiceNaming();
-	}
-
-	@Override
-	public JSONWebServiceActionMapping getJSONWebServiceActionMapping() {
-		return null;
 	}
 
 	@Override
@@ -203,7 +195,7 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return null;
@@ -396,14 +388,14 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 				ClassLoader classLoader = clazz.getClassLoader();
 
 				String modelImplClassName =
-					_jsonWebServiceNaming.convertModelClassToImplClassName(
+					JSONWebServiceNamingUtil.convertModelClassToImplClassName(
 						type);
 
 				modelType = classLoader.loadClass(modelImplClassName);
 			}
 			catch (ClassNotFoundException classNotFoundException) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(classNotFoundException, classNotFoundException);
+					_log.debug(classNotFoundException);
 				}
 			}
 		}
@@ -417,7 +409,7 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 		Class<?> clazz = jsonWebServiceActionMapping.getActionClass();
 
 		String className =
-			_jsonWebServiceNaming.convertServiceClassToSimpleName(clazz);
+			JSONWebServiceNamingUtil.convertServiceClassToSimpleName(clazz);
 
 		Method method = jsonWebServiceActionMapping.getRealActionMethod();
 
@@ -431,7 +423,6 @@ public class JSONWebServiceDiscoverAction implements JSONWebServiceAction {
 	private final String _basePath;
 	private final String _baseURL;
 	private final String _contextName;
-	private final JSONWebServiceNaming _jsonWebServiceNaming;
 	private final List<Class<?>> _types = new ArrayList<>();
 
 }

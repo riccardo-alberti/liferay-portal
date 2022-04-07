@@ -2,40 +2,11 @@
 	"label": {
 		"en_US": "Testray Case"
 	},
-	"name": "TestrayCase",
+	"name": "Case",
 	"objectFields": [
 		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Case Type Id"
-			},
-			"name": "testrayCaseTypeId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Component Id"
-			},
-			"name": "testrayComponentId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Project Id"
-			},
-			"name": "testrayProjectId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
+			"DBType": "String",
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Name"
@@ -45,6 +16,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "Clob",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -52,9 +24,10 @@
 			},
 			"name": "description",
 			"required": false,
-			"type": "String"
+			"type": "Clob"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -65,16 +38,7 @@
 			"type": "String"
 		},
 		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Origination Key"
-			},
-			"name": "originationKey",
-			"required": false,
-			"type": "Long"
-		},
-		{
+			"DBType": "Integer",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -85,6 +49,7 @@
 			"type": "Integer"
 		},
 		{
+			"DBType": "Integer",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -95,6 +60,7 @@
 			"type": "Integer"
 		},
 		{
+			"DBType": "Clob",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -102,9 +68,10 @@
 			},
 			"name": "steps",
 			"required": false,
-			"type": "String"
+			"type": "Clob"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -115,6 +82,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "Long",
 			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
@@ -123,22 +91,10 @@
 			"name": "caseNumber",
 			"required": false,
 			"type": "Long"
-		},
-		{
-			"indexed": true,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Issues"
-			},
-			"name": "issues",
-			"required": false,
-			"type": "String"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Cases"
 	},
-	"scope": "site"
+	"scope": "company"
 }

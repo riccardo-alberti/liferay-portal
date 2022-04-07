@@ -2,9 +2,10 @@
 	"label": {
 		"en_US": "Testray Build"
 	},
-	"name": "TestrayBuild",
+	"name": "Build",
 	"objectFields": [
 		{
+			"DBType": "Long",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -15,37 +16,8 @@
 			"type": "Long"
 		},
 		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Routine Id"
-			},
-			"name": "testrayRoutineId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Product Version Id"
-			},
-			"name": "testrayProductVersionId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
-			"indexedAsKeyword": false,
-			"label": {
-				"en_US": "Testray Project Id"
-			},
-			"name": "testrayProjectId",
-			"required": false,
-			"type": "Long"
-		},
-		{
-			"indexed": false,
+			"DBType": "String",
+			"indexed": true,
 			"indexedAsKeyword": false,
 			"label": {
 				"en_US": "Name"
@@ -55,6 +27,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -65,6 +38,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "Boolean",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -75,6 +49,7 @@
 			"type": "Boolean"
 		},
 		{
+			"DBType": "Date",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -85,6 +60,7 @@
 			"type": "Date"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -95,6 +71,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "String",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -105,6 +82,7 @@
 			"type": "String"
 		},
 		{
+			"DBType": "Boolean",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -115,6 +93,7 @@
 			"type": "Boolean"
 		},
 		{
+			"DBType": "Integer",
 			"indexed": false,
 			"indexedAsKeyword": false,
 			"label": {
@@ -125,10 +104,8 @@
 			"type": "Integer"
 		}
 	],
-	"panelAppOrder": "100",
-	"panelCategoryKey": "site_administration.content",
 	"pluralLabel": {
 		"en_US": "Testray Builds"
 	},
-	"scope": "site"
+	"scope": "company"
 }

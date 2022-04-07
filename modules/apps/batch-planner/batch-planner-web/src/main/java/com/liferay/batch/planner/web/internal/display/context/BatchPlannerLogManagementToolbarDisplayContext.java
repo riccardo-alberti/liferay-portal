@@ -26,6 +26,8 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import java.util.List;
 import java.util.Objects;
 
+import javax.portlet.PortletURL;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -72,6 +74,13 @@ public class BatchPlannerLogManagementToolbarDisplayContext
 	@Override
 	public String getFilterNavigationDropdownItemsLabel() {
 		return LanguageUtil.get(httpServletRequest, "filter-by-action");
+	}
+
+	@Override
+	public String getSearchActionURL() {
+		PortletURL searchActionURL = getPortletURL();
+
+		return searchActionURL.toString();
 	}
 
 	@Override

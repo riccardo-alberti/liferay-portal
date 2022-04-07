@@ -32,6 +32,7 @@ import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentEntry;
+import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalFolderConstants;
@@ -41,6 +42,8 @@ import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
+import com.liferay.layout.util.structure.LayoutStructure;
+import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -73,6 +76,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.sites.kernel.util.SitesUtil;
 
 import java.io.Closeable;
@@ -87,6 +91,7 @@ import java.nio.file.StandardOpenOption;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -330,6 +335,10 @@ public class ExportImportPerformanceTest {
 			return;
 		}
 
+		long defaultSegmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				draftLayout.getPlid());
+
 		for (int i = 0; i < _fragmentEntryLinksPerLayout; i++) {
 			FragmentEntry fragmentEntry =
 				_fragmentCollectionContributorTracker.getFragmentEntry(
@@ -337,9 +346,10 @@ public class ExportImportPerformanceTest {
 
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
 				TestPropsValues.getUserId(), _group.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(), 0, draftLayout.getPlid(),
-				fragmentEntry.getCss(), fragmentEntry.getHtml(),
-				fragmentEntry.getJs(), fragmentEntry.getConfiguration(),
+				fragmentEntry.getFragmentEntryId(), defaultSegmentsExperienceId,
+				draftLayout.getPlid(), fragmentEntry.getCss(),
+				fragmentEntry.getHtml(), fragmentEntry.getJs(),
+				fragmentEntry.getConfiguration(),
 				StringUtil.replace(
 					_TMPL_FRAGMENT_EDITABLE_VALUES, "${", "}",
 					HashMapBuilder.put(
@@ -385,9 +395,10 @@ public class ExportImportPerformanceTest {
 				PortletIdCodec.encode(JournalPortletKeys.JOURNAL, instanceId));
 
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
-				draftLayout.getPlid(), StringPool.BLANK, StringPool.BLANK,
-				StringPool.BLANK, StringPool.BLANK,
+				TestPropsValues.getUserId(), _group.getGroupId(), 0, 0,
+				defaultSegmentsExperienceId, draftLayout.getPlid(),
+				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+				StringPool.BLANK,
 				StringUtil.replace(
 					_TMPL_FRAGMENT_PORTLET, "${", "}",
 					HashMapBuilder.put(
@@ -399,8 +410,10 @@ public class ExportImportPerformanceTest {
 		}
 
 		_layoutPageTemplateStructureLocalService.
-			rebuildLayoutPageTemplateStructure(
-				_group.getGroupId(), draftLayout.getPlid());
+			updateLayoutPageTemplateStructureData(
+				_group.getGroupId(), draftLayout.getPlid(),
+				defaultSegmentsExperienceId,
+				_generateContentLayoutStructureJSONObject(draftLayout));
 
 		_layoutCopyHelper.copyLayout(draftLayout, layout);
 	}
@@ -472,6 +485,31 @@ public class ExportImportPerformanceTest {
 		layout.setTypeSettingsProperties(unicodeProperties);
 
 		_layoutLocalService.updateLayout(layout);
+	}
+
+	private String _generateContentLayoutStructureJSONObject(Layout layout) {
+		LayoutStructure layoutStructure = new LayoutStructure();
+
+		LayoutStructureItem rootLayoutStructureItem =
+			layoutStructure.addRootLayoutStructureItem();
+
+		LayoutStructureItem containerStyledLayoutStructureItem =
+			layoutStructure.addContainerStyledLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0);
+
+		List<FragmentEntryLink> fragmentEntryLinks =
+			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
+				_group.getGroupId(), layout.getPlid());
+
+		for (int i = 0; i < fragmentEntryLinks.size(); i++) {
+			FragmentEntryLink fragmentEntryLink = fragmentEntryLinks.get(i);
+
+			layoutStructure.addFragmentStyledLayoutStructureItem(
+				fragmentEntryLink.getFragmentEntryLinkId(),
+				containerStyledLayoutStructureItem.getItemId(), i);
+		}
+
+		return layoutStructure.toString();
 	}
 
 	private String _getInvokerName() {
@@ -584,6 +622,9 @@ public class ExportImportPerformanceTest {
 
 	@Inject
 	private Portal _portal;
+
+	@Inject
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	private ServiceContext _serviceContext;
 

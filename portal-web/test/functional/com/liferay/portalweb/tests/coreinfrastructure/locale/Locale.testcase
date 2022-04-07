@@ -63,6 +63,37 @@ definition {
 		Form.save(localeSaveForm = "Guardar");
 	}
 
+	@priority = "4"
+	test CanChangeDefaultCompanyLocale {
+		property test.name.skip.portal.instance = "Locale#CanChangeDefaultCompanyLocale";
+
+		User.firstLoginPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Welcome to Liferay");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Localization",
+			configurationName = "Language",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.configureCurrentLanguagesCP(defaultPortalLanguage = "Spanish (Spain)");
+
+		User.logoutPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Bienvenido a Liferay");
+	}
+
 	@priority = "3"
 	test CannotAccessDisabledLocale {
 		property custom.properties = "locales.enabled=en_US,zh_CN,es_ES,fr_FR";
@@ -84,7 +115,7 @@ definition {
 
 		task ("Assert preferred locale persists by asserting Widget name.") {
 			AssertElementPresent(
-				key_portletName = "Menu de Navigation",
+				key_portletName = "Menu Affichage",
 				locator1 = "Portlet#TITLE");
 		}
 
@@ -187,7 +218,7 @@ definition {
 
 		task ("Assert preferred locale persists by asserting Widget name.") {
 			AssertElementPresent(
-				key_portletName = "Menu de Navigation",
+				key_portletName = "Menu Affichage",
 				locator1 = "Portlet#TITLE");
 		}
 
@@ -236,6 +267,52 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name");
 
 		Portlet.viewTitle(portletName = "IFrame");
+	}
+
+	@priority = "3"
+	test InstanceCreatedOnRestartPickUpNewCompanyLocale {
+		property test.name.skip.portal.instance = "Locale#InstanceCreatedOnRestartPickUpNewCompanyLocale";
+
+		User.firstLoginPG();
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Welcome to Liferay");
+
+		Portlet.shutdownServer();
+
+		AntCommand(
+			locator1 = "build-test.xml",
+			value1 = "portal-ext-properties-update -Dadd.new.properties=true -Dupdate.properties=company.default.locale=es_ES");
+
+		Portlet.startServer(deleteLiferayHome = "false");
+
+		HeadlessPortalInstanceAPI.addPortalInstance(
+			domain = "www.able.com",
+			portalInstanceId = "www.able.com",
+			virtualHost = "www.able.com");
+
+		ApplicationsMenu.gotoPortlet(
+			category = "System",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.viewCP(virtualHost = "www.able.com");
+
+		User.firstLoginUI(
+			localization = "ES",
+			localizedAgree = "Acepto",
+			localizedAnswer = "Respuesta",
+			localizedSaveButton = "Guardar",
+			password = "test",
+			specificURL = "http://www.able.com:8080",
+			userEmailAddress = "test@www.able.com");
+
+		ContentPages.viewFragmentText(
+			fragmentName = "heading",
+			id = "element-text",
+			text = "Bienvenido a Liferay");
 	}
 
 	@priority = "3"
@@ -699,6 +776,50 @@ definition {
 			AssertTextEquals(
 				locator1 = "UserBar#USER_SIGN_IN",
 				value1 = "Acceder");
+		}
+	}
+
+	@priority = "4"
+	test ViewTimeZoneIDInNonEnglishLocale {
+		property test.name.skip.portal.instance = "Locale#ViewTimeZoneIDInNonDefaultLocale";
+
+		User.firstLoginPG();
+
+		var baseURL = PropsUtil.get("portal.url");
+
+		task ("Assert time zone id America/Phoenix always displays in English") {
+			Navigator.openSpecificURL(url = "${baseURL}/ja/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "ローカライズ",
+				configurationName = "標準時",
+				configurationScope = "仮想インスタンススコープ");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) 山地標準時 (America/Phoenix)");
+
+			Navigator.openSpecificURL(url = "${baseURL}/es/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Localización",
+				configurationName = "Zona horaria",
+				configurationScope = "Ámbito de instancia virtual");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) Hora estándar de las Rocosas (America/Phoenix)");
+
+			Navigator.openSpecificURL(url = "${baseURL}/zh/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_InstanceSettingsPortlet");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "本地化",
+				configurationName = "时区",
+				configurationScope = "虚拟实例范围");
+
+			AssertElementPresent(
+				locator1 = "Select#TIME_ZONE",
+				value1 = "(UTC -07:00) Mountain 标准时间 (America/Phoenix)");
 		}
 	}
 

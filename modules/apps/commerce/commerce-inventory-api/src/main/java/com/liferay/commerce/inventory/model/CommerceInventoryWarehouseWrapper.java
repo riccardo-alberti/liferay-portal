@@ -56,6 +56,7 @@ public class CommerceInventoryWarehouseWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
+		attributes.put("label", getLabel());
 		attributes.put("active", isActive());
 		attributes.put("street1", getStreet1());
 		attributes.put("street2", getStreet2());
@@ -68,6 +69,10 @@ public class CommerceInventoryWarehouseWrapper
 		attributes.put("latitude", getLatitude());
 		attributes.put("longitude", getLongitude());
 		attributes.put("type", getType());
+		attributes.put("status", getStatus());
+		attributes.put("statusByUserId", getStatusByUserId());
+		attributes.put("statusByUserName", getStatusByUserName());
+		attributes.put("statusDate", getStatusDate());
 
 		return attributes;
 	}
@@ -134,6 +139,12 @@ public class CommerceInventoryWarehouseWrapper
 
 		if (description != null) {
 			setDescription(description);
+		}
+
+		String label = (String)attributes.get("label");
+
+		if (label != null) {
+			setLabel(label);
 		}
 
 		Boolean active = (Boolean)attributes.get("active");
@@ -203,6 +214,30 @@ public class CommerceInventoryWarehouseWrapper
 		if (type != null) {
 			setType(type);
 		}
+
+		Integer status = (Integer)attributes.get("status");
+
+		if (status != null) {
+			setStatus(status);
+		}
+
+		Long statusByUserId = (Long)attributes.get("statusByUserId");
+
+		if (statusByUserId != null) {
+			setStatusByUserId(statusByUserId);
+		}
+
+		String statusByUserName = (String)attributes.get("statusByUserName");
+
+		if (statusByUserName != null) {
+			setStatusByUserName(statusByUserName);
+		}
+
+		Date statusDate = (Date)attributes.get("statusDate");
+
+		if (statusDate != null) {
+			setStatusDate(statusDate);
+		}
 	}
 
 	@Override
@@ -218,6 +253,11 @@ public class CommerceInventoryWarehouseWrapper
 	@Override
 	public boolean getActive() {
 		return model.getActive();
+	}
+
+	@Override
+	public String[] getAvailableLanguageIds() {
+		return model.getAvailableLanguageIds();
 	}
 
 	/**
@@ -287,6 +327,11 @@ public class CommerceInventoryWarehouseWrapper
 		return model.getCreateDate();
 	}
 
+	@Override
+	public String getDefaultLanguageId() {
+		return model.getDefaultLanguageId();
+	}
+
 	/**
 	 * Returns the description of this commerce inventory warehouse.
 	 *
@@ -298,6 +343,72 @@ public class CommerceInventoryWarehouseWrapper
 	}
 
 	/**
+	 * Returns the localized description of this commerce inventory warehouse in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized description of this commerce inventory warehouse
+	 */
+	@Override
+	public String getDescription(java.util.Locale locale) {
+		return model.getDescription(locale);
+	}
+
+	/**
+	 * Returns the localized description of this commerce inventory warehouse in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized description of this commerce inventory warehouse. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@Override
+	public String getDescription(java.util.Locale locale, boolean useDefault) {
+		return model.getDescription(locale, useDefault);
+	}
+
+	/**
+	 * Returns the localized description of this commerce inventory warehouse in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized description of this commerce inventory warehouse
+	 */
+	@Override
+	public String getDescription(String languageId) {
+		return model.getDescription(languageId);
+	}
+
+	/**
+	 * Returns the localized description of this commerce inventory warehouse in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized description of this commerce inventory warehouse
+	 */
+	@Override
+	public String getDescription(String languageId, boolean useDefault) {
+		return model.getDescription(languageId, useDefault);
+	}
+
+	@Override
+	public String getDescriptionCurrentLanguageId() {
+		return model.getDescriptionCurrentLanguageId();
+	}
+
+	@Override
+	public String getDescriptionCurrentValue() {
+		return model.getDescriptionCurrentValue();
+	}
+
+	/**
+	 * Returns a map of the locales and localized descriptions of this commerce inventory warehouse.
+	 *
+	 * @return the locales and localized descriptions of this commerce inventory warehouse
+	 */
+	@Override
+	public Map<java.util.Locale, String> getDescriptionMap() {
+		return model.getDescriptionMap();
+	}
+
+	/**
 	 * Returns the external reference code of this commerce inventory warehouse.
 	 *
 	 * @return the external reference code of this commerce inventory warehouse
@@ -305,6 +416,82 @@ public class CommerceInventoryWarehouseWrapper
 	@Override
 	public String getExternalReferenceCode() {
 		return model.getExternalReferenceCode();
+	}
+
+	/**
+	 * Returns the label of this commerce inventory warehouse.
+	 *
+	 * @return the label of this commerce inventory warehouse
+	 */
+	@Override
+	public String getLabel() {
+		return model.getLabel();
+	}
+
+	/**
+	 * Returns the localized label of this commerce inventory warehouse in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the locale of the language
+	 * @return the localized label of this commerce inventory warehouse
+	 */
+	@Override
+	public String getLabel(java.util.Locale locale) {
+		return model.getLabel(locale);
+	}
+
+	/**
+	 * Returns the localized label of this commerce inventory warehouse in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param locale the local of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this commerce inventory warehouse. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
+	 */
+	@Override
+	public String getLabel(java.util.Locale locale, boolean useDefault) {
+		return model.getLabel(locale, useDefault);
+	}
+
+	/**
+	 * Returns the localized label of this commerce inventory warehouse in the language. Uses the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @return the localized label of this commerce inventory warehouse
+	 */
+	@Override
+	public String getLabel(String languageId) {
+		return model.getLabel(languageId);
+	}
+
+	/**
+	 * Returns the localized label of this commerce inventory warehouse in the language, optionally using the default language if no localization exists for the requested language.
+	 *
+	 * @param languageId the ID of the language
+	 * @param useDefault whether to use the default language if no localization exists for the requested language
+	 * @return the localized label of this commerce inventory warehouse
+	 */
+	@Override
+	public String getLabel(String languageId, boolean useDefault) {
+		return model.getLabel(languageId, useDefault);
+	}
+
+	@Override
+	public String getLabelCurrentLanguageId() {
+		return model.getLabelCurrentLanguageId();
+	}
+
+	@Override
+	public String getLabelCurrentValue() {
+		return model.getLabelCurrentValue();
+	}
+
+	/**
+	 * Returns a map of the locales and localized labels of this commerce inventory warehouse.
+	 *
+	 * @return the locales and localized labels of this commerce inventory warehouse
+	 */
+	@Override
+	public Map<java.util.Locale, String> getLabelMap() {
+		return model.getLabelMap();
 	}
 
 	/**
@@ -365,6 +552,56 @@ public class CommerceInventoryWarehouseWrapper
 	@Override
 	public long getPrimaryKey() {
 		return model.getPrimaryKey();
+	}
+
+	/**
+	 * Returns the status of this commerce inventory warehouse.
+	 *
+	 * @return the status of this commerce inventory warehouse
+	 */
+	@Override
+	public int getStatus() {
+		return model.getStatus();
+	}
+
+	/**
+	 * Returns the status by user ID of this commerce inventory warehouse.
+	 *
+	 * @return the status by user ID of this commerce inventory warehouse
+	 */
+	@Override
+	public long getStatusByUserId() {
+		return model.getStatusByUserId();
+	}
+
+	/**
+	 * Returns the status by user name of this commerce inventory warehouse.
+	 *
+	 * @return the status by user name of this commerce inventory warehouse
+	 */
+	@Override
+	public String getStatusByUserName() {
+		return model.getStatusByUserName();
+	}
+
+	/**
+	 * Returns the status by user uuid of this commerce inventory warehouse.
+	 *
+	 * @return the status by user uuid of this commerce inventory warehouse
+	 */
+	@Override
+	public String getStatusByUserUuid() {
+		return model.getStatusByUserUuid();
+	}
+
+	/**
+	 * Returns the status date of this commerce inventory warehouse.
+	 *
+	 * @return the status date of this commerce inventory warehouse
+	 */
+	@Override
+	public Date getStatusDate() {
+		return model.getStatusDate();
 	}
 
 	/**
@@ -457,14 +694,109 @@ public class CommerceInventoryWarehouseWrapper
 		return model.isActive();
 	}
 
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is approved.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is approved; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isApproved() {
+		return model.isApproved();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is denied.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied() {
+		return model.isDenied();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is a draft.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is a draft; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDraft() {
+		return model.isDraft();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is expired.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is expired; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isExpired() {
+		return model.isExpired();
+	}
+
 	@Override
 	public boolean isGeolocated() {
 		return model.isGeolocated();
 	}
 
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is inactive.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive() {
+		return model.isInactive();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is incomplete.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete() {
+		return model.isIncomplete();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is pending.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is pending; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isPending() {
+		return model.isPending();
+	}
+
+	/**
+	 * Returns <code>true</code> if this commerce inventory warehouse is scheduled.
+	 *
+	 * @return <code>true</code> if this commerce inventory warehouse is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled() {
+		return model.isScheduled();
+	}
+
 	@Override
 	public void persist() {
 		model.persist();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.kernel.exception.LocaleException {
+
+		model.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport(
+			java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.kernel.exception.LocaleException {
+
+		model.prepareLocalizedFieldsForImport(defaultImportLocale);
 	}
 
 	/**
@@ -550,6 +882,63 @@ public class CommerceInventoryWarehouseWrapper
 	}
 
 	/**
+	 * Sets the localized description of this commerce inventory warehouse in the language.
+	 *
+	 * @param description the localized description of this commerce inventory warehouse
+	 * @param locale the locale of the language
+	 */
+	@Override
+	public void setDescription(String description, java.util.Locale locale) {
+		model.setDescription(description, locale);
+	}
+
+	/**
+	 * Sets the localized description of this commerce inventory warehouse in the language, and sets the default locale.
+	 *
+	 * @param description the localized description of this commerce inventory warehouse
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setDescription(
+		String description, java.util.Locale locale,
+		java.util.Locale defaultLocale) {
+
+		model.setDescription(description, locale, defaultLocale);
+	}
+
+	@Override
+	public void setDescriptionCurrentLanguageId(String languageId) {
+		model.setDescriptionCurrentLanguageId(languageId);
+	}
+
+	/**
+	 * Sets the localized descriptions of this commerce inventory warehouse from the map of locales and localized descriptions.
+	 *
+	 * @param descriptionMap the locales and localized descriptions of this commerce inventory warehouse
+	 */
+	@Override
+	public void setDescriptionMap(
+		Map<java.util.Locale, String> descriptionMap) {
+
+		model.setDescriptionMap(descriptionMap);
+	}
+
+	/**
+	 * Sets the localized descriptions of this commerce inventory warehouse from the map of locales and localized descriptions, and sets the default locale.
+	 *
+	 * @param descriptionMap the locales and localized descriptions of this commerce inventory warehouse
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setDescriptionMap(
+		Map<java.util.Locale, String> descriptionMap,
+		java.util.Locale defaultLocale) {
+
+		model.setDescriptionMap(descriptionMap, defaultLocale);
+	}
+
+	/**
 	 * Sets the external reference code of this commerce inventory warehouse.
 	 *
 	 * @param externalReferenceCode the external reference code of this commerce inventory warehouse
@@ -557,6 +946,70 @@ public class CommerceInventoryWarehouseWrapper
 	@Override
 	public void setExternalReferenceCode(String externalReferenceCode) {
 		model.setExternalReferenceCode(externalReferenceCode);
+	}
+
+	/**
+	 * Sets the label of this commerce inventory warehouse.
+	 *
+	 * @param label the label of this commerce inventory warehouse
+	 */
+	@Override
+	public void setLabel(String label) {
+		model.setLabel(label);
+	}
+
+	/**
+	 * Sets the localized label of this commerce inventory warehouse in the language.
+	 *
+	 * @param label the localized label of this commerce inventory warehouse
+	 * @param locale the locale of the language
+	 */
+	@Override
+	public void setLabel(String label, java.util.Locale locale) {
+		model.setLabel(label, locale);
+	}
+
+	/**
+	 * Sets the localized label of this commerce inventory warehouse in the language, and sets the default locale.
+	 *
+	 * @param label the localized label of this commerce inventory warehouse
+	 * @param locale the locale of the language
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setLabel(
+		String label, java.util.Locale locale, java.util.Locale defaultLocale) {
+
+		model.setLabel(label, locale, defaultLocale);
+	}
+
+	@Override
+	public void setLabelCurrentLanguageId(String languageId) {
+		model.setLabelCurrentLanguageId(languageId);
+	}
+
+	/**
+	 * Sets the localized labels of this commerce inventory warehouse from the map of locales and localized labels.
+	 *
+	 * @param labelMap the locales and localized labels of this commerce inventory warehouse
+	 */
+	@Override
+	public void setLabelMap(Map<java.util.Locale, String> labelMap) {
+		model.setLabelMap(labelMap);
+	}
+
+	/**
+	 * Sets the localized labels of this commerce inventory warehouse from the map of locales and localized labels, and sets the default locale.
+	 *
+	 * @param labelMap the locales and localized labels of this commerce inventory warehouse
+	 * @param defaultLocale the default locale
+	 */
+	@Override
+	public void setLabelMap(
+		Map<java.util.Locale, String> labelMap,
+		java.util.Locale defaultLocale) {
+
+		model.setLabelMap(labelMap, defaultLocale);
 	}
 
 	/**
@@ -617,6 +1070,56 @@ public class CommerceInventoryWarehouseWrapper
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		model.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	 * Sets the status of this commerce inventory warehouse.
+	 *
+	 * @param status the status of this commerce inventory warehouse
+	 */
+	@Override
+	public void setStatus(int status) {
+		model.setStatus(status);
+	}
+
+	/**
+	 * Sets the status by user ID of this commerce inventory warehouse.
+	 *
+	 * @param statusByUserId the status by user ID of this commerce inventory warehouse
+	 */
+	@Override
+	public void setStatusByUserId(long statusByUserId) {
+		model.setStatusByUserId(statusByUserId);
+	}
+
+	/**
+	 * Sets the status by user name of this commerce inventory warehouse.
+	 *
+	 * @param statusByUserName the status by user name of this commerce inventory warehouse
+	 */
+	@Override
+	public void setStatusByUserName(String statusByUserName) {
+		model.setStatusByUserName(statusByUserName);
+	}
+
+	/**
+	 * Sets the status by user uuid of this commerce inventory warehouse.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this commerce inventory warehouse
+	 */
+	@Override
+	public void setStatusByUserUuid(String statusByUserUuid) {
+		model.setStatusByUserUuid(statusByUserUuid);
+	}
+
+	/**
+	 * Sets the status date of this commerce inventory warehouse.
+	 *
+	 * @param statusDate the status date of this commerce inventory warehouse
+	 */
+	@Override
+	public void setStatusDate(Date statusDate) {
+		model.setStatusDate(statusDate);
 	}
 
 	/**

@@ -160,16 +160,15 @@ public class AssetEntriesCheckerHelper {
 			return;
 		}
 
-		List<Subscription> subscriptions =
+		_notifySubscribers(
 			_subscriptionLocalService.getSubscriptions(
 				portletPreferencesModel.getCompanyId(),
 				com.liferay.portal.kernel.model.PortletPreferences.class.
 					getName(),
 				_assetPublisherWebHelper.getSubscriptionClassPK(
 					portletPreferencesModel.getPlid(),
-					portletPreferencesModel.getPortletId()));
-
-		_notifySubscribers(subscriptions, portletPreferences, newAssetEntries);
+					portletPreferencesModel.getPortletId())),
+			portletPreferences, newAssetEntries);
 
 		NotifiedAssetEntryThreadLocal.setNotifiedAssetEntryIdsModified(true);
 
@@ -207,7 +206,7 @@ public class AssetEntriesCheckerHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return Collections.emptyList();
@@ -225,7 +224,7 @@ public class AssetEntriesCheckerHelper {
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
-					_log.debug(exception, exception);
+					_log.debug(exception);
 				}
 			}
 		}
@@ -271,7 +270,7 @@ public class AssetEntriesCheckerHelper {
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
-				_log.debug(exception, exception);
+				_log.debug(exception);
 			}
 
 			return Collections.emptyList();

@@ -24,3 +24,7 @@ create unique index IX_8D9FD306 on CIWarehouseItem (commerceInventoryWarehouseId
 create index IX_8A09C40B on CIWarehouseItem (companyId, externalReferenceCode[$COLUMN_LENGTH:75$]);
 create index IX_F8B2565B on CIWarehouseItem (companyId, sku[$COLUMN_LENGTH:75$]);
 create index IX_97CADC57 on CIWarehouseItem (sku[$COLUMN_LENGTH:75$]);
+
+create unique index IX_BCF09933 on CIWarehouseOrderTypeRel (commerceInventoryWarehouseId, commerceOrderTypeId);
+create index IX_9EA1B004 on CIWarehouseOrderTypeRel (commerceOrderTypeId);
+create index IX_9D120EA8 on CIWarehouseOrderTypeRel (uuid_[$COLUMN_LENGTH:75$], companyId);
