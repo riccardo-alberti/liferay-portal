@@ -64,7 +64,7 @@ boolean hasPermission = commerceDiscountQualifiersDisplayContext.hasPermission(A
 		<%@ include file="/commerce_discounts/qualifier/channels.jspf" %>
 	</c:if>
 
-	<div class="row">
+	<%-- <div class="row">
 		<div class="col-12">
 			<commerce-ui:panel
 				bodyClasses="flex-fill"
@@ -84,7 +84,7 @@ boolean hasPermission = commerceDiscountQualifiersDisplayContext.hasPermission(A
 
 	<c:if test='<%= Objects.equals(orderTypeQualifiers, "orderTypes") %>'>
 		<%@ include file="/commerce_discounts/qualifier/order_types.jspf" %>
-	</c:if>
+	</c:if> --%>
 </aui:form>
 
 <liferay-frontend:component

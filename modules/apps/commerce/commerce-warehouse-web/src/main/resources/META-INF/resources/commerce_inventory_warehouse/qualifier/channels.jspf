@@ -1,4 +1,7 @@
-<%--
+<%@ page
+	import="com.liferay.commerce.warehouse.web.internal.constants.CommerceInventoryWarehouseFDSNames" %>
+<%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %>
+<%@ page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%--
 /**
  * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
@@ -17,62 +20,20 @@
 <c:if test="<%= hasPermission %>">
 	<div id="item-finder-root-channel"></div>
 
-	<aui:script require="commerce-frontend-js/components/item_finder/entry as itemFinder, commerce-frontend-js/utilities/slugify as slugify, commerce-frontend-js/utilities/eventsDefinitions as events, commerce-frontend-js/ServiceProvider/index as ServiceProvider">
-		var CommerceDiscountChannelsResource = ServiceProvider.default.AdminPricingAPI(
-			'v2'
-		);
-
-		var id = <%= commerceDiscountId %>;
-		var discountExternalReferenceCode =
-			'<%= HtmlUtil.escapeJS(commerceDiscount.getExternalReferenceCode()) %>';
-
-		function selectItem(channel) {
-			var channelData = {
-				channelExternalReferenceCode: channel.externalReferenceCode,
-				channelId: channel.id,
-				discountExternalReferenceCode: discountExternalReferenceCode,
-				discountId: id,
-			};
-
-			return CommerceDiscountChannelsResource.addDiscountChannel(id, channelData)
-				.then(() => {
-					Liferay.fire(events.UPDATE_DATASET_DISPLAY, {
-						id:
-							'<%= CommercePricingFDSNames.DISCOUNT_QUALIFIER_CHANNELS %>',
-					});
-				})
-				.catch((error) => {
-					return Promise.reject(error);
-				});
-		}
-
-		function getSelectedItems() {
-			return Promise.resolve([]);
-		}
-
-		itemFinder.default('itemFinder', 'item-finder-root-channel', {
-			apiUrl: '/o/headless-commerce-admin-channel/v1.0/channels',
-			getSelectedItems: getSelectedItems,
-			inputPlaceholder: '<%= LanguageUtil.get(request, "find-a-channel") %>',
-			itemSelectedMessage: '<%= LanguageUtil.get(request, "channel-selected") %>',
-			linkedDatasetsId: [
-				'<%= CommercePricingFDSNames.DISCOUNT_QUALIFIER_CHANNELS %>',
-			],
-			itemCreation: false,
-			itemsKey: 'id',
-			onItemSelected: selectItem,
-			pageSize: 10,
-			panelHeaderLabel: '<%= LanguageUtil.get(request, "add-channels") %>',
-			portletId: '<%= portletDisplay.getRootPortletId() %>',
-			schema: [
-				{
-					fieldName: 'name',
-				},
-			],
-			spritemap: '<%= themeDisplay.getPathThemeImages() %>/clay/icons.svg',
-			titleLabel: '<%= LanguageUtil.get(request, "add-existing-channel") %>',
-		});
-	</aui:script>
+	<liferay-frontend:component
+		context='<%=
+			HashMapBuilder.<String, Object>put(
+				"commerceOrderTypeId", commerceOrderTypeId
+			).put(
+				"datasetId", CommerceInventoryWarehouseFDSNames.DISCOUNT_QUALIFIER_CHANNELS
+			).put(
+				"orderTypeExternalReferenceCode", HtmlUtil.escapeJS(commerceInven .getExternalReferenceCode())
+			).put(
+				"rootPortletId", portletDisplay.getRootPortletId()
+			).build()
+		%>'
+		module="js/channels"
+	/>
 
 	<commerce-ui:panel
 		bodyClasses="p-0"
