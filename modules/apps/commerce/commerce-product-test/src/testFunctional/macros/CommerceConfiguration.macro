@@ -64,9 +64,13 @@ definition {
 	}
 
 	macro commerceAdminTearDown {
+		GogoShell.openGogoShellAdmin();
+
+        GogoShell.executeCommand(commandName = "commerceAdminTearDown");
+
 		Navigator.openURL();
 
-		CommerceJSONOrdersAPI._deleteAllCommerceOrders();
+		//CommerceJSONOrdersAPI._deleteAllCommerceOrders();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Order Management",
@@ -74,7 +78,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONShipmentsAPI._deleteAllCommerceShipments();
+		//CommerceJSONShipmentsAPI._deleteAllCommerceShipments();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Order Management",
@@ -102,7 +106,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONProductsAPI._deleteAllCommerceProducts();
+		//CommerceJSONProductsAPI._deleteAllCommerceProducts();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -110,7 +114,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONOptionsAPI._deleteAllCommerceOptions();
+		//CommerceJSONOptionsAPI._deleteAllCommerceOptions();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -118,9 +122,9 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONSpecificationGroupsAPI._deleteAllCommerceSpecificationGroups();
+		//CommerceJSONSpecificationGroupsAPI._deleteAllCommerceSpecificationGroups();
 
-		CommerceJSONSpecificationsAPI._deleteAllCommerceSpecifications();
+		//CommerceJSONSpecificationsAPI._deleteAllCommerceSpecifications();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Product Management",
@@ -132,7 +136,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONChannelsAPI._deleteAllCommerceChannels();
+		//CommerceJSONChannelsAPI._deleteAllCommerceChannels();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Store Management",
@@ -176,7 +180,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONAvailableEstimatesAPI._deleteCommerceAvailableEstimates();
+		//CommerceJSONAvailableEstimatesAPI._deleteCommerceAvailableEstimates();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Settings",
@@ -184,7 +188,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONMeasurementUnitsAPI._deleteCommerceMeasurementUnits();
+		//CommerceJSONMeasurementUnitsAPI._deleteCommerceMeasurementUnits();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Settings",
@@ -204,7 +208,7 @@ definition {
 
 		IsElementPresent(locator1 = "CommerceNavigation#EMPTY_SEARCH_CONTAINER");
 
-		CommerceJSONWarehousesAndInventoriesAPI._deleteAllWarehouseItems();
+		//CommerceJSONWarehousesAndInventoriesAPI._deleteAllWarehouseItems();
 
 		CommerceNavigator.gotoPortlet(
 			category = "Inventory Management",

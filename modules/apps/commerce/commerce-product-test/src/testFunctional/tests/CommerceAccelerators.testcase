@@ -36,6 +36,12 @@ definition {
 		User.logoutPG();
 	}
 
+	test VictorCarloOscuro {
+		property portal.acceptance = "false";
+
+    	CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+	}
+
 	@description = "This is a functional test for COMMERCE-8145 - Without an account, add to cart and quantity selector are disabled for admin user"
 	@priority = "4"
 	test AddToCartButtonAndQuantitySelectorAreDisabledForAdminUser {
