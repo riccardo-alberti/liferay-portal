@@ -240,6 +240,36 @@ public interface ObjectActionModel
 	public void setActive(boolean active);
 
 	/**
+	 * Returns the condition expression of this object action.
+	 *
+	 * @return the condition expression of this object action
+	 */
+	@AutoEscape
+	public String getConditionExpression();
+
+	/**
+	 * Sets the condition expression of this object action.
+	 *
+	 * @param conditionExpression the condition expression of this object action
+	 */
+	public void setConditionExpression(String conditionExpression);
+
+	/**
+	 * Returns the description of this object action.
+	 *
+	 * @return the description of this object action
+	 */
+	@AutoEscape
+	public String getDescription();
+
+	/**
+	 * Sets the description of this object action.
+	 *
+	 * @param description the description of this object action
+	 */
+	public void setDescription(String description);
+
+	/**
 	 * Returns the name of this object action.
 	 *
 	 * @return the name of this object action

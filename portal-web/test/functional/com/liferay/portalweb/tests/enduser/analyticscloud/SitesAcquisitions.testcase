@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -267,7 +269,9 @@ definition {
 	test AssertSitesAcquisitionCardReferrersHighestSession {
 		task ("Get the portal URL") {
 			var portalURL = PropsUtil.get("portal.url");
+
 			var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 		}
 
@@ -341,7 +345,9 @@ definition {
 	test AssertSitesAcquisitionCardSourceAndMediumHighestSession {
 		task ("Get the portal URL") {
 			var portalURL = PropsUtil.get("portal.url");
+
 			var portalURL = StringUtil.replace("${portalURL}", "http://", "");
+
 			var portalURL = StringUtil.replace("${portalURL}", ":8080", "");
 		}
 

@@ -14,7 +14,6 @@
 
 package com.liferay.portlet;
 
-import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -23,6 +22,7 @@ import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
 import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
+import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
@@ -181,12 +181,10 @@ public class PortletPreferencesFactoryImpl
 			return;
 		}
 
-		PortletPreferencesIds portletPreferencesIds = getPortletPreferencesIds(
-			themeDisplay.getScopeGroupId(), themeDisplay.getUserId(), layout,
-			portletId, false);
-
 		PortletPreferencesLocalServiceUtil.getPreferences(
-			portletPreferencesIds);
+			getPortletPreferencesIds(
+				themeDisplay.getScopeGroupId(), themeDisplay.getUserId(),
+				layout, portletId, false));
 	}
 
 	@Override
@@ -327,7 +325,8 @@ public class PortletPreferencesFactoryImpl
 
 			try {
 				userId = GetterUtil.getLong(
-					Encryptor.decrypt(company.getKeyObj(), doAsUserId), userId);
+					EncryptorUtil.decrypt(company.getKeyObj(), doAsUserId),
+					userId);
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
@@ -403,11 +402,8 @@ public class PortletPreferencesFactoryImpl
 			HttpServletRequest httpServletRequest, String portletId)
 		throws PortalException {
 
-		PortletPreferencesIds portletPreferencesIds = getPortletPreferencesIds(
-			httpServletRequest, portletId);
-
 		return PortletPreferencesLocalServiceUtil.getPreferences(
-			portletPreferencesIds);
+			getPortletPreferencesIds(httpServletRequest, portletId));
 	}
 
 	@Override

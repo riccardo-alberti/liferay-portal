@@ -61,8 +61,10 @@ import getLexiconIconTpl from './util/get_lexicon_icon_template';
 import getOpener from './util/get_opener';
 import getPortletId from './util/get_portlet_id';
 import getPortletNamespace from './util/get_portlet_namespace.es';
+import getSelectedOptionValues from './util/get_selected_option_values';
 import getTop from './util/get_top';
 import getURLWithSessionId from './util/get_url_with_session_id';
+import getWindow from './util/get_window';
 import {
 	MAP_HTML_CHARS_ESCAPED,
 	escapeHTML,
@@ -85,6 +87,7 @@ import {getSessionValue, setSessionValue} from './util/session.es';
 import showCapsLock from './util/show_caps_lock';
 import sub from './util/sub';
 import toCharCode from './util/to_char_code.es';
+import toggleControls from './util/toggle_controls';
 import toggleDisabled from './util/toggle_disabled';
 import zIndex from './zIndex';
 
@@ -229,6 +232,7 @@ Liferay.Util.getPortletId = getPortletId;
 Liferay.Util.getPortletNamespace = getPortletNamespace;
 Liferay.Util.getTop = getTop;
 Liferay.Util.getURLWithSessionId = getURLWithSessionId;
+Liferay.Util.getWindow = getWindow;
 Liferay.Util.groupBy = groupBy;
 
 /**
@@ -247,6 +251,8 @@ Liferay.Util.isPhone = isPhone;
  * @deprecated As of Athanasius (7.3.x), replaced by `import {isTablet} from 'frontend-js-web'`
  */
 Liferay.Util.isTablet = isTablet;
+
+Liferay.Util.getSelectedOptionValues = getSelectedOptionValues;
 
 Liferay.Util.navigate = navigate;
 Liferay.Util.ns = ns;
@@ -320,6 +326,7 @@ Liferay.Util.Session = {
 	set: setSessionValue,
 };
 
+Liferay.Util.toggleControls = toggleControls;
 Liferay.Util.unescape = unescape;
 Liferay.Util.unescapeHTML = unescapeHTML;
 

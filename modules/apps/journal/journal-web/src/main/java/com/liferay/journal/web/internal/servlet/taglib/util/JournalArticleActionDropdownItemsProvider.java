@@ -492,12 +492,10 @@ public class JournalArticleActionDropdownItemsProvider {
 				).buildString());
 			dropdownItem.putData(
 				"title",
-				LanguageUtil.get(_httpServletRequest, "delete-translations") +
-					StringPool.TRIPLE_PERIOD);
+				LanguageUtil.get(_httpServletRequest, "delete-translations"));
 
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "delete-translations") +
-					StringPool.TRIPLE_PERIOD);
+				LanguageUtil.get(_httpServletRequest, "delete-translations"));
 		};
 	}
 
@@ -663,7 +661,7 @@ public class JournalArticleActionDropdownItemsProvider {
 				).buildString());
 			dropdownItem.setIcon("trash");
 			dropdownItem.setLabel(
-				LanguageUtil.get(_httpServletRequest, "move-to-recycle-bin"));
+				LanguageUtil.get(_httpServletRequest, "delete"));
 		};
 	}
 

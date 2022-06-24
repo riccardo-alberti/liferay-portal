@@ -1,11 +1,10 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property osgi.modules.includes = "site-initializer-testray";
 	property portal.release = "false";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Testray 2";
 
 	setUp {
@@ -31,14 +30,16 @@ definition {
 	@description = "LPS-149615 - Verify that user can can go to the 'Manage Users' page."
 	@priority = "5"
 	test CanAcessManageUser {
+		property portal.upstream = "quarantine";
+
 		ApplicationsMenu.gotoSite(site = "Testray 2");
 
-		Click(locator1 = "TestrayUser#USER_ICON_SIDEBAR");
+		TestrayLayout.clickUserOnSidebar();
 
 		Click(locator1 = "TestrayUser#MANAGE_ACCOUNT");
 
 		AssertElementPresent(
-			key_projectName = "Project Directory",
+			key_projectName = "Project",
 			locator1 = "TestrayDropdown#PROJECT_NAME_BREADCRUMBS");
 	}
 

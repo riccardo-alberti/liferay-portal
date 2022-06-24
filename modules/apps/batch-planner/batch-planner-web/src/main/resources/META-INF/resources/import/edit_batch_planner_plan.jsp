@@ -44,24 +44,26 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 
 					<div class="card-body">
 						<liferay-frontend:edit-form-body>
-							<div id="<portlet:namespace />templateSelect"></div>
+							<aui:input name="name" />
 
-							<clay:select
-								id='<%= liferayPortletResponse.getNamespace() + "headlessEndpoint" %>'
-								label='<%= LanguageUtil.get(request, "headless-endpoint") %>'
-								name="headlessEndpoint"
-								options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
-							/>
+							<clay:row>
+								<clay:col
+									md="6"
+								>
+									<div id="<portlet:namespace />templateSelect"></div>
+								</clay:col>
 
-							<div class="mt-2">
-								<clay:select
-									disabled="<%= true %>"
-									id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
-									label='<%= LanguageUtil.get(request, "entity-name") %>'
-									name="internalClassName"
-									options="<%= editBatchPlannerPlanDisplayContext.getSelectOptions() %>"
-								/>
-							</div>
+								<clay:col
+									md="6"
+								>
+									<clay:select
+										id='<%= liferayPortletResponse.getNamespace() + "internalClassName" %>'
+										label='<%= LanguageUtil.get(request, "entity-type") %>'
+										name="internalClassName"
+										options="<%= editBatchPlannerPlanDisplayContext.getInternalClassNameSelectOptions() %>"
+									/>
+								</clay:col>
+							</clay:row>
 
 							<clay:alert
 								displayType="info"
@@ -71,9 +73,23 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 									cssClass="link-primary single-link"
 									disabled="<%= true %>"
 									href="#"
+									id='<%= liferayPortletResponse.getNamespace() + "downloadBatchPlannerPlanTemplate" %>'
 									label="download"
 								/>
 							</clay:alert>
+
+							<liferay-frontend:component
+								context='<%=
+									HashMapBuilder.<String, Object>put(
+										"externalReferenceCode", liferayPortletResponse.getNamespace() + "internalClassName"
+									).put(
+										"HTMLElementId", liferayPortletResponse.getNamespace() + "downloadBatchPlannerPlanTemplate"
+									).put(
+										"type", "batchPlannerTemplate"
+									).build()
+								%>'
+								module="js/DownloadHelper"
+							/>
 
 							<div class="mt-2">
 								<clay:checkbox
@@ -87,9 +103,9 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 							<div class="mt-2">
 								<clay:checkbox
 									checked="<%= false %>"
-									disabled="<%= true %>"
+									id='<%= liferayPortletResponse.getNamespace() + "allowUpdate" %>'
 									label='<%= LanguageUtil.get(request, "override-existing-records") %>'
-									name="headerCheckbox"
+									name='<%= liferayPortletResponse.getNamespace() + "allowUpdate" %>'
 								/>
 							</div>
 
@@ -97,8 +113,9 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 								<clay:checkbox
 									checked="<%= true %>"
 									disabled="<%= true %>"
+									id='<%= liferayPortletResponse.getNamespace() + "onUpdateDoPatch" %>'
 									label='<%= LanguageUtil.get(request, "ignore-blank-field-values-during-import") %>'
-									name="headerCheckbox"
+									name='<%= liferayPortletResponse.getNamespace() + "onUpdateDoPatch" %>'
 								/>
 							</div>
 
@@ -190,9 +207,9 @@ renderResponse.setTitle(editable ? LanguageUtil.get(request, "edit-template") : 
 		HashMapBuilder.<String, Object>put(
 			"initialTemplateClassName", editBatchPlannerPlanDisplayContext.getSelectedInternalClassName()
 		).put(
-			"initialTemplateHeadlessEndpoint", editBatchPlannerPlanDisplayContext.getSelectedHeadlessEndpoint()
-		).put(
 			"initialTemplateMapping", editBatchPlannerPlanDisplayContext.getSelectedBatchPlannerPlanMappings()
+		).put(
+			"isExport", false
 		).put(
 			"templatesOptions", editBatchPlannerPlanDisplayContext.getTemplateSelectOptions()
 		).build()

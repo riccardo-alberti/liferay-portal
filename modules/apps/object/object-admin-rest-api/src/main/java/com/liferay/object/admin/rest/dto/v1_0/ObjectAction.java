@@ -121,6 +121,34 @@ public class ObjectAction implements Serializable {
 	protected Boolean active;
 
 	@Schema
+	public String getConditionExpression() {
+		return conditionExpression;
+	}
+
+	public void setConditionExpression(String conditionExpression) {
+		this.conditionExpression = conditionExpression;
+	}
+
+	@JsonIgnore
+	public void setConditionExpression(
+		UnsafeSupplier<String, Exception> conditionExpressionUnsafeSupplier) {
+
+		try {
+			conditionExpression = conditionExpressionUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String conditionExpression;
+
+	@Schema
 	public Date getDateCreated() {
 		return dateCreated;
 	}
@@ -175,6 +203,34 @@ public class ObjectAction implements Serializable {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
+
+	@Schema
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	@JsonIgnore
+	public void setDescription(
+		UnsafeSupplier<String, Exception> descriptionUnsafeSupplier) {
+
+		try {
+			description = descriptionUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String description;
 
 	@Schema
 	public Long getId() {
@@ -366,6 +422,20 @@ public class ObjectAction implements Serializable {
 			sb.append(active);
 		}
 
+		if (conditionExpression != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"conditionExpression\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(conditionExpression));
+
+			sb.append("\"");
+		}
+
 		if (dateCreated != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -390,6 +460,20 @@ public class ObjectAction implements Serializable {
 			sb.append("\"");
 
 			sb.append(liferayToJSONDateFormat.format(dateModified));
+
+			sb.append("\"");
+		}
+
+		if (description != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"description\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(description));
 
 			sb.append("\"");
 		}

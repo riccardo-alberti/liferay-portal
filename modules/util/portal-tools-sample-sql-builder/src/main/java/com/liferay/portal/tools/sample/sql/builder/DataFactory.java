@@ -294,11 +294,11 @@ import com.liferay.portal.model.impl.RoleModelImpl;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.search.web.constants.SearchBarPortletKeys;
+import com.liferay.portal.search.web.constants.SearchResultsPortletKeys;
 import com.liferay.portal.search.web.internal.category.facet.constants.CategoryFacetPortletKeys;
 import com.liferay.portal.search.web.internal.folder.facet.constants.FolderFacetPortletKeys;
 import com.liferay.portal.search.web.internal.modified.facet.constants.ModifiedFacetPortletKeys;
 import com.liferay.portal.search.web.internal.search.options.constants.SearchOptionsPortletKeys;
-import com.liferay.portal.search.web.internal.search.results.constants.SearchResultsPortletKeys;
 import com.liferay.portal.search.web.internal.site.facet.constants.SiteFacetPortletKeys;
 import com.liferay.portal.search.web.internal.suggestions.constants.SuggestionsPortletKeys;
 import com.liferay.portal.search.web.internal.tag.facet.constants.TagFacetPortletKeys;
@@ -1416,14 +1416,12 @@ public class DataFactory {
 		commerceCurrencyModel.setName(name);
 
 		commerceCurrencyModel.setRate(BigDecimal.valueOf(1));
-
-		String formatPattern = StringBundler.concat(
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?><root available-locales",
-			"=\"en_US\" default-locale=\"en_US\"><FormatPattern language-id",
-			"=\"en_US\">$###,##0.00</FormatPattern></root>");
-
-		commerceCurrencyModel.setFormatPattern(formatPattern);
-
+		commerceCurrencyModel.setFormatPattern(
+			StringBundler.concat(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?><root ",
+				"available-locales=\"en_US\" default-locale=\"en_US\">",
+				"<FormatPattern language-id=\"en_US\">$###,##0.00",
+				"</FormatPattern></root>"));
 		commerceCurrencyModel.setMaxFractionDigits(2);
 		commerceCurrencyModel.setMinFractionDigits(2);
 		commerceCurrencyModel.setRoundingMode("HALF_EVEN");
@@ -2365,14 +2363,12 @@ public class DataFactory {
 		cpAttachmentFileEntryModel.setFileEntryId(_counter.get());
 		cpAttachmentFileEntryModel.setDisplayDate(null);
 		cpAttachmentFileEntryModel.setExpirationDate(null);
-
-		String title = StringBundler.concat(
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?><root available-locales",
-			"=\"en_US\" default-locale=\"en_US\"><Title language-id=\"en_US\">",
-			"Attachment file Entry  ", index, "</Title></root>");
-
-		cpAttachmentFileEntryModel.setTitle(title);
-
+		cpAttachmentFileEntryModel.setTitle(
+			StringBundler.concat(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?><root ",
+				"available-locales=\"en_US\" default-locale=\"en_US\"><Title ",
+				"language-id=\"en_US\">Attachment file Entry  ", index,
+				"</Title></root>"));
 		cpAttachmentFileEntryModel.setPriority(0);
 		cpAttachmentFileEntryModel.setType(type);
 		cpAttachmentFileEntryModel.setLastPublishDate(new Date());

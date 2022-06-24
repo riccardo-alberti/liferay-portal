@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -185,6 +187,8 @@ definition {
 	@description = "Feature ID: LRAC-7536 | Automation ID: LRAC-10513 | Test Summary: Empty individual events state"
 	@priority = "3"
 	test AssertEmptyIndividualEvents {
+		property analytics.cloud.upstream = "false";
+
 		task ("Fill fields and create custom event") {
 			var customEventName1 = ACCustomEvents.generateCustomEventName();
 
@@ -218,7 +222,7 @@ definition {
 		}
 
 		task ("Assert empty state") {
-			ACUtils.viewGenericText(textValueList = "No Events Found,Try a different date range or search term.");
+			ACUtils.viewGenericText(textValueList = "There are no events found.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 		}
 
 		task ("Select Last 24 hours time period in Individuals Events chart") {
@@ -230,13 +234,15 @@ definition {
 		task ("Assert empty state") {
 			ACUtils.searchBar(searchItem = "${customEventName2}");
 
-			ACUtils.viewGenericText(textValueList = "No Events Found,Try a different date range or search term.");
+			ACUtils.viewGenericText(textValueList = "There are no events found.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 		}
 	}
 
 	@description = "Feature ID: LRAC-7536 | Automation ID: LRAC-10509 | Test Summary: Individual activities with session attributes"
 	@priority = "5"
 	test ViewIndividualActivitiesWithSessionAttributes {
+		property analytics.cloud.upstream = "false";
+
 		task ("Fill fields and create custom event") {
 			var customEventName1 = ACCustomEvents.generateCustomEventName();
 

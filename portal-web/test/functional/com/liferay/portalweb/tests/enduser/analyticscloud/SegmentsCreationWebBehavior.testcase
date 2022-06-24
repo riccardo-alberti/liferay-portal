@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -84,7 +86,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -166,7 +168,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -201,7 +203,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 	}
 
 	@description = "Create a segment with behavior of downloading a document"
@@ -255,7 +257,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -281,6 +283,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9222 | Test Summary: Create a Web Behavior since X days"
 	@priority = "4"
 	test CanCreateWebBehaviorSegmentSinceXdays {
+		property analytics.cloud.upstream = "false";
 		property test.name.skip.portal.instance = "SegmentsCreationWebBehavior#CanCreateWebBehaviorSegmentSinceXdays";
 
 		ACUtils.createWCAndAddToPage();
@@ -328,7 +331,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -408,7 +411,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -491,7 +494,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -573,7 +576,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -653,7 +656,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -724,7 +727,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -749,7 +752,10 @@ definition {
 	@description = "Create a Web Behavior using 'has not' segment"
 	@priority = "5"
 	test CanCreateWebBehaviorSegmentUsingHasNot {
+		property portal.upstream = "quarantine";
 		property test.name.skip.portal.instance = "SegmentsCreationWebBehavior#CanCreateWebBehaviorSegmentUsingHasNot";
+
+		// AC Quarantine Reason: Segment membership takes too long to update membership list
 
 		ACUtils.createBlogsAndAddToPage();
 
@@ -821,7 +827,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 	}
 
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9219 | Test Summary: Add segment using a web behavior 'on' some time"
@@ -831,7 +837,7 @@ definition {
 
 		ACUtils.createWCAndAddToPage();
 
-		var propertyName = ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
+		ACDXPSettings.connectDXPtoAnalyticsCloud(siteName = "Site Name");
 
 		JSONUser.addUser(
 			userEmailAddress = "ac@liferay.com",
@@ -846,6 +852,7 @@ definition {
 			userLoginFullName = "ac ac");
 
 		ACUtils.navigateToSitePage(
+			actionType = "View WC",
 			documentTitleList = "1,2,3",
 			pageName = "AC Page",
 			siteName = "Site Name");
@@ -854,7 +861,7 @@ definition {
 
 		ACUtils.launchAC();
 
-		ACProperties.switchProperty(propertyName = "${propertyName}");
+		ACProperties.switchProperty(propertyName = "${assignedPropertyName}");
 
 		ACNavigation.goToSegments();
 
@@ -879,7 +886,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -952,7 +959,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -1031,7 +1038,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 
@@ -1107,7 +1114,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "${username}@liferay.com");
 
@@ -1184,7 +1191,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "${username}@liferay.com");
 
@@ -1260,7 +1267,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "${username}@liferay.com");
 
@@ -1286,6 +1293,7 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-9226 | Test Summary: Create a Web Behavior Segment of Viewing a Web Content"
 	@priority = "4"
 	test CanCreateWebBehaviorSegmentViewingWC {
+		property analytics.cloud.upstream = "false";
 		property test.name.skip.portal.instance = "SegmentsCreationWebBehavior#CanCreateWebBehaviorSegmentViewingWC";
 
 		ACUtils.createWCAndAddToPage();
@@ -1331,7 +1339,7 @@ definition {
 
 		ACNavigation.switchTab(tabName = "Membership");
 
-		ACUtils.viewNoResultsMessage(noResultMessage = "There are no items found.");
+		ACUtils.viewGenericText(textValueList = "There are no members found on the selected time period.,Check back later to verify if data has been received from your data sources.,Learn more about individuals.");
 
 		ACUtils.launchDXP(userEmailAddress = "ac@liferay.com");
 

@@ -57,6 +57,7 @@ import com.liferay.staging.StagingGroupHelper;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import java.util.Locale;
@@ -351,29 +352,34 @@ public class LayoutReferencesExportImportContentProcessor
 
 						url = urlWithoutLocale;
 					}
-					else if (urlWithoutLocale.indexOf(StringPool.SLASH, 1) ==
-								-1) {
+					else if ((urlWithoutLocale.indexOf(StringPool.SLASH, 1) ==
+								-1) &&
+							 !localePath.equals(
+								 _PRIVATE_GROUP_SERVLET_MAPPING) &&
+							 !localePath.equals(
+								 _PRIVATE_USER_SERVLET_MAPPING) &&
+							 !localePath.equals(
+								 _PUBLIC_GROUP_SERVLET_MAPPING)) {
 
-						if (!localePath.equals(
-								_PRIVATE_GROUP_SERVLET_MAPPING) &&
-							!localePath.equals(_PRIVATE_USER_SERVLET_MAPPING) &&
-							!localePath.equals(_PUBLIC_GROUP_SERVLET_MAPPING)) {
+						urlSB.append(localePath);
 
+						url = urlWithoutLocale;
+					}
+					else {
+						Layout layout =
+							_layoutLocalService.fetchLayoutByFriendlyURL(
+								group.getGroupId(), false, urlWithoutLocale);
+
+						if (layout == null) {
+							layout =
+								_layoutLocalService.fetchLayoutByFriendlyURL(
+									group.getGroupId(), true, urlWithoutLocale);
+						}
+
+						if (layout != null) {
 							urlSB.append(localePath);
 
 							url = urlWithoutLocale;
-						}
-						else {
-							Layout layout =
-								_layoutLocalService.fetchLayoutByFriendlyURL(
-									group.getGroupId(), false,
-									urlWithoutLocale);
-
-							if (layout != null) {
-								urlSB.append(localePath);
-
-								url = urlWithoutLocale;
-							}
 						}
 					}
 				}
@@ -1006,25 +1012,30 @@ public class LayoutReferencesExportImportContentProcessor
 
 					url = urlWithoutLocale;
 				}
-				else if (urlWithoutLocale.indexOf(StringPool.SLASH, 1) == -1) {
-					if (!localePath.equals(_PRIVATE_GROUP_SERVLET_MAPPING) &&
-						!localePath.equals(_PRIVATE_USER_SERVLET_MAPPING) &&
-						!localePath.equals(_PUBLIC_GROUP_SERVLET_MAPPING)) {
+				else if ((urlWithoutLocale.indexOf(StringPool.SLASH, 1) ==
+							-1) &&
+						 !localePath.equals(_PRIVATE_GROUP_SERVLET_MAPPING) &&
+						 !localePath.equals(_PRIVATE_USER_SERVLET_MAPPING) &&
+						 !localePath.equals(_PUBLIC_GROUP_SERVLET_MAPPING)) {
 
+					urlSB.append(localePath);
+
+					url = urlWithoutLocale;
+				}
+				else {
+					Layout layout =
+						_layoutLocalService.fetchLayoutByFriendlyURL(
+							group.getGroupId(), false, urlWithoutLocale);
+
+					if (layout == null) {
+						layout = _layoutLocalService.fetchLayoutByFriendlyURL(
+							group.getGroupId(), true, urlWithoutLocale);
+					}
+
+					if (layout != null) {
 						urlSB.append(localePath);
 
 						url = urlWithoutLocale;
-					}
-					else {
-						Layout layout =
-							_layoutLocalService.fetchLayoutByFriendlyURL(
-								group.getGroupId(), false, urlWithoutLocale);
-
-						if (layout != null) {
-							urlSB.append(localePath);
-
-							url = urlWithoutLocale;
-						}
 					}
 				}
 			}
@@ -1172,7 +1183,16 @@ public class LayoutReferencesExportImportContentProcessor
 		throws PortalException {
 
 		try {
-			URI uri = HttpComponentsUtil.getURI(url);
+			URI uri = null;
+
+			try {
+				uri = HttpComponentsUtil.getURI(url);
+			}
+			catch (URISyntaxException uriSyntaxException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(uriSyntaxException);
+				}
+			}
 
 			if ((uri != null) &&
 				InetAddressUtil.isLocalInetAddress(

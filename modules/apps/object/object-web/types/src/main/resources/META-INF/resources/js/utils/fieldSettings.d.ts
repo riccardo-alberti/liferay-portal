@@ -26,4 +26,4 @@ export declare function normalizeFieldSettings(
 export declare function updateFieldSettings(
 	objectFieldSettings: ObjectFieldSetting[] | undefined,
 	{name, value}: ObjectFieldSetting
-): ObjectFieldSetting[] | undefined;
+): ObjectFieldSetting[];

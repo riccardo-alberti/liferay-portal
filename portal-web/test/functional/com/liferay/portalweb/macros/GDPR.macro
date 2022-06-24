@@ -275,14 +275,20 @@ definition {
 			rowEntry = "${rowEntry}");
 
 		AssertElementPresent(
-			key_portlet = "${applications}",
-			locator1 = "ProductMenu#PORTLET_ACTIVE");
+			locator1 = "TextInput#TITLE",
+			value1 = "${applicationsTitle}");
 	}
 
 	macro filterByApplications {
 		Click.clickNoWaitForVisible(
 			key_selectData = "${applications}",
 			locator1 = "DataErasure#REVIEW_DATA_SELECT");
+
+		if (isSet(webContent)) {
+			Click.clickNoWaitForVisible(
+				key_selectData = "${webContent}",
+				locator1 = "DataErasure#REVIEW_DATA_SELECT");
+		}
 
 		AssertElementPresent(
 			key_dataSelected = "${applications}",

@@ -17,7 +17,6 @@ package com.liferay.object.web.internal.deployer;
 import com.liferay.application.list.PanelApp;
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
-import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.view.FDSView;
 import com.liferay.frontend.data.set.view.table.FDSTableSchemaBuilderFactory;
 import com.liferay.info.item.field.reader.InfoItemFieldReaderFieldSetProvider;
@@ -38,7 +37,7 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.deployer.ObjectDefinitionDeployer;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistry;
-import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
+import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerServicesTracker;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
@@ -58,7 +57,7 @@ import com.liferay.object.web.internal.item.selector.ObjectEntryItemSelectorView
 import com.liferay.object.web.internal.layout.display.page.ObjectEntryLayoutDisplayPageProvider;
 import com.liferay.object.web.internal.object.entries.application.list.ObjectEntriesPanelApp;
 import com.liferay.object.web.internal.object.entries.display.context.ObjectEntryDisplayContextFactory;
-import com.liferay.object.web.internal.object.entries.frontend.data.set.filter.ObjectEntryStatusCheckBoxFDSFilter;
+import com.liferay.object.web.internal.object.entries.frontend.data.set.filter.factory.ObjectFieldFDSFilterFactoryServicesTracker;
 import com.liferay.object.web.internal.object.entries.frontend.data.set.view.table.ObjectEntriesTableFDSView;
 import com.liferay.object.web.internal.object.entries.portlet.ObjectEntriesPortlet;
 import com.liferay.object.web.internal.object.entries.portlet.action.EditObjectEntryMVCActionCommand;
@@ -121,11 +120,6 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 					_fdsTableSchemaBuilderFactory, objectDefinition,
 					_objectDefinitionLocalService, _objectFieldLocalService,
 					_objectRelationshipLocalService, _objectViewLocalService),
-				HashMapDictionaryBuilder.put(
-					"frontend.data.set.name", objectDefinition.getPortletId()
-				).build()),
-			_bundleContext.registerService(
-				FDSFilter.class, new ObjectEntryStatusCheckBoxFDSFilter(),
 				HashMapDictionaryBuilder.put(
 					"frontend.data.set.name", objectDefinition.getPortletId()
 				).build()),
@@ -205,7 +199,9 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 				new ObjectEntryItemSelectorView(
 					_itemSelectorViewDescriptorRenderer, objectDefinition,
 					_objectDefinitionLocalService, _objectEntryLocalService,
-					_objectEntryManager, _objectScopeProviderRegistry, _portal),
+					_objectEntryManagerServicesTracker.getObjectEntryManager(
+						objectDefinition.getStorageType()),
+					_objectScopeProviderRegistry, _portal),
 				HashMapDictionaryBuilder.<String, Object>put(
 					"item.selector.view.order", 500
 				).build()),
@@ -221,9 +217,10 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 				Portlet.class,
 				new ObjectEntriesPortlet(
 					objectDefinition.getObjectDefinitionId(),
-					_objectDefinitionLocalService, _objectFieldLocalService,
-					_objectScopeProviderRegistry, _objectViewLocalService,
-					_portal,
+					_objectDefinitionLocalService,
+					_objectFieldFDSFilterFactoryServicesTracker,
+					_objectFieldLocalService, _objectScopeProviderRegistry,
+					_objectViewLocalService, _portal,
 					_getPortletResourcePermission(
 						objectDefinition.getResourceName())),
 				HashMapDictionaryBuilder.<String, Object>put(
@@ -386,10 +383,15 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
-	private ObjectEntryManager _objectEntryManager;
+	private ObjectEntryManagerServicesTracker
+		_objectEntryManagerServicesTracker;
 
 	@Reference
 	private ObjectEntryService _objectEntryService;
+
+	@Reference
+	private ObjectFieldFDSFilterFactoryServicesTracker
+		_objectFieldFDSFilterFactoryServicesTracker;
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;

@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property portal.release = "false";
 	property portal.upstream = "true";
 	property property.group = "analytics.cloud.profile";
@@ -423,6 +425,8 @@ definition {
 	@description = "Feature ID: Legacy | Automation ID: LRAC-8294 | Test Summary: Show Top 5 Visited Pages"
 	@priority = "5"
 	test ShowTop5VisitedPages {
+		property analytics.cloud.upstream = "false";
+
 		var n = "1,2,3,4,5";
 		var u = "1,2,3,4";
 

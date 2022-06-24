@@ -124,6 +124,24 @@ definition {
 		SearchResultPortlet.viewNoSearchResults(searchTerm = "apple");
 	}
 
+	@description = "This is a use case for LPS-138720."
+	@priority = "4"
+	test AssertCustomFacetNoXSS {
+		Search.openSearchPage();
+
+		SearchPortlets.addWidgets(searchPortletList = "Custom Facet");
+
+		SearchFacetPortlet.configureCustomFacet(
+			aggregationField = "title_sortable",
+			customParameterName = "title");
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search?title=test1%22()%26%25%3Cacx%3E%3CScRiPt%20%3Ealert(%27XSS%27)%3C%2FScRiPt%3E");
+
+		AssertAlertNotPresent();
+	}
+
 	@description = "This is a use case for LPS-92008."
 	@priority = "3"
 	test AssertGuestCannotSeeEmptySearchWidgets {
@@ -166,10 +184,35 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-147397."
+	@priority = "4"
+	test AssertModifiedFacetNoXSS {
+		Search.openSearchPage();
+
+		Portlet.gotoPortletOptions(
+			portletName = "Modified Facet",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		var script = '''test"><script>alert(123);</script>''';
+
+		Type(
+			fieldValue = "past-hour",
+			locator1 = "Search#MODIFIED_FACET_CONFIG_SPECIFIC_FIELD",
+			value1 = "${script}");
+
+		PortletEntry.save();
+
+		IFrame.closeFrame();
+
+		SearchPortlets.searchEmbedded(searchTerm = "test");
+
+		AssertAlertNotPresent();
+	}
+
 	@priority = "4"
 	test AssertNonAdminsCannotAddCertainWidgets {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
-
 		JSONRole.addRegularRole(
 			roleKey = "Can Add Widgets",
 			roleTitle = "Can Add Widgets");
@@ -185,20 +228,13 @@ definition {
 			userLastName = "userln",
 			userScreenName = "usersn");
 
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "true",
-			requireReset = "false",
-			userEmailAddress = "userea@liferay.com");
-
 		JSONRole.assignRoleToUser(
 			roleTitle = "Can Add Widgets",
 			userEmailAddress = "userea@liferay.com");
 
-		User.logoutPG();
-
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
 
@@ -213,8 +249,8 @@ definition {
 	@priority = "4"
 	test AssertPaginationURLforHTTPS {
 		property custom.properties = "web.server.host=localhost${line.separator}redirect.url.security.mode=domain${line.separator}redirect.url.domains.allowed=${line.separator}web.server.https.port=8443${line.separator}web.server.protocol=https";
-		property environment.acceptance = "false";
 		property portal.ssl.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Search#AssertPaginationURLforHTTPS";
 
 		var portalURL = PropsUtil.get("portal.url");
@@ -261,6 +297,16 @@ definition {
 		if (!(contains("${currentURL}", "https://")) || !(contains("${currentURL}", "start=2"))) {
 			fail("URL of second search results page should contain HTTPS.");
 		}
+	}
+
+	@description = "This is a use case for LPS-135288."
+	@priority = "4"
+	test AssertSearchTagURLNoXSS {
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search?tag=test%22%3E%3Csvg/onload=alert(document.domain)%3E");
+
+		AssertAlertNotPresent();
 	}
 
 	@description = "This is a use case for LPS-89561."
@@ -351,12 +397,41 @@ definition {
 		}
 	}
 
+	@description = "This is a use case for LPS-152993."
+	@priority = "4"
+	test AssertSortWidgetNoXSS {
+		Search.openSearchPage();
+
+		SearchPortlets.addWidgets(searchPortletList = "Sort");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Sort",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		var script = '''test"><script>alert(123);</script>''';
+
+		Type(
+			key_fieldLabel = "Label",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "${script}");
+
+		PortletEntry.save();
+
+		IFrame.closeFrame();
+
+		Refresh();
+
+		AssertAlertNotPresent();
+	}
+
 	@description = "This is a use case for LPS-95670."
 	@priority = "4"
 	test AssertSuggestionsCannotOfferInvalidWordsAsSuggestion {
 		property custom.properties = "locales.enabled=de_DE,en_US${line.separator}locales=de_DE,en_US${line.separator}index.search.spell.checker.dictionary[de_DE]=spellchecker/dictionary_de_DE.txt${line.separator}index.search.spell.checker.supported.locales=en_US,es_ES,de_DE";
-		property environment.acceptance = "false";
 		property index.search.spell.checker.enabled = "true";
+		property search.environment.suite.exclude = "true";
 		property test.name.skip.portal.instance = "Search#AssertSuggestionsCannotOfferInvalidWordsAsSuggestion";
 
 		JSONWebcontent.addBasicWebContentLocalized(
@@ -680,34 +755,15 @@ definition {
 		property environment.acceptance = "true";
 		property portal.acceptance = "true";
 
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Search Result Widget Page");
 
-		PagesAdmin.addPage(pageName = "Search Page");
-
-		var browserType = PropsUtil.get("browser.type");
-
-		if ("${browserType}" == "safari") {
-			Navigator.openSpecificURL(url = "http://localhost:8080/web/guest/search-page");
-		}
-		else {
-			Navigator.gotoPage(pageName = "Search Page");
-		}
-
-		SearchPortlets.addWidgets(searchPortletList = "Search Results");
-
-		Portlet.gotoPortletOptions(
-			portletName = "Search Results",
-			portletOption = "Configuration");
-
-		SelectFrame(locator1 = "IFrame#CONFIGURATION");
-
-		AssertTextEquals(
-			locator1 = "SearchResults#RESULTS_PORTLET_PAGINATION_CONFIG",
-			value1 = "2");
-
-		IFrame.closeFrame();
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Search Result Widget Page",
+			widgetName = "Search Results");
 
 		for (var count : list "1,2,3") {
 			JSONWebcontent.addWebContent(
@@ -716,11 +772,9 @@ definition {
 				title = "WC Title ${count}");
 		}
 
-		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
+		var portalURL = PropsUtil.get("portal.url");
 
-		SearchResultPortlet.viewSearchResults(
-			searchAssetTitle = "WC Title 1",
-			searchAssetType = "Web Content Article");
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search-result-widget-page");
 
 		Portlet.gotoPortletOptions(
 			portletName = "Search Results",
@@ -733,6 +787,28 @@ definition {
 			value1 = "2");
 
 		IFrame.closeFrame();
+
+		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Search Results",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		AssertTextEquals(
+			locator1 = "SearchResults#RESULTS_PORTLET_PAGINATION_CONFIG",
+			value1 = "2");
+
+		IFrame.closeFrame();
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "WC Title 1",
+			searchAssetType = "Web Content Article");
+
+		SearchResultPortlet.viewSearchResultNotPresent(
+			searchAssetTitle = "WC Title 3",
+			searchAssetType = "Web Content Article");
 
 		SearchResultPortlet.paginateAndViewSearchResults(
 			searchAssetTitle = "WC Title 3",
@@ -1587,7 +1663,6 @@ definition {
 	test SearchDocumentsAndMediaDocument {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-		property environment.acceptance = "false";
 		property testray.component.names = "Training";
 
 		Navigator.openURL();
@@ -1991,10 +2066,12 @@ definition {
 			webContentTitle = "WC Title");
 
 		var port = Elasticsearch.getServerPort();
-
 		var portalHostname = PropsUtil.get("portal.hostname");
+
 		var curl = "http://${portalHostname}:${port}/_search?q=entryClassName:com.liferay.journal.model.JournalArticle";
+
 		var journalArticleDocumentType = JSONCurlUtil.get("${curl}");
+
 		var aggregationField = RegexUtil.replace("${journalArticleDocumentType}", "ddmFieldName\":\"(.*)\",\"ddmFieldValueKeyword\"", "1");
 
 		Search.openSearchPage();
@@ -2393,7 +2470,6 @@ definition {
 			searchAssetType = "Message Boards Message");
 
 		var actualScript = '''<script>alert(123);</script>''';
-
 		var escapedScript = '''&lt;script&gt;alert(123);&lt;/script&gt;''';
 
 		AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
@@ -2414,18 +2490,11 @@ definition {
 	@description = "This is a use case for LPS-84035."
 	@priority = "5"
 	test ViewCreatedSearchPagePermissions {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
-
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
-
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "true",
-			requireReset = "false",
-			userEmailAddress = "userea@liferay.com");
 
 		JSONUser.addUserToSite(
 			groupName = "Guest",
@@ -2478,9 +2547,7 @@ definition {
 				locator1 = "Portlet#BODY");
 		}
 
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
+		User.loginPG(userEmailAddress = "userea@liferay.com");
 
 		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
 
@@ -2501,18 +2568,11 @@ definition {
 	@description = "This is a use case for LPS-84035."
 	@priority = "5"
 	test ViewDefaultSearchPagePermissions {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
-
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
 			userLastName = "userln",
 			userScreenName = "usersn");
-
-		JSONUser.setFirstPassword(
-			agreeToTermsAndAnswerReminderQuery = "true",
-			requireReset = "false",
-			userEmailAddress = "userea@liferay.com");
 
 		JSONUser.addUserToSite(
 			groupName = "Guest",
@@ -2559,9 +2619,7 @@ definition {
 			searchAssetType = "Web Content Article",
 			searchTerm = "WC Title");
 
-		User.loginPG(
-			password = "test",
-			userEmailAddress = "userea@liferay.com");
+		User.loginPG(userEmailAddress = "userea@liferay.com");
 
 		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
 
@@ -2887,7 +2945,6 @@ definition {
 		var liferaySiteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "Guest",
 			site = "true");
-
 		var siteName = TestCase.getSiteName();
 
 		var testSearchURL = SearchFacetPortlet.checkFacetAndViewURL(
@@ -2895,7 +2952,6 @@ definition {
 			facetValue = "${liferaySiteId}",
 			facetValueName = "${siteName}",
 			searchURL = "${testSearchURL}");
-
 		var newSiteId = JSONGroupAPI._getGroupIdByName(
 			groupName = "New Site",
 			site = "true");
@@ -2981,7 +3037,6 @@ definition {
 			facetValue = "${organicCategoryId}",
 			facetValueName = "organic",
 			searchURL = "${testSearchURL}");
-
 		var webContentFolderId1 = JSONWebcontent.getFolderIdByFolderName(
 			folderName = "${webContentFolderName1}",
 			groupName = "Guest");
@@ -3078,6 +3133,70 @@ definition {
 		SearchPortlets.chooseSortOption(sortOption = "Created (oldest first)");
 
 		SearchResultPortlet.viewSearchResultsSpecificOrder(resultsList = "Apple,Banana,Cantaloupe");
+	}
+
+	test ViewSortWidgetConfigurationNewUI {
+		property custom.properties = "feature.flag.LPS-134052=true";
+
+		for (var title : list "Banana,Apple,Cherry") {
+			JSONWebcontent.addWebContent(
+				content = "Content ",
+				groupName = "Guest",
+				title = "${title}");
+		}
+
+		SearchPortlets.searchEmbedded(searchTerm = "Content");
+
+		SearchPortlets.addWidgets(searchPortletList = "Sort");
+
+		Refresh();
+
+		Portlet.gotoPortletOptions(
+			portletName = "Sort",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		AssertElementPresent(locator1 = "Button#TRASH_ENABLED");
+
+		AssertElementNotPresent(locator1 = "Button#ADD_ROW");
+
+		IFrame.closeFrame();
+
+		SearchPortlets.chooseSortOption(sortOption = "Title");
+
+		SearchResultPortlet.viewSearchResultsSpecificOrder(resultsList = "Apple,Banana,Cherry");
+	}
+
+	test ViewSortWidgetConfigurationOldUI {
+		for (var title : list "Banana,Apple,Cherry") {
+			JSONWebcontent.addWebContent(
+				content = "Content ",
+				groupName = "Guest",
+				title = "${title}");
+		}
+
+		SearchPortlets.searchEmbedded(searchTerm = "Content");
+
+		SearchPortlets.addWidgets(searchPortletList = "Sort");
+
+		Refresh();
+
+		Portlet.gotoPortletOptions(
+			portletName = "Sort",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		AssertElementPresent(locator1 = "Button#ADD_ROW");
+
+		AssertElementNotPresent(locator1 = "Button#TRASH_ENABLED");
+
+		IFrame.closeFrame();
+
+		SearchPortlets.chooseSortOption(sortOption = "Title");
+
+		SearchResultPortlet.viewSearchResultsSpecificOrder(resultsList = "Apple,Banana,Cherry");
 	}
 
 	@priority = "4"

@@ -419,6 +419,18 @@ definition {
 			value1 = "${price}");
 	}
 
+	macro addProductDescription {
+		Type(
+			locator1 = "CommerceEntry#SHORT_DESCRIPTION_FIELD",
+			value1 = "${productShortDescription}");
+
+		CommerceEntry.addFullDescriptionViaCKEditor(entryFullDescription = "${productFullDescription}");
+
+		Click(
+			key_text = "Save as Draft",
+			locator1 = "Button#ANY");
+	}
+
 	macro addProductsEntry {
 		WaitForElementPresent(locator1 = "IFrame#MODAL_BODY");
 
@@ -434,7 +446,13 @@ definition {
 
 		Click(locator1 = "Button#SUBMIT");
 
-		WaitForPageLoad();
+		WaitForElementPresent(
+			key_title = "${productName}",
+			locator1 = "Header#H3_TITLE");
+
+		AssertElementPresent(
+			key_status = "Draft",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
 
 		AssertSelectedLabel(
 			key_fieldLabel = "Catalog",
@@ -445,11 +463,15 @@ definition {
 			locator1 = "CommerceEntry#NAME_FIELD",
 			value1 = "${productName}");
 
-		Type(
-			locator1 = "CommerceEntry#SHORT_DESCRIPTION_FIELD",
-			value1 = "${productShortDescription}");
+		if (!(isSet(compileDescription)) || ("${compileDescription}" == "true")) {
+			CommerceEntry.addProductDescription(
+				productFullDescription = "${productFullDescription}",
+				productShortDescription = "${productShortDescription}");
+		}
 
-		CommerceEntry.addFullDescriptionViaCKEditor(entryFullDescription = "${productFullDescription}");
+		if (!(isSet(publishProduct)) || ("${publishProduct}" == "true")) {
+			CommerceEntry.publishEntry(status = "Approved");
+		}
 	}
 
 	macro AddShippingOptionSettingsVariableRate {
@@ -583,6 +605,16 @@ definition {
 		Click(locator1 = "Button#BACK");
 	}
 
+	macro assertCheckedSpecificToggle {
+		task ("Check if the Toggle is checked") {
+			AssertElementPresent(
+				key_name = "${name}",
+				locator1 = "CommerceEntry#CHECK_SPECIFIC_TOGGLE_SWITCH");
+
+			echo("The toggle for the ${name} is active");
+		}
+	}
+
 	macro assertDefaultDisplayPage {
 		if (!(isSet(pageType))) {
 			AssertTextEquals(
@@ -624,14 +656,18 @@ definition {
 	}
 
 	macro checkImageName {
-		echo("number is: ${number} image is: ${image} uploadFileName is: ${uploadFileName}");
+		if (isSet(number)) {
+			if ("${number}" != "") {
+				echo("number is: ${number} image is: ${image} uploadFileName is: ${uploadFileName}");
 
-		if ("${number}" != "") {
-			AssertElementPresent(
-				key_entry = "Commerce_${image} (${number}).jpg",
-				locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
+				AssertElementPresent(
+					key_entry = "Commerce_${image} (${number}).jpg",
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
+			}
 		}
 		else {
+			echo("uploadFileName is: ${uploadFileName}");
+
 			AssertElementPresent(
 				key_entry = "${uploadFileName}",
 				locator1 = "CommerceNavigation#ANY_ENTRY_NAME_WITHOUT_CONTAINS");
@@ -739,7 +775,9 @@ definition {
 		WaitForElementPresent(locator1 = "CommerceEntry#PAGINATION_RESULTS");
 
 		var paginationResults = selenium.getText("CommerceEntry#PAGINATION_RESULTS");
+
 		var numberOfEntries = StringUtil.extractLast("${paginationResults}", " ");
+
 		var numberOfEntriesAfterDeletion = ${numberOfEntries} - 1;
 
 		if (!(isSet(entryName))) {
@@ -836,6 +874,53 @@ definition {
 		Click(locator1 = "Button#BACK");
 	}
 
+	macro editWarehousesQuantity {
+		Search.searchCP(searchTerm = "${productName}");
+
+		CommerceNavigator.gotoTableListEntry(entryName = "${productName}");
+
+		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
+
+		CommerceNavigator.gotoTableListEntry(entryName = "${productSku}");
+
+		SelectFrame(locator1 = "IFrame#IFRAME");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Inventory");
+
+		if (isSet(italyQuantity)) {
+			Type(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${italyQuantity}");
+
+			Click(
+				key_value1 = "0",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+
+		if (isSet(northeastQuantity)) {
+			Type(
+				key_value1 = "1",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${northeastQuantity}");
+
+			Click(
+				key_value1 = "1",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+
+		if (isSet(southwestQuantity)) {
+			Type(
+				key_value1 = "2",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_ITEM_QUANTITY",
+				value1 = "${southwestQuantity}");
+
+			Click(
+				key_value1 = "2",
+				locator1 = "CommerceEntry#WAREHOUSE_INVENTORY_SAVE_BUTTON");
+		}
+	}
+
 	macro getFileEntryIDFromProductMedia {
 		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
 
@@ -872,17 +957,9 @@ definition {
 	macro publishEntry {
 		Button.clickPublish();
 
-		if (IsElementPresent(locator1 = "Message#SUCCESS")) {
-			AssertElementPresent(locator1 = "Message#SUCCESS");
-		}
-		else {
-			AssertTextEquals(
-				key_status = "${status}",
-				locator1 = "CommerceEntry#WORKFLOW_STATUS",
-				value1 = "${status}");
-		}
-
-		Pause(locator1 = "3000");
+		AssertElementPresent(
+			key_status = "${status}",
+			locator1 = "CommerceEntry#WORKFLOW_STATUS");
 	}
 
 	macro publishProductImage {
@@ -964,7 +1041,8 @@ definition {
 					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
 			}
 		}
-		else if (isSet(accountsEligibility)) {
+
+		if (isSet(accountsEligibility)) {
 			var title = "Add Accounts";
 
 			Click(
@@ -981,13 +1059,7 @@ definition {
 					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
 			}
 		}
-		else {
-			Click(
-				key_radioOption = "All Accounts",
-				locator1 = "CommerceEntry#RADIO_BUTTON");
-		}
-
-		if (isSet(channelsEligibility)) {
+		else if (isSet(channelsEligibility)) {
 			var title = "Add Channels";
 
 			Click(
@@ -1004,27 +1076,92 @@ definition {
 					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
 			}
 		}
-		else {
+
+		if (isSet(paymentTermsEligibility)) {
+			var title = "Add Payment Terms";
+
 			Click(
-				key_radioOption = "All Channels",
+				key_radioOption = "Specific Payment Terms",
 				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			var paymentTermsEligibility = StringUtil.lowerCase("${paymentTermsEligibility}");
+
+			var paymentTermsEligibility = StringUtil.replace("${paymentTermsEligibility}", " ", "-");
+
+			for (var paymentTerm : list "${paymentTermsEligibility}") {
+				CommerceRelations.assignSingleRelationToEligibility(
+					entryName = "${paymentTerm}",
+					title = "${title}");
+
+				Click(
+					key_title = "${title}",
+					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+			}
+		}
+
+		if (isSet(deliveryTermsEligibility)) {
+			var title = "Add Delivery Terms";
+
+			Click(
+				key_radioOption = "Specific Delivery Terms",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			var deliveryTermsEligibility = StringUtil.lowerCase("${deliveryTermsEligibility}");
+
+			var deliveryTermsEligibility = StringUtil.replace("${deliveryTermsEligibility}", " ", "-");
+
+			for (var deliveryTerm : list "${deliveryTermsEligibility}") {
+				CommerceRelations.assignSingleRelationToEligibility(
+					entryName = "${deliveryTerm}",
+					title = "${title}");
+
+				Click(
+					key_title = "${title}",
+					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+			}
+		}
+
+		if (isSet(orderTypesEligibility)) {
+			var title = "Add Delivery Terms";
+
+			Click(
+				key_radioOption = "Specific Order Types",
+				locator1 = "CommerceEntry#RADIO_BUTTON");
+
+			for (var orderType : list "${orderTypesEligibility}") {
+				CommerceRelations.assignSingleRelationToEligibility(
+					entryName = "${orderType}",
+					title = "${title}");
+
+				Click(
+					key_title = "${title}",
+					locator1 = "CommerceEntry#ADD_RELATION_CLEAN_INPUT_BUTTON");
+			}
 		}
 
 		if (isSet(unpublish)) {
 			echo("Do not need to click Publish button");
 		}
 		else {
-			Button.clickPublish();
+			if (IsElementPresent(key_text = "Publish", locator1 = "Button#ANY")) {
+				Button.clickPublish();
+			}
+			else if (IsElementPresent(key_text = "Save", locator1 = "Button#ANY")) {
+				Button.clickSave();
+			}
 		}
 	}
 
 	macro setExpirationTime {
 		var timeString = selenium.getElementValue("TextInput#DISPLAY_DATE_TIME");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
 		var minutesToExpire = "${minutesToExpire}";
+
 		var minutes = ${minutes} + ${minutesToExpire};
+
 		var changeHour = MathUtil.isGreaterThan("${minutes}", "59");
 
 		if ("${changeHour}" == "true") {
@@ -1059,11 +1196,14 @@ definition {
 
 	macro setPublishTime {
 		var timeString = selenium.getElementValue("TextInput#DISPLAY_DATE_TIME");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
 		var minutesToPublish = "${minutesToPublish}";
+
 		var minutes = ${minutes} + ${minutesToPublish};
+
 		var changeHour = MathUtil.isGreaterThan("${minutes}", "59");
 
 		if ("${changeHour}" == "true") {

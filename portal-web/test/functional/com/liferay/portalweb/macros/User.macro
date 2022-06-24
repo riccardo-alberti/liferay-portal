@@ -2410,6 +2410,7 @@ definition {
 		User.loginPG(
 			authenticationMethod = "${authenticationMethod}",
 			nodePort = "${nodePort}",
+			password = "${password}",
 			userEmailAddress = "${userLoginEmailAddress}",
 			userScreenName = "${userScreenName}");
 	}
@@ -2438,6 +2439,24 @@ definition {
 		Navigator.openWithAppendToBaseURL(
 			baseURL = "${baseURL}",
 			urlAppend = "group/control_panel/manage?p_p_id=com_liferay_users_admin_web_portlet_UsersAdminPortlet");
+	}
+
+	macro removeAccountCP {
+		User.openUsersAdmin();
+
+		UserNavigator.gotoUser(userScreenName = "${userScreenName}");
+
+		UserNavigator.gotoMemberships();
+
+		for (var accountName : list "${accountName}") {
+			Click(
+				key_entryName = "${accountName}",
+				locator1 = "LexiconTable#TABLE_ENTRY_DELETE");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
 	}
 
 	macro removeContactInformation {

@@ -12,7 +12,7 @@
 <tbody>
 <tr>
 	<td>ADD</td>
-	<td>//button[contains(@id, 'addButton')]</td>
+	<td>//button[contains(@id, 'addButton')] | //button[contains(@data-qa-id, 'addButton')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -137,7 +137,7 @@
 </tr>
 <tr>
 	<td>TRASH_ENABLED</td>
-	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]]</td>
+	<td>//button[*[name()='svg'][contains(@class,'lexicon-icon-trash')]] | //a[contains(@class,'btn')]/*[name()='svg'][contains(@class,'trash')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -361,6 +361,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DUPLICATE_SPECIFIC</td>
+	<td>//button[contains(@class, 'ddm-form-field-repeatable-add-button p-0 btn btn-sm btn-primary') and contains(@aria-label, '${key_label}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDIT</td>
 	<td>//a[contains(@class,'btn') and contains(.,'Edit')] | //a[contains(@id,'edit') and contains(@class,'btn')] | //button[contains(.,'Edit')]</td>
 	<td></td>
@@ -486,6 +491,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LOCALIZATION_GENERIC_1</td>
+	<td>xpath=(//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')])[1]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>LOCALIZATION_GENERIC_2</td>
 	<td>xpath=(//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')])[2]</td>
 	<td></td>
@@ -511,6 +521,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MODAL_DELETE</td>
+	<td>//div[contains(@class, 'modal-content')]//button[contains(., 'Delete')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MORE_MESSAGES</td>
 	<td>//a[contains(@class,'btn') and contains(.,'More Messages')]</td>
 	<td></td>
@@ -532,7 +547,7 @@
 </tr>
 <tr>
 	<td>MOVE_TO_RECYCLE_BIN</td>
-	<td>//a[contains(@class,'btn') and contains(.,'Move to Recycle Bin')] | //button[contains(.,'Move to Recycle Bin')] | //*[contains(@class, 'icon-trash')]</td>
+	<td>//a[contains(@class,'btn') and contains(.,'Delete')] | //button[contains(.,'Delete')]</td>
 	<td></td>
 </tr>
 <tr>

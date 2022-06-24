@@ -23,7 +23,6 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.layout.admin.kernel.model.LayoutTypePortletConstants;
-import com.liferay.petra.encryptor.Encryptor;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -41,6 +40,7 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.exception.ImageTypeException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchImageException;
@@ -918,7 +918,9 @@ public class PortalImpl implements Portal {
 			uri = HttpComponentsUtil.getURI(url);
 		}
 		catch (URISyntaxException uriSyntaxException) {
-			_log.error(uriSyntaxException);
+			if (_log.isDebugEnabled()) {
+				_log.debug(uriSyntaxException);
+			}
 		}
 
 		if (uri == null) {
@@ -2643,7 +2645,7 @@ public class PortalImpl implements Portal {
 	public String getI18nPathLanguageId(
 		Locale locale, String defaultI18nPathLanguageId) {
 
-		String i18nPathLanguageId = StringUtil.replaceFirst(
+		String i18nPathLanguageId = StringUtil.replace(
 			defaultI18nPathLanguageId, CharPool.UNDERLINE, CharPool.DASH);
 
 		if (!LanguageUtil.isDuplicateLanguageCode(locale.getLanguage())) {
@@ -2908,8 +2910,8 @@ public class PortalImpl implements Portal {
 
 		return new LayoutFriendlyURLSeparatorComposite(
 			layoutQueryStringComposite.getLayout(),
-			layoutQueryStringComposite.getFriendlyURL(),
-			FRIENDLY_URL_SEPARATOR);
+			layoutQueryStringComposite.getFriendlyURL(), FRIENDLY_URL_SEPARATOR,
+			false);
 	}
 
 	@Override
@@ -3036,7 +3038,7 @@ public class PortalImpl implements Portal {
 		Company company = CompanyLocalServiceUtil.getCompany(
 			layoutSet.getCompanyId());
 
-		String defaultVirtualHostName = _getDefaultVirtualHostName(company);
+		String defaultVirtualHostname = _getDefaultVirtualHostname(company);
 
 		int portalPort = getPortalServerPort(secureConnection);
 
@@ -3047,14 +3049,14 @@ public class PortalImpl implements Portal {
 			layoutSet);
 
 		if (!virtualHostnames.isEmpty() &&
-			!virtualHostnames.containsKey(defaultVirtualHostName)) {
+			!virtualHostnames.containsKey(defaultVirtualHostname)) {
 
 			int index = portalURL.indexOf("://");
 
 			String portalDomain = portalURL.substring(index + 3);
 
 			String virtualHostname = getCanonicalDomain(
-				virtualHostnames, portalDomain, defaultVirtualHostName);
+				virtualHostnames, portalDomain, defaultVirtualHostname);
 
 			virtualHostname = getPortalURL(
 				virtualHostname, portalPort, secureConnection);
@@ -3097,7 +3099,7 @@ public class PortalImpl implements Portal {
 			LayoutSet layoutSet, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		String defaultVirtualHostName = _getDefaultVirtualHostName(
+		String defaultVirtualHostname = _getDefaultVirtualHostname(
 			themeDisplay.getCompany());
 
 		String virtualHostname = null;
@@ -3111,7 +3113,7 @@ public class PortalImpl implements Portal {
 
 		if (Validator.isNotNull(virtualHostname) &&
 			!StringUtil.equalsIgnoreCase(
-				virtualHostname, defaultVirtualHostName)) {
+				virtualHostname, defaultVirtualHostname)) {
 
 			String portalURL = getPortalURL(
 				virtualHostname, themeDisplay.getServerPort(),
@@ -7354,11 +7356,11 @@ public class PortalImpl implements Portal {
 
 	protected String getCanonicalDomain(
 		TreeMap<String, String> virtualHostnames, String portalDomain,
-		String defaultVirtualHostName) {
+		String defaultVirtualHostname) {
 
 		if (Validator.isBlank(portalDomain) ||
-			StringUtil.equalsIgnoreCase(portalDomain, defaultVirtualHostName) ||
-			!virtualHostnames.containsKey(defaultVirtualHostName)) {
+			StringUtil.equalsIgnoreCase(portalDomain, defaultVirtualHostname) ||
+			!virtualHostnames.containsKey(defaultVirtualHostname)) {
 
 			return virtualHostnames.firstKey();
 		}
@@ -7464,7 +7466,8 @@ public class PortalImpl implements Portal {
 				Company company = getCompany(httpServletRequest);
 
 				doAsUserId = GetterUtil.getLong(
-					Encryptor.decrypt(company.getKeyObj(), doAsUserIdString));
+					EncryptorUtil.decrypt(
+						company.getKeyObj(), doAsUserIdString));
 			}
 			catch (Exception exception) {
 				if (_log.isDebugEnabled()) {
@@ -7730,7 +7733,8 @@ public class PortalImpl implements Portal {
 				Company company = getCompany(httpServletRequest);
 
 				doAsUserId = GetterUtil.getLong(
-					Encryptor.decrypt(company.getKeyObj(), doAsUserIdString));
+					EncryptorUtil.decrypt(
+						company.getKeyObj(), doAsUserIdString));
 			}
 		}
 		catch (Exception exception) {
@@ -8060,7 +8064,7 @@ public class PortalImpl implements Portal {
 			Set<Locale> availableLocales)
 		throws PortalException {
 
-		String defaultVirtualHostName = _getDefaultVirtualHostName(
+		String defaultVirtualHostname = _getDefaultVirtualHostname(
 			themeDisplay.getCompany());
 		String portalDomain = themeDisplay.getPortalDomain();
 
@@ -8072,9 +8076,9 @@ public class PortalImpl implements Portal {
 
 		if ((!Validator.isBlank(portalDomain) &&
 			 !StringUtil.equalsIgnoreCase(
-				 portalDomain, defaultVirtualHostName) &&
+				 portalDomain, defaultVirtualHostname) &&
 			 StringUtil.equalsIgnoreCase(
-				 virtualHostname, defaultVirtualHostName)) ||
+				 virtualHostname, defaultVirtualHostname)) ||
 			virtualHostnames.containsKey(portalDomain)) {
 
 			virtualHostname = portalDomain;
@@ -8100,6 +8104,11 @@ public class PortalImpl implements Portal {
 		// www.liferay.com:8080/ctx/page to www.liferay.com:8080/ctx/es/page
 
 		int pos = canonicalURL.indexOf(virtualHostname);
+
+		if (pos < 0) {
+			pos = canonicalURL.indexOf(portalDomain);
+			virtualHostname = portalDomain;
+		}
 
 		if (pos > 0) {
 			pos = canonicalURL.indexOf(
@@ -8236,7 +8245,7 @@ public class PortalImpl implements Portal {
 		return alternateURLs;
 	}
 
-	private String _getDefaultVirtualHostName(Company company) {
+	private String _getDefaultVirtualHostname(Company company) {
 		if ((company != null) &&
 			Validator.isNotNull(company.getVirtualHostname())) {
 
@@ -8257,19 +8266,19 @@ public class PortalImpl implements Portal {
 
 		boolean useGroupVirtualHostname = false;
 
-		String defaultVirtualHostName = _LOCALHOST;
+		String defaultVirtualHostname = _LOCALHOST;
 
 		Company company = themeDisplay.getCompany();
 
 		if ((company != null) &&
 			Validator.isNotNull(company.getVirtualHostname())) {
 
-			defaultVirtualHostName = company.getVirtualHostname();
+			defaultVirtualHostname = company.getVirtualHostname();
 		}
 
 		if (canonicalURL ||
 			!StringUtil.equalsIgnoreCase(
-				themeDisplay.getServerName(), defaultVirtualHostName)) {
+				themeDisplay.getServerName(), defaultVirtualHostname)) {
 
 			useGroupVirtualHostname = true;
 		}
@@ -8296,7 +8305,7 @@ public class PortalImpl implements Portal {
 		if (useGroupVirtualHostname) {
 			if (!virtualHostnames.isEmpty() &&
 				(canonicalURL ||
-				 !virtualHostnames.containsKey(defaultVirtualHostName))) {
+				 !virtualHostnames.containsKey(defaultVirtualHostname))) {
 
 				if (!controlPanel || !privateLayoutSet) {
 					if (canonicalURL) {
@@ -8307,7 +8316,7 @@ public class PortalImpl implements Portal {
 						}
 
 						if (!virtualHostnames.containsKey(
-								defaultVirtualHostName) &&
+								defaultVirtualHostname) &&
 							!_containsHostname(
 								virtualHostnames, portalDomain)) {
 
@@ -8349,7 +8358,7 @@ public class PortalImpl implements Portal {
 						String serverName = themeDisplay.getServerName();
 
 						if (Validator.isNotNull(serverName) &&
-							!serverName.equals(defaultVirtualHostName)) {
+							!serverName.equals(defaultVirtualHostname)) {
 
 							virtualHostnames.put(serverName, StringPool.BLANK);
 						}
@@ -8365,19 +8374,19 @@ public class PortalImpl implements Portal {
 					}
 
 					if (virtualHostnames.isEmpty() ||
-						virtualHostnames.containsKey(defaultVirtualHostName)) {
+						virtualHostnames.containsKey(defaultVirtualHostname)) {
 
 						virtualHostnames = TreeMapBuilder.put(
-							company::getVirtualHostname, StringPool.BLANK
+							defaultVirtualHostname, StringPool.BLANK
 						).build();
 					}
 
 					if (canonicalURL ||
-						!virtualHostnames.containsKey(defaultVirtualHostName)) {
+						!virtualHostnames.containsKey(defaultVirtualHostname)) {
 
 						String virtualHostname = getCanonicalDomain(
 							virtualHostnames, portalDomain,
-							defaultVirtualHostName);
+							defaultVirtualHostname);
 
 						portalURL = getPortalURL(
 							virtualHostname, themeDisplay.getServerPort(),
@@ -8417,7 +8426,7 @@ public class PortalImpl implements Portal {
 					group.getGroupKey(),
 					PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME) ||
 				 (!StringUtil.equalsIgnoreCase(
-					 portalDomain, defaultVirtualHostName) &&
+					 portalDomain, defaultVirtualHostname) &&
 				  !_containsHostname(virtualHostnames, portalDomain))) {
 
 			sb.append(_PUBLIC_GROUP_SERVLET_MAPPING);
@@ -8779,7 +8788,9 @@ public class PortalImpl implements Portal {
 				return true;
 			}
 		}
-		else if (groupFriendlyURL.contains(layoutFriendlyURL)) {
+		else if (groupFriendlyURL.contains(
+					StringUtil.toLowerCase(layoutFriendlyURL))) {
+
 			return true;
 		}
 

@@ -12,7 +12,6 @@
  * details.
  */
 
-import ClayButton from '@clayui/button';
 import ClayForm, {ClayRadio, ClayRadioGroup, ClayToggle} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import {fetch} from 'frontend-js-web';
@@ -25,6 +24,8 @@ import {
 	normalizeFieldSettings,
 	updateFieldSettings,
 } from '../utils/fieldSettings';
+import {defaultLanguageId, defaultLocale} from '../utils/locale';
+import Card from './Card/Card';
 import Input from './Form/Input';
 import InputLocalized from './Form/InputLocalized/InputLocalized';
 import Select from './Form/Select';
@@ -32,12 +33,10 @@ import ObjectFieldFormBase, {
 	ObjectFieldErrors,
 	useObjectFieldForm,
 } from './ObjectFieldFormBase';
-import Sheet from './Sheet';
+import {SidePanelForm, closeSidePanel, openToast} from './SidePanelContent';
 
 import './EditObjectField.scss';
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId() as Locale;
-const defaultSymbol = defaultLanguageId.replace('_', '-').toLocaleLowerCase();
 const locales: {label: string; symbol: string}[] = [];
 const languageLabels: string[] = [];
 const languages = Liferay.Language.available as LocalizedValue<string>;
@@ -51,16 +50,7 @@ Object.entries(languages).forEach(([languageId, label]) => {
 	languageLabels.push(label);
 });
 
-const defaultLocale = locales.find(({symbol}) => symbol === defaultSymbol);
-
-function closeSidePanel() {
-	const parentWindow = Liferay.Util.getOpener();
-	parentWindow.Liferay.fire('close-side-panel');
-}
-
 export default function EditObjectField({
-	allowMaxLength,
-	allowUploadDocAndMedia,
 	forbiddenChars,
 	forbiddenLastChars,
 	forbiddenNames,
@@ -83,14 +73,12 @@ export default function EditObjectField({
 			}
 		);
 
-		const parentWindow = Liferay.Util.getOpener();
 		if (response.ok) {
 			closeSidePanel();
-			parentWindow.Liferay.Util.openToast({
+			openToast({
 				message: Liferay.Language.get(
 					'the-object-field-was-updated-successfully'
 				),
-				type: 'success',
 			});
 		}
 		else {
@@ -102,7 +90,7 @@ export default function EditObjectField({
 				(error?.type && ERRORS[error.type]) ??
 				Liferay.Language.get('an-error-occurred');
 
-			parentWindow.Liferay.Util.openToast({message, type: 'danger'});
+			openToast({message, type: 'danger'});
 		}
 	};
 
@@ -138,11 +126,13 @@ export default function EditObjectField({
 		});
 
 	return (
-		<ClayForm
+		<SidePanelForm
 			className="lfr-objects__edit-object-field"
 			onSubmit={handleSubmit}
+			readOnly={readOnly}
+			title={Liferay.Language.get('field')}
 		>
-			<Sheet title={Liferay.Language.get('basic-info')}>
+			<Card title={Liferay.Language.get('basic-info')}>
 				<InputLocalized
 					disabled={readOnly}
 					error={errors.label}
@@ -156,8 +146,6 @@ export default function EditObjectField({
 				/>
 
 				<ObjectFieldFormBase
-					allowMaxLength={allowMaxLength}
-					allowUploadDocAndMedia={allowUploadDocAndMedia}
 					disabled={disabled}
 					errors={errors}
 					handleChange={handleChange}
@@ -168,7 +156,6 @@ export default function EditObjectField({
 				>
 					{values.businessType === 'Attachment' && (
 						<AttachmentProperties
-							allowUploadDocAndMedia={allowUploadDocAndMedia}
 							errors={errors}
 							objectFieldSettings={
 								values.objectFieldSettings as ObjectFieldSetting[]
@@ -177,22 +164,21 @@ export default function EditObjectField({
 						/>
 					)}
 
-					{allowMaxLength &&
-						(values.businessType === 'Text' ||
-							values.businessType === 'LongText') && (
-							<MaxLengthProperties
-								disabled={readOnly}
-								errors={errors}
-								objectField={values}
-								objectFieldSettings={
-									values.objectFieldSettings as ObjectFieldSetting[]
-								}
-								onSettingsChange={handleSettingsChange}
-								setValues={setValues}
-							/>
-						)}
+					{(values.businessType === 'Text' ||
+						values.businessType === 'LongText') && (
+						<MaxLengthProperties
+							disabled={readOnly}
+							errors={errors}
+							objectField={values}
+							objectFieldSettings={
+								values.objectFieldSettings as ObjectFieldSetting[]
+							}
+							onSettingsChange={handleSettingsChange}
+							setValues={setValues}
+						/>
+					)}
 				</ObjectFieldFormBase>
-			</Sheet>
+			</Card>
 
 			{values.DBType !== 'Blob' && (
 				<SearchableContainer
@@ -204,17 +190,7 @@ export default function EditObjectField({
 					setValues={setValues}
 				/>
 			)}
-
-			<div className="lfr-objects__edit-object-field-container mt-4">
-				<ClayButton displayType="secondary" onClick={closeSidePanel}>
-					{Liferay.Language.get('cancel')}
-				</ClayButton>
-
-				<ClayButton disabled={readOnly} type="submit">
-					{Liferay.Language.get('save')}
-				</ClayButton>
-			</div>
-		</ClayForm>
+		</SidePanelForm>
 	);
 }
 
@@ -242,7 +218,7 @@ function SearchableContainer({
 	}, [objectField.indexedLanguageId]);
 
 	return (
-		<Sheet className="mt-4" title={Liferay.Language.get('searchable')}>
+		<Card title={Liferay.Language.get('searchable')}>
 			<ClayForm.Group>
 				<ClayToggle
 					disabled={disabled}
@@ -256,7 +232,7 @@ function SearchableContainer({
 			{isSearchableString && (
 				<ClayForm.Group>
 					<ClayRadioGroup
-						onSelectedValueChange={(selected) => {
+						onChange={(selected: string | number) => {
 							const indexedAsKeyword = selected === 'true';
 							const indexedLanguageId = indexedAsKeyword
 								? null
@@ -267,7 +243,7 @@ function SearchableContainer({
 								indexedLanguageId,
 							});
 						}}
-						selectedValue={new Boolean(
+						value={new Boolean(
 							objectField.indexedAsKeyword
 						).toString()}
 					>
@@ -306,7 +282,7 @@ function SearchableContainer({
 					value={selectedLanguage}
 				/>
 			)}
-		</Sheet>
+		</Card>
 	);
 }
 
@@ -344,7 +320,7 @@ function MaxLengthProperties({
 
 	return (
 		<>
-			<ClayForm.Group className="lfr-objects__edit-object-field-container">
+			<ClayForm.Group>
 				<ClayToggle
 					disabled={disabled}
 					label={Liferay.Language.get('limit-characters')}
@@ -365,8 +341,8 @@ function MaxLengthProperties({
 					}}
 					toggled={!!settings.showCounter}
 				/>
-
-				<div
+				&nbsp;
+				<span
 					data-tooltip-align="top"
 					title={Liferay.Language.get(
 						'when-enabled-a-character-counter-will-be-shown-to-the-user'
@@ -376,7 +352,7 @@ function MaxLengthProperties({
 						className="lfr-objects__edit-object-field-tooltip-icon"
 						symbol="question-circle-full"
 					/>
-				</div>
+				</span>
 			</ClayForm.Group>
 			<ClayForm.Group>
 				{settings.showCounter && (
@@ -412,7 +388,6 @@ function MaxLengthProperties({
 }
 
 function AttachmentProperties({
-	allowUploadDocAndMedia,
 	errors,
 	objectFieldSettings,
 	onSettingsChange,
@@ -422,27 +397,26 @@ function AttachmentProperties({
 	return (
 		<>
 			<ClayForm.Group>
-				{allowUploadDocAndMedia &&
-					settings.showFilesInDocumentsAndMedia && (
-						<Input
-							error={errors.storageDLFolderPath}
-							feedbackMessage={Liferay.Util.sub(
-								Liferay.Language.get(
-									'input-the-path-of-the-chosen-folder-in-documents-and-media-an-example-of-a-valid-path-is-x'
-								),
-								'/myDocumentsAndMediaFolder'
-							)}
-							label={Liferay.Language.get('storage-folder')}
-							onChange={({target: {value}}) =>
-								onSettingsChange({
-									name: 'storageDLFolderPath',
-									value,
-								})
-							}
-							required
-							value={settings.storageDLFolderPath as string}
-						/>
-					)}
+				{settings.showFilesInDocumentsAndMedia && (
+					<Input
+						error={errors.storageDLFolderPath}
+						feedbackMessage={Liferay.Util.sub(
+							Liferay.Language.get(
+								'input-the-path-of-the-chosen-folder-in-documents-and-media-an-example-of-a-valid-path-is-x'
+							),
+							'/myDocumentsAndMediaFolder'
+						)}
+						label={Liferay.Language.get('storage-folder')}
+						onChange={({target: {value}}) =>
+							onSettingsChange({
+								name: 'storageDLFolderPath',
+								value,
+							})
+						}
+						required
+						value={settings.storageDLFolderPath as string}
+					/>
+				)}
 			</ClayForm.Group>
 			<Input
 				component="textarea"
@@ -478,7 +452,6 @@ function AttachmentProperties({
 }
 
 interface IAttachmentPropertiesProps {
-	allowUploadDocAndMedia?: boolean;
 	errors: ObjectFieldErrors;
 	objectFieldSettings: ObjectFieldSetting[];
 	onSettingsChange: (setting: ObjectFieldSetting) => void;
@@ -494,8 +467,6 @@ interface IMaxLengthPropertiesProps {
 }
 
 interface IProps {
-	allowMaxLength?: boolean;
-	allowUploadDocAndMedia?: boolean;
 	forbiddenChars: string[];
 	forbiddenLastChars: string[];
 	forbiddenNames: string[];

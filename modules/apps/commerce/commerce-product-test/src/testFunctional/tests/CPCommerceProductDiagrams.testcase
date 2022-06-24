@@ -1,10 +1,11 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.commerce.shop.by.diagram.configuration.CSDiagramCPTypeConfiguration.config:com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "enabled=&quot;true&quot;:disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
+	property osgi.module.configuration.file.names = "com.liferay.commerce.shop.by.diagram.configuration.CSDiagramCPTypeConfiguration.config";
+	property osgi.module.configurations = "enabled=&quot;true&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property test.run.environment = "EE";
 	property testray.main.component.name = "Product Info Management";
 
@@ -86,6 +87,97 @@ definition {
 			value1 = "Diagram T-Shirt");
 
 		CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
+	}
+
+	@description = "This is a test for COMMERCE-8865. CanDragFunctionWorkAfterDoubleClickOnMappedProduct"
+	@priority = "4"
+	test CanDragFunctionWorkAfterDoubleClickOnMappedProduct {
+		task ("Given a Minium site") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		}
+
+		task ("And a diagram product with an image") {
+			CommerceJSONProductsAPI._addCommerceProduct(
+				catalogName = "Minium",
+				productName = "Diagram T-Shirt",
+				productType = "diagram");
+
+			CommerceProducts.openProductsAdmin();
+
+			CommerceNavigator.searchEntry(entryName = "Diagram T-Shirt");
+
+			CommerceNavigator.gotoEntry(entryName = "Diagram T-Shirt");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
+
+			CommerceProductImages.addDiagramImages(
+				imageTitles = "Black",
+				productType = "Diagram");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When a pin linked to a SKU is created") {
+			CommerceDiagram.addPin(
+				pinNumber = "1",
+				position = "100,50",
+				quantity = "1",
+				selectType = "Linked to a SKU",
+				sku = "MIN93015");
+		}
+
+		task ("And the entry inside the mapped product section is clicked") {
+			DoubleClick(
+				key_productName = "ABS Sensor",
+				locator1 = "CommerceDiagrams#DIAGRAM_MAPPED_PRODUCTS_CONTENT");
+		}
+
+		task ("Then the zoom value of the diagram product is verified to be not NaN%") {
+			AssertElementNotPresent(
+				key_zoomValue = "NaN%",
+				locator1 = "CommerceDiagrams#CHECK_DIAGRAM_ZOOM_VALUE");
+		}
+
+		task ("And then the image can be dragged and dropped in different direction") {
+			CommerceDiagram.useDragOnBackground(
+				image_name = "Commerce_Black",
+				position = "300,0");
+		}
+	}
+
+	@description = "COMMERCE-7022 This test asserts that a diagram product image can be expanded to fit the full screen"
+	@priority = "3"
+	test CanExpandImageToFitFullScreen {
+		task ("Given a diagram product with an image") {
+			CommerceNavigator.gotoPortlet(
+				category = "Product Management",
+				portlet = "Products");
+
+			CPCommerceCatalog.newProductsEntry(
+				productCatalog = "Master",
+				productName = "Diagram T-Shirt",
+				productType = "Diagram");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Diagram");
+
+			CommerceProductImages.addDiagramImages(
+				imageTitles = "Black",
+				productType = "Diagram");
+
+			Button.clickPublish();
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("When the Expand button is clicked") {
+			CommerceDiagram.clickExpand();
+		}
+
+		task ("Then the diagram product image should fill up the page") {
+			AssertElementNotPresent(locator1 = "ApplicationsMenu#APPLICATIONS_MENU");
+		}
 	}
 
 	@description = "COMMERCE-7024 A diagram product cannot be published without an image."

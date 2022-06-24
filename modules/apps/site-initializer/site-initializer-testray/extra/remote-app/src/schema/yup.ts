@@ -16,7 +16,17 @@ import {yupResolver} from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 const yupSchema = {
+	build: yup.object({
+		description: yup.string(),
+		gitHash: yup.string(),
+		name: yup.string().required(),
+		productVersionId: yup.string(),
+		routineId: yup.string(),
+		template: yup.string(),
+	}),
 	case: yup.object({
+		addAnother: yup.boolean(),
+		caseTypeId: yup.string().required(),
 		componentId: yup.string().required(),
 		description: yup.string(),
 		descriptionType: yup.string(),
@@ -24,7 +34,7 @@ const yupSchema = {
 		name: yup.string().required(),
 		priority: yup.number(),
 		steps: yup.string(),
-		stepsType: yup.string().required(),
+		stepsType: yup.string(),
 	}),
 	caseType: yup.object({
 		name: yup.string().required(),
@@ -33,12 +43,21 @@ const yupSchema = {
 		name: yup.string().required(),
 	}),
 	factorOption: yup.object({
-		factorCategoryId: yup.string().required(),
+		factorCategoryId: yup.string(),
 		name: yup.string().required(),
 	}),
 	project: yup.object({
-		description: yup.string().required(),
+		description: yup.string(),
 		name: yup.string().required(),
+	}),
+	requirement: yup.object({
+		componentId: yup.string().required(),
+		description: yup.string().required(),
+		descriptionType: yup.string().required(),
+		key: yup.string().required(),
+		linkTitle: yup.string().required(),
+		linkURL: yup.string().required(),
+		summary: yup.string().required(),
 	}),
 	routine: yup.object({
 		autoanalyze: yup.boolean(),
@@ -49,6 +68,20 @@ const yupSchema = {
 		description: yup.string(),
 		name: yup.string().required(),
 		smartSuite: yup.string(),
+	}),
+	user: yup.object({
+		alternateName: yup.string().required(),
+		emailAddress: yup.string().email().required(),
+		familyName: yup.string().required(),
+		givenName: yup.string().required(),
+		password: yup
+			.string()
+			.required('No password provided.')
+			.min(8, 'Password is too short - should be 8 chars minimum.')
+			.matches(/[a-zA-Z]/, 'Password can only contain Latin letters.'),
+		repassword: yup
+			.string()
+			.oneOf([yup.ref('password'), null], 'Passwords must match'),
 	}),
 };
 

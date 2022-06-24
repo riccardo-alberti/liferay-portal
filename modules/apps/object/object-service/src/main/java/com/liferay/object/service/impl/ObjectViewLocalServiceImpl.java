@@ -14,17 +14,26 @@
 
 package com.liferay.object.service.impl;
 
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.exception.DefaultObjectViewException;
+import com.liferay.object.exception.ObjectViewColumnFieldNameException;
+import com.liferay.object.exception.ObjectViewFilterColumnException;
 import com.liferay.object.exception.ObjectViewSortColumnException;
+import com.liferay.object.field.filter.parser.ObjectFieldFilterParser;
+import com.liferay.object.field.filter.parser.ObjectFieldFilterParserServicesTracker;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectView;
 import com.liferay.object.model.ObjectViewColumn;
+import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.model.ObjectViewSortColumn;
 import com.liferay.object.service.base.ObjectViewLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
+import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.object.service.persistence.ObjectViewColumnPersistence;
+import com.liferay.object.service.persistence.ObjectViewFilterColumnPersistence;
 import com.liferay.object.service.persistence.ObjectViewSortColumnPersistence;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.SystemEventConstants;
@@ -35,11 +44,16 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
@@ -60,6 +74,7 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			long userId, long objectDefinitionId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException {
 
@@ -67,7 +82,7 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			_objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId);
 
 		if (defaultObjectView) {
-			_validate(0, objectDefinitionId);
+			_validateDefaultObjectView(0, objectDefinitionId);
 		}
 
 		ObjectView objectView = objectViewPersistence.create(
@@ -89,9 +104,13 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		objectView.setObjectViewColumns(
 			_addObjectViewColumns(
 				user, objectView.getObjectViewId(), objectViewColumns));
+		objectView.setObjectViewFilterColumns(
+			_addObjectViewFilterColumns(
+				user, objectView, objectViewFilterColumns));
 		objectView.setObjectViewSortColumns(
 			_addObjectViewSortColumns(
-				user, objectView, objectViewColumns, objectViewSortColumns));
+				user, objectView.getObjectViewId(), objectViewColumns,
+				objectViewSortColumns));
 
 		return objectView;
 	}
@@ -114,10 +133,25 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		_objectViewColumnPersistence.removeByObjectViewId(
 			objectView.getObjectViewId());
 
+		_objectViewFilterColumnPersistence.removeByObjectViewId(
+			objectView.getObjectViewId());
+
 		_objectViewSortColumnPersistence.removeByObjectViewId(
 			objectView.getObjectViewId());
 
 		return objectView;
+	}
+
+	@Override
+	public void deleteObjectViews(long objectDefinitionId)
+		throws PortalException {
+
+		for (ObjectView objectView :
+				objectViewPersistence.findByObjectDefinitionId(
+					objectDefinitionId)) {
+
+			objectViewLocalService.deleteObjectView(objectView);
+		}
 	}
 
 	@Override
@@ -128,6 +162,9 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		if (objectView != null) {
 			objectView.setObjectViewColumns(
 				_objectViewColumnPersistence.findByObjectViewId(
+					objectView.getObjectViewId()));
+			objectView.setObjectViewFilterColumns(
+				_objectViewFilterColumnPersistence.findByObjectViewId(
 					objectView.getObjectViewId()));
 			objectView.setObjectViewSortColumns(
 				_objectViewSortColumnPersistence.findByObjectViewId(
@@ -145,7 +182,9 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		objectView.setObjectViewColumns(
 			_objectViewColumnPersistence.findByObjectViewId(
 				objectView.getObjectViewId()));
-
+		objectView.setObjectViewFilterColumns(
+			_objectViewFilterColumnPersistence.findByObjectViewId(
+				objectView.getObjectViewId()));
 		objectView.setObjectViewSortColumns(
 			_objectViewSortColumnPersistence.findByObjectViewId(
 				objectView.getObjectViewId()));
@@ -161,6 +200,9 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		for (ObjectView objectView : objectViews) {
 			objectView.setObjectViewColumns(
 				_objectViewColumnPersistence.findByObjectViewId(
+					objectView.getObjectViewId()));
+			objectView.setObjectViewFilterColumns(
+				_objectViewFilterColumnPersistence.findByObjectViewId(
 					objectView.getObjectViewId()));
 			objectView.setObjectViewSortColumns(
 				_objectViewSortColumnPersistence.findByObjectViewId(
@@ -180,6 +222,9 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			_objectViewColumnPersistence.removeByOVI_OFN(
 				objectView.getObjectViewId(), objectField.getName());
 
+			_objectViewFilterColumnPersistence.removeByOVI_OFN(
+				objectView.getObjectViewId(), objectField.getName());
+
 			_objectViewSortColumnPersistence.removeByOVI_OFN(
 				objectView.getObjectViewId(), objectField.getName());
 		}
@@ -191,6 +236,7 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			long objectViewId, boolean defaultObjectView,
 			Map<Locale, String> nameMap,
 			List<ObjectViewColumn> objectViewColumns,
+			List<ObjectViewFilterColumn> objectViewFilterColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
 		throws PortalException {
 
@@ -198,35 +244,50 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			objectViewId);
 
 		if (defaultObjectView) {
-			_validate(objectViewId, objectView.getObjectDefinitionId());
+			_validateDefaultObjectView(
+				objectViewId, objectView.getObjectDefinitionId());
 		}
 
-		_objectViewColumnPersistence.removeByObjectViewId(
-			objectView.getObjectViewId());
+		_objectViewColumnPersistence.removeByObjectViewId(objectViewId);
 
-		_objectViewSortColumnPersistence.removeByObjectViewId(
-			objectView.getObjectViewId());
+		_objectViewFilterColumnPersistence.removeByObjectViewId(objectViewId);
+
+		_objectViewSortColumnPersistence.removeByObjectViewId(objectViewId);
 
 		objectView.setDefaultObjectView(defaultObjectView);
 		objectView.setNameMap(nameMap);
 
 		objectView = objectViewPersistence.update(objectView);
 
+		User user = _userLocalService.getUser(objectView.getUserId());
+
 		objectView.setObjectViewColumns(
-			_addObjectViewColumns(
-				_userLocalService.getUser(objectView.getUserId()),
-				objectView.getObjectViewId(), objectViewColumns));
+			_addObjectViewColumns(user, objectViewId, objectViewColumns));
+		objectView.setObjectViewFilterColumns(
+			_addObjectViewFilterColumns(
+				user, objectView, objectViewFilterColumns));
 		objectView.setObjectViewSortColumns(
 			_addObjectViewSortColumns(
-				_userLocalService.getUser(objectView.getUserId()), objectView,
-				objectViewColumns, objectViewSortColumns));
+				user, objectView.getObjectViewId(), objectViewColumns,
+				objectViewSortColumns));
 
 		return objectView;
 	}
 
 	private List<ObjectViewColumn> _addObjectViewColumns(
-		User user, long objectViewId,
-		List<ObjectViewColumn> objectViewColumns) {
+			User user, long objectViewId,
+			List<ObjectViewColumn> objectViewColumns)
+		throws PortalException {
+
+		try {
+			_validateObjectViewColumns(objectViewId, objectViewColumns);
+		}
+		catch (ObjectViewColumnFieldNameException
+					objectViewColumnFieldNameException) {
+
+			throw new ObjectViewColumnFieldNameException(
+				objectViewColumnFieldNameException.getMessage());
+		}
 
 		return TransformUtil.transform(
 			objectViewColumns,
@@ -248,14 +309,47 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			});
 	}
 
-	private List<ObjectViewSortColumn> _addObjectViewSortColumns(
+	private List<ObjectViewFilterColumn> _addObjectViewFilterColumns(
 			User user, ObjectView objectView,
+			List<ObjectViewFilterColumn> objectViewFilterColumns)
+		throws PortalException {
+
+		_validateObjectViewFilterColumns(
+			objectView.getObjectDefinitionId(), objectViewFilterColumns);
+
+		return TransformUtil.transform(
+			objectViewFilterColumns,
+			objectViewFilterColumn -> {
+				ObjectViewFilterColumn newObjectViewFilterColumn =
+					_objectViewFilterColumnPersistence.create(
+						counterLocalService.increment());
+
+				newObjectViewFilterColumn.setCompanyId(user.getCompanyId());
+				newObjectViewFilterColumn.setUserId(user.getUserId());
+				newObjectViewFilterColumn.setUserName(user.getFullName());
+				newObjectViewFilterColumn.setObjectViewId(
+					objectView.getObjectViewId());
+				newObjectViewFilterColumn.setFilterType(
+					objectViewFilterColumn.getFilterType());
+				newObjectViewFilterColumn.setJson(
+					objectViewFilterColumn.getJson());
+				newObjectViewFilterColumn.setObjectFieldName(
+					objectViewFilterColumn.getObjectFieldName());
+
+				return _objectViewFilterColumnPersistence.update(
+					newObjectViewFilterColumn);
+			});
+	}
+
+	private List<ObjectViewSortColumn> _addObjectViewSortColumns(
+			User user, long objectViewId,
 			List<ObjectViewColumn> objectViewColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
-		throws ObjectViewSortColumnException {
+		throws PortalException {
 
 		try {
-			_validate(objectViewColumns, objectViewSortColumns);
+			_validateObjectViewSortColumns(
+				objectViewColumns, objectViewSortColumns);
 		}
 		catch (ObjectViewSortColumnException objectViewSortColumnException) {
 			throw new ObjectViewSortColumnException(
@@ -272,8 +366,7 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 				newObjectViewSortColumn.setCompanyId(user.getCompanyId());
 				newObjectViewSortColumn.setUserId(user.getUserId());
 				newObjectViewSortColumn.setUserName(user.getFullName());
-				newObjectViewSortColumn.setObjectViewId(
-					objectView.getObjectViewId());
+				newObjectViewSortColumn.setObjectViewId(objectViewId);
 				newObjectViewSortColumn.setObjectFieldName(
 					objectViewSortColumn.getObjectFieldName());
 				newObjectViewSortColumn.setPriority(
@@ -286,15 +379,145 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 			});
 	}
 
-	private void _validate(
+	private void _validateDefaultObjectView(
+			long objectViewId, long objectDefinitionId)
+		throws PortalException {
+
+		ObjectView objectView = objectViewPersistence.fetchByODI_DOV_First(
+			objectDefinitionId, true, null);
+
+		if ((objectView != null) &&
+			(objectView.getObjectViewId() != objectViewId)) {
+
+			throw new DefaultObjectViewException(
+				"There can only be one default object view");
+		}
+	}
+
+	private void _validateObjectViewColumns(
+			long objectViewId, List<ObjectViewColumn> objectViewColumns)
+		throws PortalException {
+
+		ObjectView objectView = objectViewPersistence.findByPrimaryKey(
+			objectViewId);
+
+		List<ObjectField> objectFields =
+			_objectFieldPersistence.findByObjectDefinitionId(
+				objectView.getObjectDefinitionId());
+
+		Set<String> objectFieldNames = new HashSet<>(_objectFieldNames);
+
+		objectFields.forEach(
+			objectField -> objectFieldNames.add(objectField.getName()));
+
+		Set<String> objectViewColumnFieldNames = new LinkedHashSet<>();
+
+		for (ObjectViewColumn objectViewColumn : objectViewColumns) {
+			if (!objectFieldNames.contains(
+					objectViewColumn.getObjectFieldName())) {
+
+				throw new ObjectViewColumnFieldNameException(
+					"There is no object field with the name: " +
+						objectViewColumn.getObjectFieldName());
+			}
+
+			if (objectViewColumnFieldNames.contains(
+					objectViewColumn.getObjectFieldName())) {
+
+				throw new ObjectViewColumnFieldNameException(
+					"There is already an object view column with the object " +
+						"field name: " + objectViewColumn.getObjectFieldName());
+			}
+
+			objectViewColumnFieldNames.add(
+				objectViewColumn.getObjectFieldName());
+		}
+	}
+
+	private void _validateObjectViewFilterColumns(
+			long objectDefinitionId,
+			List<ObjectViewFilterColumn> objectViewFilterColumns)
+		throws PortalException {
+
+		for (ObjectViewFilterColumn objectViewFilterColumn :
+				objectViewFilterColumns) {
+
+			if (Validator.isNull(objectViewFilterColumn.getObjectFieldName())) {
+				throw new ObjectViewFilterColumnException(
+					"Object field name is null");
+			}
+
+			long listTypeDefinitionId = 0L;
+
+			if (_objectFieldNames.contains(
+					objectViewFilterColumn.getObjectFieldName())) {
+
+				if (Objects.equals(
+						objectViewFilterColumn.getObjectFieldName(),
+						"creator") ||
+					Objects.equals(
+						objectViewFilterColumn.getObjectFieldName(), "id")) {
+
+					throw new ObjectViewFilterColumnException(
+						StringBundler.concat(
+							"Object field name \"",
+							objectViewFilterColumn.getObjectFieldName(),
+							"\" is not filterable"));
+				}
+			}
+			else {
+				ObjectField objectField = _objectFieldPersistence.findByODI_N(
+					objectDefinitionId,
+					objectViewFilterColumn.getObjectFieldName());
+
+				if (!Objects.equals(
+						objectField.getBusinessType(),
+						ObjectFieldConstants.BUSINESS_TYPE_PICKLIST)) {
+
+					throw new ObjectViewFilterColumnException(
+						StringBundler.concat(
+							"Object field name \"",
+							objectViewFilterColumn.getObjectFieldName(),
+							"\" is not filterable"));
+				}
+
+				listTypeDefinitionId = objectField.getObjectDefinitionId();
+			}
+
+			if (Validator.isNull(objectViewFilterColumn.getFilterType()) &&
+				Validator.isNull(objectViewFilterColumn.getJson())) {
+
+				continue;
+			}
+
+			if ((Validator.isNull(objectViewFilterColumn.getFilterType()) &&
+				 Validator.isNotNull(objectViewFilterColumn.getJson())) ||
+				(Validator.isNotNull(objectViewFilterColumn.getFilterType()) &&
+				 Validator.isNull(objectViewFilterColumn.getJson()))) {
+
+				throw new ObjectViewFilterColumnException(
+					StringBundler.concat(
+						"Object field name \"",
+						objectViewFilterColumn.getObjectFieldName(),
+						"\" needs to have the filter type and JSON specified"));
+			}
+
+			ObjectFieldFilterParser objectFieldFilterParser =
+				_objectFieldFilterParserServicesTracker.
+					getObjectFieldFilterParser(
+						objectViewFilterColumn.getFilterType());
+
+			objectFieldFilterParser.validate(
+				listTypeDefinitionId, objectViewFilterColumn);
+		}
+	}
+
+	private void _validateObjectViewSortColumns(
 			List<ObjectViewColumn> objectViewColumns,
 			List<ObjectViewSortColumn> objectViewSortColumns)
-		throws ObjectViewSortColumnException {
+		throws PortalException {
 
-		Set<String> objectFieldNames = SetUtil.fromArray(
-			new String[] {
-				"creator", "dateCreated", "dateModified", "id", "status"
-			});
+		Set<String> objectFieldNames = new LinkedHashSet<>();
 
 		for (ObjectViewColumn objectViewColumn : objectViewColumns) {
 			objectFieldNames.add(objectViewColumn.getObjectFieldName());
@@ -307,7 +530,7 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 					objectViewSortColumn.getObjectFieldName())) {
 
 				throw new ObjectViewSortColumnException(
-					"There is no object field with the name: " +
+					"There is no object view column with the name: " +
 						objectViewSortColumn.getObjectFieldName());
 			}
 
@@ -323,25 +546,26 @@ public class ObjectViewLocalServiceImpl extends ObjectViewLocalServiceBaseImpl {
 		}
 	}
 
-	private void _validate(long objectViewId, long objectDefinitionId)
-		throws PortalException {
-
-		ObjectView objectView = objectViewPersistence.fetchByODI_DOV_First(
-			objectDefinitionId, true, null);
-
-		if ((objectView != null) &&
-			(objectView.getObjectViewId() != objectViewId)) {
-
-			throw new DefaultObjectViewException(
-				"There can only be one default object view");
-		}
-	}
-
 	@Reference
 	private ObjectDefinitionPersistence _objectDefinitionPersistence;
 
 	@Reference
+	private ObjectFieldFilterParserServicesTracker
+		_objectFieldFilterParserServicesTracker;
+
+	private final Set<String> _objectFieldNames = Collections.unmodifiableSet(
+		SetUtil.fromArray(
+			"creator", "dateCreated", "dateModified", "id", "status"));
+
+	@Reference
+	private ObjectFieldPersistence _objectFieldPersistence;
+
+	@Reference
 	private ObjectViewColumnPersistence _objectViewColumnPersistence;
+
+	@Reference
+	private ObjectViewFilterColumnPersistence
+		_objectViewFilterColumnPersistence;
 
 	@Reference
 	private ObjectViewSortColumnPersistence _objectViewSortColumnPersistence;

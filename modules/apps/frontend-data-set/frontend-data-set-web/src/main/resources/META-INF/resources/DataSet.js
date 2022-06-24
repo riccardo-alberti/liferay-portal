@@ -58,6 +58,9 @@ import getJsModule from './utils/modules';
 import ViewsContext from './views/ViewsContext';
 import {getViewContentRenderer} from './views/index';
 
+const DEFAULT_PAGINATION_DELTA = 20;
+const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
+
 const DataSet = ({
 	actionParameterName,
 	bulkActions,
@@ -76,9 +79,10 @@ const DataSet = ({
 	nestedItemsKey,
 	nestedItemsReferenceKey,
 	onActionDropdownItemClick,
+	onBulkActionItemClick,
 	overrideEmptyResultView,
 	pagination,
-	selectedItems,
+	selectedItems: initialSelectedItemsValues,
 	selectedItemsKey,
 	selectionType,
 	showManagementBar,
@@ -98,8 +102,7 @@ const DataSet = ({
 		sidePanelId || `support-side-panel-${getRandomId()}`
 	);
 	const [delta, setDelta] = useState(
-		showPagination &&
-			(pagination.initialDelta || pagination.deltas[0].label)
+		showPagination && (pagination?.initialDelta || DEFAULT_PAGINATION_DELTA)
 	);
 
 	const [filters, setFilters] = useState(() => {
@@ -119,13 +122,17 @@ const DataSet = ({
 	});
 
 	const [highlightedItemsValue, setHighlightedItemsValue] = useState([]);
-	const [items, setItems] = useState(itemsProp);
+	const [items, setItems] = useState(itemsProp || []);
 	const [itemsChanges, setItemsChanges] = useState({});
-	const [pageNumber, setPageNumber] = useState(1);
+	const [pageNumber, setPageNumber] = useState(
+		showPagination &&
+			(pagination?.initialPageNumber || DEFAULT_PAGINATION_PAGE_NUMBER)
+	);
 	const [searchParam, setSearchParam] = useState('');
 	const [selectedItemsValue, setSelectedItemsValue] = useState(
-		selectedItems || []
+		initialSelectedItemsValues || []
 	);
+	const [selectedItems, setSelectedItems] = useState([]);
 	const [sorting, setSorting] = useState(sortingProp);
 	const [total, setTotal] = useState(0);
 	const [{activeView}, dispatch] = useContext(ViewsContext);
@@ -284,6 +291,24 @@ const DataSet = ({
 	}
 
 	useEffect(() => {
+		setSelectedItems((selectedItems) => {
+			return selectedItemsValue.map((value) => {
+				let selectedItem = items.find(
+					(item) => item[selectedItemsKey] === value
+				);
+
+				if (!selectedItem) {
+					selectedItem = selectedItems.find(
+						(item) => item[selectedItemsKey] === value
+					);
+				}
+
+				return selectedItem;
+			});
+		});
+	}, [selectedItemsValue, items, selectedItemsKey]);
+
+	useEffect(() => {
 		setComponentLoading(true);
 
 		requestComponent().then((component) => {
@@ -368,6 +393,7 @@ const DataSet = ({
 				selectAllItems={() =>
 					selectItems(items.map((item) => item[selectedItemsKey]))
 				}
+				selectedItems={selectedItems}
 				selectedItemsKey={selectedItemsKey}
 				selectedItemsValue={selectedItemsValue}
 				selectionType={selectionType}
@@ -413,11 +439,6 @@ const DataSet = ({
 		) : (
 			<span aria-hidden="true" className="loading-animation my-7" />
 		);
-
-	const formRef = useRef(null);
-
-	const wrappedView =
-		formId || formName ? view : <form ref={formRef}>{view}</form>;
 
 	const paginationComponent =
 		showPagination && pagination && items?.length && total ? (
@@ -624,7 +645,6 @@ const DataSet = ({
 				filters,
 				formId,
 				formName,
-				formRef,
 				highlightItems,
 				highlightedItemsValue,
 				id,
@@ -638,6 +658,7 @@ const DataSet = ({
 				nestedItemsKey,
 				nestedItemsReferenceKey,
 				onActionDropdownItemClick,
+				onBulkActionItemClick,
 				openModal,
 				openSidePanel,
 				searchParam,
@@ -672,7 +693,7 @@ const DataSet = ({
 						<div className="data-set data-set-inline">
 							{managementBar}
 
-							{wrappedView}
+							{view}
 
 							{paginationComponent}
 						</div>
@@ -682,7 +703,7 @@ const DataSet = ({
 						<div className="data-set data-set-stacked">
 							{managementBar}
 
-							{wrappedView}
+							{view}
 
 							{paginationComponent}
 						</div>
@@ -693,7 +714,7 @@ const DataSet = ({
 							{managementBar}
 
 							<div className="container-fluid container-xl mt-3">
-								{wrappedView}
+								{view}
 
 								{paginationComponent}
 							</div>
@@ -720,6 +741,7 @@ DataSet.propTypes = {
 	formId: PropTypes.string,
 	formName: PropTypes.string,
 	id: PropTypes.string.isRequired,
+	initialSelectedItemsValues: PropTypes.array,
 	inlineAddingSettings: PropTypes.shape({
 		apiURL: PropTypes.string.isRequired,
 		defaultBodyContent: PropTypes.object,
@@ -746,7 +768,6 @@ DataSet.propTypes = {
 		),
 		initialDelta: PropTypes.number.isRequired,
 	}),
-	selectedItems: PropTypes.array,
 	selectedItemsKey: PropTypes.string,
 	selectionType: PropTypes.oneOf(['single', 'multiple']),
 	showManagementBar: PropTypes.bool,
@@ -768,9 +789,6 @@ DataSet.defaultProps = {
 	inlineEditingSettings: null,
 	items: null,
 	itemsActions: null,
-	pagination: {
-		initialDelta: 10,
-	},
 	selectedItemsKey: 'id',
 	selectionType: 'multiple',
 	showManagementBar: true,

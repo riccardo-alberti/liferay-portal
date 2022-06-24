@@ -35,10 +35,6 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 	fdsActionDropdownItems="<%= objectDefinitionsFieldsDisplayContext.getFDSActionDropdownItems() %>"
 	formName="fm"
 	id="<%= ObjectDefinitionsFDSNames.OBJECT_FIELDS %>"
-	itemsPerPage="<%= 20 %>"
-	namespace="<%= liferayPortletResponse.getNamespace() %>"
-	pageNumber="<%= 1 %>"
-	portletURL="<%= liferayPortletResponse.createRenderURL() %>"
 	style="fluid"
 />
 
@@ -47,15 +43,11 @@ renderResponse.setTitle(objectDefinition.getLabel(locale, true));
 		module="js/components/ModalAddObjectField"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
-				"allowMaxLength", GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-146889"))
-			).put(
-				"allowUploadDocAndMedia", GetterUtil.getBoolean(PropsUtil.get("feature.flag.LPS-148112"))
-			).put(
 				"apiURL", objectDefinitionsFieldsDisplayContext.getAPIURL()
 			).put(
 				"forbiddenChars", PropsUtil.getArray(PropsKeys.DL_CHAR_BLACKLIST)
 			).put(
-				"forbiddenLastChars", PropsUtil.getArray(PropsKeys.DL_CHAR_LAST_BLACKLIST)
+				"forbiddenLastChars", objectDefinitionsFieldsDisplayContext.getForbiddenLastCharacters()
 			).put(
 				"forbiddenNames", PropsUtil.getArray(PropsKeys.DL_NAME_BLACKLIST)
 			).put(

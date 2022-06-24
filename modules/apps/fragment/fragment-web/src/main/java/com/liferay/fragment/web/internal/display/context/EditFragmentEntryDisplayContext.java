@@ -213,8 +213,6 @@ public class EditFragmentEntryDisplayContext {
 
 		return PortletURLBuilder.createRenderURL(
 			_renderResponse
-		).setMVCRenderCommandName(
-			"/fragment/view"
 		).setParameter(
 			"fragmentCollectionId",
 			() -> {
@@ -340,6 +338,9 @@ public class EditFragmentEntryDisplayContext {
 		List<String> freeMarkerVariables = new ArrayList<>(template.keySet());
 
 		freeMarkerVariables.add("configuration");
+		freeMarkerVariables.add("fragmentElementId");
+		freeMarkerVariables.add("fragmentEntryLinkNamespace");
+		freeMarkerVariables.add("layoutMode");
 
 		FragmentCollection fragmentCollection =
 			FragmentCollectionServiceUtil.fetchFragmentCollection(

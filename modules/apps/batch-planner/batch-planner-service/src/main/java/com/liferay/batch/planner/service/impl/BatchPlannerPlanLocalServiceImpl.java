@@ -34,7 +34,11 @@ import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.util.List;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -51,7 +55,7 @@ public class BatchPlannerPlanLocalServiceImpl
 	@Override
 	public BatchPlannerPlan addBatchPlannerPlan(
 			long userId, boolean export, String externalType,
-			String externalURL, String internalClassName, String name,
+			String externalURL, String internalClassName, String name, int size,
 			String taskItemDelegateName, boolean template)
 		throws PortalException {
 
@@ -64,7 +68,7 @@ public class BatchPlannerPlanLocalServiceImpl
 
 		User user = userLocalService.getUser(userId);
 
-		_validateName(0, user.getCompanyId(), name);
+		_validateName(0, user.getCompanyId(), name, template);
 
 		BatchPlannerPlan batchPlannerPlan = batchPlannerPlanPersistence.create(
 			counterLocalService.increment());
@@ -72,11 +76,13 @@ public class BatchPlannerPlanLocalServiceImpl
 		batchPlannerPlan.setCompanyId(user.getCompanyId());
 		batchPlannerPlan.setUserId(userId);
 		batchPlannerPlan.setUserName(user.getFullName());
+		batchPlannerPlan.setActive(true);
 		batchPlannerPlan.setExport(export);
 		batchPlannerPlan.setExternalType(externalType);
 		batchPlannerPlan.setExternalURL(externalURL);
 		batchPlannerPlan.setInternalClassName(internalClassName);
 		batchPlannerPlan.setName(name);
+		batchPlannerPlan.setSize(size);
 		batchPlannerPlan.setTaskItemDelegateName(taskItemDelegateName);
 		batchPlannerPlan.setTemplate(template);
 
@@ -88,6 +94,28 @@ public class BatchPlannerPlanLocalServiceImpl
 			batchPlannerPlan.getBatchPlannerPlanId(), false, true, false);
 
 		return batchPlannerPlan;
+	}
+
+	@Override
+	public void deactivateBatchPlannerPlan(String batchEngineTaskERC) {
+		BatchPlannerPlan batchPlannerPlan =
+			batchPlannerPlanPersistence.fetchByPrimaryKey(
+				GetterUtil.getLong(batchEngineTaskERC));
+
+		if (batchPlannerPlan == null) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					StringBundler.concat(
+						"Unable to update batch planner plan for batch engine ",
+						"task ERC ", batchEngineTaskERC));
+			}
+
+			return;
+		}
+
+		batchPlannerPlan.setActive(false);
+
+		batchPlannerPlanPersistence.update(batchPlannerPlan);
 	}
 
 	@Override
@@ -110,45 +138,8 @@ public class BatchPlannerPlanLocalServiceImpl
 	}
 
 	@Override
-	public BatchPlannerPlan updateActive(
-			boolean active, String batchEngineTaskERC)
-		throws PortalException {
-
-		BatchPlannerPlan batchPlannerPlan =
-			batchPlannerPlanPersistence.fetchByPrimaryKey(
-				Long.getLong(batchEngineTaskERC));
-
-		if (batchPlannerPlan == null) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					StringBundler.concat(
-						"Unable to update batch planner plan for batch engine ",
-						"task ERC ", batchEngineTaskERC));
-			}
-
-			return null;
-		}
-
-		return batchPlannerPlanLocalService.updateActive(
-			batchPlannerPlan.getBatchPlannerPlanId(), active);
-	}
-
-	@Override
-	public BatchPlannerPlan updateActive(
-			long batchPlannerPlanId, boolean active)
-		throws PortalException {
-
-		BatchPlannerPlan batchPlannerPlan =
-			batchPlannerPlanPersistence.findByPrimaryKey(batchPlannerPlanId);
-
-		batchPlannerPlan.setActive(active);
-
-		return batchPlannerPlanPersistence.update(batchPlannerPlan);
-	}
-
-	@Override
 	public BatchPlannerPlan updateBatchPlannerPlan(
-			long userId, long batchPlannerPlanId, String externalType,
+			long batchPlannerPlanId, String externalType,
 			String internalClassName, String name)
 		throws PortalException {
 
@@ -160,13 +151,24 @@ public class BatchPlannerPlanLocalServiceImpl
 				"Batch planner plan is not a template");
 		}
 
-		User user = userLocalService.getUser(userId);
-
-		_validateName(batchPlannerPlanId, user.getCompanyId(), name);
+		_validateName(
+			batchPlannerPlanId, batchPlannerPlan.getCompanyId(), name, true);
 
 		batchPlannerPlan.setExternalType(externalType);
 		batchPlannerPlan.setInternalClassName(internalClassName);
 		batchPlannerPlan.setName(name);
+
+		return batchPlannerPlanPersistence.update(batchPlannerPlan);
+	}
+
+	@Override
+	public BatchPlannerPlan updateStatus(long batchPlannerPlanId, int status)
+		throws PortalException {
+
+		BatchPlannerPlan batchPlannerPlan =
+			batchPlannerPlanPersistence.findByPrimaryKey(batchPlannerPlanId);
+
+		batchPlannerPlan.setStatus(status);
 
 		return batchPlannerPlanPersistence.update(batchPlannerPlan);
 	}
@@ -202,12 +204,13 @@ public class BatchPlannerPlanLocalServiceImpl
 	}
 
 	private void _validateName(
-			long batchPlannerPlanId, long companyId, String name)
+			long batchPlannerPlanId, long companyId, String name,
+			boolean template)
 		throws PortalException {
 
 		if (Validator.isNull(name)) {
 			throw new BatchPlannerPlanNameException(
-				"Batch planner plan name is null for company " + companyId);
+				"Batch planner plan name is null");
 		}
 
 		int maxLength = ModelHintsUtil.getMaxLength(
@@ -218,19 +221,24 @@ public class BatchPlannerPlanLocalServiceImpl
 				"Batch planner plan name must not be longer than " + maxLength);
 		}
 
-		BatchPlannerPlan batchPlannerPlan =
-			batchPlannerPlanPersistence.fetchByC_N(companyId, name);
-
-		if ((batchPlannerPlan == null) ||
-			(batchPlannerPlan.getBatchPlannerPlanId() == batchPlannerPlanId)) {
-
+		if (!template) {
 			return;
 		}
 
-		throw new DuplicateBatchPlannerPlanException(
-			StringBundler.concat(
-				"Batch planner plan name \"", name,
-				"\" already exists for company ", companyId));
+		List<BatchPlannerPlan> batchPlannerPlans =
+			batchPlannerPlanPersistence.findByC_T(companyId, template);
+
+		for (BatchPlannerPlan batchPlannerPlan : batchPlannerPlans) {
+			if ((batchPlannerPlan.getBatchPlannerPlanId() !=
+					batchPlannerPlanId) &&
+				Objects.equals(name, batchPlannerPlan.getName())) {
+
+				throw new DuplicateBatchPlannerPlanException(
+					StringBundler.concat(
+						"Batch planner plan name \"", name,
+						"\" already exists for company ", companyId));
+			}
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

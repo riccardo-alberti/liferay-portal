@@ -21,7 +21,6 @@ import com.liferay.asset.kernel.service.persistence.AssetEntryQuery;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
-import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
@@ -41,6 +40,7 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
+import com.liferay.object.service.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.util.LocalizedMapUtil;
 import com.liferay.object.util.ObjectFieldUtil;
 import com.liferay.petra.string.StringBundler;
@@ -65,9 +65,12 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
@@ -122,12 +125,8 @@ public class ObjectEntryLocalServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		_irrelevantObjectDefinition =
-			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null, null,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				ObjectDefinitionConstants.SCOPE_COMPANY,
+			ObjectDefinitionTestUtil.addObjectDefinition(
+				_objectDefinitionLocalService,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"Text", "String", RandomTestUtil.randomString(),
@@ -160,63 +159,56 @@ public class ObjectEntryLocalServiceTest {
 			Collections.singletonMap(
 				LocaleUtil.US, RandomTestUtil.randomString()));
 
-		_objectDefinition =
-			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null, null,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				ObjectDefinitionConstants.SCOPE_COMPANY,
-				Arrays.asList(
-					ObjectFieldUtil.createObjectField(
-						"LongInteger", "Long", true, false, null,
-						"Age of Death", "ageOfDeath", false),
-					ObjectFieldUtil.createObjectField(
-						"Boolean", "Boolean", true, false, null,
-						"Author of Gospel", "authorOfGospel", false),
-					ObjectFieldUtil.createObjectField(
-						"Date", "Date", true, false, null, "Birthday",
-						"birthday", false),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null, "Email Address",
-						"emailAddress", false),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null,
-						"Email Address Required", "emailAddressRequired", true),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null,
-						"Email Address Domain", "emailAddressDomain", false),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, false, null, "First Name",
-						"firstName", false),
-					ObjectFieldUtil.createObjectField(
-						"Decimal", "Double", true, false, null, "Height",
-						"height", false),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, false, null, "Last Name",
-						"lastName", false),
-					ObjectFieldUtil.createObjectField(
-						_listTypeDefinition.getListTypeDefinitionId(), "Text",
-						null, "String", true, false, null,
-						"List Type Entry Key", "listTypeEntryKey", false),
-					ObjectFieldUtil.createObjectField(
-						_listTypeDefinition.getListTypeDefinitionId(), "Text",
-						null, "String", true, false, null,
-						"List Type Entry Key Required",
-						"listTypeEntryKeyRequired", true),
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, false, null, "Middle Name",
-						"middleName", false),
-					ObjectFieldUtil.createObjectField(
-						"Integer", "Integer", true, false, null,
-						"Number of Books Written", "numberOfBooksWritten",
-						false),
-					ObjectFieldUtil.createObjectField(
-						"LargeFile", "Blob", false, false, null, "Portrait",
-						"portrait", false),
-					ObjectFieldUtil.createObjectField(
-						"LongText", "Clob", false, false, null, "Script",
-						"script", false)));
+		_objectDefinition = ObjectDefinitionTestUtil.addObjectDefinition(
+			_objectDefinitionLocalService,
+			Arrays.asList(
+				ObjectFieldUtil.createObjectField(
+					"LongInteger", "Long", true, false, null, "Age of Death",
+					"ageOfDeath", false),
+				ObjectFieldUtil.createObjectField(
+					"Boolean", "Boolean", true, false, null, "Author of Gospel",
+					"authorOfGospel", false),
+				ObjectFieldUtil.createObjectField(
+					"Date", "Date", true, false, null, "Birthday", "birthday",
+					false),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, true, null, "Email Address",
+					"emailAddress", false),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, true, null,
+					"Email Address Required", "emailAddressRequired", true),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, true, null, "Email Address Domain",
+					"emailAddressDomain", false),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, false, null, "First Name",
+					"firstName", false),
+				ObjectFieldUtil.createObjectField(
+					"Decimal", "Double", true, false, null, "Height", "height",
+					false),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, false, null, "Last Name",
+					"lastName", false),
+				ObjectFieldUtil.createObjectField(
+					_listTypeDefinition.getListTypeDefinitionId(), "Text", null,
+					"String", true, false, null, "List Type Entry Key",
+					"listTypeEntryKey", false),
+				ObjectFieldUtil.createObjectField(
+					_listTypeDefinition.getListTypeDefinitionId(), "Text", null,
+					"String", true, false, null, "List Type Entry Key Required",
+					"listTypeEntryKeyRequired", true),
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, false, null, "Middle Name",
+					"middleName", false),
+				ObjectFieldUtil.createObjectField(
+					"Integer", "Integer", true, false, null,
+					"Number of Books Written", "numberOfBooksWritten", false),
+				ObjectFieldUtil.createObjectField(
+					"LargeFile", "Blob", false, false, null, "Portrait",
+					"portrait", false),
+				ObjectFieldUtil.createObjectField(
+					"LongText", "Clob", false, false, null, "Script", "script",
+					false)));
 
 		_objectDefinition =
 			_objectDefinitionLocalService.publishCustomObjectDefinition(
@@ -477,12 +469,13 @@ public class ObjectEntryLocalServiceTest {
 			_objectFieldSettingLocalService.updateObjectFieldSetting(
 				objectFieldSetting.getObjectFieldSettingId(), "jpg, png");
 
-			FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-				null, TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
-				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-				StringUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
-				RandomTestUtil.randomBytes(), null, null,
-				ServiceContextTestUtil.getServiceContext());
+			FileEntry fileEntry = TempFileEntryUtil.addTempFileEntry(
+				TestPropsValues.getGroupId(), TestPropsValues.getUserId(),
+				_objectDefinition.getPortletId(),
+				TempFileEntryUtil.getTempFileName(
+					StringUtil.randomString() + ".txt"),
+				FileUtil.createTempFile(RandomTestUtil.randomBytes()),
+				ContentTypes.TEXT_PLAIN);
 
 			_addObjectEntry(
 				HashMapBuilder.<String, Serializable>put(
@@ -816,12 +809,13 @@ public class ObjectEntryLocalServiceTest {
 				"listTypeEntryKeyRequired", "listTypeEntryKey1"
 			).build());
 
-		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			null, TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
-			RandomTestUtil.randomBytes(), null, null,
-			ServiceContextTestUtil.getServiceContext());
+		FileEntry fileEntry = TempFileEntryUtil.addTempFileEntry(
+			TestPropsValues.getGroupId(), TestPropsValues.getUserId(),
+			_objectDefinition.getPortletId(),
+			TempFileEntryUtil.getTempFileName(
+				StringUtil.randomString() + ".txt"),
+			FileUtil.createTempFile(RandomTestUtil.randomBytes()),
+			ContentTypes.TEXT_PLAIN);
 
 		ObjectEntry objectEntry2 = _addObjectEntry(
 			HashMapBuilder.<String, Serializable>put(
@@ -877,11 +871,12 @@ public class ObjectEntryLocalServiceTest {
 
 		_assertCount(2);
 
-		Assert.assertNotNull(
-			_dlAppLocalService.getFileEntry(fileEntry.getFileEntryId()));
+		Map<String, Serializable> values = objectEntry2.getValues();
 
-		_objectEntryLocalService.deleteObjectEntry(
-			objectEntry2.getObjectEntryId());
+		long persistedFileEntryId = GetterUtil.getLong(values.get("upload"));
+
+		Assert.assertNotNull(
+			_dlAppLocalService.getFileEntry(persistedFileEntryId));
 
 		try {
 			_dlAppLocalService.getFileEntry(fileEntry.getFileEntryId());
@@ -893,6 +888,22 @@ public class ObjectEntryLocalServiceTest {
 				StringBundler.concat(
 					"No FileEntry exists with the key {fileEntryId=",
 					fileEntry.getFileEntryId(), "}"),
+				noSuchFileEntryException.getMessage());
+		}
+
+		_objectEntryLocalService.deleteObjectEntry(
+			objectEntry2.getObjectEntryId());
+
+		try {
+			_dlAppLocalService.getFileEntry(persistedFileEntryId);
+
+			Assert.fail();
+		}
+		catch (NoSuchFileEntryException noSuchFileEntryException) {
+			Assert.assertEquals(
+				StringBundler.concat(
+					"No FileEntry exists with the key {fileEntryId=",
+					persistedFileEntryId, "}"),
 				noSuchFileEntryException.getMessage());
 		}
 
@@ -1497,12 +1508,13 @@ public class ObjectEntryLocalServiceTest {
 
 		String portrait = "In the beginning was the Logos";
 		String script = RandomTestUtil.randomString(1500);
-		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
-			null, TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
-			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			StringUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
-			RandomTestUtil.randomBytes(), null, null,
-			ServiceContextTestUtil.getServiceContext());
+		FileEntry fileEntry = TempFileEntryUtil.addTempFileEntry(
+			TestPropsValues.getGroupId(), TestPropsValues.getUserId(),
+			_objectDefinition.getPortletId(),
+			TempFileEntryUtil.getTempFileName(
+				StringUtil.randomString() + ".txt"),
+			FileUtil.createTempFile(RandomTestUtil.randomBytes()),
+			ContentTypes.TEXT_PLAIN);
 
 		_objectEntryLocalService.updateObjectEntry(
 			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
@@ -1556,15 +1568,31 @@ public class ObjectEntryLocalServiceTest {
 			portrait.getBytes(), (byte[])values.get("portrait"));
 		Assert.assertEquals(script, values.get("script"));
 		Assert.assertEquals(_getBigDecimal(45L), values.get("speed"));
-		Assert.assertEquals(fileEntry.getFileEntryId(), values.get("upload"));
+		Assert.assertNotEquals(
+			fileEntry.getFileEntryId(), values.get("upload"));
 		Assert.assertEquals(60D, values.get("weight"));
 		Assert.assertEquals(
 			objectEntry.getObjectEntryId(),
 			values.get(_objectDefinition.getPKObjectFieldName()));
 		Assert.assertEquals(values.toString(), 19, values.size());
 
+		long persistedFileEntryId = GetterUtil.getLong(values.get("upload"));
+
 		Assert.assertNotNull(
-			_dlAppLocalService.getFileEntry(fileEntry.getFileEntryId()));
+			_dlAppLocalService.getFileEntry(persistedFileEntryId));
+
+		try {
+			_dlAppLocalService.getFileEntry(fileEntry.getFileEntryId());
+
+			Assert.fail();
+		}
+		catch (NoSuchFileEntryException noSuchFileEntryException) {
+			Assert.assertEquals(
+				StringBundler.concat(
+					"No FileEntry exists with the key {fileEntryId=",
+					fileEntry.getFileEntryId(), "}"),
+				noSuchFileEntryException.getMessage());
+		}
 
 		_objectEntryLocalService.updateObjectEntry(
 			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
@@ -1918,7 +1946,7 @@ public class ObjectEntryLocalServiceTest {
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"A" + RandomTestUtil.randomString(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				scope,
+				scope, ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
 					ObjectFieldUtil.createObjectField(
 						"Text", "String", RandomTestUtil.randomString(),

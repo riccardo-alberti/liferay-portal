@@ -59,6 +59,7 @@ public class ObjectViewResourceTest extends BaseObjectViewResourceTestCase {
 				LocalizedMapUtil.getLocalizedMap(value), value, null, null,
 				LocalizedMapUtil.getLocalizedMap(value),
 				ObjectDefinitionConstants.SCOPE_COMPANY,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Collections.emptyList());
 
 		_objectField = _objectFieldLocalService.addCustomObjectField(
@@ -163,7 +164,7 @@ public class ObjectViewResourceTest extends BaseObjectViewResourceTestCase {
 
 		objectView.setDefaultObjectView(false);
 		objectView.setName(
-			Collections.singletonMap("en-US", RandomTestUtil.randomString()));
+			Collections.singletonMap("en_US", RandomTestUtil.randomString()));
 		objectView.setObjectDefinitionId(
 			_objectDefinition.getObjectDefinitionId());
 		objectView.setObjectViewColumns(
@@ -210,6 +211,8 @@ public class ObjectViewResourceTest extends BaseObjectViewResourceTestCase {
 	private ObjectViewColumn _randomObjectViewColumn() {
 		return new ObjectViewColumn() {
 			{
+				label = Collections.singletonMap(
+					"en_US", RandomTestUtil.randomString());
 				objectFieldName = _objectField.getName();
 				priority = RandomTestUtil.randomInt();
 			}

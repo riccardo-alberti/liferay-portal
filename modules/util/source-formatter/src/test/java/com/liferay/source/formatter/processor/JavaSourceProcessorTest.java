@@ -324,6 +324,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testToJSONStringMethodCalls() throws Exception {
+		test("ToJSONStringMethodCalls.testjava",
+			new String[] {
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'",
+				"Use 'toString' instead of 'toJSONString'"
+			},
+			new Integer[] {30, 39, 43, 67});
+	}
+
+	@Test
 	public void testListUtilUsages() throws Exception {
 		test(
 				"ListUtilUsages.testjava",
@@ -367,6 +379,14 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"There should be an empty line after 'registry.register'"
 			},
 			new Integer[] {23, 24, 34});
+	}
+
+	@Test
+	public void testMissingEmptyLinesBeforeMethodCalls() throws Exception {
+		test(
+			"MissingEmptyLinesBeforeMethodCalls.testjava",
+			"There should be an empty line before 'portletPreferences.store'",
+			26);
 	}
 
 	@Test
@@ -482,6 +502,13 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testSizeIsZeroCheck() throws Exception {
+		test("SizeIsZero.testjava",
+			 "Use method '_testList.isEmpty()' instead",
+			 26);
+	}
+
+	@Test
 	public void testSortAnnotationParameters() throws Exception {
 		test("SortAnnotationParameters.testjava");
 	}
@@ -564,6 +591,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"Variable '_s' is unused"
 			},
 			new Integer[] {26, 29, 41});
+	}
+
+	@Test
+	public void testUpgradeDropTable() throws Exception {
+		test("UpgradeDropTable.testjava");
 	}
 
 }

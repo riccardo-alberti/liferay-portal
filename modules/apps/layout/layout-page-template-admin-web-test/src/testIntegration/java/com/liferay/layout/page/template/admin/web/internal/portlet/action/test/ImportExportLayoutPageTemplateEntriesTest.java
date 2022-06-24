@@ -74,6 +74,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
+import com.liferay.portal.props.test.util.PropsTemporarySwapper;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -419,6 +420,101 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 	}
 
 	@Test
+	public void testImportExportLayoutPageTemplateEntryFragmentImageFieldImageMappedAndLinkMapped()
+		throws Exception {
+
+		_addImageFragmentEntry();
+
+		Map<String, String> numberValuesMap = HashMapBuilder.put(
+			"CLASS_PK",
+			() -> {
+				JournalArticle journalArticle = _addJournalArticle(
+					_group1.getGroupId());
+
+				return String.valueOf(journalArticle.getResourcePrimKey());
+			}
+		).build();
+
+		File expectedFile = _generateZipFile(
+			"fragment/image_field/image_mapped_and_link_mapped/expected",
+			numberValuesMap, null);
+		File inputFile = _generateZipFile(
+			"fragment/image_field/image_mapped_and_link_mapped/input",
+			numberValuesMap, null);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
+	public void testImportExportLayoutPageTemplateEntryFragmentImageFieldImageMappedAndLinkPage()
+		throws Exception {
+
+		_addImageFragmentEntry();
+
+		Map<String, String> numberValuesMap = HashMapBuilder.put(
+			"CLASS_PK",
+			() -> {
+				JournalArticle journalArticle = _addJournalArticle(
+					_group1.getGroupId());
+
+				return String.valueOf(journalArticle.getResourcePrimKey());
+			}
+		).build();
+		Map<String, String> stringValuesMap = HashMapBuilder.put(
+			"FRIENDLY_URL",
+			() -> {
+				Layout layout = LayoutTestUtil.addTypeContentLayout(_group1);
+
+				return layout.getFriendlyURL();
+			}
+		).put(
+			"SITE_KEY", String.valueOf(_group1.getGroupKey())
+		).build();
+
+		File expectedFile = _generateZipFile(
+			"fragment/image_field/image_mapped_and_link_page/expected",
+			numberValuesMap, stringValuesMap);
+		File inputFile = _generateZipFile(
+			"fragment/image_field/image_mapped_and_link_page/input",
+			numberValuesMap, stringValuesMap);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
+	public void testImportExportLayoutPageTemplateEntryFragmentImageFieldImageURLAndLinkURL()
+		throws Exception {
+
+		_addImageFragmentEntry();
+
+		File expectedFile = _generateZipFile(
+			"fragment/image_field/image_url_and_link_url/expected", null, null);
+		File inputFile = _generateZipFile(
+			"fragment/image_field/image_url_and_link_url/input", null, null);
+
+		_validateImportExport(expectedFile, inputFile);
+	}
+
+	@Test
+	public void testImportExportLayoutPageTemplateEntryFragmentResponsiveStyles()
+		throws Exception {
+
+		try (PropsTemporarySwapper propsTemporarySwapper =
+				new PropsTemporarySwapper(
+					"feature.flag.LPS-132571", Boolean.TRUE.toString())) {
+
+			_addTextFragmentEntry();
+
+			File expectedFile = _generateZipFile(
+				"fragment/responsive/expected", null, null);
+			File inputFile = _generateZipFile(
+				"fragment/responsive/input", null, null);
+
+			_validateImportExport(expectedFile, inputFile);
+		}
+	}
+
+	@Test
 	public void testImportExportLayoutPageTemplateEntryFragmentTextFieldFragmentAvailableMappedContentAvailable()
 		throws Exception {
 
@@ -713,6 +809,17 @@ public class ImportExportLayoutPageTemplateEntriesTest {
 			StringPool.BLANK, html, StringPool.BLANK, false, StringPool.BLANK,
 			null, 0, FragmentConstants.TYPE_COMPONENT,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
+	}
+
+	private void _addImageFragmentEntry() throws Exception {
+		String html =
+			"<img data-lfr-editable-id=\"image-id\" " +
+				"data-lfr-editable-type=\"image\" " +
+					"src=\"https://example.com/image.jpeg\"/>";
+
+		_addFragmentEntry(
+			_group1.getGroupId(), "test-image-fragment", "Test Image Fragment",
+			html);
 	}
 
 	private JournalArticle _addJournalArticle(long groupId) throws Exception {

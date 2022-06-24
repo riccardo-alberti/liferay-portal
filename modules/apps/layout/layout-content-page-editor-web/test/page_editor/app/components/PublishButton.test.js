@@ -13,11 +13,13 @@
  */
 
 import '@testing-library/jest-dom/extend-expect';
-import {fireEvent, render} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
 import PublishButton from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/PublishButton';
 import {StyleErrorsContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StyleErrorsContext';
+import openWarningModal from '../../../../src/main/resources/META-INF/resources/page_editor/app/utils/openWarningModal';
+import useIsSomeFormIncomplete from '../../../../src/main/resources/META-INF/resources/page_editor/app/utils/useIsSomeFormIncomplete';
 
 jest.mock(
 	'../../../../src/main/resources/META-INF/resources/page_editor/app/config',
@@ -31,15 +33,25 @@ jest.mock(
 	})
 );
 
+jest.mock(
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/utils/useIsSomeFormIncomplete',
+	() => jest.fn()
+);
+
+jest.mock(
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/utils/openWarningModal',
+	() => jest.fn()
+);
+
 const ERRORS = {
 	defaultId: {background: {error: 'I am an error', value: 'error'}},
 };
 
 const renderComponent = ({
-	handleSubmit = () => {},
+	onPublish = () => {},
 	errors,
 	canPublish = true,
-}) => {
+} = {}) => {
 	const ref = React.createRef();
 
 	return render(
@@ -47,50 +59,79 @@ const renderComponent = ({
 			<PublishButton
 				canPublish={canPublish}
 				formRef={ref}
-				handleSubmit={handleSubmit}
 				label="publish"
+				onPublish={onPublish}
 			/>
 		</StyleErrorsContextProvider>
 	);
 };
 
 describe('PublishButton', () => {
-	it('renders PublishButton component', () => {
-		const {getByLabelText} = renderComponent({});
-
-		expect(getByLabelText('publish')).toBeInTheDocument();
+	afterEach(() => {
+		useIsSomeFormIncomplete.mockClear();
 	});
 
-	it('calls handleSubmit when the button is clicked', () => {
-		const handleSubmit = jest.fn((event) => event.preventDefault());
-		const {getByLabelText} = renderComponent({handleSubmit});
-		const button = getByLabelText('publish');
+	it('renders PublishButton component', () => {
+		useIsSomeFormIncomplete.mockImplementation(() => () =>
+			Promise.resolve(false)
+		);
 
-		fireEvent.click(button);
+		renderComponent();
 
-		expect(handleSubmit).toHaveBeenCalled();
+		expect(screen.getByLabelText('publish')).toBeInTheDocument();
+	});
+
+	it('calls onPublish when the button is clicked', async () => {
+		const onPublish = jest.fn(() => {});
+
+		renderComponent({onPublish});
+
+		const button = screen.getByLabelText('publish');
+
+		await fireEvent.click(button);
+
+		expect(onPublish).toHaveBeenCalled();
 	});
 
 	it('opens a modal when the button is clicked and there are errors', async () => {
-		const {getByLabelText} = renderComponent({errors: ERRORS});
-		const button = getByLabelText('publish');
+		renderComponent({errors: ERRORS});
+
+		const button = screen.getByLabelText('publish');
 
 		fireEvent.click(button);
 
-		expect(getByLabelText('style-errors-detected')).toBeInTheDocument();
+		expect(
+			screen.getByLabelText('style-errors-detected')
+		).toBeInTheDocument();
 	});
 
 	it('does not allow to publish if canPublish is false', () => {
-		const handleSubmit = jest.fn((event) => event.preventDefault());
-		const {getByLabelText} = renderComponent({
+		const onPublish = jest.fn(() => {});
+
+		renderComponent({
 			canPublish: false,
-			handleSubmit,
+			onPublish,
 		});
-		const button = getByLabelText('publish');
+
+		const button = screen.getByLabelText('publish');
 
 		fireEvent.click(button);
 
-		expect(handleSubmit).not.toHaveBeenCalled();
+		expect(onPublish).not.toHaveBeenCalled();
 		expect(button).toBeDisabled();
+	});
+
+	it('calls openWarningModal when there is some incomplete form', async () => {
+		useIsSomeFormIncomplete.mockImplementation(() => () =>
+			Promise.resolve(true)
+		);
+
+		renderComponent();
+
+		const button = screen.getByLabelText('publish');
+
+		await fireEvent.click(button);
+
+		expect(openWarningModal).toHaveBeenCalled();
 	});
 });

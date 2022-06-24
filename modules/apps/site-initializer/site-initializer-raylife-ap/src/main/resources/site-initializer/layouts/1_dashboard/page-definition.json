@@ -10,7 +10,6 @@
 					"indexed": true,
 					"layout": {
 						"borderWidth": 0,
-						"htmlTag": "Div",
 						"marginBottom": 0,
 						"marginLeft": 0,
 						"marginRight": 0,
@@ -70,7 +69,6 @@
 											"indexed": true,
 											"layout": {
 												"borderWidth": 0,
-												"htmlTag": "Div",
 												"marginBottom": 0,
 												"marginLeft": 0,
 												"marginRight": 0,
@@ -92,7 +90,6 @@
 													"indexed": true,
 													"layout": {
 														"borderWidth": 0,
-														"htmlTag": "Div",
 														"marginBottom": 0,
 														"marginLeft": 0,
 														"marginRight": 0,
@@ -111,6 +108,15 @@
 																"borderWidth": "0",
 																"textAlign": ""
 															},
+															"fragmentViewports": [
+																{
+																	"fragmentViewportStyle": {
+																		"marginLeft": "0",
+																		"marginRight": "0"
+																	},
+																	"id": "tablet"
+																}
+															],
 															"gutters": true,
 															"indexed": true,
 															"modulesPerRow": 2,
@@ -130,6 +136,7 @@
 																{
 																	"id": "tablet",
 																	"rowViewportDefinition": {
+																		"modulesPerRow": 1
 																	}
 																}
 															],
@@ -151,15 +158,26 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 3
+																	"size": 4
 																},
 																"pageElements": [
 																	{
 																		"definition": {
+																			"fragmentViewports": [
+																				{
+																					"fragmentViewportStyle": {
+																						"marginBottom": "4",
+																						"marginLeft": "0",
+																						"marginRight": "0"
+																					},
+																					"id": "tablet"
+																				}
+																			],
 																			"gutters": true,
 																			"indexed": true,
 																			"modulesPerRow": 1,
@@ -216,7 +234,6 @@
 																							"indexed": true,
 																							"layout": {
 																								"borderWidth": 0,
-																								"htmlTag": "Div",
 																								"marginBottom": 0,
 																								"marginLeft": 0,
 																								"marginRight": 0,
@@ -247,11 +264,10 @@
 																											{
 																												"definition": {
 																													"fragment": {
-																														"key": "fake-content"
+																														"key": "dashboard-tasks"
 																													},
 																													"fragmentConfig": {
-																														"fakeContentId": "fake content",
-																														"height": "464px"
+																														"textColor": ""
 																													},
 																													"fragmentFields": [
 																													],
@@ -315,11 +331,10 @@
 																									{
 																										"definition": {
 																											"fragment": {
-																												"key": "fake-content"
+																												"key": "dashboard-whats-new"
 																											},
 																											"fragmentConfig": {
-																												"fakeContentId": "fake content",
-																												"height": "269px"
+																												"textColor": ""
 																											},
 																											"fragmentFields": [
 																											],
@@ -357,11 +372,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 9
+																	"size": 8
 																},
 																"pageElements": [
 																	{
@@ -379,6 +395,7 @@
 																				{
 																					"id": "landscapeMobile",
 																					"rowViewportDefinition": {
+																						"modulesPerRow": 1
 																					}
 																				},
 																				{
@@ -400,6 +417,7 @@
 																					"columnViewports": [
 																						{
 																							"columnViewportDefinition": {
+																								"size": 12
 																							},
 																							"id": "landscapeMobile"
 																						},
@@ -443,6 +461,15 @@
 																											},
 																											"fragmentFields": [
 																											],
+																											"fragmentViewports": [
+																												{
+																													"fragmentViewportStyle": {
+																														"marginBottom": "4",
+																														"paddingBottom": "0"
+																													},
+																													"id": "landscapeMobile"
+																												}
+																											],
 																											"indexed": true
 																										},
 																										"type": "Fragment"
@@ -461,6 +488,7 @@
 																					"columnViewports": [
 																						{
 																							"columnViewportDefinition": {
+																								"size": 12
 																							},
 																							"id": "landscapeMobile"
 																						},
@@ -496,11 +524,10 @@
 																									{
 																										"definition": {
 																											"fragment": {
-																												"key": "fake-content"
+																												"key": "dashboard-commission"
 																											},
 																											"fragmentConfig": {
-																												"fakeContentId": "fake content",
-																												"height": "257px"
+																												"textColor": ""
 																											},
 																											"fragmentFields": [
 																											],
@@ -531,7 +558,6 @@
 																			"indexed": true,
 																			"layout": {
 																				"borderWidth": 0,
-																				"htmlTag": "Div",
 																				"marginBottom": 0,
 																				"marginLeft": 0,
 																				"marginRight": 0,
@@ -599,10 +625,18 @@
 														"marginTop": "4",
 														"textAlign": ""
 													},
+													"fragmentViewports": [
+														{
+															"fragmentViewportStyle": {
+																"marginLeft": "0",
+																"marginRight": "0"
+															},
+															"id": "tablet"
+														}
+													],
 													"indexed": true,
 													"layout": {
 														"borderWidth": 0,
-														"htmlTag": "Div",
 														"marginBottom": 0,
 														"marginLeft": 0,
 														"marginRight": 0,
@@ -636,6 +670,7 @@
 																{
 																	"id": "tablet",
 																	"rowViewportDefinition": {
+																		"modulesPerRow": 1
 																	}
 																}
 															],
@@ -657,11 +692,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 9
+																	"size": 8
 																},
 																"pageElements": [
 																	{
@@ -689,6 +725,14 @@
 																								"height": "642px"
 																							},
 																							"fragmentFields": [
+																							],
+																							"fragmentViewports": [
+																								{
+																									"fragmentViewportStyle": {
+																										"marginBottom": "4"
+																									},
+																									"id": "tablet"
+																								}
 																							],
 																							"indexed": true
 																						},
@@ -718,11 +762,12 @@
 																		},
 																		{
 																			"columnViewportDefinition": {
+																				"size": 12
 																			},
 																			"id": "tablet"
 																		}
 																	],
-																	"size": 3
+																	"size": 4
 																},
 																"pageElements": [
 																	{

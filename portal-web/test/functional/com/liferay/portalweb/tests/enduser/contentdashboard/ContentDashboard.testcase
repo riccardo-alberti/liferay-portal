@@ -69,6 +69,70 @@ definition {
 		}
 	}
 
+	@description = "LPS-120417 When there is web content published by a user different than the admin user and the admin user visit the Content Dashboard, the content is visible"
+	@priority = "3"
+	test AssetNotFilteredByMe {
+		task ("Create an user via JSONWS") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONRole.assignRoleToUser(
+				roleTitle = "Administrator",
+				userEmailAddress = "userea@liferay.com");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Create a web content with Test Test via JSONWS") {
+			JSONWebcontent.addWebContent(
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "Web Content Title 1");
+		}
+
+		task ("Create a web content with created user") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC Content Content",
+				webContentTitle = "Web Content Title 2");
+
+			PortletEntry.publish();
+
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+		}
+
+		task ("Natigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check that both web contents are displayed and no filter is applyed") {
+			for (var assetName : list "Web Content Title 1,Web Content Title 2") {
+				LexiconTable.viewTableEntryTitle(tableEntry = "${assetName}");
+			}
+
+			AssertElementNotPresent(locator1 = "ContentDashboard#FILTER_TEXT");
+		}
+
+		task ("Delete user created") {
+			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
+		}
+	}
+
 	@description = "LPS-122873 When all the web content is unassigned from a Vocab1's category, the relative ordering of the rest of the categories remain the same"
 	@priority = "3"
 	test AssigningSomeAudienceCategoriesAndCheckingTheOrder {
@@ -79,12 +143,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -96,12 +158,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -650,12 +710,10 @@ definition {
 				groupName = "Global",
 				title = "C_Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "B_Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "A_Subaudience_3",
@@ -862,12 +920,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -891,6 +947,59 @@ definition {
 		}
 	}
 
+	@description = "LPS-151808 Bug: The button Metrics is shown for web content in Pending status"
+	@priority = "4"
+	test CheckMetricsIconofPendingWebContent {
+		task ("Create a default Display Page Template") {
+			JSONLayoutpagetemplate.addDisplayPageTemplateEntry(
+				contentType = "Web Content Article",
+				displayPageTemplateEntryName = "Display Page Name",
+				groupName = "Test Site Name",
+				subType = "Basic Web Content");
+
+			DisplayPageTemplatesAdmin.openDisplayPagesAdmin(siteURLKey = "test-site-name");
+
+			DisplayPageTemplatesAdmin.gotoDisplayPage(displayPageName = "Display Page Name");
+
+			Button.clickPublish();
+
+			DisplayPageTemplatesAdmin.markDisplayPageAsDefault(displayPageName = "Display Page Name");
+		}
+
+		task ("Configure Web Content Article workflow to Single Approver") {
+			ProductMenu.gotoPortlet(
+				category = "Configuration",
+				portlet = "Workflow");
+
+			Workflow.configureWorkflow(
+				workflowDefinition = "Single Approver",
+				workflowResourceValue = "Web Content Article");
+		}
+
+		task ("Create a Web Content") {
+			JSONWebcontent.addWebContent(
+				content = "Webcontent Content",
+				groupName = "Test Site Name",
+				title = "Webcontent Title");
+		}
+
+		task ("Navigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check that Metrics icon is not present") {
+			Click.clickNoMouseOver(locator1 = "ContentDashboard#ROW_PANEL_WC");
+
+			AssertElementNotPresent(locator1 = "ContentPerformance#ICON_VIEW_METRICS");
+		}
+
+		task ("Check that Metrics option is not present at dropdown") {
+			Click(locator1 = "ContentDashboard#ASSET_MENU_DROPDOWN_BUTTON");
+
+			AssertElementNotPresent(locator1 = "ContentDashboard#VIEW_OPTION");
+		}
+	}
+
 	@description = "LPS-122873 When any web content is unassigned to a Vocab1's category, the relative ordering of categories remain the same"
 	@priority = "3"
 	test CheckOrderEvenWithSomeUnassignedCategories {
@@ -901,12 +1010,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -918,12 +1025,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -1042,12 +1147,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -1059,12 +1162,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -2622,7 +2723,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2756,7 +2856,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2847,7 +2946,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -2938,7 +3036,6 @@ definition {
 				groupName = "Global",
 				title = "Category1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Category2",
@@ -3266,7 +3363,7 @@ definition {
 		}
 
 		task ("Filter by Type") {
-			ContentDashboard.filterByType(typeNameList = "Basic Web Content");
+			ContentDashboard.filterByType(typeName = "Basic Web Content");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3298,7 +3395,7 @@ definition {
 		}
 
 		task ("Filter by Type: Basic Document") {
-			ContentDashboard.filterByType(typeNameList = "Basic Document");
+			ContentDashboard.filterByType(typeName = "Basic Document");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3329,7 +3426,7 @@ definition {
 		}
 
 		task ("Filter by Type") {
-			ContentDashboard.filterByType(typeNameList = "Blogs Entry");
+			ContentDashboard.filterByType(typeName = "Blogs Entry");
 		}
 
 		task ("Assert that the web content and filter label are present") {
@@ -3447,7 +3544,7 @@ definition {
 		}
 
 		task ("Filter assets by both structure types") {
-			ContentDashboard.filterByType(typeNameList = "Basic Web Content,WC Structure Name");
+			ContentDashboard.filterByType(typeName = "Basic Web Content,WC Structure Name");
 		}
 
 		task ("Assert if both assets are displayed") {
@@ -3473,9 +3570,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "doc",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "doc");
 		}
 
 		task ("Check if extension is present") {
@@ -3521,7 +3616,7 @@ definition {
 		task ("Assert if both Web Contents are displayed") {
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FILTER_TEXT",
-				value1 = "Tag:test_tag");
+				value1 = "Tag: test_tag");
 
 			ContentDashboard.searchValue(webContentTitle = "Web Content Title 1");
 
@@ -3713,12 +3808,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -3730,12 +3823,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -3836,9 +3927,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp3",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "mp3");
 		}
 
 		task ("Check if extension is present") {
@@ -3864,9 +3953,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "html",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "html");
 		}
 
 		task ("Check if extension is present") {
@@ -3894,9 +3981,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "zip",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "zip");
 		}
 
 		task ("Check if extension is present") {
@@ -3922,9 +4007,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "json",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "json");
 		}
 
 		task ("Check if extension is present") {
@@ -3950,9 +4033,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "pptx",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "pptx");
 		}
 
 		task ("Check if extension is present") {
@@ -3978,9 +4059,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "xls",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "xls");
 		}
 
 		task ("Check if extension is present") {
@@ -4006,9 +4085,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "docx",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "docx");
 		}
 
 		task ("Check if extension is present") {
@@ -4034,9 +4111,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "pdf",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "pdf");
 		}
 
 		task ("Check if extension is present") {
@@ -4062,9 +4137,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp4",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionName = "mp4");
 		}
 
 		task ("Check if extension is present") {
@@ -4152,10 +4225,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "",
-				filterOption = "Extension",
-				noResultMessage = "No results were found.");
+			ContentDashboard.openFilterModal(filterOption = "Extension");
 		}
 
 		task ("Check if message of No results were found is present") {
@@ -4175,12 +4245,10 @@ definition {
 				groupName = "Global",
 				title = "C_Subaudience_1",
 				vocabularyName = "Audience");
-
 			var categoryId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "B_Subaudience_2",
 				vocabularyName = "Audience");
-
 			var categoryId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "A_Subaudience_3",
@@ -4192,12 +4260,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -4504,7 +4570,7 @@ definition {
 
 			AssertTextPresent(
 				locator1 = "ContentDashboard#FILTER_TEXT",
-				value1 = "Author:Test Test");
+				value1 = "Author: Test Test");
 		}
 	}
 
@@ -4540,17 +4606,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByExtension(
-				extensionName = "mp3",
-				filterOption = "Extension");
-
-			ContentDashboard.filterByExtension(
-				extensionName = "Image",
-				filterOption = "Extension");
-
-			ContentDashboard.filterByExtension(
-				extensionName = "Text",
-				filterOption = "Extension");
+			ContentDashboard.filterByExtension(extensionNameList = "mp3,Image,Text");
 		}
 
 		task ("Check if extension is present") {
@@ -4576,9 +4632,7 @@ definition {
 		task ("Navigate to the content Dashboard and filter by file extension") {
 			ContentDashboard.goToContentDashboard();
 
-			ContentDashboard.filterByMimeParent(
-				filterOption = "Extension",
-				parentExtension = "Text (1 Item)");
+			ContentDashboard.filterByMimeParent(parentExtension = "Text (1 Item)");
 		}
 
 		task ("Check if extension is present") {
@@ -4982,12 +5036,10 @@ definition {
 				groupName = "Global",
 				title = "Subaudience_1",
 				vocabularyName = "Audience");
-
 			var audienceId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_2",
 				vocabularyName = "Audience");
-
 			var audienceId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Subaudience_3",
@@ -4999,12 +5051,10 @@ definition {
 				groupName = "Global",
 				title = "Substage_1",
 				vocabularyName = "Stage");
-
 			var stageId2 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_2",
 				vocabularyName = "Stage");
-
 			var stageId3 = JSONCategory.addCategory(
 				groupName = "Global",
 				title = "Substage_3",
@@ -5043,6 +5093,77 @@ definition {
 					fillColor = "FF5F5F",
 					locator1 = "ContentDashboard#BAR_FROM_NO_VOCABULARY_SPECIFIED");
 			}
+		}
+	}
+
+	@description = "LPS-151911 Bug: Content Dashboard shows error when displaying details of article whose authors has been deleted"
+	@priority = "4"
+	test ViewInfoPanelDeletedUser {
+		property portal.acceptance = "true";
+
+		task ("Create a new User") {
+			JSONUser.addUser(
+				userEmailAddress = "userea@liferay.com",
+				userFirstName = "userfn",
+				userLastName = "userln",
+				userScreenName = "usersn");
+
+			JSONUser.setFirstPassword(
+				agreeToTermsAndAnswerReminderQuery = "true",
+				newPassword = "test",
+				requireReset = "false",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Assign the new user to a site") {
+			JSONUser.addUserToSite(
+				groupName = "Test Site Name",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Assign the Site Administrator to new user") {
+			JSONRole.assignSiteRoleToUser(
+				groupName = "Test Site Name",
+				roleTitle = "Site Administrator",
+				userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Create a web content with created user via JSONWS") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "userea@liferay.com",
+				userLoginFullName = "userfn userln");
+
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
+
+			WebContentNavigator.gotoAddCP();
+
+			WebContent.addCP(
+				webContentContent = "WC Content Content",
+				webContentTitle = "Web Content Title");
+
+			PortletEntry.publish();
+		}
+
+		task ("Login with Test user once more") {
+			User.logoutAndLoginPG(
+				userLoginEmailAddress = "test@liferay.com",
+				userLoginFullName = "Test Test");
+		}
+
+		task ("Delete the user created") {
+			JSONUser.deleteUserByEmailAddress(userEmailAddress = "userea@liferay.com");
+		}
+
+		task ("Natigate to Content Dashboard") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check the info panel of the asset") {
+			ContentDashboard.openInfoPanelByDropdownMenu();
+
+			AssertTextPresent(
+				locator1 = "ContentDashboard#INFO_PANEL_TITLE",
+				value1 = "Web Content Title");
 		}
 	}
 

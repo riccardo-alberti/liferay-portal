@@ -24,16 +24,25 @@ import ViewContext, {TYPES} from '../context';
 
 import './BuilderListItem.scss';
 
-interface Iprops {
+interface IProps {
 	aliasColumnText?: string;
+	defaultSort?: boolean;
+	disableEdit?: boolean;
+	filter?: boolean;
+	hasDragAndDrop?: boolean;
 	index: number;
-	isDefaultSort?: boolean;
 	label?: string;
 	objectFieldName: string;
 	onEditing?: (boolean: boolean) => void;
 	onEditingObjectFieldName?: (objectFieldName: string) => void;
 	onVisibleEditModal?: (boolean: boolean) => void;
+	thirdColumnValues?: TThirdColumnValues[];
 }
+
+type TThirdColumnValues = {
+	label: string;
+	value: string;
+};
 
 type TItemHover = {
 	index: number;
@@ -45,15 +54,19 @@ type TDraggedOffset = {
 	y: number;
 } | null;
 
-const BuilderListItem: React.FC<Iprops> = ({
+const BuilderListItem: React.FC<IProps> = ({
 	aliasColumnText,
+	defaultSort,
+	disableEdit,
+	filter,
+	hasDragAndDrop,
 	index,
-	isDefaultSort,
 	label,
 	objectFieldName,
 	onEditing,
 	onEditingObjectFieldName,
 	onVisibleEditModal,
+	thirdColumnValues,
 }) => {
 	const [active, setActive] = useState<boolean>(false);
 	const [_, dispatch] = useContext(ViewContext);
@@ -104,7 +117,7 @@ const BuilderListItem: React.FC<Iprops> = ({
 
 			dispatch({
 				payload: {draggedIndex, targetIndex},
-				type: isDefaultSort
+				type: defaultSort
 					? TYPES.CHANGE_OBJECT_VIEW_SORT_COLUMN_ORDER
 					: TYPES.CHANGE_OBJECT_VIEW_COLUMN_ORDER,
 			});
@@ -115,12 +128,19 @@ const BuilderListItem: React.FC<Iprops> = ({
 
 	const handleDeleteColumn = (
 		objectFieldName: string,
-		isDefaultSort?: boolean
+		filter?: boolean,
+		defaultSort?: boolean
 	) => {
-		if (isDefaultSort) {
+		if (defaultSort) {
 			dispatch({
 				payload: {objectFieldName},
 				type: TYPES.DELETE_OBJECT_VIEW_SORT_COLUMN,
+			});
+		}
+		else if (filter) {
+			dispatch({
+				payload: {objectFieldName},
+				type: TYPES.DELETE_OBJECT_VIEW_FILTER_COLUMN,
 			});
 		}
 		else {
@@ -153,21 +173,51 @@ const BuilderListItem: React.FC<Iprops> = ({
 				}
 			)}
 			flex
-			ref={ref}
+			ref={hasDragAndDrop ? ref : null}
 		>
-			<ClayList.ItemField>
-				<ClayButtonWithIcon displayType={null} symbol="drag" />
-			</ClayList.ItemField>
+			{hasDragAndDrop && (
+				<ClayList.ItemField>
+					<ClayButtonWithIcon displayType={null} symbol="drag" />
+				</ClayList.ItemField>
+			)}
 
-			<ClayList.ItemField expand>
+			<ClayList.ItemField
+				className={classNames(
+					'lfr-object__object-builder-list-item-first-column',
+					!hasDragAndDrop &&
+						'lfr-object__object-builder-list-item-first-column--not-draggable'
+				)}
+				expand
+			>
 				<ClayList.ItemTitle>{label}</ClayList.ItemTitle>
 			</ClayList.ItemField>
 
 			<ClayList.ItemField
-				className="lfr-object__object-builder-list-item-sort-order"
+				className={classNames(
+					'lfr-object__object-builder-list-item-second-column',
+					!hasDragAndDrop &&
+						'lfr-object__object-builder-list-item-second-column--not-draggable'
+				)}
 				expand
 			>
 				<ClayList.ItemText>{aliasColumnText}</ClayList.ItemText>
+			</ClayList.ItemField>
+
+			<ClayList.ItemField
+				className={classNames(
+					'lfr-object__object-builder-list-item-third-column',
+					!hasDragAndDrop &&
+						'lfr-object__object-builder-list-item-third-column--not-draggable'
+				)}
+				expand
+			>
+				<ClayList.ItemText>
+					{thirdColumnValues?.map((value, index) => {
+						return index !== thirdColumnValues.length - 1
+							? `${value.label}, `
+							: value.label;
+					})}
+				</ClayList.ItemText>
 			</ClayList.ItemField>
 
 			<ClayDropDown
@@ -185,6 +235,7 @@ const BuilderListItem: React.FC<Iprops> = ({
 			>
 				<ClayDropDown.ItemList>
 					<ClayDropDown.Item
+						disabled={disableEdit}
 						onClick={() => handleEnableEditModal(objectFieldName)}
 					>
 						<ClayIcon
@@ -197,7 +248,11 @@ const BuilderListItem: React.FC<Iprops> = ({
 
 					<ClayDropDown.Item
 						onClick={() =>
-							handleDeleteColumn(objectFieldName, isDefaultSort)
+							handleDeleteColumn(
+								objectFieldName,
+								filter,
+								defaultSort
+							)
 						}
 					>
 						<ClayIcon

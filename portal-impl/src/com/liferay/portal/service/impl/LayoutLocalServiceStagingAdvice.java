@@ -229,11 +229,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				layout, hasIconImage, iconBytes, "iconImageId", 0, 0, 0);
 		}
 
-		boolean layoutPrototypeLinkEnabled = ParamUtil.getBoolean(
-			serviceContext, "layoutPrototypeLinkEnabled");
-
-		layout.setLayoutPrototypeLinkEnabled(layoutPrototypeLinkEnabled);
-
+		layout.setLayoutPrototypeLinkEnabled(
+			ParamUtil.getBoolean(serviceContext, "layoutPrototypeLinkEnabled"));
 		layout.setExpandoBridgeAttributes(serviceContext);
 
 		LayoutUtil.update(layout);
@@ -778,6 +775,16 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 					masterLayoutPlid, styleBookEntryId, serviceContext);
 			}
 			else {
+				if (methodName.equals("updateLayout") &&
+					(arguments.length == 10)) {
+
+					updateLookAndFeel(
+						(LayoutLocalService)_targetObject, (Long)arguments[0],
+						(Boolean)arguments[1], (Long)arguments[2],
+						(String)arguments[5], (String)arguments[6],
+						(String)arguments[8]);
+				}
+
 				try {
 					Class<?> clazz = LayoutLocalServiceStagingAdvice.class;
 

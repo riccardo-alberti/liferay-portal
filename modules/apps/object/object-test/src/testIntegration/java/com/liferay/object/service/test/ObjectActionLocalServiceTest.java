@@ -18,14 +18,13 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.action.executor.ObjectActionExecutorRegistry;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
-import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.object.util.LocalizedMapUtil;
+import com.liferay.object.service.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.util.ObjectFieldUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -73,17 +72,12 @@ public class ObjectActionLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_objectDefinition =
-			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"A" + RandomTestUtil.randomString(), null, null,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				ObjectDefinitionConstants.SCOPE_COMPANY,
-				Arrays.asList(
-					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null, "First Name",
-						"firstName", true)));
+		_objectDefinition = ObjectDefinitionTestUtil.addObjectDefinition(
+			_objectDefinitionLocalService,
+			Arrays.asList(
+				ObjectFieldUtil.createObjectField(
+					"Text", "String", true, true, null, "First Name",
+					"firstName", true)));
 
 		_objectDefinition =
 			_objectDefinitionLocalService.publishCustomObjectDefinition(
@@ -118,8 +112,8 @@ public class ObjectActionLocalServiceTest {
 
 		ObjectAction objectAction1 = _objectActionLocalService.addObjectAction(
 			TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), true,
-			RandomTestUtil.randomString(),
+			_objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
 			UnicodePropertiesBuilder.put(
@@ -129,8 +123,8 @@ public class ObjectActionLocalServiceTest {
 			).build());
 		ObjectAction objectAction2 = _objectActionLocalService.addObjectAction(
 			TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), true,
-			RandomTestUtil.randomString(),
+			_objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
 			UnicodePropertiesBuilder.put(
@@ -140,8 +134,8 @@ public class ObjectActionLocalServiceTest {
 			).build());
 		ObjectAction objectAction3 = _objectActionLocalService.addObjectAction(
 			TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), true,
-			RandomTestUtil.randomString(),
+			_objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_UPDATE,
 			UnicodePropertiesBuilder.put(
@@ -338,7 +332,8 @@ public class ObjectActionLocalServiceTest {
 	public void testUpdateObjectAction() throws Exception {
 		ObjectAction objectAction = _objectActionLocalService.addObjectAction(
 			TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), true, "Able",
+			_objectDefinition.getObjectDefinitionId(), true,
+			"Able Condition Expression", "Able Description", "Able",
 			ObjectActionExecutorConstants.KEY_WEBHOOK,
 			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
 			UnicodePropertiesBuilder.put(
@@ -346,7 +341,16 @@ public class ObjectActionLocalServiceTest {
 			).build());
 
 		Assert.assertTrue(objectAction.isActive());
+		Assert.assertEquals(
+			"Able Condition Expression", objectAction.getConditionExpression());
+		Assert.assertEquals("Able Description", objectAction.getDescription());
 		Assert.assertEquals("Able", objectAction.getName());
+		Assert.assertEquals(
+			ObjectActionExecutorConstants.KEY_WEBHOOK,
+			objectAction.getObjectActionExecutorKey());
+		Assert.assertEquals(
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			objectAction.getObjectActionTriggerKey());
 		Assert.assertEquals(
 			UnicodePropertiesBuilder.put(
 				"secret", "0123456789"
@@ -354,13 +358,26 @@ public class ObjectActionLocalServiceTest {
 			objectAction.getParametersUnicodeProperties());
 
 		objectAction = _objectActionLocalService.updateObjectAction(
-			objectAction.getObjectActionId(), false, "Baker",
+			objectAction.getObjectActionId(), false,
+			"Baker Condition Expression", "Baker Description", "Baker",
+			ObjectActionExecutorConstants.KEY_GROOVY,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
 			UnicodePropertiesBuilder.put(
 				"secret", "30624700"
 			).build());
 
 		Assert.assertFalse(objectAction.isActive());
+		Assert.assertEquals(
+			"Baker Condition Expression",
+			objectAction.getConditionExpression());
+		Assert.assertEquals("Baker Description", objectAction.getDescription());
 		Assert.assertEquals("Baker", objectAction.getName());
+		Assert.assertEquals(
+			ObjectActionExecutorConstants.KEY_GROOVY,
+			objectAction.getObjectActionExecutorKey());
+		Assert.assertEquals(
+			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
+			objectAction.getObjectActionTriggerKey());
 		Assert.assertEquals(
 			UnicodePropertiesBuilder.put(
 				"secret", "30624700"

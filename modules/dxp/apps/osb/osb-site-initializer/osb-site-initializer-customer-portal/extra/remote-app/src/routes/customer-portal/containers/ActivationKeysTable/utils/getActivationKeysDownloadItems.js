@@ -10,14 +10,19 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import i18n from '../../../../../common/I18n';
 import {TOOLTIP_CLASSNAMES_TYPES} from './constants';
-import {downloadAggregatedActivationKey} from './downloadActivationLicenseKey';
+import {
+	downloadAggregatedActivationKey,
+	downloadMultipleActivationKey,
+} from './downloadActivationLicenseKey';
 
 export function getActivationKeysDownloadItems(
 	isAbleToDownloadAggregateKeys,
 	selectedKeysIDs,
 	licenseKeyDownloadURL,
 	sessionId,
+	handleMultipleAlertStatus,
 	handleAlertStatus,
 	selectedKeysObjects,
 	projectName
@@ -28,7 +33,7 @@ export function getActivationKeysDownloadItems(
 			icon: (
 				<ClayIcon className="mr-1 text-neutral-4" symbol="document" />
 			),
-			label: 'Aggregate Key (single file)',
+			label: i18n.translate('aggregate-key-single-file'),
 			onClick: async () => {
 				const downloadedAggregated = await downloadAggregatedActivationKey(
 					selectedKeysIDs,
@@ -39,6 +44,21 @@ export function getActivationKeysDownloadItems(
 				);
 
 				return handleAlertStatus(downloadedAggregated);
+			},
+			tooltip: TOOLTIP_CLASSNAMES_TYPES.dropDownItem,
+		},
+		{
+			icon: <ClayIcon className="mr-1 text-neutral-4" symbol="list" />,
+			label: i18n.translate('individual-keys-multiple-files'),
+			onClick: async () => {
+				const downloadedMultiple = await downloadMultipleActivationKey(
+					selectedKeysIDs,
+					licenseKeyDownloadURL,
+					sessionId,
+					projectName
+				);
+
+				return handleMultipleAlertStatus(downloadedMultiple);
 			},
 			tooltip: TOOLTIP_CLASSNAMES_TYPES.dropDownItem,
 		},

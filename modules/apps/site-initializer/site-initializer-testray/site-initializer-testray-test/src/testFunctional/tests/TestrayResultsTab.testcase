@@ -1,11 +1,10 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property osgi.modules.includes = "site-initializer-testray";
 	property portal.release = "false";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Testray 2";
 
 	setUp {
@@ -28,64 +27,64 @@ definition {
 		}
 	}
 
-	@description = "LPS-150343 - Verify if when you click on the Cases tab, the Cases page is shown."
+	@description = "This is a test for LPS-150343 - Verify if when you click on the Cases tab, the Cases page is shown."
 	@priority = "5"
 	test CanAcessCasesPage {
-		ApplicationsMenu.gotoSite(site = "Testray 2");
+		task ("Go to Testray") {
+			ApplicationsMenu.gotoSite(site = "Testray 2");
+		}
 
-		Testray.createProjectTestray(key_name = "Liferay Portal 7.2");
+		task ("Create Project and go to Project Page") {
+			Testray.createProjectTestray(key_name = "Liferay Portal 7.4");
 
-		Click(
-			key_projectName = "Liferay Portal 7.",
-			locator1 = "Testray#PROJECT_NAME_BUTTON");
+			Testray.goToProjectPage(projectName = "Liferay Portal 7.4");
+		}
 
-		Click(
-			key_navTabName = "Cases",
-			locator1 = "Testray#PROJECT_NAVIGATOR_TAB_BUTTON");
+		task ("Click on cases tab and assert if Case tab is show") {
+			Testray.projectTabNavigator(navTabName = "Cases");
 
-		AssertElementPresent(
-			key_title = "Cases",
-			locator1 = "Testray#NAME_TITLE");
+			TestrayHeader.assertTabPageTitle(pageTabTitle = "Cases");
+		}
 	}
 
-	@description = "LPS-150344 - Verify if when you click on the Requirements tab, the Requirements page is shown."
+	@description = "This is a test for LPS-150344 - Verify if when you click on the Requirements tab, the Requirements page is shown."
 	@priority = "5"
 	test CanAcessRequirementsPage {
-		ApplicationsMenu.gotoSite(site = "Testray 2");
+		task ("Go to Testray") {
+			ApplicationsMenu.gotoSite(site = "Testray 2");
+		}
 
-		Testray.createProjectTestray(key_name = "Liferay Portal 7.2");
+		task ("Create Project and go to Project Page") {
+			Testray.createProjectTestray(key_name = "Liferay Portal 7.4");
 
-		Click(
-			key_projectName = "Liferay Portal 7.2",
-			locator1 = "Testray#PROJECT_NAME_BUTTON");
+			Testray.goToProjectPage(projectName = "Liferay Portal 7.4");
+		}
 
-		Click(
-			key_navTabName = "Requirements",
-			locator1 = "Testray#PROJECT_NAVIGATOR_TAB_BUTTON");
+		task ("Click on Requirements tab and assert if Requirements tab is show") {
+			Testray.projectTabNavigator(navTabName = "Requirements");
 
-		AssertElementPresent(
-			key_title = "Requirements",
-			locator1 = "Testray#NAME_TITLE");
+			TestrayHeader.assertTabPageTitle(pageTabTitle = "Requirements");
+		}
 	}
 
-	@description = "LPS-150342 - Verify if when you click on the Suites tab, the Suites page is shown."
+	@description = "This is a test for LPS-150342 - Verify if when you click on the Suites tab, the Suites page is shown."
 	@priority = "5"
 	test CanAcessSuitesPage {
-		ApplicationsMenu.gotoSite(site = "Testray 2");
+		task ("Go to Testray") {
+			ApplicationsMenu.gotoSite(site = "Testray 2");
+		}
 
-		Testray.createProjectTestray(key_name = "Liferay Portal 7.2");
+		task ("Create Project and go to Project Page") {
+			Testray.createProjectTestray(key_name = "Liferay Portal 7.4");
 
-		Click(
-			key_projectName = "Liferay Portal 7.2",
-			locator1 = "Testray#PROJECT_NAME_BUTTON");
+			Testray.goToProjectPage(projectName = "Liferay Portal 7.4");
+		}
 
-		Click(
-			key_navTabName = "Suites",
-			locator1 = "Testray#PROJECT_NAVIGATOR_TAB_BUTTON");
+		task ("Click on Suites tab and assert if Suites tab is show") {
+			Testray.projectTabNavigator(navTabName = "Suites");
 
-		AssertElementPresent(
-			key_title = "Suites",
-			locator1 = "Testray#NAME_TITLE");
+			TestrayHeader.assertTabPageTitle(pageTabTitle = "Suites");
+		}
 	}
 
 }

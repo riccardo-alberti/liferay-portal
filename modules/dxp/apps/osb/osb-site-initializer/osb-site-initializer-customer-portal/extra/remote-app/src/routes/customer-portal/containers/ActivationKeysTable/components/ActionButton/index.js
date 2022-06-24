@@ -11,6 +11,7 @@
 
 import {useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
+import i18n from '../../../../../../common/I18n';
 import {Button, ButtonDropDown} from '../../../../../../common/components';
 import {useApplicationProvider} from '../../../../../../common/context/AppPropertiesProvider';
 import {ALERT_DOWNLOAD_TYPE} from '../../../../utils/constants';
@@ -34,7 +35,18 @@ const ActionButton = ({
 		(hasSuccessfullyDownloadedKeys) =>
 			setStatus((previousStatus) => ({
 				...previousStatus,
-				download: hasSuccessfullyDownloadedKeys
+				downloadAggregated: hasSuccessfullyDownloadedKeys
+					? ALERT_DOWNLOAD_TYPE.success
+					: ALERT_DOWNLOAD_TYPE.danger,
+			})),
+		[setStatus]
+	);
+
+	const handleMultipleAlertStatus = useCallback(
+		(hasSuccessfullyDownloadedKeys) =>
+			setStatus((previousStatus) => ({
+				...previousStatus,
+				downloadMultiple: hasSuccessfullyDownloadedKeys
 					? ALERT_DOWNLOAD_TYPE.success
 					: ALERT_DOWNLOAD_TYPE.danger,
 			})),
@@ -47,6 +59,7 @@ const ActionButton = ({
 			filterCheckedActivationKeys,
 			licenseKeyDownloadURL,
 			sessionId,
+			handleMultipleAlertStatus,
 			handleAlertStatus,
 			activationKeysByStatusPaginatedChecked,
 			project.name
@@ -55,9 +68,9 @@ const ActionButton = ({
 		return (
 			<ButtonDropDown
 				items={activationKeysDownloadItems}
-				label="Download"
+				label={i18n.translate('download')}
 				menuElementAttrs={{
-					className: 'p-0',
+					className: 'p-0 cp-drop-down-action-button',
 				}}
 			/>
 		);
@@ -77,25 +90,28 @@ const ActionButton = ({
 					)
 				}
 			>
-				Download
+				{i18n.translate('download')}
 			</Button>
 		);
 	}
 
 	const handleRedirectPage = () => navigate('new');
+	const handleDeactivatePage = () => navigate('deactivate');
+
 	const activationKeysActionsItems = getActivationKeysActionsItems(
 		project?.accountKey,
 		licenseKeyDownloadURL,
 		sessionId,
 		handleAlertStatus,
 		handleRedirectPage,
+		handleDeactivatePage,
 		productName
 	);
 
 	return (
 		<ButtonDropDown
 			items={activationKeysActionsItems}
-			label="Actions"
+			label={i18n.translate('actions')}
 			menuElementAttrs={{
 				className: 'p-0',
 			}}

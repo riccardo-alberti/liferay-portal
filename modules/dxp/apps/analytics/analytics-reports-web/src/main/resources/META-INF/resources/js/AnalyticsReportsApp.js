@@ -15,6 +15,8 @@ import React, {useEffect, useState} from 'react';
 
 import AnalyticsReports from './components/AnalyticsReports';
 
+import '../css/main.scss';
+
 const setInitialOpenPanelState = async (stateCallback) => {
 	const ANALYTICS_REPORTS_OPEN_PANEL_VALUE = 'open';
 	const ANALYTICS_REPORTS_PANEL_ID =
@@ -39,7 +41,6 @@ const useInitialPanelState = () => {
 
 export default function AnalyticsReportsApp({context, portletNamespace}) {
 	const {analyticsReportsDataURL} = context;
-
 	const [
 		hoverOrFocusEventTriggered,
 		setHoverOrFocusEventTriggered,
@@ -91,12 +92,14 @@ export default function AnalyticsReportsApp({context, portletNamespace}) {
 		analyticsReportsPanelToggle
 	);
 
+	const visualizingAPage = analyticsReportsPanelToggle;
+
 	return (
 		<div id={`${portletNamespace}-analytics-reports-root`}>
 			<AnalyticsReports
 				analyticsReportsDataURL={analyticsReportsDataURL}
 				hoverOrFocusEventTriggered={hoverOrFocusEventTriggered}
-				isPanelStateOpen={isPanelStateOpen}
+				isPanelStateOpen={visualizingAPage ? isPanelStateOpen : true}
 			/>
 		</div>
 	);

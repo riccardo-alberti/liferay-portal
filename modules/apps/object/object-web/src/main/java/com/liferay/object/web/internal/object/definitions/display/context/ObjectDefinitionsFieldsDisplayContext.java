@@ -22,8 +22,6 @@ import com.liferay.object.field.business.type.ObjectFieldBusinessTypeServicesTra
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFieldSetting;
-import com.liferay.object.web.internal.constants.ObjectWebKeys;
-import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
 import com.liferay.object.web.internal.util.ObjectFieldBusinessTypeUtil;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -33,13 +31,14 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
-import com.liferay.portal.kernel.portlet.PortletURLUtil;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeFormatter;
+import com.liferay.portal.util.PropsValues;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -48,16 +47,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.portlet.PortletException;
-import javax.portlet.PortletURL;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Marco Leo
  * @author Gabriel Albuquerque
  */
-public class ObjectDefinitionsFieldsDisplayContext {
+public class ObjectDefinitionsFieldsDisplayContext
+	extends BaseObjectDefinitionsDisplayContext {
 
 	public ObjectDefinitionsFieldsDisplayContext(
 		HttpServletRequest httpServletRequest,
@@ -66,17 +63,10 @@ public class ObjectDefinitionsFieldsDisplayContext {
 		ObjectFieldBusinessTypeServicesTracker
 			objectFieldBusinessTypeServicesTracker) {
 
-		_objectDefinitionModelResourcePermission =
-			objectDefinitionModelResourcePermission;
+		super(httpServletRequest, objectDefinitionModelResourcePermission);
+
 		_objectFieldBusinessTypeServicesTracker =
 			objectFieldBusinessTypeServicesTracker;
-
-		_objectRequestHelper = new ObjectRequestHelper(httpServletRequest);
-	}
-
-	public String getAPIURL() {
-		return "/o/object-admin/v1.0/object-definitions/" +
-			getObjectDefinitionId() + "/object-fields";
 	}
 
 	public CreationMenu getCreationMenu(ObjectDefinition objectDefinition)
@@ -95,7 +85,7 @@ public class ObjectDefinitionsFieldsDisplayContext {
 				dropdownItem.setHref("addObjectField");
 				dropdownItem.setLabel(
 					LanguageUtil.get(
-						_objectRequestHelper.getRequest(), "add-object-field"));
+						objectRequestHelper.getRequest(), "add-object-field"));
 				dropdownItem.setTarget("event");
 			});
 
@@ -117,23 +107,31 @@ public class ObjectDefinitionsFieldsDisplayContext {
 					LiferayWindowState.POP_UP
 				).buildString(),
 				"view", "view",
-				LanguageUtil.get(_objectRequestHelper.getRequest(), "view"),
+				LanguageUtil.get(objectRequestHelper.getRequest(), "view"),
 				"get", null, "sidePanel"),
 			new FDSActionDropdownItem(
 				"/o/object-admin/v1.0/object-fields/{id}", "trash", "delete",
-				LanguageUtil.get(_objectRequestHelper.getRequest(), "delete"),
+				LanguageUtil.get(objectRequestHelper.getRequest(), "delete"),
 				"delete", "delete", "async"));
 	}
 
-	public long getObjectDefinitionId() {
-		HttpServletRequest httpServletRequest =
-			_objectRequestHelper.getRequest();
+	public String[] getForbiddenLastCharacters() {
+		List<String> forbiddenLastCharacters = new ArrayList<>();
 
-		ObjectDefinition objectDefinition =
-			(ObjectDefinition)httpServletRequest.getAttribute(
-				ObjectWebKeys.OBJECT_DEFINITION);
+		for (String forbiddenLastCharacter :
+				PropsValues.DL_CHAR_LAST_BLACKLIST) {
 
-		return objectDefinition.getObjectDefinitionId();
+			if (forbiddenLastCharacter.startsWith(
+					UnicodeFormatter.UNICODE_PREFIX)) {
+
+				forbiddenLastCharacter = UnicodeFormatter.parseString(
+					forbiddenLastCharacter);
+			}
+
+			forbiddenLastCharacters.add(forbiddenLastCharacter);
+		}
+
+		return forbiddenLastCharacters.toArray(new String[0]);
 	}
 
 	public List<Map<String, String>> getObjectFieldBusinessTypeMaps(
@@ -192,20 +190,9 @@ public class ObjectDefinitionsFieldsDisplayContext {
 		);
 	}
 
-	public PortletURL getPortletURL() throws PortletException {
-		return PortletURLUtil.clone(
-			PortletURLUtil.getCurrent(
-				_objectRequestHelper.getLiferayPortletRequest(),
-				_objectRequestHelper.getLiferayPortletResponse()),
-			_objectRequestHelper.getLiferayPortletResponse());
-	}
-
-	public boolean hasUpdateObjectDefinitionPermission()
-		throws PortalException {
-
-		return _objectDefinitionModelResourcePermission.contains(
-			_objectRequestHelper.getPermissionChecker(),
-			getObjectDefinitionId(), ActionKeys.UPDATE);
+	@Override
+	protected String getAPIURI() {
+		return "/object-fields";
 	}
 
 	private JSONArray _getObjectFieldSettingsJSONArray(
@@ -215,14 +202,8 @@ public class ObjectDefinitionsFieldsDisplayContext {
 
 		ListUtil.isNotEmptyForEach(
 			objectField.getObjectFieldSettings(),
-			objectFieldSetting -> jsonArray.put(
-				JSONUtil.put(
-					"name", objectFieldSetting.getName()
-				).put(
-					"value",
-					_getObjectFieldSettingValue(
-						objectField.getBusinessType(), objectFieldSetting)
-				)));
+			objectFieldSetting -> _putObjectFieldSettingJSONObject(
+				objectField.getBusinessType(), jsonArray, objectFieldSetting));
 
 		return jsonArray;
 	}
@@ -231,10 +212,19 @@ public class ObjectDefinitionsFieldsDisplayContext {
 		String businessType, ObjectFieldSetting objectFieldSetting) {
 
 		if (Objects.equals(
-				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT, businessType) &&
-			Objects.equals(objectFieldSetting.getName(), "maximumFileSize")) {
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT, businessType)) {
 
-			return GetterUtil.getInteger(objectFieldSetting.getValue());
+			if (Objects.equals(
+					objectFieldSetting.getName(), "maximumFileSize")) {
+
+				return GetterUtil.getInteger(objectFieldSetting.getValue());
+			}
+			else if (Objects.equals(
+						objectFieldSetting.getName(),
+						"showFilesInDocumentsAndMedia")) {
+
+				return GetterUtil.getBoolean(objectFieldSetting.getValue());
+			}
 		}
 		else if (Objects.equals(
 					ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT,
@@ -255,10 +245,20 @@ public class ObjectDefinitionsFieldsDisplayContext {
 		return objectFieldSetting.getValue();
 	}
 
-	private final ModelResourcePermission<ObjectDefinition>
-		_objectDefinitionModelResourcePermission;
+	private void _putObjectFieldSettingJSONObject(
+		String businessType, JSONArray jsonArray,
+		ObjectFieldSetting objectFieldSetting) {
+
+		jsonArray.put(
+			JSONUtil.put(
+				"name", objectFieldSetting.getName()
+			).put(
+				"value",
+				_getObjectFieldSettingValue(businessType, objectFieldSetting)
+			));
+	}
+
 	private final ObjectFieldBusinessTypeServicesTracker
 		_objectFieldBusinessTypeServicesTracker;
-	private final ObjectRequestHelper _objectRequestHelper;
 
 }

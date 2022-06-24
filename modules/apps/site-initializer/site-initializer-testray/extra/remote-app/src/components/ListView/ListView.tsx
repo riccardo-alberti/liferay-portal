@@ -14,9 +14,10 @@
 
 import {TypedDocumentNode, useQuery} from '@apollo/client';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
-import {useCallback, useContext, useEffect, useMemo} from 'react';
+import {memo, useCallback, useContext, useEffect, useMemo} from 'react';
 
 import ListViewContextProvider, {
+	InitialState as ListViewContextState,
 	ListViewContext,
 	ListViewContextProviderProps,
 	ListViewTypes,
@@ -36,7 +37,7 @@ type LiferayQueryResponse<T = any> = {
 	totalCount: number;
 };
 
-type ListViewProps<T = any> = {
+export type ListViewProps<T = any> = {
 	forceRefetch?: number;
 	managementToolbarProps?: {
 		visible?: boolean;
@@ -44,6 +45,7 @@ type ListViewProps<T = any> = {
 		ManagementToolbarProps,
 		'tableProps' | 'totalItems' | 'onSelectAllRows'
 	>;
+	onContextChange?: (context: ListViewContextState) => void;
 	query: TypedDocumentNode;
 	tableProps: Omit<TableProps, 'items'>;
 	transformData: (data: T) => LiferayQueryResponse<T>;
@@ -56,12 +58,15 @@ const ListView: React.FC<ListViewProps> = ({
 		visible: managementToolbarVisible = true,
 		...managementToolbarProps
 	} = {},
+	onContextChange,
 	query,
 	tableProps,
 	transformData,
 	variables,
 }) => {
-	const [{filters, selectedRows}, dispatch] = useContext(ListViewContext);
+	const [listViewContext, dispatch] = useContext(ListViewContext);
+
+	const {filters, selectedRows} = listViewContext;
 
 	const {data, error, loading, refetch} = useQuery(query, {
 		variables,
@@ -104,6 +109,12 @@ const ListView: React.FC<ListViewProps> = ({
 	}, [items, onSelectRow]);
 
 	useEffect(() => {
+		if (onContextChange) {
+			onContextChange(listViewContext);
+		}
+	}, [listViewContext, onContextChange]);
+
+	useEffect(() => {
 		if (forceRefetch) {
 			onRefetch({});
 		}
@@ -116,6 +127,23 @@ const ListView: React.FC<ListViewProps> = ({
 	if (loading) {
 		return <Loading />;
 	}
+
+	const Pagination = () => (
+		<ClayPaginationBarWithBasicItems
+			activeDelta={pageSize}
+			activePage={page}
+			deltas={deltas}
+			ellipsisBuffer={PAGINATION.ellipsisBuffer}
+			labels={{
+				paginationResults: i18n.translate('showing-x-to-x-of-x'),
+				perPageItems: i18n.translate('x-items'),
+				selectPerPageItems: i18n.translate('x-items'),
+			}}
+			onDeltaChange={(delta) => onRefetch({pageSize: delta})}
+			onPageChange={(page) => onRefetch({page})}
+			totalItems={totalCount}
+		/>
+	);
 
 	return (
 		<>
@@ -132,6 +160,10 @@ const ListView: React.FC<ListViewProps> = ({
 
 			{!!items.length && (
 				<>
+					<div className="mt-4">
+						<Pagination />
+					</div>
+
 					<Table
 						{...tableProps}
 						columns={columns}
@@ -140,35 +172,37 @@ const ListView: React.FC<ListViewProps> = ({
 						selectedRows={selectedRows}
 					/>
 
-					<ClayPaginationBarWithBasicItems
-						activeDelta={pageSize}
-						activePage={page}
-						deltas={deltas}
-						ellipsisBuffer={PAGINATION.ellipsisBuffer}
-						labels={{
-							paginationResults: i18n.translate(
-								'showing-x-to-x-of-x'
-							),
-							perPageItems: i18n.translate('x-items'),
-							selectPerPageItems: i18n.translate('x-items'),
-						}}
-						onDeltaChange={(delta) => onRefetch({pageSize: delta})}
-						onPageChange={(page) => onRefetch({page})}
-						totalItems={totalCount}
-					/>
+					<Pagination />
 				</>
 			)}
 		</>
 	);
 };
 
+const ListViewMemoized = memo(ListView);
+
 const ListViewWithContext: React.FC<
-	ListViewProps & {initialContext?: ListViewContextProviderProps}
-> = ({initialContext, ...otherProps}) => {
+	ListViewProps & {
+		initialContext?: ListViewContextProviderProps;
+		viewPermission?: boolean;
+	}
+> = ({initialContext, viewPermission = true, ...otherProps}) => {
+	if (viewPermission) {
+		return (
+			<ListViewContextProvider {...initialContext}>
+				<ListViewMemoized {...otherProps} />
+			</ListViewContextProvider>
+		);
+	}
+
 	return (
-		<ListViewContextProvider {...initialContext}>
-			<ListView {...otherProps} />
-		</ListViewContextProvider>
+		<EmptyState
+			description={i18n.translate(
+				'you-do-not-have-permissions-to-access-this-app-contact-the-app-administrator-to-request-the-access'
+			)}
+			title={i18n.translate('no-permissions')}
+			type="NO_ACCESS"
+		/>
 	);
 };
 

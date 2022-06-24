@@ -111,7 +111,7 @@ import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.zip.ZipReader;
-import com.liferay.portal.kernel.zip.ZipReaderFactoryUtil;
+import com.liferay.portal.kernel.zip.ZipReaderFactory;
 import com.liferay.portlet.PortletPreferencesImpl;
 
 import java.io.File;
@@ -238,7 +238,7 @@ public class PortletImportControllerImpl implements PortletImportController {
 
 			Layout layout = _layoutLocalService.getLayout(targetPlid);
 
-			zipReader = ZipReaderFactoryUtil.getZipReader(file);
+			zipReader = _zipReaderFactory.getZipReader(file);
 
 			validateFile(
 				layout.getCompanyId(), targetGroupId, portletId, zipReader);
@@ -603,9 +603,13 @@ public class PortletImportControllerImpl implements PortletImportController {
 						}
 					}
 
-					exportImportPortletPreferencesProcessor.
-						processImportPortletPreferences(
-							portletDataContext, jxPortletPreferences);
+					if (portletDataContext.getGroupId() ==
+							portletDataContext.getScopeGroupId()) {
+
+						exportImportPortletPreferencesProcessor.
+							processImportPortletPreferences(
+								portletDataContext, jxPortletPreferences);
+					}
 				}
 			}
 			finally {
@@ -813,7 +817,7 @@ public class PortletImportControllerImpl implements PortletImportController {
 
 			Layout layout = _layoutLocalService.getLayout(targetPlid);
 
-			zipReader = ZipReaderFactoryUtil.getZipReader(file);
+			zipReader = _zipReaderFactory.getZipReader(file);
 
 			validateFile(
 				layout.getCompanyId(), targetGroupId, portletId, zipReader);
@@ -941,7 +945,7 @@ public class PortletImportControllerImpl implements PortletImportController {
 				layout.getCompanyId(), targetGroupId, parameterMap,
 				_exportImportHelper.getUserIdStrategy(
 					userId, userIdStrategyString),
-				ZipReaderFactoryUtil.getZipReader(file));
+				_zipReaderFactory.getZipReader(file));
 
 		portletDataContext.setExportImportProcessId(
 			String.valueOf(
@@ -1617,5 +1621,8 @@ public class PortletImportControllerImpl implements PortletImportController {
 	private Staging _staging;
 
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private ZipReaderFactory _zipReaderFactory;
 
 }

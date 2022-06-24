@@ -2081,6 +2081,30 @@ definition {
 		}
 	}
 
+	@description = "LPS-130917 Given Instance Settings > Segments
+	When the user clicks on Analytics Cloud Segments tab
+	Then help text of Anonymous User Segments Cache Expiration Time will be: Define the time (in seconds) before clearing the Anonymous Segment cache."
+	@priority = "3"
+	test AnonymousUserSegmentsCacheExpirationCheckText {
+		task ("Go to Instance Settings > Segments") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Analytics Cloud Segments",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Assert the text is present") {
+			AssertTextEquals(
+				locator1 = "FormFields#HELP_TEXT",
+				value1 = "Define the time (in seconds) before clearing the Anonymous Segment cache.");
+		}
+	}
+
 	@description = "LPS-135495 Validate if, The criteria default language must be tagged as such in the language selection dropdown."
 	@priority = "3"
 	test CheckDefaultLanguageTag {
@@ -2176,6 +2200,205 @@ definition {
 			AssertElementPresent(
 				key_rowEntry = "Original Segment",
 				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME");
+		}
+	}
+
+	@description = "LPS-152077 Bug: Error updating segment which contains a non-existing segment"
+	@priority = "4"
+	test DeleteUnavailableSegmentCriteria {
+		task ("Create a first segment with any criteria") {
+			JSONSegmentsentry.addSegment(
+				fieldName = "Email Address",
+				groupName = "Guest",
+				operator = "contains",
+				segmentName = "First Segment",
+				text = "test");
+		}
+
+		task ("Create a second segment usign two criterias, one being the first segment") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.fillTitle(titleField = "Second Segment");
+
+			Segmentation.gotoSidebar(fieldType = "Segments");
+
+			Segmentation.addProperties(propertyOption = "Segment");
+
+			Segmentation.fillProperty(selectLink = "First Segment");
+
+			Segmentation.gotoSidebar(fieldType = "User");
+
+			Segmentation.addProperties(propertyOption = "First Name");
+
+			Segmentation.fillProperty(propertyField = "liferay");
+
+			Button.clickSave();
+		}
+
+		task ("Delete the first criteria") {
+			Segmentation.deleteSegment(entry = "First Segment");
+		}
+
+		task ("Remove from second segment criteria related to the first segment") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			Button.clickDelete();
+
+			Button.clickSave();
+		}
+
+		task ("Check that the segment was actually updated") {
+			Segmentation.editSegment(entry = "Second Segment");
+
+			AssertElementNotPresent(
+				locator1 = "Segmentation#CONDITIONS_PROPERTY_NAME",
+				propertyName = "Segment");
+		}
+	}
+
+	@description = "LPS-130919 Given the Session Property Vocabularies in Instance Settings
+	When the user is adding a vocabulary to a session property
+	Then the breadcrumb to go to Segments, or Instance Settings is available"
+	@priority = "3"
+	test InstanceSettingsSessionPropertyVocabulariesBreadcrumb {
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabulariesBreadcrumb";
+
+		task ("Go to Instance Settings > Segments > Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Click on add") {
+			Button.click(button = "Add");
+		}
+
+		task ("Click on the breadcrumb at Segments") {
+			Click(
+				key_breadcrumbName = "Segments",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY_LINK");
+		}
+
+		task ("Check the user is lead to Instance Settings > Segments > Analytics Cloud Segments ") {
+			AssertElementPresent(
+				key_title = "Analytics Cloud Segments",
+				locator1 = "Header#H2_TITLE");
+		}
+	}
+
+	@description = "LPS-130919 Given the adding a vocabulary to a session property view
+	When the user clicks on Cancel button
+	Then the user is lead to the main tab Session Property Vocabularies"
+	@priority = "3"
+	test InstanceSettingsSessionPropertyVocabulariesCancelButton {
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabulariesCancelButton";
+
+		task ("Go to Instance Settings > Segments > Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Click on add") {
+			Button.click(button = "Add");
+		}
+
+		task ("Click on Cancel") {
+			Button.click(button = "Cancel");
+		}
+
+		task ("Check the user is lead to the main tab Session Property Vocabularies") {
+			AssertTextPresent(
+				locator1 = "Message#EMPTY_INFO",
+				value1 = "No entries for Session Property Vocabularies have been added yet.");
+		}
+	}
+
+	@description = "LPS-130919 Given the Segment Editor
+	When the user adds a Session Property Vocabulary in the Instance Settings
+	Then the associated Categories must be available when selecting the session property"
+	@priority = "5"
+	test InstanceSettingsSessionPropertyVocabularyInSegmentsEditor {
+		property portal.acceptance = "true";
+		property test.name.skip.portal.instance = "SegmentationCreateSegment#InstanceSettingsSessionPropertyVocabularyInSegmentsEditor";
+
+		task ("Set Session Property Vocabulary") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Session Property Vocabularies",
+				configurationScope = "Virtual Instance Scope");
+
+			Button.click(button = "Add");
+
+			Segmentation.setVocabularySessionPropertyDropdown(
+				propertyName = "Browser",
+				vocabularyName = "Audience");
+		}
+
+		task ("Create categories for Audience Vocabulary") {
+			JSONCategory.addCategory(
+				groupName = "Global",
+				title = "Audience Category 1",
+				vocabularyName = "Audience");
+		}
+
+		task ("Create Segment with Vocabulary") {
+			Segmentation.openSegmentsAdmin(siteURLKey = "guest");
+
+			LexiconEntry.gotoAdd();
+
+			Segmentation.gotoSidebar(fieldType = "Session");
+
+			Segmentation.addProperties(propertyOption = "Browser");
+
+			Segmentation.fillTitle(titleField = "Segment Test");
+
+			Segmentation.fillProperty(optionsValue = "Audience Category 1");
+
+			Button.clickSave();
+		}
+	}
+
+	@description = "LPS-130917 Given Instance Settings > Segments
+	When the user clicks on Analytics Cloud Segments tab
+	Then help text of Interest Terms Cache Expiration Time will be: Define the time (in seconds) before clearing the Interest Terms cache."
+	@priority = "3"
+	test InterestTermsCacheCacheExpirationCheckText {
+		task ("Go to Instance Settings > Segments") {
+			ApplicationsMenu.gotoPortlet(
+				category = "Configuration",
+				panel = "Control Panel",
+				portlet = "Instance Settings");
+
+			SystemSettings.gotoConfiguration(
+				configurationCategory = "Segments",
+				configurationName = "Analytics Cloud Segments",
+				configurationScope = "Virtual Instance Scope");
+		}
+
+		task ("Assert the text is present") {
+			AssertTextEquals(
+				locator1 = "FormFields#HELP_TEXT",
+				value1 = "Define the time (in seconds) before clearing the Interest Terms cache.");
 		}
 	}
 

@@ -398,6 +398,7 @@ definition {
 		var displayDateDay = DateUtil.getCurrentDate();
 		var displayDateMonth = DateUtil.getCurrentMonth();
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -406,6 +407,7 @@ definition {
 
 		var displayTimeHour = DateUtil.getCurrentHour();
 		var displayTimeMinute = "${displayTimeMinute}";
+
 		var displayTime = "${displayTimeHour}:${displayTimeMinute}";
 
 		Type(
@@ -417,7 +419,9 @@ definition {
 		var displayDateDay = selenium.getElementValue("TextInput#DISPLAY_DATE_DAY");
 		var displayDateMonth = selenium.getElementValue("TextInput#DISPLAY_DATE_MONTH");
 		var displayDateYear = DateUtil.getCurrentYear();
+
 		var displayDateYear = ${displayDateYear} + 1;
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -451,7 +455,7 @@ definition {
 
 		var key_entryContent = "${entryContent}";
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 
@@ -541,7 +545,7 @@ definition {
 			locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
 
 		ClickNoError(
-			key_menuItem = "Move to Recycle Bin",
+			key_menuItem = "Delete",
 			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		Alert.viewSuccessMessage();
@@ -561,7 +565,7 @@ definition {
 			locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
 
 		ClickNoError(
-			key_menuItem = "Move to Recycle Bin",
+			key_menuItem = "Delete",
 			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		Alert.viewSuccessMessage();
@@ -579,7 +583,7 @@ definition {
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle}");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 
@@ -587,7 +591,7 @@ definition {
 
 		Blogs.clickEllipsisItemPG(
 			entryTitle = "${entryTitle}",
-			item = "Move to Recycle Bin");
+			item = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -685,6 +689,7 @@ definition {
 
 	macro removeViewPermissionsPG {
 		var key_roleTitle = StringUtil.replace("${roleTitle}", " ", "-");
+
 		var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 		Portlet.mouseOverPortletTitle(portletTitleName = "Blogs");
@@ -739,8 +744,10 @@ definition {
 
 		var displayDateDay = selenium.getElementValue("TextInput#DISPLAY_DATE_DAY");
 		var displayDateMonth = selenium.getElementValue("TextInput#DISPLAY_DATE_MONTH");
+
 		var displayDateMonth = ${displayDateMonth} + 1;
 		var displayDateYear = selenium.getElementValue("TextInput#DISPLAY_DATE_YEAR");
+
 		var displayDate = "${displayDateMonth}/${displayDateDay}/${displayDateYear}";
 
 		Type(
@@ -748,6 +755,7 @@ definition {
 			value1 = "${displayDate}");
 
 		var displayDateHour = selenium.getElementValue("TextInput#DISPLAY_DATE_HOUR");
+
 		var displayDateHourLength = StringUtil.length("${displayDateHour}");
 
 		if ("${displayDateHourLength}" == "1") {
@@ -755,7 +763,9 @@ definition {
 		}
 
 		var displayDateMinute = selenium.getElementValue("TextInput#DISPLAY_DATE_MINUTE");
+
 		var displayDateMinuteFuture = ${displayDateMinute} + 2;
+
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 		if ("${displayDateMinuteFutureLength}" == "1") {
@@ -763,8 +773,11 @@ definition {
 		}
 
 		var displayDateMeridian = selenium.getElementValue("TextInput#DISPLAY_DATE_MERIDIAN");
+
 		var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "0", "AM");
+
 		var displayDateMeridian = StringUtil.replace("${displayDateMeridian}", "1", "PM");
+
 		var displayTime = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateMeridian}";
 
 		Type(
@@ -882,7 +895,7 @@ definition {
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle}");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			key_entryContent = "${entryContent}",
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
@@ -900,6 +913,7 @@ definition {
 	macro viewAutoTag {
 		var key_entryTitle = "${entryTitle}";
 		var tagName = StringUtil.lowerCase("${tagName}");
+
 		var key_tagName = "${tagName}";
 
 		if (IsElementNotPresent(locator1 = "BlogsEntry#TAG")) {
@@ -938,7 +952,7 @@ definition {
 
 		var key_entryContent = "${entryContent}";
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 	}
@@ -998,8 +1012,21 @@ definition {
 			}
 		}
 
+		if (isSet(captionField)) {
+			if (isSet(captionFieldLink)) {
+				AssertTextEquals(
+					locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION_LINK",
+					value1 = "${captionFieldLink}");
+			}
+			else {
+				AssertTextEquals(
+					locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_CAPTION",
+					value1 = "${entryCaption}");
+			}
+		}
+
 		if (isSet(entryContent)) {
-			AssertTextEquals(
+			AssertTextEquals.assertPartialText(
 				locator1 = "BlogsEntry#CONTENT",
 				value1 = "${entryContent}");
 		}
@@ -1106,7 +1133,7 @@ definition {
 		if (isSet(entryContent)) {
 			var key_entryContent = "${entryContent}";
 
-			AssertTextEquals(
+			AssertTextEquals.assertPartialText(
 				locator1 = "BlogsEntry#CONTENT",
 				value1 = "${entryContent}");
 		}
@@ -1328,7 +1355,7 @@ definition {
 
 		var key_entryContent = "${entryContent}";
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 	}
@@ -1557,6 +1584,7 @@ definition {
 		if (isSet(tagNameList)) {
 			for (var tagName : list "${tagNameList}") {
 				var tagName = StringUtil.lowerCase("${tagName}");
+
 				var key_tagName = "${tagName}";
 
 				BlogsNavigator.gotoEntryPG(
@@ -1619,7 +1647,9 @@ definition {
 		Navigator.gotoPage(pageName = "${pageName}");
 
 		var entryViewCount = selenium.getText("BlogsEntry#ENTRY_VIEW_COUNT");
+
 		var entryViewCount = StringUtil.extractLast("${entryViewCount}", "-");
+
 		var entryViewCount = StringUtil.extractDigits("${entryViewCount}");
 
 		if ("${entryViewCount}" == "1") {
@@ -1646,7 +1676,9 @@ definition {
 			value1 = "${entryTitle}");
 
 		var entryViewCount = selenium.getText("BlogsEntry#ENTRY_VIEW_COUNT");
+
 		var entryViewCount = StringUtil.extractLast("${entryViewCount}", "-");
+
 		var entryViewCount = StringUtil.extractDigits("${entryViewCount}");
 
 		if ("${entryViewCount}" == "1") {
@@ -1728,7 +1760,7 @@ definition {
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle}");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 
@@ -1751,7 +1783,7 @@ definition {
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle2}");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent2}");
 	}

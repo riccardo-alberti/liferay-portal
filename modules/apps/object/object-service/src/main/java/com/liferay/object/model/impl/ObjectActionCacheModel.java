@@ -77,7 +77,7 @@ public class ObjectActionCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(33);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -99,6 +99,10 @@ public class ObjectActionCacheModel
 		sb.append(objectDefinitionId);
 		sb.append(", active=");
 		sb.append(active);
+		sb.append(", conditionExpression=");
+		sb.append(conditionExpression);
+		sb.append(", description=");
+		sb.append(description);
 		sb.append(", name=");
 		sb.append(name);
 		sb.append(", objectActionExecutorKey=");
@@ -153,6 +157,20 @@ public class ObjectActionCacheModel
 		objectActionImpl.setObjectDefinitionId(objectDefinitionId);
 		objectActionImpl.setActive(active);
 
+		if (conditionExpression == null) {
+			objectActionImpl.setConditionExpression("");
+		}
+		else {
+			objectActionImpl.setConditionExpression(conditionExpression);
+		}
+
+		if (description == null) {
+			objectActionImpl.setDescription("");
+		}
+		else {
+			objectActionImpl.setDescription(description);
+		}
+
 		if (name == null) {
 			objectActionImpl.setName("");
 		}
@@ -206,6 +224,8 @@ public class ObjectActionCacheModel
 		objectDefinitionId = objectInput.readLong();
 
 		active = objectInput.readBoolean();
+		conditionExpression = (String)objectInput.readObject();
+		description = objectInput.readUTF();
 		name = objectInput.readUTF();
 		objectActionExecutorKey = objectInput.readUTF();
 		objectActionTriggerKey = objectInput.readUTF();
@@ -242,6 +262,20 @@ public class ObjectActionCacheModel
 		objectOutput.writeLong(objectDefinitionId);
 
 		objectOutput.writeBoolean(active);
+
+		if (conditionExpression == null) {
+			objectOutput.writeObject("");
+		}
+		else {
+			objectOutput.writeObject(conditionExpression);
+		}
+
+		if (description == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(description);
+		}
 
 		if (name == null) {
 			objectOutput.writeUTF("");
@@ -282,6 +316,8 @@ public class ObjectActionCacheModel
 	public long modifiedDate;
 	public long objectDefinitionId;
 	public boolean active;
+	public String conditionExpression;
+	public String description;
 	public String name;
 	public String objectActionExecutorKey;
 	public String objectActionTriggerKey;

@@ -13,7 +13,7 @@
 <!--COLLECTION_DISPLAY_CELL-->
 <tr>
 	<td>FRAGMENT_TEXT_IN_COLLECTION_DISPLAY</td>
-	<td>//section[contains(@id,'content')]//div[contains(@class,'row')][${row}]/div[contains(@class,'col')][${column}]//*[not(self::script)][not(contains(@class,'tbar'))][normalize-space(text())]</td>
+	<td>//section[contains(@id,'content')]//div[contains(@class,'row')][${row}]/div[contains(@class,'col')][not(.//label)][${column}]//*[not(contains(@class,'tbar'))][normalize-space(text())]</td>
 	<td></td>
 </tr>
 <tr>
@@ -90,6 +90,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ACTIVE_FRAGMENT_LABEL</td>
+	<td>xpath=(//div[@aria-label='${key_fragmentName}'])[${index}][contains(@class,'highlighted')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FRAGMENT_LINK</td>
 	<td>//a[contains(@href,'${key_url}')]${key_append}</td>
 	<td></td>
@@ -97,6 +102,11 @@
 <tr>
 	<td>FRAGMENT_POSITION</td>
 	<td>xpath=(//div[contains(@class,'page-editor__topper')][@draggable='true'])[${key_position}][@aria-label='${key_fragmentName}']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALERT_INFO</td>
+	<td>//div[@aria-label='${key_fragmentName}']//div[contains(@class,'alert-info')][normalize-space()='${key_alertInfo}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -312,7 +322,7 @@
 </tr>
 <tr>
 	<td>EDITABLE_HTML_FRAGMENT_FIELD</td>
-	<td>//div[contains(@class,'source-panel')]//div[contains(@class,'lfr-source-editor-code')]//textarea</td>
+	<td>//div[contains(@class,'html-editor-modal')]//div[contains(@class,'CodeMirror cm-s-default')]</td>
 	<td></td>
 </tr>
 <tr>

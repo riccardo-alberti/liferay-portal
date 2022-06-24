@@ -14,12 +14,12 @@
 
 package com.liferay.friendly.url.internal.servlet;
 
-import com.liferay.petra.encryptor.Encryptor;
-import com.liferay.petra.encryptor.EncryptorException;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.encryptor.Encryptor;
+import com.liferay.portal.kernel.encryptor.EncryptorException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -136,10 +136,22 @@ public class FriendlyURLServlet extends HttpServlet {
 			}
 
 			if (redirectEntryLocalService != null) {
+				HttpServletRequest originalHttpServletRequest =
+					portal.getOriginalServletRequest(httpServletRequest);
+
 				RedirectEntry redirectEntry =
 					redirectEntryLocalService.fetchRedirectEntry(
 						group.getGroupId(),
-						_normalizeFriendlyURL(layoutFriendlyURL), true);
+						_normalizeFriendlyURL(
+							originalHttpServletRequest.getRequestURI()),
+						false);
+
+				if (redirectEntry == null) {
+					redirectEntry =
+						redirectEntryLocalService.fetchRedirectEntry(
+							group.getGroupId(),
+							_normalizeFriendlyURL(layoutFriendlyURL), true);
+				}
 
 				if (redirectEntry != null) {
 					return new Redirect(
@@ -177,6 +189,36 @@ public class FriendlyURLServlet extends HttpServlet {
 					portal.getLayoutFriendlyURLSeparatorComposite(
 						group.getGroupId(), _private, layoutFriendlyURL, params,
 						requestContext);
+
+			if (layoutFriendlyURLSeparatorComposite.isRedirect()) {
+				pos = path.indexOf(
+					layoutFriendlyURLSeparatorComposite.getURLSeparator());
+
+				if (pos != 1) {
+					HttpServletRequest originalHttpServletRequest =
+						portal.getOriginalServletRequest(httpServletRequest);
+
+					String requestURL = HttpComponentsUtil.getRequestURL(
+						originalHttpServletRequest);
+
+					int friendlyURLPos = requestURL.indexOf(layoutFriendlyURL);
+
+					String friendlyURL =
+						layoutFriendlyURLSeparatorComposite.getFriendlyURL();
+
+					String redirectURL =
+						PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING +
+							path.substring(0, pos) + friendlyURL;
+
+					if (friendlyURLPos > 0) {
+						redirectURL =
+							requestURL.substring(0, friendlyURLPos) +
+								friendlyURL;
+					}
+
+					return new Redirect(redirectURL, true, false);
+				}
+			}
 
 			Layout layout = layoutFriendlyURLSeparatorComposite.getLayout();
 
@@ -336,7 +378,7 @@ public class FriendlyURLServlet extends HttpServlet {
 			try {
 				Company company = portal.getCompany(httpServletRequest);
 
-				String encDoAsUserId = Encryptor.encrypt(
+				String encDoAsUserId = encryptor.encrypt(
 					company.getKeyObj(), String.valueOf(userId));
 
 				actualURL = HttpComponentsUtil.setParameter(
@@ -347,7 +389,7 @@ public class FriendlyURLServlet extends HttpServlet {
 					_log.debug(encryptorException);
 				}
 
-				return new Redirect(actualURL);
+				return new Redirect(actualURL, false, false);
 			}
 		}
 
@@ -361,7 +403,7 @@ public class FriendlyURLServlet extends HttpServlet {
 					params, !actualURL.contains(StringPool.QUESTION)));
 		}
 
-		return new Redirect(actualURL);
+		return new Redirect(actualURL, false, false);
 	}
 
 	@Override
@@ -582,6 +624,9 @@ public class FriendlyURLServlet extends HttpServlet {
 		private final boolean _permanent;
 
 	}
+
+	@Reference
+	protected Encryptor encryptor;
 
 	@Reference
 	protected FriendlyURLNormalizer friendlyURLNormalizer;

@@ -17,7 +17,7 @@ package com.liferay.site.initializer.extender.internal;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
-import com.liferay.commerce.initializer.util.PortletSettingsImporter;
+import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
@@ -34,6 +34,8 @@ import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentFolderResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentResource;
+import com.liferay.headless.delivery.resource.v1_0.KnowledgeBaseArticleResource;
+import com.liferay.headless.delivery.resource.v1_0.KnowledgeBaseFolderResource;
 import com.liferay.headless.delivery.resource.v1_0.StructuredContentFolderResource;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.layout.page.template.importer.LayoutPageTemplatesImporter;
@@ -59,7 +61,6 @@ import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
-import com.liferay.remote.app.service.RemoteAppEntryLocalService;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
@@ -73,7 +74,6 @@ import org.apache.felix.dm.DependencyManager;
 import org.apache.felix.dm.ServiceDependency;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 
 /**
  * @author Preston Crary
@@ -86,7 +86,7 @@ public class SiteInitializerExtension {
 		AccountRoleResource.Factory accountRoleResourceFactory,
 		AssetCategoryLocalService assetCategoryLocalService,
 		AssetListEntryLocalService assetListEntryLocalService, Bundle bundle,
-		BundleContext bundleContext,
+		ClientExtensionEntryLocalService clientExtensionEntryLocalService,
 		DDMStructureLocalService ddmStructureLocalService,
 		DDMTemplateLocalService ddmTemplateLocalService,
 		DefaultDDMStructureHelper defaultDDMStructureHelper,
@@ -96,7 +96,11 @@ public class SiteInitializerExtension {
 		FragmentsImporter fragmentsImporter,
 		GroupLocalService groupLocalService,
 		JournalArticleLocalService journalArticleLocalService,
-		JSONFactory jsonFactory, LayoutCopyHelper layoutCopyHelper,
+		JSONFactory jsonFactory,
+		KnowledgeBaseArticleResource.Factory
+			knowledgeBaseArticleResourceFactory,
+		KnowledgeBaseFolderResource.Factory knowledgeBaseFolderResourceFactory,
+		LayoutCopyHelper layoutCopyHelper,
 		LayoutLocalService layoutLocalService,
 		LayoutPageTemplateEntryLocalService layoutPageTemplateEntryLocalService,
 		LayoutPageTemplatesImporter layoutPageTemplatesImporter,
@@ -113,13 +117,11 @@ public class SiteInitializerExtension {
 		ObjectRelationshipResource.Factory objectRelationshipResourceFactory,
 		ObjectEntryLocalService objectEntryLocalService,
 		OrganizationResource.Factory organizationResourceFactory, Portal portal,
-		PortletSettingsImporter portletSettingsImporter,
-		RemoteAppEntryLocalService remoteAppEntryLocalService,
 		ResourceActionLocalService resourceActionLocalService,
 		ResourcePermissionLocalService resourcePermissionLocalService,
 		RoleLocalService roleLocalService,
 		SAPEntryLocalService sapEntryLocalService,
-		SettingsFactory settingsFactory,
+		ServletContext servletContext, SettingsFactory settingsFactory,
 		SiteNavigationMenuItemLocalService siteNavigationMenuItemLocalService,
 		SiteNavigationMenuItemTypeRegistry siteNavigationMenuItemTypeRegistry,
 		SiteNavigationMenuLocalService siteNavigationMenuLocalService,
@@ -138,36 +140,36 @@ public class SiteInitializerExtension {
 
 		_component = _dependencyManager.createComponent();
 
-		_component.setImplementation(
-			new BundleSiteInitializer(
-				accountResourceFactory, accountRoleLocalService,
-				accountRoleResourceFactory, assetCategoryLocalService,
-				assetListEntryLocalService, bundle, ddmStructureLocalService,
-				ddmTemplateLocalService, defaultDDMStructureHelper, dlURLHelper,
-				documentFolderResourceFactory, documentResourceFactory,
-				fragmentsImporter, groupLocalService,
-				journalArticleLocalService, jsonFactory, layoutCopyHelper,
-				layoutLocalService, layoutPageTemplateEntryLocalService,
-				layoutPageTemplatesImporter,
-				layoutPageTemplateStructureLocalService, layoutSetLocalService,
-				listTypeDefinitionResource, listTypeDefinitionResourceFactory,
-				listTypeEntryResource, listTypeEntryResourceFactory,
-				objectActionLocalService, objectDefinitionLocalService,
-				objectDefinitionResourceFactory,
-				objectRelationshipResourceFactory, objectEntryLocalService,
-				organizationResourceFactory, portal, portletSettingsImporter,
-				remoteAppEntryLocalService, resourceActionLocalService,
-				resourcePermissionLocalService, roleLocalService,
-				sapEntryLocalService, settingsFactory,
-				siteNavigationMenuItemLocalService,
-				siteNavigationMenuItemTypeRegistry,
-				siteNavigationMenuLocalService,
-				structuredContentFolderResourceFactory,
-				styleBookEntryZipProcessor, taxonomyCategoryResourceFactory,
-				taxonomyVocabularyResourceFactory, themeLocalService,
-				userAccountResourceFactory, userLocalService,
-				workflowDefinitionLinkLocalService,
-				workflowDefinitionResourceFactory));
+		BundleSiteInitializer bundleSiteInitializer = new BundleSiteInitializer(
+			accountResourceFactory, accountRoleLocalService,
+			accountRoleResourceFactory, assetCategoryLocalService,
+			assetListEntryLocalService, bundle,
+			clientExtensionEntryLocalService, ddmStructureLocalService,
+			ddmTemplateLocalService, defaultDDMStructureHelper, dlURLHelper,
+			documentFolderResourceFactory, documentResourceFactory,
+			fragmentsImporter, groupLocalService, journalArticleLocalService,
+			jsonFactory, knowledgeBaseArticleResourceFactory,
+			knowledgeBaseFolderResourceFactory, layoutCopyHelper,
+			layoutLocalService, layoutPageTemplateEntryLocalService,
+			layoutPageTemplatesImporter,
+			layoutPageTemplateStructureLocalService, layoutSetLocalService,
+			listTypeDefinitionResource, listTypeDefinitionResourceFactory,
+			listTypeEntryResource, listTypeEntryResourceFactory,
+			objectActionLocalService, objectDefinitionLocalService,
+			objectDefinitionResourceFactory, objectRelationshipResourceFactory,
+			objectEntryLocalService, organizationResourceFactory, portal,
+			resourceActionLocalService, resourcePermissionLocalService,
+			roleLocalService, sapEntryLocalService, settingsFactory,
+			siteNavigationMenuItemLocalService,
+			siteNavigationMenuItemTypeRegistry, siteNavigationMenuLocalService,
+			structuredContentFolderResourceFactory, styleBookEntryZipProcessor,
+			taxonomyCategoryResourceFactory, taxonomyVocabularyResourceFactory,
+			themeLocalService, userAccountResourceFactory, userLocalService,
+			workflowDefinitionLinkLocalService,
+			workflowDefinitionResourceFactory);
+
+		_component.setImplementation(bundleSiteInitializer);
+
 		_component.setInterface(
 			SiteInitializer.class,
 			MapUtil.singletonDictionary(
@@ -182,15 +184,20 @@ public class SiteInitializerExtension {
 
 		_component.add(serviceDependency);
 
-		serviceDependency = _dependencyManager.createServiceDependency();
+		if (servletContext == null) {
+			serviceDependency = _dependencyManager.createServiceDependency();
 
-		serviceDependency.setCallbacks("setServletContext", null);
-		serviceDependency.setRequired(true);
-		serviceDependency.setService(
-			ServletContext.class,
-			"(osgi.web.symbolicname=" + bundle.getSymbolicName() + ")");
+			serviceDependency.setCallbacks("setServletContext", null);
+			serviceDependency.setRequired(true);
+			serviceDependency.setService(
+				ServletContext.class,
+				"(osgi.web.symbolicname=" + bundle.getSymbolicName() + ")");
 
-		_component.add(serviceDependency);
+			_component.add(serviceDependency);
+		}
+		else {
+			bundleSiteInitializer.setServletContext(servletContext);
+		}
 	}
 
 	public void destroy() {

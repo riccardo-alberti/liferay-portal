@@ -1,11 +1,10 @@
 @component-name = "portal-solutions"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property osgi.modules.includes = "site-initializer-testray";
 	property portal.release = "false";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Testray 2";
 
 	setUp {
@@ -28,40 +27,46 @@ definition {
 		}
 	}
 
-	@description = "LPS-150348 - Verify that User can access category modal."
+	@description = "This is a test for LPS-150348 - Verify that User can access category modal."
 	@priority = "5"
 	test CanAcessOptionModal {
-		ApplicationsMenu.gotoSite(key_site = "Testray 2");
+		task ("Go to Testray") {
+			ApplicationsMenu.gotoSite(site = "Testray 2");
+		}
 
-		Click(locator1 = "TestrayManage#MANAGE_SIDEBAR");
+		task ("Go to Options on Manage Sidebar") {
+			TestrayLayout.clickManageOnSidebar();
 
-		Click(locator1 = "TestrayManage#OPTIONS_MANAGE");
+			TestrayManage.selectOptionsManage(key_itemvalue = "Options");
+		}
 
-		AssertElementPresent(locator1 = "TestrayManage#OPTIONS_MODAL");
+		task ("Verify that User can access category modal") {
+			TestrayManage.assertTitleModal(key_itemvalue = "Options");
 
-		Click(locator1 = "TestrayManage#CLOSE_MODAL");
+			TestrayManage.closeModalInOptions();
+		}
 	}
 
-	@description = "LPS-150349 - Verify that User can add new option."
+	@description = "This is a test for LPS-150349 - Verify that User can add new option."
 	@priority = "5"
 	test CanAddNewOption {
-		ApplicationsMenu.gotoSite(key_site = "Testray 2");
+		task ("Go to Testray") {
+			ApplicationsMenu.gotoSite(site = "Testray 2");
+		}
 
-		Click(locator1 = "TestrayManage#MANAGE_SIDEBAR");
+		task ("Go to Options on Manage Sidebar") {
+			TestrayLayout.clickManageOnSidebar();
 
-		Click(locator1 = "TestrayManage#OPTIONS_MANAGE");
+			TestrayManage.selectOptionsManage(key_itemvalue = "Options");
+		}
 
-		Click(locator1 = "TestrayManage#ADD_OPTIONS");
+		task ("Created New Option") {
+			TestrayManage.createNewOption(key_value = "Test");
+		}
 
-		Type(
-			locator1 = "TestrayManage#NEW_OPTION_NAME",
-			value1 = "Test");
-
-		Click(locator1 = "TestrayManage#SAVE_BUTTON");
-
-		AssertElementPresent(
-			locator1 = "TestrayManage#OPTIONS_NAME",
-			value = "Test");
+		task ("Verify if the new option was created") {
+			TestrayManage.assertCreatedOptions(key_value = "Test");
+		}
 	}
 
 }

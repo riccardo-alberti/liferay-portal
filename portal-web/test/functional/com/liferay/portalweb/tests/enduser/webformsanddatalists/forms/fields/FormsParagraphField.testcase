@@ -95,7 +95,7 @@ definition {
 
 		Form.closeSidebar();
 
-		Form.save();
+		Form.publishForm();
 
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
@@ -424,8 +424,6 @@ definition {
 
 		Form.save();
 
-		Alert.viewSuccessMessageText(successMessage = "Your request completed successfully.");
-
 		AssertElementPresent(
 			key_formattingStyle = "h2",
 			locator1 = "FormFields#PARAGRAPH_TEXT_VALUE_STYLE",
@@ -569,7 +567,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -646,8 +644,6 @@ definition {
 
 		Form.save();
 
-		Alert.viewSuccessMessageText(successMessage = "Your request completed successfully.");
-
 		FormsAdminNavigator.gotoBack();
 
 		FormsAdminNavigator.gotoEditFormByName(formName = "Form 1");
@@ -686,7 +682,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
@@ -729,7 +725,7 @@ definition {
 
 		Form.save();
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 
 		Click(locator1 = "Icon#BACK");
 

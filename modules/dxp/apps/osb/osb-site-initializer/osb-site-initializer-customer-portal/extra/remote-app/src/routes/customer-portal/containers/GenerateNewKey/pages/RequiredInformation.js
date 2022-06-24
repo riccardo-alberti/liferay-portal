@@ -9,11 +9,13 @@
  * distribution rights of the Software.
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayIcon from '@clayui/icon';
 import {ClayTooltipProvider} from '@clayui/tooltip';
 import {FieldArray, Formik} from 'formik';
 import {useEffect, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
+import i18n from '../../../../../common/I18n';
 import {Badge, Button, Input} from '../../../../../common/components';
 import Layout from '../../../../../common/containers/setup-forms/Layout';
 import {useApplicationProvider} from '../../../../../common/context/AppPropertiesProvider';
@@ -64,9 +66,10 @@ const RequiredInformation = ({
 	useEffect(() => {
 		const verificationDisabledType = infoSelectedKey.hasNotPermanentLicence
 			? !values.name || !values.maxClusterNodes
-			: !values.name || hasError;
+			: !hasFilledAtLeastOneField || hasError;
 
 		setBaseButtonDisabled(verificationDisabledType);
+
 		setAddButtonDisabled(
 			hasReachedMaximumKeys || !hasFilledAtLeastOneField
 		);
@@ -81,8 +84,9 @@ const RequiredInformation = ({
 
 	const addActivationKeyProp = hasReachedMaximumKeys
 		? {
-				title:
-					'Maximum number of Activation Keys reached for this subscription.',
+				title: i18n.translate(
+					'maximum-number-of-activation-keys-reached-for-this-subscription'
+				),
 		  }
 		: {};
 
@@ -114,6 +118,9 @@ const RequiredInformation = ({
 		}
 		else {
 			const productName = `${infoSelectedKey?.productType} ${infoSelectedKey?.licenseEntryType}`;
+			const sizing = `Sizing ${
+				infoSelectedKey?.selectedSubscription?.instanceSize || 1
+			}`;
 
 			const licenseKey = {
 				accountKey,
@@ -128,7 +135,7 @@ const RequiredInformation = ({
 				productPurchaseKey:
 					infoSelectedKey?.selectedSubscription.productPurchaseKey,
 				productVersion: infoSelectedKey?.productVersion,
-				sizing: `Sizing ${infoSelectedKey?.selectedSubscription.instanceSize}`,
+				sizing,
 				startDate: infoSelectedKey?.selectedSubscription.startDate,
 			};
 
@@ -180,7 +187,7 @@ const RequiredInformation = ({
 								className="btn btn-borderless btn-style-neutral"
 								displayType="secondary"
 							>
-								Cancel
+								{i18n.translate('cancel')}
 							</Button>
 						</Link>
 					),
@@ -191,7 +198,7 @@ const RequiredInformation = ({
 								displayType="secundary"
 								onClick={() => setStep(0)}
 							>
-								Previous
+								{i18n.translate('previous')}
 							</Button>
 
 							<Button
@@ -200,19 +207,26 @@ const RequiredInformation = ({
 								onClick={() => submitKey()}
 							>
 								{infoSelectedKey.hasNotPermanentLicence
-									? `Generate Cluster (${values.maxClusterNodes} Keys)`
-									: `Generate ${availableKeys} Key${
-											availableKeys > 1 ? 's' : ''
-									  }`}
+									? i18n.sub('generate-cluster-x-keys', [
+											values.maxClusterNodes,
+									  ])
+									: availableKeys > 1
+									? i18n.sub('generate-x-keys', [
+											availableKeys,
+									  ])
+									: i18n.sub('generate-x-key', [
+											availableKeys,
+									  ])}
 							</Button>
 						</div>
 					),
 				}}
 				headerProps={{
 					headerClass: 'ml-5 my-4',
-					helper:
-						'Fill out the information required to generate the activation key',
-					title: 'Generate Activation Key(s)',
+					helper: i18n.translate(
+						'fill-out-the-information-required-to-generate-the-activation-key'
+					),
+					title: i18n.translate('generate-activation-keys'),
 				}}
 				layoutType="cp-required-info"
 			>
@@ -221,14 +235,16 @@ const RequiredInformation = ({
 					render={({pop, push}) => (
 						<>
 							<div className="px-6">
-								<h4>Environment Details</h4>
+								<h4>{i18n.translate('environment-details')}</h4>
 
 								<div className="dropdown-divider mb-4 mt-2"></div>
 
 								<div className="mb-3">
 									<div className="cp-input-generate-label">
 										<Input
-											label="Environment Name"
+											label={i18n.translate(
+												'environment-name'
+											)}
 											name="name"
 											placeholder="e.g. Liferay Ecommerce Site"
 											required
@@ -237,15 +253,18 @@ const RequiredInformation = ({
 									</div>
 
 									<h6 className="font-weight-normal ml-3 mt-1">
-										Name this environment. This cannot be
-										edited later.
+										{i18n.translate(
+											'name-this-environment-this-cannot-be-edited-later'
+										)}
 									</h6>
 								</div>
 
 								<div className="mb-3">
 									<div className="cp-input-generate-label">
 										<Input
-											label="Description"
+											label={i18n.translate(
+												'description'
+											)}
 											name="description"
 											placeholder="e.g. Liferay Dev Environment – ECOM DXP 7.2 "
 											type="text"
@@ -253,9 +272,9 @@ const RequiredInformation = ({
 									</div>
 
 									<h6 className="font-weight-normal ml-3 mr-0 mt-1">
-										Include a description to uniquely
-										identify this environment. This cannot
-										be edited later.
+										{i18n.translate(
+											'include-a-description-to-uniquely-identify-this-environment-this-cannot-be-edited-later'
+										)}
 									</h6>
 								</div>
 							</div>
@@ -263,10 +282,23 @@ const RequiredInformation = ({
 							{!infoSelectedKey.hasNotPermanentLicence ? (
 								<div className="px-6">
 									<h4 className="mt-5">
-										Activation Key Server Details
+										{i18n.translate(
+											'activation-key-server-details'
+										)}
 									</h4>
 
 									<div className="dropdown-divider mb-4 mt-2"></div>
+
+									<ClayAlert
+										className="px-3 py-1"
+										displayType="info"
+									>
+										<span>
+											{i18n.translate(
+												'one-or-more-host-name-ip-address-or-mac-address-is-required'
+											)}
+										</span>
+									</ClayAlert>
 
 									{values?.keys?.map((_, index) => (
 										<KeyInputs id={index} key={index} />
@@ -275,9 +307,9 @@ const RequiredInformation = ({
 									{showKeyEmptyError && !!hasError && (
 										<Badge badgeClassName="m-0">
 											<span className="pl-1">
-												One or more Host Name, IP
-												Address, or MAC Address is
-												required
+												{i18n.translate(
+													'one-or-more-host-name-ip-address-or-mac-address-is-required'
+												)}
 											</span>
 										</Badge>
 									)}
@@ -301,7 +333,10 @@ const RequiredInformation = ({
 												className="cp-button-icon-plus mr-2"
 												symbol="hr"
 											/>
-											Remove Activation Key
+
+											{i18n.translate(
+												'remove-activation-key'
+											)}
 										</Button>
 									)}
 
@@ -343,7 +378,10 @@ const RequiredInformation = ({
 													className="cp-button-icon-plus mr-2"
 													symbol="plus"
 												/>
-												Add Activation Key
+
+												{i18n.translate(
+													'add-activation-key'
+												)}
 											</div>
 										</Button>
 									</ClayTooltipProvider>

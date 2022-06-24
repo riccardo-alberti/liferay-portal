@@ -19,6 +19,13 @@ package com.liferay.frontend.data.set.sample.web.internal.constants;
  */
 public class FDSSampleFDSNames {
 
-	public static final String FDS_SAMPLES = "fdsSamples";
+	public static final String CLASSIC =
+		FDSSamplePortletKeys.FDS_SAMPLE + "-classic";
+
+	public static final String CUSTOMIZED =
+		FDSSamplePortletKeys.FDS_SAMPLE + "-customized";
+
+	public static final String MINIMUM =
+		FDSSamplePortletKeys.FDS_SAMPLE + "-minimum";
 
 }

@@ -10,6 +10,8 @@ definition {
 				locator1 = "Button#ANY");
 		}
 
+		WaitForPageLoad();
+
 		AssertVisible(locator1 = "BlogsEntry#ENTRY_COVER_IMAGE_SELECT_FILE");
 	}
 
@@ -118,7 +120,7 @@ definition {
 			locator1 = "BlogsEntry#TITLE",
 			value1 = "${entryTitle}");
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "BlogsEntry#CONTENT",
 			value1 = "${entryContent}");
 
@@ -195,7 +197,7 @@ definition {
 			locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
 
 		ClickNoError(
-			key_menuItem = "Move to Recycle Bin",
+			key_menuItem = "Delete",
 			locator1 = "MenuItem#DROPDOWN_MENU_ITEM");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
@@ -262,7 +264,6 @@ definition {
 			friendlyURL = "${friendlyURL}",
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var baseURL = "${baseURL}";
 
 		if (!(isSet(baseURL))) {
@@ -284,7 +285,6 @@ definition {
 		var stagingId = JSONGroupAPI._getGroupIdByName(
 			groupName = "${groupName}",
 			site = "${site}");
-
 		var baseURL = "${baseURL}";
 
 		if (!(isSet(baseURL))) {

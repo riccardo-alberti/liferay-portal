@@ -604,7 +604,7 @@ definition {
 			PageEditor.editCollectionDisplay(
 				fragmentName = "Collection Display",
 				infoItemRelatedListProviderName = "Items with This Category",
-				listStyle = "Bulleted List");
+				styleDisplay = "Bulleted List");
 		}
 
 		task ("View the no items message is shown in Collection Display") {
@@ -1119,12 +1119,10 @@ definition {
 				groupName = "Test Site Name",
 				title = "Category Name 1",
 				vocabularyName = "Vocabulary Name");
-
 			var secondCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 2",
 				vocabularyName = "Vocabulary Name");
-
 			var thirdCategoryId = JSONCategory.addCategory(
 				groupName = "Test Site Name",
 				title = "Category Name 3",

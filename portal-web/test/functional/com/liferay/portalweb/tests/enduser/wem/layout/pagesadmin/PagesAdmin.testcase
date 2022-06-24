@@ -884,9 +884,8 @@ definition {
 	@description = "This is a test for LPS-139064. Users can preview draft for a content page from Pages admin when they exist."
 	@priority = "5"
 	test PreviewDraftContentPage {
-		property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "true";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		task ("Add a public content page") {
 			JSONLayout.addPublicLayout(
@@ -1048,6 +1047,110 @@ definition {
 			for (var pageName : list "Page One,Page Two") {
 				PagesAdmin.viewPageItemPresent(pageName = "${pageName}");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-152949. View widget type pages' name and navigate to the page in search widget."
+	@priority = "5"
+	test SearchWidgetTypePages {
+		task ("Given a page creator has a widget page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Widget Page Name");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Widget");
+		}
+
+		task ("Then the page creator could see the wiget page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Widget Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Widget Page Name");
+		}
+
+		task ("Given a page creator has a Full Page Application type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Full Page Application Page Name",
+				pageTypeURL = "https://www.google.com",
+				sitePageType = "Full Page Application");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Full");
+		}
+
+		task ("Then the page creator could see the Full Page Application type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Full Page Application Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Full Page Application Page Name");
+		}
+
+		task ("Given a page creator has a Link to URL type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Link to URL Page Name",
+				pageTypeURL = "https://www.google.com",
+				sitePageType = "Link to URL");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Link");
+		}
+
+		task ("Then the page creator could see the Link to URL type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Link to URL Page Name");
+
+			AssertLocation.assertPartialLocation(value1 = "https://www.google.com");
+		}
+
+		task ("Given a page creator has a Panel type page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Test Panel Page Name",
+				type = "panel");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Panel");
+		}
+
+		task ("Then the page creator could see the Panel type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Panel Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Panel Page Name");
+		}
+
+		task ("Given a page creator has an embedded type page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.addPage(
+				pageName = "Test Embedded Page Name",
+				pageTypeURL = "http://www.liferay.com",
+				sitePageType = "Embedded");
+		}
+
+		task ("When the page creator searches it in Pages admin") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			Search.searchCP(searchTerm = "Embedded");
+		}
+
+		task ("Then the page creator could see the embedded type page in the results and be able to navigate to it") {
+			LexiconTable.clickTableEntryTitle(tableEntry = "Test Embedded Page Name");
+
+			ControlMenu.viewHeaderTitle(headerTitle = "Test Embedded Page Name");
 		}
 	}
 
@@ -1394,6 +1497,83 @@ definition {
 
 				ControlMenu.viewHeaderTitle(headerTitle = "Manual Collection Page Name");
 			}
+		}
+	}
+
+	@description = "This is a test for LPS-145292. The user could view new icons on dropdown menu of page in pages admin."
+	@priority = "4"
+	test ViewDropdownMenuIconsInPagesAdmin {
+		task ("Given a Page designer has a widget page with a custom portlet") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name");
+
+			JSONLayout.addWidgetToPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Widget Page Name",
+				widgetName = "Web Content Display");
+
+			Navigator.gotoSitePage(
+				pageName = "Widget Page Name",
+				siteName = "Test Site name");
+
+			Portlet.viewSpecificPG(portletName = "Web Content Display");
+		}
+
+		task ("When the Page designer opens the dropdown menu of widget page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.openPageEllipsisMenu(pageName = "Widget Page Name");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "view,page,copy,cog,password-policies,trash");
+		}
+
+		task ("When the Page designer opens the dropdown menu of management toolbar after selecting the new widget page") {
+			PagesAdmin.selectPageItem(pageName = "Widget Page Name");
+
+			Click(locator1 = "ManagementBar#MORE_ACTIONS_ELLIPSIS");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "page,trash");
+		}
+
+		task ("When the Page designer access the Orphan Widgets page of widget page") {
+			PagesAdmin.gotoPageEllipsisMenuItem(
+				menuItem = "Orphan Widgets",
+				pageName = "Widget Page Name");
+		}
+
+		task ("Then the Page designer can see the new icon icon on orphan widget entries") {
+			for (var entryName : list "Menu Display,Search Bar,User Personal Bar") {
+				AssertVisible(
+					key_listEntry = "${entryName}",
+					key_text = "trash",
+					locator1 = "LexiconList#ANY_ICON");
+			}
+		}
+
+		task ("Given a Page designer has a published content page") {
+			JSONLayout.addPublicLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name",
+				type = "content");
+
+			JSONLayout.publishLayout(
+				groupName = "Test Site Name",
+				layoutName = "Content Page Name");
+		}
+
+		task ("When the Page designer opens the dropdown menu of content page") {
+			PagesAdmin.openPagesAdmin(siteURLKey = "test-site-name");
+
+			PagesAdmin.openPageEllipsisMenu(pageName = "Content Page Name");
+		}
+
+		task ("Then the Page designer can see the new icons on the dropdown menu") {
+			DropdownMenuItem.viewIcon(iconList = "pencil,automatic-translate,view,copy,upload,download,cog,password-policies,trash");
 		}
 	}
 

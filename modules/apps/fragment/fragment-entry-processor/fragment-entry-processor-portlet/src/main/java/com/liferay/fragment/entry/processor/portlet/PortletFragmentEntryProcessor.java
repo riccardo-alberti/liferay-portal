@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ModelHintsConstants;
 import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.impl.DefaultLayoutTypeAccessPolicyImpl;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
@@ -56,6 +57,7 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.PortletPreferencesImpl;
+import com.liferay.portlet.exportimport.staging.StagingAdvicesThreadLocal;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -195,13 +197,30 @@ public class PortletFragmentEntryProcessor implements FragmentEntryProcessor {
 				fragmentEntryProcessorContext.getHttpServletRequest(),
 				"p_l_id");
 
+			String defaultPreferences = portlet.getDefaultPreferences();
+
+			boolean stagingAdvicesThreadLocalEnabled =
+				StagingAdvicesThreadLocal.isEnabled();
+
+			try {
+				StagingAdvicesThreadLocal.setEnabled(false);
+
+				defaultPreferences = _getPreferences(
+					plid, portletName, fragmentEntryLink, id,
+					portlet.getDefaultPreferences());
+			}
+			finally {
+				StagingAdvicesThreadLocal.setEnabled(
+					stagingAdvicesThreadLocalEnabled);
+			}
+
 			String portletHTML = _fragmentPortletRenderer.renderPortlet(
 				fragmentEntryProcessorContext.getHttpServletRequest(),
 				fragmentEntryProcessorContext.getHttpServletResponse(),
 				portletName, instanceId,
 				_getPreferences(
 					plid, portletName, fragmentEntryLink, id,
-					portlet.getDefaultPreferences()));
+					defaultPreferences));
 
 			Element portletElement = new Element("div");
 
@@ -421,16 +440,44 @@ public class PortletFragmentEntryProcessor implements FragmentEntryProcessor {
 
 		String instanceId = jsonObject.getString("instanceId");
 
+		String encodePortletId = PortletIdCodec.encode(portletId, instanceId);
+
 		PortletPreferences portletPreferences =
 			PortletPreferencesFactoryUtil.getPortletPreferences(
 				fragmentEntryProcessorContext.getHttpServletRequest(),
-				PortletIdCodec.encode(portletId, instanceId));
+				encodePortletId);
 
-		return _fragmentPortletRenderer.renderPortlet(
+		String html = _fragmentPortletRenderer.renderPortlet(
 			fragmentEntryProcessorContext.getHttpServletRequest(),
 			fragmentEntryProcessorContext.getHttpServletResponse(), portletId,
 			instanceId,
 			PortletPreferencesFactoryUtil.toXML(portletPreferences));
+
+		HttpServletRequest httpServletRequest =
+			fragmentEntryProcessorContext.getHttpServletRequest();
+
+		FragmentEntryLink fragmentEntryLink =
+			(FragmentEntryLink)httpServletRequest.getAttribute(
+				FragmentWebKeys.FRAGMENT_ENTRY_LINK);
+
+		if (fragmentEntryLink != null) {
+			String checkAccessAllowedToPortletCacheKey = StringBundler.concat(
+				DefaultLayoutTypeAccessPolicyImpl.class.getName(), "#",
+				ParamUtil.getLong(
+					fragmentEntryProcessorContext.getHttpServletRequest(),
+					"p_l_id"),
+				"#", encodePortletId);
+
+			httpServletRequest.setAttribute(
+				FragmentWebKeys.ACCESS_ALLOWED_TO_FRAGMENT_ENTRY_LINK_ID +
+					fragmentEntryLink.getFragmentEntryLinkId(),
+				GetterUtil.getBoolean(
+					httpServletRequest.getAttribute(
+						checkAccessAllowedToPortletCacheKey),
+					true));
+		}
+
+		return html;
 	}
 
 	private void _updateLayoutPortletSetup(

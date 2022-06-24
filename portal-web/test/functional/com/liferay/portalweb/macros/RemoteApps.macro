@@ -3,10 +3,11 @@ definition {
 	macro _deleteRemoteAppAPI {
 		var currentURL = Navigator.getCurrentURL();
 
-		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "remoteAppEntryId=");
-		var remoteAppEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_redirect");
+		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "clientExtensionEntryId=");
 
-		JSONRemoteApp.deleteIFrameRemoteAppEntry(remoteAppEntryId = "${remoteAppEntryIdValue}");
+		var clientExtensionEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_client_extension_web_internal_portlet_ClientExtensionAdminPortlet_redirect");
+
+		JSONRemoteApp.deleteIFrameRemoteAppEntry(clientExtensionEntryId = "${clientExtensionEntryIdValue}");
 	}
 
 	macro addApp {
@@ -202,7 +203,7 @@ definition {
 		PortletEntry.publish();
 	}
 
-	macro getRemoteAppEntryIdValue {
+	macro getClientExtensionEntryIdValue {
 		WaitForSPARefresh();
 
 		RemoteApps.goToRemoteAppsPortlet();
@@ -213,16 +214,17 @@ definition {
 
 		var currentURL = Navigator.getCurrentURL();
 
-		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "remoteAppEntryId=");
-		var remoteAppEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_redirect");
+		var findWhereIdBegins = StringUtil.extractLast("${currentURL}", "clientExtensionEntryId=");
 
-		return "${remoteAppEntryIdValue}";
+		var clientExtensionEntryIdValue = StringUtil.extractFirst("${findWhereIdBegins}", "&_com_liferay_client_extension_web_internal_portlet_ClientExtensionAdminPortlet_redirect");
+
+		return "${clientExtensionEntryIdValue}";
 	}
 
 	macro getRemoteAppEntryName {
 		WaitForSPARefresh();
 
-		var remoteAppEntryValue = selenium.getAttribute("//input[contains(@id , '_com_liferay_remote_app_admin_web_portlet_RemoteAppAdminPortlet_name')]@value");
+		var remoteAppEntryValue = selenium.getAttribute("//input[contains(@id , '_com_liferay_client_extension_web_internal_portlet_ClientExtensionAdminPortlet_name')]@value");
 
 		return "${remoteAppEntryValue}";
 	}

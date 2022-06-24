@@ -261,6 +261,12 @@ definition {
 				LAR._mirrorWithOverwriting();
 			}
 
+			if ("${deleteApplicationData}" == "true") {
+				Check(
+					checkboxName = "Delete Application Data Before Importing",
+					locator1 = "Checkbox#ANY_CHECKBOX");
+			}
+
 			if ("${importDeletions}" == "true") {
 				Check(locator1 = "Checkbox#DELETIONS");
 			}
@@ -586,6 +592,7 @@ definition {
 		LAR._selectImportFile(
 			cannotImport = "${cannotImport}",
 			copyAsNew = "${copyAsNew}",
+			deleteApplicationData = "${deleteApplicationData}",
 			failureExpected = "${failureExpected}",
 			importDeletions = "${importDeletions}",
 			importPermissions = "${importPermissions}",
@@ -658,7 +665,6 @@ definition {
 	macro isExistedFolder {
 		var tempDir = PropsUtil.get("output.dir.name");
 		var folderName = "${folderName}";
-
 		var companyId = JSONCompany.getCompanyId();
 
 		var folderExists = FileUtil.exists("${tempDir}/company/${companyId}/${folderName}");
@@ -672,14 +678,13 @@ definition {
 	}
 
 	macro moveToTheRecycleBinExportTemplate {
-		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Move to Recycle Bin");
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Delete");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 	}
 
 	macro openDepotExportAdmin {
 		var baseURL = "${baseURL}";
-
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
 
 		if (!(isSet(baseURL))) {
@@ -691,7 +696,6 @@ definition {
 
 	macro openDepotImportAdmin {
 		var baseURL = "${baseURL}";
-
 		var depotId = JSONGroupAPI._getDepotIdByName(depotName = "${depotName}");
 
 		if (!(isSet(baseURL))) {
@@ -703,6 +707,7 @@ definition {
 
 	macro openExportAdmin {
 		var siteNameURL = StringUtil.replace("${siteScopeName}", " ", "-");
+
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 
@@ -715,6 +720,7 @@ definition {
 
 	macro openImportAdmin {
 		var siteNameURL = StringUtil.replace("${siteName}", " ", "-");
+
 		var siteNameURL = StringUtil.lowerCase("${siteNameURL}");
 		var baseURL = "${baseURL}";
 

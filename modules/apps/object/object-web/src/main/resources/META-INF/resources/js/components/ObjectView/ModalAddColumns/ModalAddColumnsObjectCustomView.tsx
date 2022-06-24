@@ -15,10 +15,11 @@
 import ClayButton from '@clayui/button';
 import ClayForm, {ClayCheckbox} from '@clayui/form';
 import ClayList from '@clayui/list';
-import ClayManagementToolbar from '@clayui/management-toolbar';
 import ClayModal from '@clayui/modal';
+import {ManagementToolbar} from 'frontend-js-components-web';
 import React, {FormEvent, useContext, useEffect, useState} from 'react';
 
+import {defaultLanguageId} from '../../../utils/locale';
 import {ManagementToolbarSearch} from '../ManagementToolbarSearch/ManagementToolbarSearch';
 import ViewContext, {TYPES} from '../context';
 
@@ -28,8 +29,6 @@ interface IProps extends React.HTMLAttributes<HTMLElement> {
 	observer: any;
 	onClose: () => void;
 }
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 const ModalAddColumnsObjectCustomView: React.FC<IProps> = ({
 	observer,
@@ -108,8 +107,8 @@ const ModalAddColumnsObjectCustomView: React.FC<IProps> = ({
 			setCheckedItems(
 				newFiltredItems.map((filteredItem, index) => {
 					return {
+						defaultSort: false,
 						fieldLabel: filteredItem.label[defaultLanguageId],
-						isDefaultSort: false,
 						label: filteredItem.label,
 						objectFieldName: filteredItem.name,
 						priority: index,
@@ -136,8 +135,8 @@ const ModalAddColumnsObjectCustomView: React.FC<IProps> = ({
 					setCheckedItems([
 						...checkedItems,
 						{
+							defaultSort: false,
 							fieldLabel: field.label[defaultLanguageId],
-							isDefaultSort: false,
 							label: field.label,
 							objectFieldName: field.name,
 							priority: index,
@@ -188,9 +187,9 @@ const ModalAddColumnsObjectCustomView: React.FC<IProps> = ({
 					{Liferay.Language.get('select-the-columns')}
 				</div>
 
-				<ClayManagementToolbar>
-					<ClayManagementToolbar.ItemList>
-						<ClayManagementToolbar.Item>
+				<ManagementToolbar.Container>
+					<ManagementToolbar.ItemList>
+						<ManagementToolbar.Item>
 							<ClayCheckbox
 								checked={fieldsChecked}
 								indeterminate={
@@ -205,14 +204,14 @@ const ModalAddColumnsObjectCustomView: React.FC<IProps> = ({
 									}
 								}}
 							/>
-						</ClayManagementToolbar.Item>
-					</ClayManagementToolbar.ItemList>
+						</ManagementToolbar.Item>
+					</ManagementToolbar.ItemList>
 
 					<ManagementToolbarSearch
 						query={query}
 						setQuery={setQuery}
 					/>
-				</ClayManagementToolbar>
+				</ManagementToolbar.Container>
 			</ClayModal.Body>
 
 			<ClayForm onSubmit={(event) => onSubmit(event)}>

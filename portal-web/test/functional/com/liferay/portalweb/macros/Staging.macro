@@ -427,6 +427,7 @@ definition {
 		}
 
 		var displayDateHour = selenium.getAttribute("//input[contains(@id,'schedulerStartDateHour')]@value");
+
 		var displayDateHourLength = StringUtil.length("${displayDateHour}");
 
 		if ("${displayDateHourLength}" == "1") {
@@ -434,10 +435,14 @@ definition {
 		}
 
 		var displayDateAmpm = selenium.getAttribute("//input[contains(@id,'schedulerStartDateAmPm')]@value");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "0", "AM");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'schedulerStartDateMinute')]@value");
+
 		var displayDateMinuteFuture = ${displayDateMinute} + 3;
+
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 		if ("${displayDateMinuteFutureLength}" == "1") {
@@ -466,7 +471,9 @@ definition {
 			}
 
 			var endByDateYear = selenium.getAttribute("//input[contains(@id,'schedulerEndDateYear')]@value");
+
 			var endByDateYearFuture = ${endByDateYear} + 5;
+
 			var endByDay = "${endByDateMonth}/${endByDateDay}/${endByDateYearFuture}";
 
 			Type(
@@ -786,7 +793,7 @@ definition {
 		LexiconEntry.gotoHeaderMenuItem(menuItem = "Publish Templates");
 
 		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Move to Recycle Bin",
+			menuItem = "Delete",
 			rowEntry = "${publishTemplateName}");
 
 		Alert.viewSuccessMessage();
@@ -1037,7 +1044,6 @@ definition {
 		var siteId = JSONGroupSetter.setGroupId(
 			groupName = "Remote Site",
 			portalURL = "http://localhost:${remotePort}");
-
 		var siteURLKey = ContentPagesNavigator._convertNameToKey(name = "${siteName}");
 
 		Staging.openStagingAdmin(siteURLKey = "${siteURLKey}");
@@ -1156,10 +1162,10 @@ definition {
 		Click(locator1 = "StagingPublishToLive#SWITCH_TO_ADVANCED_PUBLICATION");
 
 		if (IsElementPresent(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX")) {
-			Check(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX");
+			Click(locator1 = "PagesConfiguration#PAGES_ALL_PAGES_CHECKBOX");
 		}
 		else {
-			Check(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
+			Click(locator1 = "PagesConfiguration#PAGES_ALL_PUBLIC_PAGES_CHECKBOX");
 		}
 
 		Staging.configureScheduleTime(scheduleTitleName = "${scheduleTitleName}");
@@ -1207,7 +1213,9 @@ definition {
 		Click(locator1 = "StagingPublishToLive#DATE_SCHEDULE_START_DATE");
 
 		var daySelected = selenium.getText("CalendarEditEvent#MINI_CALENDAR_DAY_SELECTED");
+
 		var tomorrow = ${daySelected} + 1;
+
 		var key_daySpecific = "${tomorrow}";
 
 		if (IsElementPresent(locator1 = "CalendarEditEvent#MINI_CALENDAR_DAY_SPECIFIC")) {
@@ -1372,13 +1380,7 @@ definition {
 		else {
 			WaitForElementNotPresent(locator1 = "Staging#PROCESS_IN_PROGRESS");
 
-			WaitForElementNotPresent(
-				key_title = "Current",
-				locator1 = "Staging#PROCESS_GROUP_TITLE");
-
-			AssertTextEquals(
-				locator1 = "Staging#PROCESS_SUCCESSFUL",
-				value1 = "Successful");
+			Staging.viewSuccessResult();
 		}
 
 		if (isSet(validateErrorMessage)) {
@@ -1587,6 +1589,23 @@ definition {
 	macro viewStagingWorkflowStatusPG {
 		if ("${stagingWorkflowStatus}" == "Ready for Publication") {
 			AssertElementPresent(locator1 = "Staging#STAGING_MENU_READY_FOR_PUBLICATION");
+		}
+	}
+
+	macro viewSuccessResult {
+		if (IsElementPresent(locator1 = "ControlMenu#HEADING")) {
+			WaitForElementNotPresent(
+				key_title = "Current",
+				locator1 = "Staging#PROCESS_GROUP_TITLE");
+
+			AssertTextEquals(
+				locator1 = "Staging#LATEST_PROCESS_RESULT",
+				value1 = "Successful");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Staging#PROCESS_RESULT",
+				value1 = "Successful");
 		}
 	}
 

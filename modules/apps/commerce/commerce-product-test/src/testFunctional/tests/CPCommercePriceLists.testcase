@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -493,9 +492,13 @@ definition {
 			}
 
 			var curr_price = StringUtil.replace("${curr_price}", "$ ", "");
+
 			var curr_price = StringUtil.replace("${curr_price}", ".00", "");
+
 			var length = StringUtil.length("${curr_price}");
+
 			var index = ${length} - 1;
+
 			var intPart = StringUtil.substring("${curr_price}", "0", "${index}");
 
 			if ("${intPart}" == "") {
@@ -513,6 +516,7 @@ definition {
 			}
 
 			var decreasedPrice = ${curr_price} - ${intPart};
+
 			var decreasedPrice = "$ ${decreasedPrice}.${aux}0";
 
 			if ("${iterator}" == "1") {
@@ -681,7 +685,7 @@ definition {
 			key_entryName = "AccountGroup1",
 			locator1 = "CommerceEntry#TABLE_ELIGIBILITY_ACCOUNT_GROUPS");
 
-		ClickNoError(locator1 = "Button#MOVE_TO_RECYCLE_BIN");
+		ClickNoError(locator1 = "Button#TRASH_ENABLED");
 
 		Button.clickPublish();
 
@@ -783,6 +787,8 @@ definition {
 		CommerceNavigator.gotoEntry(entryName = "test1");
 
 		Navigator.gotoNavTab(navTab = "Products");
+
+		WaitForPageLoad();
 
 		Click(
 			key_value = "U-Joint",
@@ -1087,9 +1093,8 @@ definition {
 	@priority = "3"
 	test AllowMultiplePriceEntriesInTheSamePriceList {
 		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
-		property osgi.module.configuration.file.names = "com.liferay.commerce.price.list.configuration.CommercePriceEntryConfiguration.config:com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-		property osgi.module.configurations = "checkInterval=&quot;1&quot;:disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 		property portal.acceptance = "false";
+		property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 
 		// TODO COMMERCE-9089 Find alternative to having a pause to wait for a timed expiration and publication
 
@@ -1849,6 +1854,7 @@ definition {
 		CommerceNavigator.gotoEntry(entryName = "Test Price List");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
@@ -1990,6 +1996,7 @@ definition {
 			value1 = "30");
 
 		var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");
@@ -2341,6 +2348,7 @@ definition {
 				value1 = "30");
 
 			var timeString = selenium.getElementValue("TextInput#DATE_TIME_PRICE_LISTS");
+
 			var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 			var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 			var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");

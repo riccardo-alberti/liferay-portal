@@ -210,7 +210,7 @@ const Modal = ({
 								}}
 							></div>
 						) : (
-							<ClayModal.Title>{title}</ClayModal.Title>
+							title
 						)}
 					</ClayModal.Header>
 
@@ -295,7 +295,7 @@ const Modal = ({
 	);
 };
 
-const openConfirmModal = ({message, onConfirm}) => {
+const openConfirmModal = ({message, onConfirm, title}) => {
 	openModal({
 		bodyHTML: escapeHTML(message),
 		buttons: [
@@ -315,6 +315,7 @@ const openConfirmModal = ({message, onConfirm}) => {
 			},
 		],
 		onClose: () => onConfirm(false),
+		title,
 	});
 };
 

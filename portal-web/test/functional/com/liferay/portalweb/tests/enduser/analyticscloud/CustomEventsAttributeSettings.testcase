@@ -1,6 +1,8 @@
 @component-name = "portal-analytics-cloud"
 definition {
 
+	property analytics.cloud.release = "true";
+	property analytics.cloud.upstream = "true";
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -299,6 +301,7 @@ definition {
 		var attributeName1 = "color1";
 		var attributeName2 = "color2";
 		var attributeName3 = "color3";
+
 		var attributeNameList = "${attributeName1},${attributeName2},${attributeName3}";
 		var attributeValueList = "blue,red,black";
 

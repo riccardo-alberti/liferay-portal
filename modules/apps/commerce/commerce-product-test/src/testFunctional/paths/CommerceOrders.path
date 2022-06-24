@@ -42,7 +42,7 @@
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_QUANTITY</td>
-	<td>//div[@class='dnd-td'][9][contains(.,'${key_productQuantity}')]</td>
+	<td>//div[@class='dnd-td'][contains(text(),'${key_productQuantity}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -58,6 +58,16 @@
 <tr>
 	<td>ORDER_DETAILS_SHIPPING_ADDRESS</td>
 	<td>//h5[contains(.,'Shipping Address')]/../../div[contains(.,'${key_addressInfo}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_DETAILS_PAYMENT_TERMS</td>
+	<td>//h5[contains(.,'Payment Terms')]/../../div[contains(.,'${key_paymentTerm}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORDER_DETAILS_DELIVERY_TERMS</td>
+	<td>//h5[contains(.,'Delivery Terms')]/../../div[contains(.,'${key_deliveryTerm}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -91,6 +101,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PENDING_ORDERS_BILLING_ADDRESS_DROPDOWN</td>
+	<td>//select[@title= 'billing-address-id']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PENDING_ORDERS_SHIPPING_ADDRESS_DROPDOWN</td>
+	<td>//select[@title= 'shipping-address-id']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ORDER_PRICES_SEPARETED</td>
 	<td>//dt[contains(text(), '${key_priceName}')]//../following-sibling::dd[1]</td>
 	<td></td>
@@ -118,6 +138,11 @@
 <tr>
 	<td>ORDER_WAREHOUSE_BY_ACTIVE_STATUS</td>
 	<td>//a[contains(text(), '${key_warehouseName}')]/ancestor::tr//td//span[contains(@class,'commerce-admin-icon-check')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_ORDER_FROM_LIST</td>
+	<td>//a[contains(@href,'${currentOrderId}') and contains(.,'View')]</td>
 	<td></td>
 </tr>
 </tbody>

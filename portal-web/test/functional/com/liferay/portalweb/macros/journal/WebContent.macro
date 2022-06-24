@@ -866,10 +866,14 @@ definition {
 
 	macro clickMarginOfContentContainer {
 		var elementHeight = selenium.getElementHeight("WCEditWebContent#CONTENT_CONTAINER");
+
 		var offSetY = 50 * ${elementHeight};
+
 		var offSetY = ${offSetY} / 100;
 		var elementWidth = selenium.getElementWidth("WCEditWebContent#CONTENT_CONTAINER");
+
 		var offSetX = 2 * ${elementWidth};
+
 		var offSetX = ${offSetX} / 100;
 
 		Click.clickAt(
@@ -951,7 +955,13 @@ definition {
 			entry = "${entryTitle}",
 			menuItem = "Delete");
 
-		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+		AssertTextEquals(
+			locator1 = "Modal#BODY",
+			value1 = "Are you sure you want to delete this? It will be deleted immediately.");
+
+		Click(
+			key_text = "Delete",
+			locator1 = "Modal#MODAL_FOOTER_BUTTON");
 
 		Alert.viewSuccessMessage();
 	}
@@ -1405,10 +1415,14 @@ definition {
 		var displayDate = selenium.getAttribute("//input[contains(@id,'displayDate')]@value");
 		var displayDateHour = selenium.getAttribute("//input[contains(@id,'displayDateHour')]@value");
 		var displayDateAmpm = selenium.getAttribute("//input[contains(@id,'displayDateAmPm')]@value");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "0", "AM");
+
 		var displayDateAmpm = StringUtil.replace("${displayDateAmpm}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'displayDateMinute')]@value");
+
 		var displayDateMinuteFuture = ${displayDateMinute} + ${minuteIncrease};
+
 		var displayTime = "${displayDateHour}:${displayDateMinuteFuture} ${displayDateAmpm}";
 
 		WebContent.editDisplayDate(
@@ -1515,17 +1529,15 @@ definition {
 
 			WebContentNavigator.gotoEntryMenuItem(
 				entry = "${webContentTitleEscapeCharacter}",
-				menuItem = "Move to Recycle Bin");
+				menuItem = "Delete");
 		}
 		else {
 			var key_webContentTitle = "${webContentTitle}";
 
 			WebContentNavigator.gotoEntryMenuItem(
 				entry = "${webContentTitle}",
-				menuItem = "Move to Recycle Bin");
+				menuItem = "Delete");
 		}
-
-		AssertConfirm(value1 = "Are you sure you want to move this to the Recycle Bin?");
 
 		VerifyElementPresent(locator1 = "Message#SUCCESS");
 
@@ -1539,11 +1551,9 @@ definition {
 
 		PortletEntry.selectAll();
 
-		ClickNoError(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
+		Click(locator1 = "Icon#MOVE_TO_RECYCLE_BIN");
 
-		Confirm();
-
-		VerifyElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 	}
 
 	macro paginateRelatedAssets {
@@ -1750,6 +1760,7 @@ definition {
 		Panel.expandPanel(panel = "Default Template");
 
 		var templateName = StringUtil.replace("${templateName}", "&lt;", "<");
+
 		var templateName = StringUtil.replace("${templateName}", "&gt;", ">");
 
 		AssertTextEquals(
@@ -1925,6 +1936,7 @@ definition {
 
 		for (var documentType : list "${documentTypes}") {
 			var documentTypeUppercase = StringUtil.upperCase("${documentType}");
+
 			var key_documentType = "${documentTypeUppercase}";
 
 			AssertTextEquals.assertPartialText(
@@ -1977,11 +1989,9 @@ definition {
 		if (isSet(displayPageTemplateDisabled)) {
 			Portlet.waitForForm();
 
-			var key_panel = "Display Page Template";
+			var key_panel = "Display Page";
 
-			AssertElementNotPresent(locator1 = "Panel#PANEL_COLLAPSED");
-
-			AssertElementNotPresent(locator1 = "Panel#PANEL_EXPANDED");
+			AssertElementNotPresent(locator1 = "Panel#PANEL");
 		}
 	}
 
@@ -2510,6 +2520,21 @@ definition {
 
 				SelectFrameTop(value1 = "relative=top");
 			}
+		}
+
+		if ("${webContentBoolean}" == "true") {
+			var webContentBooleanFieldLabel = "Boolean";
+
+			AssertChecked.assertCheckedNotVisible(
+				checkboxName = "${webContentBooleanFieldLabel}",
+				locator1 = "Checkbox#ANY_CHECKBOX");
+		}
+		else if ("${webContentBoolean}" == "false") {
+			var webContentBooleanFieldLabel = "Boolean";
+
+			AssertNotChecked.assertNotCheckedNotVisible(
+				checkboxName = "${webContentBooleanFieldLabel}",
+				locator1 = "Checkbox#ANY_CHECKBOX");
 		}
 
 		if (isSet(webContentColor)) {

@@ -53,6 +53,8 @@ public class ObjectActionWrapper
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("objectDefinitionId", getObjectDefinitionId());
 		attributes.put("active", isActive());
+		attributes.put("conditionExpression", getConditionExpression());
+		attributes.put("description", getDescription());
 		attributes.put("name", getName());
 		attributes.put("objectActionExecutorKey", getObjectActionExecutorKey());
 		attributes.put("objectActionTriggerKey", getObjectActionTriggerKey());
@@ -123,6 +125,19 @@ public class ObjectActionWrapper
 			setActive(active);
 		}
 
+		String conditionExpression = (String)attributes.get(
+			"conditionExpression");
+
+		if (conditionExpression != null) {
+			setConditionExpression(conditionExpression);
+		}
+
+		String description = (String)attributes.get("description");
+
+		if (description != null) {
+			setDescription(description);
+		}
+
 		String name = (String)attributes.get("name");
 
 		if (name != null) {
@@ -176,6 +191,16 @@ public class ObjectActionWrapper
 	}
 
 	/**
+	 * Returns the condition expression of this object action.
+	 *
+	 * @return the condition expression of this object action
+	 */
+	@Override
+	public String getConditionExpression() {
+		return model.getConditionExpression();
+	}
+
+	/**
 	 * Returns the create date of this object action.
 	 *
 	 * @return the create date of this object action
@@ -183,6 +208,16 @@ public class ObjectActionWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the description of this object action.
+	 *
+	 * @return the description of this object action
+	 */
+	@Override
+	public String getDescription() {
+		return model.getDescription();
 	}
 
 	/**
@@ -358,6 +393,16 @@ public class ObjectActionWrapper
 	}
 
 	/**
+	 * Sets the condition expression of this object action.
+	 *
+	 * @param conditionExpression the condition expression of this object action
+	 */
+	@Override
+	public void setConditionExpression(String conditionExpression) {
+		model.setConditionExpression(conditionExpression);
+	}
+
+	/**
 	 * Sets the create date of this object action.
 	 *
 	 * @param createDate the create date of this object action
@@ -365,6 +410,16 @@ public class ObjectActionWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the description of this object action.
+	 *
+	 * @param description the description of this object action
+	 */
+	@Override
+	public void setDescription(String description) {
+		model.setDescription(description);
 	}
 
 	/**

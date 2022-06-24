@@ -44,7 +44,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
-import com.liferay.sites.kernel.util.SitesUtil;
+import com.liferay.sites.kernel.util.Sites;
 import com.liferay.staging.StagingGroupHelper;
 
 import java.util.Collections;
@@ -192,7 +192,7 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 		if (Objects.equals(
 				className, LayoutPageTemplateEntry.class.getName()) ||
-			!layout.isTypeContent() || !SitesUtil.isLayoutUpdateable(layout)) {
+			!layout.isTypeContent() || !_sites.isLayoutUpdateable(layout)) {
 
 			return false;
 		}
@@ -201,12 +201,8 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 			layout = _layoutLocalService.getLayout(layout.getClassPK());
 		}
 
-		if (_layoutPermission.contains(
-				themeDisplay.getPermissionChecker(), layout,
-				ActionKeys.UPDATE) ||
-			_layoutPermission.contains(
-				themeDisplay.getPermissionChecker(), layout,
-				ActionKeys.UPDATE_LAYOUT_CONTENT) ||
+		if (_layoutPermission.containsLayoutUpdatePermission(
+				themeDisplay.getPermissionChecker(), layout) ||
 			_modelResourcePermission.contains(
 				themeDisplay.getPermissionChecker(), layout.getPlid(),
 				ActionKeys.UPDATE)) {
@@ -260,6 +256,9 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private Sites _sites;
 
 	@Reference
 	private StagingGroupHelper _stagingGroupHelper;

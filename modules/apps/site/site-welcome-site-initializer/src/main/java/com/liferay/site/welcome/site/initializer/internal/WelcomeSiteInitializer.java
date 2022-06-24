@@ -53,6 +53,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.PropsValues;
@@ -169,9 +170,16 @@ public class WelcomeSiteInitializer implements SiteInitializer {
 			layoutTypePortlet.setLayoutTemplateId(
 				0, PropsValues.DEFAULT_GUEST_PUBLIC_LAYOUT_TEMPLATE_ID, false);
 
+			UnicodeProperties typeSettingsUnicodeProperties =
+				draftLayout.getTypeSettingsProperties();
+
+			typeSettingsUnicodeProperties.setProperty(
+				"published", Boolean.TRUE.toString());
+
 			_layoutLocalService.updateLayout(
-				layout.getGroupId(), layout.isPrivateLayout(),
-				layout.getLayoutId(), layout.getTypeSettings());
+				draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
+				draftLayout.getLayoutId(),
+				typeSettingsUnicodeProperties.toString());
 
 			_layoutLocalService.updatePriority(
 				layout.getPlid(), LayoutConstants.FIRST_PRIORITY);
@@ -295,14 +303,7 @@ public class WelcomeSiteInitializer implements SiteInitializer {
 
 			Class<?> clazz = getClass();
 
-			String releaseInfo = StringPool.BLANK;
-
-			if (_HTTP_HEADER_VERSION_VERBOSITY_PARTIAL) {
-				releaseInfo = ReleaseInfo.getName();
-			}
-			else if (!_HTTP_HEADER_VERSION_VERBOSITY_DEFAULT) {
-				releaseInfo = ReleaseInfo.getReleaseInfo();
-			}
+			String releaseInfo = ReleaseInfo.getReleaseInfo();
 
 			releaseInfo = StringUtil.replace(
 				releaseInfo, CharPool.OPEN_PARENTHESIS, "<br>(");
@@ -334,7 +335,7 @@ public class WelcomeSiteInitializer implements SiteInitializer {
 								LanguageUtil.get(locale, "welcome-to-liferay"));
 						}
 
-						return jsonObject.toJSONString();
+						return jsonObject.toString();
 					}
 				).build());
 
@@ -348,14 +349,6 @@ public class WelcomeSiteInitializer implements SiteInitializer {
 	}
 
 	private static final String _FILE_NAME_TREE_IMAGE = "tree.png";
-
-	private static final boolean _HTTP_HEADER_VERSION_VERBOSITY_DEFAULT =
-		StringUtil.equalsIgnoreCase(
-			PropsValues.HTTP_HEADER_VERSION_VERBOSITY, "off");
-
-	private static final boolean _HTTP_HEADER_VERSION_VERBOSITY_PARTIAL =
-		StringUtil.equalsIgnoreCase(
-			PropsValues.HTTP_HEADER_VERSION_VERBOSITY, "partial");
 
 	private static final String _PATH =
 		"com/liferay/site/welcome/site/initializer/internal/dependencies/";

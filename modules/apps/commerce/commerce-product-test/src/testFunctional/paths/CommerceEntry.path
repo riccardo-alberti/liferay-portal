@@ -16,6 +16,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SELECT_ITEM_FROM_LIST</td>
+	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_itemName}')]//following::div//a[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>WISH_LIST_NAME</td>
+	<td>//td[contains(@class,'lfr-name-column')]//*[contains(.,'${wishListName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECTED_TABLE_PAGINATION</td>
+	<td>//li[contains(@class,'page-item active')]//button[contains(.,'${key_pageNumber}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ACTIVE_CHECKBOX</td>
 	<td>//input[contains(@id,'active') and (@type='checkbox')]</td>
 	<td></td>
@@ -162,7 +177,7 @@
 </tr>
 <tr>
 	<td>ASSERT_NOTIFICATION_QUEUE</td>
-	<td>//div[contains(@class,'dnd-tr with-bg')]//div[contains(text(), '${key_name}')][${key_order}]</td>
+	<td>//div[contains(@class,'dnd-tr')]//div[contains(text(),'${key_name}')][${key_order}]</td>
 	<td></td>
 </tr>
 <tr>
@@ -440,6 +455,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SALE_PRICE_FIELD</td>
+	<td>//div/input[contains(@id,'promoPrice')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ACCORDION</td>
 	<td>//fieldset//div/a[contains(@aria-expanded,'true')]</td>
 	<td></td>
@@ -552,6 +572,11 @@
 <tr>
 	<td>TABLE_ENTRY_NAME</td>
 	<td>//h4[contains(.,'${key_table}')]//..//div/a[contains(.,'${key_entryName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TABLE_ENTRY_ROW_NUMBER</td>
+	<td>//div[@class='dnd-tbody']/div[contains(@class,'dnd-tr')][${key_rowNumber}]//a</td>
 	<td></td>
 </tr>
 <tr>
@@ -927,6 +952,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>TABLE_SEARCH_BY_NAME_AND_COLUMN_CONTENT</td>
+	<td>//div[@class='dnd-td' and contains(.,'${key_productName}')]/following-sibling::div[${key_columnNumber}][contains(text(),'${key_value}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>TABLE_SEARCH_BY_NAME_AND_CONTENT</td>
 	<td>//div[@class='dnd-td' and contains(.,'${key_productName}')]/following-sibling::div[contains(text(),'${key_value}')]</td>
 	<td></td>
@@ -985,6 +1015,12 @@
 <tr>
 	<td>SPECIFIC_MENU_ITEM</td>
 	<td>//a[contains(text(),'${key_itemName}')]//..//..//*[name()='svg'][contains(@class,'lexicon-icon lexicon-icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<!--VISIBILITY-->
+<tr>
+	<td>CHECK_SPECIFIC_TOGGLE_SWITCH</td>
+	<td>//h4[contains(.,"${key_name}")]//span[contains(@id,'toggle-switch')]//..//..//..//div[contains(@class,'collapse show')]</td>
 	<td></td>
 </tr>
 </tbody>

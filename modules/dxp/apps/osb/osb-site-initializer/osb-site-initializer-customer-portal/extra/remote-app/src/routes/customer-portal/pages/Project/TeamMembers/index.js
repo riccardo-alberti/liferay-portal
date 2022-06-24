@@ -9,24 +9,37 @@
  * distribution rights of the Software.
  */
 
+import {useEffect} from 'react';
 import {useOutletContext} from 'react-router-dom';
+import i18n from '../../../../../common/I18n';
 import {useApplicationProvider} from '../../../../../common/context/AppPropertiesProvider';
 import ManageProductUser from '../../../components/ManageProductUsers';
 import TeamMembersTable from '../../../containers/TeamMembersTable';
 import {useCustomerPortal} from '../../../context';
 
 const TeamMembers = () => {
-	const {project, subscriptionGroups} = useOutletContext();
-	const [{sessionId}] = useCustomerPortal();
+	const {setHasQuickLinksPanel, setHasSideMenu} = useOutletContext();
+	const [{project, sessionId, subscriptionGroups}] = useCustomerPortal();
 	const {licenseKeyDownloadURL} = useApplicationProvider();
 
+	useEffect(() => {
+		setHasQuickLinksPanel(false);
+		setHasSideMenu(true);
+	}, [setHasSideMenu, setHasQuickLinksPanel]);
+
+	if (!project || !subscriptionGroups || !sessionId) {
+		return <>{i18n.translate('loading')}...</>;
+	}
+
 	return (
-		<div>
+		<>
 			<div>
-				<h1 className="m-0">Team Members</h1>
+				<h1 className="m-0">{i18n.translate('team-members')}</h1>
 
 				<p className="mb-0 mt-1 text-neutral-7 text-paragraph-sm">
-					Team members have access to this project in Customer Portal.
+					{i18n.translate(
+						'team-members-have-access-to-this-project-in-customer-portal'
+					)}
 				</p>
 			</div>
 
@@ -44,7 +57,7 @@ const TeamMembers = () => {
 					subscriptionGroups={subscriptionGroups}
 				/>
 			</div>
-		</div>
+		</>
 	);
 };
 

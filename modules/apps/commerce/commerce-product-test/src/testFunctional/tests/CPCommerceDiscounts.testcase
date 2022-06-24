@@ -1,10 +1,9 @@
 @component-name = "portal-commerce"
 definition {
 
-	property osgi.module.configuration.file.names = "com.liferay.release.feature.flag.web.internal.configuration.ReleaseFeatureFlagConfiguration.config";
-	property osgi.module.configurations = "disabledReleaseFeatureFlags=[&quot;DISABLE_PRIVATE_LAYOUTS&quot;]";
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property release.feature.flags.disable.DISABLE_PRIVATE_LAYOUTS = "true";
 	property testray.main.component.name = "Order Management";
 
 	setUp {
@@ -344,11 +343,7 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		Click(locator1 = "Icon#PLUS");
 
@@ -367,7 +362,9 @@ definition {
 			locator1 = "TextInput#DISCOUNT",
 			value1 = "TEST");
 
-		Button.click(button = "Apply");
+		Click(
+			key_tab = "Apply",
+			locator1 = "Button#TAB_SUBMIT_BTN");
 
 		Type(
 			key_fieldName = "Name",
@@ -425,17 +422,15 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		Type(
 			locator1 = "TextInput#DISCOUNT",
 			value1 = "TEST");
 
-		Button.click(button = "Apply");
+		Click(
+			key_tab = "Apply",
+			locator1 = "Button#TAB_SUBMIT_BTN");
 
 		Type(
 			key_fieldName = "Name",
@@ -493,17 +488,15 @@ definition {
 			productName = "U-Joint",
 			productQuantity = "1");
 
-		CommerceNavigator.gotoMiniCart();
-
-		Button.click(button = "View Details");
-
-		Button.click(button = "Checkout");
+		CommerceCheckout.gotoCheckout();
 
 		Type(
 			locator1 = "TextInput#DISCOUNT",
 			value1 = "TEST");
 
-		Button.click(button = "Apply");
+		Click(
+			key_tab = "Apply",
+			locator1 = "Button#TAB_SUBMIT_BTN");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "Message#ERROR",
@@ -656,6 +649,7 @@ definition {
 			discountType = "Percentage");
 
 		var timeString = selenium.getElementValue("TextInput#EXPIRATION_DATE_TIME");
+
 		var ampm = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "3");
 		var hours = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "1");
 		var minutes = RegexUtil.replace("${timeString}", "([0-9]*):([0-9]*) ([A-Z]*)", "2");

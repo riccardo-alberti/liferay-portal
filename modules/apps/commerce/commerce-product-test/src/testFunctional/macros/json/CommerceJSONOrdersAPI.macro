@@ -1,5 +1,54 @@
 definition {
 
+	macro _addOrderRule {
+		Variables.assertDefined(parameterList = "${orderRuleName},${orderRuleType},${applyTo}");
+
+		var baseURL = "${baseURL}";
+
+		if (!(isSet(baseURL))) {
+			var baseURL = PropsUtil.get("portal.url");
+		}
+
+		var applyTo = StringUtil.lowerCase("${applyTo}");
+		var orderRuleType = StringUtil.lowerCase("${orderRuleType}");
+
+		var orderRuleType = StringUtil.replace("${orderRuleType}", " ", "-");
+
+		if (!(isSet(amount))) {
+			var amount = "0.00";
+		}
+
+		if (!(isSet(currencyCode))) {
+			var currencyCode = "USD";
+		}
+
+		if (!(isSet(orderRuleDescription))) {
+			var orderRuleDescription = "";
+		}
+
+		if (!(isSet(priority))) {
+			var priority = "0";
+		}
+
+		var curl = '''
+			${baseURL}/o/headless-commerce-admin-order/v1.0/order-rules \
+			-u test@liferay.com:test \
+			-H 'accept: application/json' \
+ 			-H 'Content-Type: application/json' \
+  			-d '{	
+  				  "active": true,
+				  "description": "${orderRuleDescription}",
+				  "name": "${orderRuleName}",
+				  "neverExpire": true,
+				  "priority": ${priority},
+				  "type": "${orderRuleType}",
+				  "typeSettings": "${orderRuleType}-field-amount=${amount}\n${orderRuleType}-field-apply-to=${orderRuleType}-field-apply-to-order-${applyTo}\n${orderRuleType}-field-currency-code=${currencyCode}\n"
+				}'
+			''';
+
+		JSONCurlUtil.post("${curl}");
+	}
+
 	macro _addOrderType {
 		Variables.assertDefined(parameterList = "${orderTypeName}");
 
@@ -15,7 +64,9 @@ definition {
 
 		if (!(isSet(expirationDate))) {
 			var displayDateYear = DateUtil.getCurrentYear();
+
 			var displayDateYear = ${displayDateYear} + 1;
+
 			var expirationDate = "${displayDateYear}-01-01T01:01:00Z";
 		}
 
@@ -118,6 +169,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var orderIds = JSONCurlUtil.get("${curl}", "$..['id']");
 
 		return "${orderIds}";
@@ -135,6 +187,7 @@ definition {
 			-u test@liferay.com:test \
 			-H 'accept: application/json' \
 		''';
+
 		var ordersCount = JSONCurlUtil.get("${curl}", "$['totalCount']");
 
 		echo("The Commerce orders count is: ${ordersCount}");

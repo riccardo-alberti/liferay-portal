@@ -16,18 +16,28 @@ import {ClayModalProvider} from '@clayui/modal';
 import {HashRouter, Route, Routes} from 'react-router-dom';
 
 import Layout from './components/Layout/Layout';
+import CompareRunsOutlet from './pages/CompareRuns/CompareRunsOutlet';
+import CompareRunsRedirect from './pages/CompareRuns/CompareRunsRedirect';
+import CompareRunsComponents from './pages/CompareRuns/Components';
+import CompareRunsDetails from './pages/CompareRuns/Details';
+import CompareRunsTeams from './pages/CompareRuns/Teams';
 import Users from './pages/Manage/User';
 import UserManagement from './pages/Manage/User/User';
+import UserForm from './pages/Manage/User/UserForm';
+import UserOutlet from './pages/Manage/User/UserOutlet';
 import OutletBridge from './pages/OutletBridge';
 import Projects from './pages/Project';
 import Cases from './pages/Project/Cases';
 import Case from './pages/Project/Cases/Case';
+import CaseForm from './pages/Project/Cases/CaseForm';
 import CaseOutlet from './pages/Project/Cases/CaseOutlet';
 import CaseRequirement from './pages/Project/Cases/CaseRequirement';
 import Overview from './pages/Project/Overview';
 import ProjectOutlet from './pages/Project/ProjectOutlet';
 import Requirements from './pages/Project/Requirements';
 import Requirement from './pages/Project/Requirements/Requirement';
+import RequirementsForm from './pages/Project/Requirements/RequirementsForm';
+import RequirementsOutlet from './pages/Project/Requirements/RequirementsOutlet';
 import Routines from './pages/Project/Routines';
 import Build from './pages/Project/Routines/Builds/Build';
 import BuildOutlet from './pages/Project/Routines/Builds/BuildOutlet';
@@ -40,9 +50,12 @@ import Runs from './pages/Project/Routines/Builds/Inner/Run';
 import Teams from './pages/Project/Routines/Builds/Inner/Teams';
 import Routine from './pages/Project/Routines/Routine';
 import RoutineArchived from './pages/Project/Routines/RoutineArchived';
+import RoutineBuildForm from './pages/Project/Routines/RoutineBuildForm';
 import RoutineOutlet from './pages/Project/Routines/RoutineOutlet';
 import Suites from './pages/Project/Suites';
 import Suite from './pages/Project/Suites/Suite';
+import SuiteForm from './pages/Project/Suites/SuiteForm';
+import SuiteOutlet from './pages/Project/Suites/SuiteOutlet';
 import Testflow from './pages/Testflow';
 import Subtasks from './pages/Testflow/Subtask';
 import TestflowArchived from './pages/Testflow/TestflowArchived';
@@ -67,14 +80,27 @@ const TestrayRoute = () => (
 						<Route element={<OutletBridge />} path="suites">
 							<Route element={<Suites />} index />
 
-							<Route element={<Suite />} path=":testraySuiteId" />
+							<Route element={<SuiteForm />} path="create" />
+
+							<Route
+								element={<SuiteOutlet />}
+								path=":testraySuiteId"
+							>
+								<Route element={<Suite />} index />
+
+								<Route element={<SuiteForm />} path="update" />
+							</Route>
 						</Route>
 
 						<Route element={<OutletBridge />} path="cases">
 							<Route element={<Cases />} index />
 
+							<Route element={<CaseForm />} path="create" />
+
 							<Route element={<CaseOutlet />} path=":caseId">
 								<Route element={<Case />} index />
+
+								<Route element={<CaseForm />} path="update" />
 
 								<Route
 									element={<CaseRequirement />}
@@ -87,19 +113,41 @@ const TestrayRoute = () => (
 							<Route element={<Requirements />} index />
 
 							<Route
-								element={<Requirement />}
-								path=":requirementId"
+								element={<RequirementsForm />}
+								path="create"
 							/>
+
+							<Route
+								element={<RequirementsOutlet />}
+								path=":requirementId"
+							>
+								<Route element={<Requirement />} index />
+
+								<Route
+									element={<RequirementsForm />}
+									path="update"
+								/>
+							</Route>
 						</Route>
 
 						<Route element={<OutletBridge />} path="routines">
 							<Route element={<Routines />} index />
 
 							<Route
+								element={<RoutineBuildForm />}
+								path="create"
+							/>
+
+							<Route
 								element={<RoutineOutlet />}
 								path=":routineId"
 							>
 								<Route element={<Routine />} index />
+
+								<Route
+									element={<RoutineBuildForm />}
+									path="update"
+								/>
 
 								<Route
 									element={<RoutineArchived />}
@@ -145,7 +193,15 @@ const TestrayRoute = () => (
 					</Route>
 
 					<Route element={<OutletBridge />} path="manage">
-						<Route element={<Users />} path="user" />
+						<Route element={<OutletBridge />} path="user">
+							<Route element={<Users />} index />
+
+							<Route element={<UserForm />} path="create" />
+						</Route>
+
+						<Route element={<UserOutlet />} path="user/:name">
+							<Route element={<UserForm />} path="update" />
+						</Route>
 
 						<Route element={<UserManagement />} path="user/me" />
 					</Route>
@@ -161,6 +217,22 @@ const TestrayRoute = () => (
 							element={<TestFlowTasks />}
 							path=":testrayTaskId"
 						/>
+					</Route>
+
+					<Route element={<CompareRunsOutlet />} path="compare-runs">
+						<Route element={<CompareRunsRedirect />} index />
+
+						<Route
+							element={<CompareRunsComponents />}
+							path="components"
+						/>
+
+						<Route
+							element={<CompareRunsDetails />}
+							path="details"
+						/>
+
+						<Route element={<CompareRunsTeams />} path="teams" />
 					</Route>
 
 					<Route element={<div>Page not found</div>} path="*" />

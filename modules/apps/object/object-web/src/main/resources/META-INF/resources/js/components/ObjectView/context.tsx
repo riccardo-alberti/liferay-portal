@@ -14,26 +14,34 @@
 
 import React, {createContext, useReducer} from 'react';
 
+import {defaultLanguageId} from '../../utils/locale';
 import {
 	TAction,
+	TLabelValueObject,
 	TName,
 	TObjectField,
 	TObjectView,
 	TObjectViewColumn,
+	TObjectViewFilterColumn,
 	TObjectViewSortColumn,
 	TState,
+	TWorkflowStatus,
 } from './types';
 interface IViewContextProps extends Array<TState | Function> {
 	0: typeof initialState;
 	1: React.Dispatch<React.ReducerAction<React.Reducer<TState, TAction>>>;
 }
 
+interface TInitialFilterColumn extends TObjectViewFilterColumn {
+	json: string;
+	valueSummary: string;
+}
+
 const ViewContext = createContext({} as IViewContextProps);
 
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
-
-const METADATAS = [
+export const METADATAS = [
 	{
+		businessType: 'Author',
 		checked: false,
 		filtered: true,
 		id: 1,
@@ -47,6 +55,7 @@ const METADATAS = [
 		type: 'metadata',
 	},
 	{
+		businessType: 'Creation Date',
 		checked: false,
 		filtered: true,
 		id: 2,
@@ -60,6 +69,7 @@ const METADATAS = [
 		type: 'metadata',
 	},
 	{
+		businessType: 'Modified Date',
 		checked: false,
 		filtered: true,
 		id: 3,
@@ -73,6 +83,7 @@ const METADATAS = [
 		type: 'metadata',
 	},
 	{
+		businessType: 'Workflow Status',
 		checked: false,
 		filtered: true,
 		id: 4,
@@ -90,6 +101,7 @@ const METADATAS = [
 		type: 'metadata',
 	},
 	{
+		businessType: 'Id',
 		checked: false,
 		filtered: true,
 		id: 5,
@@ -110,13 +122,16 @@ export enum TYPES {
 	ADD_OBJECT_CUSTOM_VIEW_FIELD = 'ADD_OBJECT_CUSTOM_VIEW_FIELD',
 	ADD_OBJECT_VIEW_COLUMN = 'ADD_OBJECT_VIEW_COLUMN',
 	ADD_OBJECT_VIEW_SORT_COLUMN = 'ADD_OBJECT_VIEW_SORT_COLUMN',
+	ADD_OBJECT_VIEW_FILTER_COLUMN = 'ADD_OBJECT_VIEW_FILTER_COLUMN',
 	CHANGE_OBJECT_VIEW_NAME = 'CHANGE_OBJECT_VIEW_NAME',
 	CHANGE_OBJECT_VIEW_COLUMN_ORDER = 'CHANGE_OBJECT_VIEW_COLUMN_ORDER',
 	CHANGE_OBJECT_VIEW_SORT_COLUMN_ORDER = 'CHANGE_OBJECT_VIEW_SORT_COLUMN_ORDER',
 	DELETE_OBJECT_VIEW_COLUMN = 'DELETE_OBJECT_VIEW_COLUMN',
 	DELETE_OBJECT_VIEW_SORT_COLUMN = 'DELETE_OBJECT_VIEW_SORT_COLUMN',
+	DELETE_OBJECT_VIEW_FILTER_COLUMN = 'DELETE_OBJECT_VIEW_FILTER_COLUMN',
 	DELETE_OBJECT_CUSTOM_VIEW_FIELD = 'DELETE_OBJECT_CUSTOM_VIEW_FIELD',
 	EDIT_OBJECT_VIEW_COLUMN_LABEL = 'EDIT_OBJECT_VIEW_COLUMN_LABEL',
+	EDIT_OBJECT_VIEW_FILTER_COLUMN = 'EDIT_OBJECT_VIEW_FILTER_COLUMN',
 	EDIT_OBJECT_VIEW_SORT_COLUMN_SORT_ORDER = 'EDIT_OBJECT_VIEW_SORT_COLUMN_SORT_ORDER',
 	SET_OBJECT_VIEW_AS_DEFAULT = 'SET_OBJECT_VIEW_AS_DEFAULT',
 }
@@ -181,6 +196,75 @@ const viewReducer = (state: TState, action: TAction) => {
 				objectView: newObjectView,
 			};
 		}
+		case TYPES.ADD_OBJECT_VIEW_FILTER_COLUMN: {
+			const {filterType, objectFieldName, valueList} = action.payload;
+
+			const labels: TName[] = [];
+			let objectFieldBusinessType;
+			const {objectFields} = state;
+
+			objectFields.forEach((objectField: TObjectField) => {
+				if (objectField.name === objectFieldName) {
+					labels.push(objectField.label);
+					objectField.hasFilter = true;
+					objectFieldBusinessType = objectField.businessType;
+				}
+			});
+
+			const [label] = labels;
+
+			let filterTypeValue = filterType || null;
+
+			if (valueList.length === 0) {
+				filterTypeValue = null;
+			}
+
+			const newFilterColumnItem: TObjectViewFilterColumn = {
+				definition: filterTypeValue && {
+					[filterTypeValue]: valueList.map(
+						(item: {label: string; value: string}) => item.value
+					),
+				},
+				fieldLabel: label[defaultLanguageId],
+				filterBy: label[defaultLanguageId],
+				filterType: filterTypeValue,
+				label,
+				objectFieldBusinessType,
+				objectFieldName,
+				valueList: filterTypeValue ? valueList : [],
+			};
+
+			const objectView = {...state.objectView};
+
+			let newObjectView;
+
+			const {objectViewFilterColumns} = state.objectView;
+
+			if (!objectViewFilterColumns) {
+				const filterColumns: TObjectViewFilterColumn[] = [];
+
+				filterColumns.push(newFilterColumnItem);
+
+				newObjectView = {
+					...objectView,
+					objectViewFilterColumns: filterColumns,
+				};
+			}
+			else {
+				objectViewFilterColumns.push(newFilterColumnItem);
+
+				newObjectView = {
+					...objectView,
+					objectViewFilterColumns,
+				};
+			}
+
+			return {
+				...state,
+				objectFields,
+				objectView: newObjectView,
+			};
+		}
 		case TYPES.ADD_OBJECT_VIEW_SORT_COLUMN: {
 			const {
 				objectFieldName,
@@ -194,7 +278,7 @@ const viewReducer = (state: TState, action: TAction) => {
 
 			objectViewColumns.forEach((viewColumn) => {
 				if (viewColumn.objectFieldName === objectFieldName) {
-					viewColumn.isDefaultSort = true;
+					viewColumn.defaultSort = true;
 				}
 			});
 
@@ -260,7 +344,11 @@ const viewReducer = (state: TState, action: TAction) => {
 		case TYPES.ADD_OBJECT_FIELDS: {
 			const {objectFields, objectView} = action.payload;
 
-			const {objectViewColumns, objectViewSortColumns} = objectView;
+			const {
+				objectViewColumns,
+				objectViewFilterColumns,
+				objectViewSortColumns,
+			} = objectView;
 
 			const objectFieldsWithCheck = objectFields.map(
 				(field: TObjectField) => {
@@ -290,6 +378,16 @@ const viewReducer = (state: TState, action: TAction) => {
 						}
 					}
 				);
+
+				const existingFilter = objectViewFilterColumns.find(
+					(filter: {objectFieldName: string}) => {
+						if (filter.objectFieldName === field.name) {
+							return filter;
+						}
+					}
+				);
+
+				field.hasFilter = existingFilter;
 			});
 
 			const newObjectViewColumns: TObjectViewColumn[] = [];
@@ -300,8 +398,8 @@ const viewReducer = (state: TState, action: TAction) => {
 					if (objectField.name === viewColumn.objectFieldName) {
 						newObjectViewColumns.push({
 							...viewColumn,
+							defaultSort: false,
 							fieldLabel: objectField.label[defaultLanguageId],
-							isDefaultSort: false,
 							label: viewColumn.label,
 						});
 					}
@@ -327,16 +425,60 @@ const viewReducer = (state: TState, action: TAction) => {
 								sortColumn.objectFieldName ===
 								viewColumn.objectFieldName
 							) {
-								viewColumn.isDefaultSort = true;
+								viewColumn.defaultSort = true;
 							}
 						}
 					);
 				}
 			);
 
+			const newObjectViewFilterColumns = objectViewFilterColumns.map(
+				(filterColumn: TInitialFilterColumn) => {
+					const definition =
+						filterColumn.json && JSON.parse(filterColumn.json);
+					const filterType = filterColumn.filterType;
+					const objectFieldName = filterColumn.objectFieldName;
+					const objectField = newObjectFields.find(
+						(field: TObjectField) => {
+							if (field.name === objectFieldName) {
+								return field;
+							}
+						}
+					);
+					const valueList = [];
+					let valueSummary = filterColumn.valueSummary?.split(',');
+
+					valueSummary = valueSummary?.map((item) => item.trim());
+
+					if (valueSummary && filterType) {
+						for (
+							let i = 0;
+							i < definition[filterType].length;
+							i++
+						) {
+							valueList.push({
+								label: valueSummary[i],
+								value: definition[filterType][i],
+							});
+						}
+					}
+
+					return {
+						...filterColumn,
+						definition,
+						fieldLabel: objectField?.label[defaultLanguageId],
+						filterBy: objectFieldName,
+						filterType,
+						objectFieldBusinessType: objectField?.businessType,
+						valueList,
+					};
+				}
+			);
+
 			const newObjectView = {
 				...objectView,
 				objectViewColumns: newObjectViewColumns,
+				objectViewFilterColumns: newObjectViewFilterColumns,
 				objectViewSortColumns: newObjectViewSortColumns,
 			};
 
@@ -442,6 +584,34 @@ const viewReducer = (state: TState, action: TAction) => {
 				objectView: newObjectView,
 			};
 		}
+		case TYPES.DELETE_OBJECT_VIEW_FILTER_COLUMN: {
+			const {objectFieldName} = action.payload;
+
+			const {objectViewFilterColumns} = state.objectView;
+			const {objectFields} = state;
+
+			objectFields.forEach((objectField) => {
+				if (objectField.name === objectFieldName) {
+					objectField.hasFilter = false;
+				}
+			});
+
+			const filterColumns = objectViewFilterColumns.filter(
+				(filterColumn) =>
+					filterColumn.objectFieldName !== objectFieldName
+			);
+
+			const newObjectView = {
+				...state.objectView,
+				objectViewFilterColumns: filterColumns,
+			};
+
+			return {
+				...state,
+				objectFields,
+				objectView: newObjectView,
+			};
+		}
 		case TYPES.DELETE_OBJECT_VIEW_SORT_COLUMN: {
 			const {objectFieldName} = action.payload;
 
@@ -451,7 +621,7 @@ const viewReducer = (state: TState, action: TAction) => {
 
 			objectViewColumns.forEach((viewColumn) => {
 				if (viewColumn.objectFieldName === objectFieldName) {
-					viewColumn.isDefaultSort = false;
+					viewColumn.defaultSort = false;
 				}
 			});
 
@@ -496,6 +666,47 @@ const viewReducer = (state: TState, action: TAction) => {
 			const newObjectView = {
 				...state.objectView,
 				objectViewColumns: newObjectViewColumns,
+			};
+
+			return {
+				...state,
+				objectView: newObjectView,
+			};
+		}
+		case TYPES.EDIT_OBJECT_VIEW_FILTER_COLUMN: {
+			const {filterType, objectFieldName, valueList} = action.payload;
+
+			const {objectViewFilterColumns} = state.objectView;
+
+			let filterTypeValue = filterType || null;
+
+			if (valueList.length === 0) {
+				filterTypeValue = null;
+			}
+
+			const newObjectFilterColumns = objectViewFilterColumns.map(
+				(filterColumn) => {
+					if (filterColumn.objectFieldName === objectFieldName) {
+						return {
+							...filterColumn,
+							definition: filterTypeValue && {
+								[filterTypeValue]: valueList.map(
+									(item: TLabelValueObject) => item.value
+								),
+							},
+							filterType: filterTypeValue,
+							valueList: filterTypeValue ? valueList : [],
+						};
+					}
+					else {
+						return filterColumn;
+					}
+				}
+			);
+
+			const newObjectView = {
+				...state.objectView,
+				objectViewFilterColumns: newObjectFilterColumns,
 			};
 
 			return {
@@ -556,6 +767,7 @@ interface IViewContextProviderProps extends React.HTMLAttributes<HTMLElement> {
 	value: {
 		isViewOnly: boolean;
 		objectViewId: string;
+		workflowStatusJSONArray: TWorkflowStatus[];
 	};
 }
 

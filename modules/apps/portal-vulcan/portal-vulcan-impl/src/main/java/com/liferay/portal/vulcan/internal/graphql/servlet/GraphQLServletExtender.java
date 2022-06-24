@@ -222,6 +222,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -655,10 +656,9 @@ public class GraphQLServletExtender {
 							return null;
 						}
 
-						long companyId = _portal.getCompanyId(
-							(HttpServletRequest)arguments[0]);
-
-						Servlet servlet = _createServlet(companyId);
+						Servlet servlet = _createServlet(
+							_portal.getCompanyId(
+								(HttpServletRequest)arguments[0]));
 
 						servlet.init(_servletConfig);
 
@@ -2878,7 +2878,7 @@ public class GraphQLServletExtender {
 
 			return stream.filter(
 				graphQLError ->
-					!_isNoSuchModelException(graphQLError) ||
+					!_isNotFoundException(graphQLError) ||
 					_isRequiredField(graphQLError)
 			).map(
 				graphQLError -> {
@@ -2888,7 +2888,7 @@ public class GraphQLServletExtender {
 						return _getExtendedGraphQLError(
 							graphQLError, Response.Status.UNAUTHORIZED);
 					}
-					else if (_isNoSuchModelException(graphQLError)) {
+					else if (_isNotFoundException(graphQLError)) {
 						return _getExtendedGraphQLError(
 							graphQLError, Response.Status.NOT_FOUND);
 					}
@@ -2949,7 +2949,7 @@ public class GraphQLServletExtender {
 			return false;
 		}
 
-		private boolean _isNoSuchModelException(GraphQLError graphQLError) {
+		private boolean _isNotFoundException(GraphQLError graphQLError) {
 			if (!(graphQLError instanceof ExceptionWhileDataFetching)) {
 				return false;
 			}
@@ -2960,7 +2960,8 @@ public class GraphQLServletExtender {
 			Throwable throwable = exceptionWhileDataFetching.getException();
 
 			if ((throwable != null) &&
-				(throwable.getCause() instanceof NoSuchModelException)) {
+				(throwable.getCause() instanceof NotFoundException ||
+				 throwable.getCause() instanceof NoSuchModelException)) {
 
 				return true;
 			}

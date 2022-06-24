@@ -63,6 +63,17 @@ const TeamMembersTable = ({licenseKeyDownloadURL, project, sessionId}) => {
 	const [userActionStatus, setUserActionStatus] = useState();
 	const [accountRolesOptions, setAccountRolesOptions] = useState([]);
 
+	const hasOnlyOneAdminOrPartnerManager = useMemo(() => {
+		return (
+			userAccounts.filter(
+				(user) =>
+					user?.roles[0] === ROLE_TYPES.admin.key ||
+					user?.roles[0] === ROLE_TYPES.partnerManager.key ||
+					user?.roles[0] === ROLE_TYPES.requester.key
+			).length === 1
+		);
+	}, [userAccounts]);
+
 	useEffect(() => {
 		if (accountRoles.length) {
 			const currentSelectedUser = userAccounts?.find(
@@ -73,7 +84,8 @@ const TeamMembersTable = ({licenseKeyDownloadURL, project, sessionId}) => {
 				const isSupportSeatRole = currentSelectedUser?.roles?.some(
 					(role) =>
 						role === ROLE_TYPES.admin.key ||
-						role === ROLE_TYPES.requester.key
+						role === ROLE_TYPES.requester.key ||
+						role === ROLE_TYPES.partnerManager.key
 				);
 				const filteredRoles = accountRoles.map((role) => {
 					const isAdministratorOrRequestor =
@@ -83,9 +95,11 @@ const TeamMembersTable = ({licenseKeyDownloadURL, project, sessionId}) => {
 					return {
 						...role,
 						disabled:
-							!isSupportSeatRole &&
-							isAdministratorOrRequestor &&
-							administratorsAvailable === 0,
+							(!isSupportSeatRole &&
+								isAdministratorOrRequestor &&
+								administratorsAvailable === 0) ||
+							(hasOnlyOneAdminOrPartnerManager &&
+								isSupportSeatRole),
 					};
 				});
 				setAccountRolesOptions(filteredRoles);
@@ -94,6 +108,7 @@ const TeamMembersTable = ({licenseKeyDownloadURL, project, sessionId}) => {
 	}, [
 		accountRoles,
 		administratorsAvailable,
+		hasOnlyOneAdminOrPartnerManager,
 		userAccounts,
 		userAction?.userId,
 	]);

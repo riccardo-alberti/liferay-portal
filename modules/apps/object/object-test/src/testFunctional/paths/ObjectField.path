@@ -8,13 +8,33 @@
 <thead><tr><td rowspan="1" colspan="3">ObjectField</td></tr></thead>
 <tbody>
 	<tr>
+		<td>DOCUMENT_NAME</td>
+		<td>//p[contains(@class,'card-title text-truncate')]//a</td>
+		<td></td>
+	</tr>
+	<tr>
 		<td>ERROR_REQUIRED_FIELD_SPECIFIC</td>
 		<td>//label[contains(text(), '${key_fieldName}')]/../div[contains(@class, 'form-feedback-group') and contains(.,'Required')]</td>
 		<td></td>
 	</tr>
 	<tr>
 		<td>FIELD_TYPE_DESCRIPTION</td>
-		<td>//div[text() = '${key_type}']/..//span[@class = 'text-small']</td>
+		<td>//div[text() = "${key_type}"]/..//span[@class = 'text-small']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>VIEW_HOME_FOLDER</td>
+		<td>//span[@class='active breadcrumb-text-truncate' and contains(text(),'${key_viewHomeFolder}')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>INPUT_MAXIMUM_FILE_SIZE</td>
+		<td>//label[contains(text(),'Maximum File Size')]/..//input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>LABEL_ACCEPTED_FILE_EXTENSIONS</td>
+		<td>//div[@class = 'form-group']//label[contains(text(),'Accepted File Extensions')]</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -33,6 +53,21 @@
 		<td></td>
 	</tr>
 	<tr>
+		<td>LABEL_MAXIMUM_FILE_SIZE</td>
+		<td>//div[@class = 'form-group']//label[contains(text(),'Maximum File Size')]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>MAXIMUM_NUMBER_CHARACTERS_OPTION</td>
+		<td>//input[contains(@value, '${key_maxValue}')]//..//label[contains(text(),'Maximum Number of Characters')]/..//input</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>DEFAULT_TOGGLE_SWITCH</td>
+		<td>//span[@class='toggle-switch-label' and contains(text(), '${key_labelName}')]</td>
+		<td></td>
+	</tr>
+	<tr>
 		<td>MANDATORY_TOGGLE</td>
 		<td>//input[@name="required"]</td>
 		<td></td>
@@ -43,6 +78,11 @@
 		<td></td>
 	</tr>
 	<tr>
+		<td>MODAL_CLOSE_BUTTON</td>
+		<td>//button[contains(@class, 'close')]</td>
+		<td></td>
+	</tr>
+	<tr>
 		<td>NAME_FIELD</td>
 		<td>//input[@name="name"]</td>
 		<td></td>
@@ -50,6 +90,11 @@
 	<tr>
 		<td>NAME_FIELD_DISABLED</td>
 		<td>//input[@name="name" and @disabled]</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>REQUEST_FILES_INPUT</td>
+		<td>//label[contains(text(), 'Request Files')]/..//input[@placeholder='Choose an Option']</td>
 		<td></td>
 	</tr>
 	<tr>
@@ -79,12 +124,17 @@
 	</tr>
 	<tr>
 		<td>TYPE_OPTION</td>
-		<td>//button[@class='dropdown-item']//div[contains(text(),'${key_fieldType}')]</td>
+		<td>//button[@class='dropdown-item']//div[contains(text(),"${key_fieldType}")]</td>
 		<td></td>
 	</tr>
 	<tr>
 		<td>SAVE_BUTTON</td>
-		<td>//div[contains(@class,'lfr-objects__edit-object-field-container')]//button[@type='submit']</td>
+		<td>//div[contains(@class,'lfr-objects__side-panel-content-container')]//button[@type='submit']</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>TYPE_MAXIMUM_NUMBER_CHARACTERS</td>
+		<td>//label[contains(text(),'Maximum Number of Characters')]/..//input</td>
 		<td></td>
 	</tr>
 </tbody>

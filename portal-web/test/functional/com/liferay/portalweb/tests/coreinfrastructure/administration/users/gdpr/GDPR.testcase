@@ -545,7 +545,8 @@ definition {
 				GDPR.filterByApplications(
 					applicationItemsCount = "6",
 					applications = "Web Content",
-					totalItemsCount = "6");
+					totalItemsCount = "6",
+					webContent = "JournalArticle (6)");
 
 				for (var rowIndexNum : list "1,3") {
 					GDPR.anonymizeTheSpecificEntry(rowIndexNumber = "${rowIndexNum}");
@@ -1648,7 +1649,7 @@ definition {
 			totalItemsCount = "1");
 
 		GDPR.editEntryCP(
-			applications = "Documents and Media",
+			applicationsTitle = "DM Document Title",
 			rowEntry = "Document_1.txt");
 
 		DMDocument.editCmd(
@@ -1946,6 +1947,12 @@ definition {
 			GDPR.viewEntryRowInApplicationCP(
 				tableEntry = "${tableEntry}",
 				tableEntryPartialTextList = "${tableEntry},Create Date,Completion Date");
+		}
+
+		LexiconEntry.gotoAdd();
+
+		for (var key_tableHeader : list "Application,Items,Last Available Export") {
+			AssertElementPresent(locator1 = "LexiconTable#TABLE_HEADER");
 		}
 	}
 

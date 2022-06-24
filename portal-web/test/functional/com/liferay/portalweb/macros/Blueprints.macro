@@ -103,26 +103,6 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	macro editBlueprint {
-		Blueprints.editEntry(title = "${title}");
-	}
-
-	macro editElement {
-		Navigator.gotoNavItem(navItem = "Elements");
-
-		if ("${searchForElement}" == "true") {
-			Search.searchCP(searchTerm = "${element}");
-		}
-
-		Blueprints.editEntry(title = "${element}");
-	}
-
-	macro editEntry {
-		Click(
-			entryTitle = "${title}",
-			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
-	}
-
 	macro getBlueprintID {
 		Variables.assertDefined(parameterList = "${title}");
 
@@ -133,6 +113,7 @@ definition {
 				-H 'accept: application/json' \
 				-u test@liferay.com:test
 		''';
+
 		var blueprintId = JSONCurlUtil.get("${curl}", "$.items[?(@['title'] == '${title}')]['id']");
 
 		echo("## ID for Blueprint ${title}: ${blueprintId}");
@@ -150,11 +131,32 @@ definition {
 				-H 'accept: application/json' \
 				-u test@liferay.com:test
 		''';
+
 		var elementId = JSONCurlUtil.get("${curl}", "$.items[?(@['title'] == '${title}')]['id']");
 
 		echo("## ID for Element ${title}: ${elementId}");
 
 		return "${elementId}";
+	}
+
+	macro gotoBlueprint {
+		Blueprints.gotoEntry(title = "${title}");
+	}
+
+	macro gotoElement {
+		Navigator.gotoNavItem(navItem = "Elements");
+
+		if ("${searchForElement}" == "true") {
+			Search.searchCP(searchTerm = "${element}");
+		}
+
+		Blueprints.gotoEntry(title = "${element}");
+	}
+
+	macro gotoEntry {
+		Click(
+			entryTitle = "${title}",
+			locator1 = "Blueprints#BLUEPRINTS_ADMIN_ENTRY_TITLE");
 	}
 
 	macro gotoEntryMenuItem {
@@ -245,6 +247,7 @@ definition {
 
 	macro viewDownloadedContent {
 		var tempDir = PropsUtil.get("output.dir.name");
+
 		var fileContent = FileUtil.read("${tempDir}/${fileName}");
 
 		if (contains("${fileContent}", "${text}")) {

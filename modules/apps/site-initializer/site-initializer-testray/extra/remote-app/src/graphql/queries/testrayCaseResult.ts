@@ -14,6 +14,7 @@
 
 import {gql} from '@apollo/client';
 
+import {UserAccount} from './liferayUserAccount';
 import {TestrayCase} from './testrayCase';
 
 export type TestrayCaseResult = {
@@ -28,7 +29,29 @@ export type TestrayCaseResult = {
 	errors: string;
 	id: number;
 	startDate: string;
+	user?: UserAccount;
 };
+
+export const getCaseResultsAggregation = gql`
+	query getCaseResultAggregation(
+		$aggregation: String = ""
+		$filter: String = ""
+	) {
+		caseResultAggregation(aggregation: $aggregation, filter: $filter)
+			@rest(
+				type: "C_CaseResult"
+				path: "caseresults/?aggregationTerms={args.aggregation}&filter={args.filter}"
+			) {
+			facets {
+				facetValues {
+					numberOfOccurrences
+					term
+				}
+				facetCriteria
+			}
+		}
+	}
+`;
 
 export const getCaseResults = gql`
 	query getCaseResults(
@@ -39,7 +62,7 @@ export const getCaseResults = gql`
 		caseResults(filter: $filter, page: $page, pageSize: $pageSize)
 			@rest(
 				type: "C_CaseResult"
-				path: "caseresults?filter={args.filter}&page={args.page}&pageSize={args.pageSize}&nestedFields=case,component.team,build.productVersion,build.routine,run&nestedFieldsDepth=3"
+				path: "caseresults?filter={args.filter}&page={args.page}&pageSize={args.pageSize}&nestedFields=case,component.team,build.productVersion,build.routine,run,user&nestedFieldsDepth=3"
 			) {
 			items {
 				assignedUserId
@@ -82,6 +105,15 @@ export const getCaseResults = gql`
 				startDate
 				run: r_runToCaseResult_c_run {
 					externalReferencePK
+				}
+				user: r_userToCaseResults_user {
+					objectDefinitionId
+					emailAddress
+					givenName
+					modifiedDate
+					additionalName
+					createDate
+					externalReferenceCode
 				}
 			}
 			lastPage

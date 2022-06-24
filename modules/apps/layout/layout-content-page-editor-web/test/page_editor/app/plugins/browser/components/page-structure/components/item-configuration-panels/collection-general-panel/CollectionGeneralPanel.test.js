@@ -29,7 +29,6 @@ jest.mock(
 	() => ({
 		config: {
 			commonStyles: [],
-			featureFlagLps119551: true,
 			searchContainerPageMaxDelta: '50',
 		},
 	})
@@ -91,6 +90,7 @@ const renderComponent = ({
 			getState={() => ({
 				fragmentEntryLinks,
 				layoutData,
+				permissions: {UPDATE: true},
 				segmentsExperienceId: '0',
 				selectedViewportSize,
 			})}

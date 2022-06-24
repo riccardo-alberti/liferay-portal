@@ -2287,7 +2287,6 @@ definition {
 			script = "${script}");
 
 		var companyId = JSONCompany.getCompanyId();
-
 		var userId = JSONUserSetter.setUserId(userEmailAddress = "test@liferay.com");
 
 		AssertTextEquals.assertPartialText(
@@ -2804,8 +2803,8 @@ definition {
 		Site.openSiteSettingsAdmin(siteURLKey = "my-site");
 
 		Site.addVirtualHostsURLCP(
-			publicPageVirtualHostURL = "www.able.com",
-			publicVirtualHosts = "true");
+			pageVirtualHosts = "true",
+			publicPageVirtualHostURL = "www.able.com");
 
 		Navigator.gotoBack();
 

@@ -11,9 +11,10 @@ definition {
 
 		OAuth2.addApplication(
 			applicationName = "${applicationName}",
-			callbackUri = '''http://martamedio.com/oauth2-tester/?url=${portalURL}&client_id=${clientId}''',
+			callbackUri = "${callbackUri}",
+			checkboxUncheckList = "${checkboxUncheckList}",
 			clientAuthenticationMethod = "${clientAuthenticationMethod}",
-			clientProfile = "Web Application");
+			clientProfile = "${clientProfile}");
 
 		if (isSet(checkboxCheckList)) {
 			Check(
@@ -140,6 +141,7 @@ definition {
 			http://localhost:9080/o/oauth2/token \
 				--data client_id=abc123&client_secret=abc123&grant_type=authorization_code&code=${authorizationCode}
 		''';
+
 		var response = JSONCurlUtil.post("${curl}");
 
 		if (contains("${response}", "access_token")) {
@@ -223,6 +225,34 @@ definition {
 		Button.click(button = "Obtain OAuth2 Access");
 	}
 
+	macro authorizePKCEApplication {
+		Navigator.openSpecificURL(url = "http://martamedio.com/oauth2-tester/pkce/");
+
+		if (isSet(portalURL)) {
+			Type(
+				locator1 = "OAuth2#OAUTH2_TESTER_PORTAL_URL",
+				value1 = "${portalURL}");
+		}
+
+		Type(
+			locator1 = "OAuth2#OAUTH2_TESTER_CLIENT_ID",
+			value1 = "${clientId}");
+
+		Button.click(button = "Generate a Code Challenge");
+
+		var codeChallenge = selenium.getElementValue("OAuth2#OAUTH2_TESTER_CODE_CHALLENGE");
+
+		Button.click(button = "Authorize My Application (PKCE)");
+
+		Button.click(button = "Authorize");
+
+		Type(
+			locator1 = "OAuth2#OAUTH2_TESTER_EXCHANGE_CODE",
+			value1 = "${codeChallenge}");
+
+		Button.click(button = "Obtain Access Token");
+	}
+
 	macro deleteApplication {
 		LexiconEntry.gotoEntryMenuItemNoError(
 			menuItem = "Delete",
@@ -233,6 +263,14 @@ definition {
 		AssertElementNotPresent(
 			key_tableName = "${applicationName}",
 			locator1 = "OAuth2#ADMIN_TABLE_APP_NAME");
+	}
+
+	macro deployInstanceConfigFile {
+		var companyId = JSONCompany.getCompanyId();
+
+		AntCommand(
+			locator1 = "build-test-oauth2.xml",
+			value1 = "prepare-oauth2-osgi-configuration -Dosgi.config.file.name=${osgiConfigFileName} -DcompanyId=${companyId}");
 	}
 
 	macro editApplication {
@@ -385,7 +423,9 @@ definition {
 		}
 
 		var response = JSONCurlUtil.post("${tokenCurl}");
+
 		var partialResponse = StringUtil.extractFirst("${response}", "\",\"token_type");
+
 		var accessToken = StringUtil.extractLast("${partialResponse}", "access_token\":\"");
 
 		echo("## * Access Token: ${accessToken}");
@@ -552,6 +592,16 @@ definition {
 		}
 
 		PortletEntry.save();
+	}
+
+	macro introspectAccessToken {
+		AssertElementPresent(locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_URL");
+
+		Button.click(button = "Introspect Access Token");
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "OAuth2#OAUTH2_TESTER_REQUEST_RESULTS",
+			value1 = "${requestResult}");
 	}
 
 	macro launchRequest {
@@ -957,7 +1007,9 @@ definition {
 		if (isSet(globalScopeLinkValue)) {
 			if (contains("${scopeTranslation}", "+")) {
 				var partialScopeTranslation = StringUtil.extractFirst("${scopeTranslation}", "+");
+
 				var partialScopeTranslation = StringUtil.trim("${partialScopeTranslation}");
+
 				var key_scopeText = "${partialScopeTranslation}";
 			}
 			else {

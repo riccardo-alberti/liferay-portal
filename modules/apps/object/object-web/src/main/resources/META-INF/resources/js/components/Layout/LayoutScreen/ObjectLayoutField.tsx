@@ -14,13 +14,12 @@
 
 import React, {useContext} from 'react';
 
+import {defaultLanguageId} from '../../../utils/locale';
 import Panel from '../../Panel/Panel';
 import LayoutContext, {TYPES} from '../context';
 import {TObjectField} from '../types';
-import DropdownWithDeleteButton from './DropdownWithDeleteButton';
+import HeaderDropdown from './HeaderDropdown';
 import RequiredLabel from './RequiredLabel';
-
-const defaultLanguageId = Liferay.ThemeDisplay.getDefaultLanguageId();
 
 interface IObjectLayoutFieldProps extends React.HTMLAttributes<HTMLElement> {
 	boxIndex: number;
@@ -55,8 +54,8 @@ const ObjectLayoutField: React.FC<IObjectLayoutFieldProps> = ({
 			<Panel key={`field_${objectFieldId}`}>
 				<Panel.SimpleBody
 					contentRight={
-						<DropdownWithDeleteButton
-							onClick={() => {
+						<HeaderDropdown
+							deleteElement={() => {
 								dispatch({
 									payload: {
 										boxIndex,
