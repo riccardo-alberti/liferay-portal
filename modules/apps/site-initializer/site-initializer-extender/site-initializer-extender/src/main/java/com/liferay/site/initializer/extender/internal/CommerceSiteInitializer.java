@@ -25,6 +25,11 @@ import com.liferay.commerce.initializer.util.PortletSettingsImporter;
 import com.liferay.commerce.inventory.model.CommerceInventoryWarehouse;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.notification.service.CommerceNotificationTemplateLocalService;
+import com.liferay.commerce.price.list.constants.CommercePriceListConstants;
+import com.liferay.commerce.price.list.model.CommercePriceEntry;
+import com.liferay.commerce.price.list.model.CommercePriceList;
+import com.liferay.commerce.price.list.service.CommercePriceEntryLocalService;
+import com.liferay.commerce.price.list.service.CommercePriceListLocalService;
 import com.liferay.commerce.product.constants.CPConstants;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CPInstance;
@@ -73,6 +78,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.site.initializer.extender.internal.util.SiteInitializerUtil;
 
@@ -556,7 +562,8 @@ public class CommerceSiteInitializer {
 					cpInstancePropertiesJSONArray.getJSONObject(j);
 
 				_updateCPInstanceProperties(
-					cpDefinition, cpInstancePropertiesJSONObject);
+					cpDefinition, cpInstancePropertiesJSONObject,
+					serviceContext);
 			}
 		}
 	}
@@ -654,9 +661,55 @@ public class CommerceSiteInitializer {
 		}
 	}
 
+	private void _updateCommercePriceEntries(
+			CPInstance cpInstance, BigDecimal price, BigDecimal promoPrice,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		_updateCommercePriceEntry(
+			cpInstance, CommercePriceListConstants.TYPE_PRICE_LIST, price,
+			serviceContext);
+		_updateCommercePriceEntry(
+			cpInstance, CommercePriceListConstants.TYPE_PROMOTION, promoPrice,
+			serviceContext);
+	}
+
+	private void _updateCommercePriceEntry(
+			CPInstance cpInstance, String type, BigDecimal price,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		CommercePriceList commercePriceList =
+			_commercePriceListLocalService.
+				getCatalogBaseCommercePriceListByType(
+					cpInstance.getGroupId(), type);
+
+		CommercePriceEntry commercePriceEntry =
+			_commercePriceEntryLocalService.fetchCommercePriceEntry(
+				commercePriceList.getCommercePriceListId(),
+				cpInstance.getCPInstanceUuid());
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
+
+		if (commercePriceEntry == null) {
+			CPDefinition cpDefinition = cpInstance.getCPDefinition();
+
+			_commercePriceEntryLocalService.addCommercePriceEntry(
+				cpDefinition.getCProductId(), cpInstance.getCPInstanceUuid(),
+				commercePriceList.getCommercePriceListId(), price, null,
+				serviceContext);
+		}
+		else {
+			_commercePriceEntryLocalService.updateCommercePriceEntry(
+				commercePriceEntry.getCommercePriceEntryId(), price, null,
+				serviceContext);
+		}
+	}
+
 	private void _updateCPInstanceProperties(
 			CPDefinition cpDefinition,
-			JSONObject cpInstancePropertiesJSONObject)
+			JSONObject cpInstancePropertiesJSONObject,
+			ServiceContext serviceContext)
 		throws Exception {
 
 		CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
@@ -697,16 +750,25 @@ public class CommerceSiteInitializer {
 				new UnicodeProperties(),
 				cpInstancePropertiesJSONObject.getLong(
 					"deliveryMaxSubscriptionCycles"));
+
+			_updateCommercePriceEntries(
+				cpInstance, BigDecimal.ZERO, BigDecimal.ZERO, serviceContext);
 		}
 		else if (StringUtil.equals(propertyType, "UPDATE_PRICE")) {
-			cpInstance.setPrice(
-				BigDecimal.valueOf(
-					cpInstancePropertiesJSONObject.getLong("skuPrice")));
-			cpInstance.setPromoPrice(
-				BigDecimal.valueOf(
-					cpInstancePropertiesJSONObject.getLong("skuPromoPrice")));
+			BigDecimal skuPrice = BigDecimal.valueOf(
+				cpInstancePropertiesJSONObject.getLong("skuPrice"));
+
+			cpInstance.setPrice(skuPrice);
+
+			BigDecimal skuPromoPrice = BigDecimal.valueOf(
+				cpInstancePropertiesJSONObject.getLong("skuPromoPrice"));
+
+			cpInstance.setPromoPrice(skuPromoPrice);
 
 			_cpInstanceLocalService.updateCPInstance(cpInstance);
+
+			_updateCommercePriceEntries(
+				cpInstance, skuPrice, skuPromoPrice, serviceContext);
 		}
 	}
 
@@ -741,6 +803,12 @@ public class CommerceSiteInitializer {
 	@Reference
 	private CommerceNotificationTemplateLocalService
 		_commerceNotificationTemplateLocalService;
+
+	@Reference
+	private CommercePriceEntryLocalService _commercePriceEntryLocalService;
+
+	@Reference
+	private CommercePriceListLocalService _commercePriceListLocalService;
 
 	@Reference
 	private CPDefinitionLocalService _cpDefinitionLocalService;
