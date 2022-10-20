@@ -246,6 +246,15 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SUCCESS_CHECKOUT_MESSAGE</td>
+    <td>//div[contains(@class,'success-message')]</td>
+    <td></td>
+</tr>
+<tr>
+	<td>CANCEL_CHECKOUT_MESSAGE</td>
+    <td>//div[contains(@class,'alert-warning')]</td>
+    <td></td>
+
 	<td>PRODUCT_CARD_IMAGE_SPECIFIC</td>
 	<td>//a[contains(@href,'${key_productName}')]//img[contains(@src,'${key_image}')]</td>
 	<td></td>
