@@ -42,19 +42,6 @@ Liferay.component(
 		}
 
 		function attachListeners() {
-			if (!Liferay.Browser.isMobile()) {
-				linkElements.forEach((link) => {
-					link.addEventListener(
-						'mouseover',
-						showCategoryNavigationMenu
-					);
-				});
-
-				categoryNavigationElement.addEventListener(
-					'focusout',
-					hideCategoryNavigationMenu
-				);
-			}
 		}
 
 		function selectElements() {

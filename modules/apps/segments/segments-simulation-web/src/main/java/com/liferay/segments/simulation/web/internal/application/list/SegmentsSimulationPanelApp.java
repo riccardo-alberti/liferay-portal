@@ -49,7 +49,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author David Arques
  */
 @Component(
-	immediate = true,
 	property = {
 		"panel.app.order:Integer=200",
 		"panel.category.key=" + ProductNavigationSimulationConstants.SIMULATION_PANEL_CATEGORY_KEY
@@ -69,11 +68,6 @@ public class SegmentsSimulationPanelApp extends BaseJSPPanelApp {
 			"content.Language", locale, getClass());
 
 		return _language.get(resourceBundle, "segments");
-	}
-
-	@Override
-	public Portlet getPortlet() {
-		return _portlet;
 	}
 
 	@Override
@@ -116,6 +110,15 @@ public class SegmentsSimulationPanelApp extends BaseJSPPanelApp {
 
 	@Override
 	@Reference(
+		target = "(javax.portlet.name=" + SegmentsPortletKeys.SEGMENTS_SIMULATION + ")",
+		unbind = "-"
+	)
+	public void setPortlet(Portlet portlet) {
+		super.setPortlet(portlet);
+	}
+
+	@Override
+	@Reference(
 		target = "(osgi.web.symbolicname=com.liferay.segments.simulation.web)",
 		unbind = "-"
 	)
@@ -131,11 +134,6 @@ public class SegmentsSimulationPanelApp extends BaseJSPPanelApp {
 
 	@Reference
 	private Portal _portal;
-
-	@Reference(
-		target = "(javax.portlet.name=" + SegmentsPortletKeys.SEGMENTS_SIMULATION + ")"
-	)
-	private Portlet _portlet;
 
 	@Reference(
 		target = "(resource.name=" + SegmentsConstants.RESOURCE_NAME + ")"

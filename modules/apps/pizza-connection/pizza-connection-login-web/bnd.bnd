@@ -1,0 +1,5 @@
+Bundle-Name: Liferay Pizza Conneciton Login Web
+Bundle-SymbolicName: com.liferay.pizza.connection.login
+Bundle-Version: 5.0.10
+Fragment-Host: com.liferay.login.web
+-sources: true

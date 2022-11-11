@@ -17,11 +17,11 @@ import {TreeView as ClayTreeView} from '@clayui/core';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import {useSessionState} from '@liferay/layout-content-page-editor-web';
-import classNames from 'classnames';
-import {fetch, openModal, openToast} from 'frontend-js-web';
+import {fetch, navigate, openModal, openToast} from 'frontend-js-web';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 
+const ENTER_KEYCODE = 13;
 const ROOT_ITEM_ID = '0';
 const NOT_DROPPABLE_TYPES = ['url', 'link_to_layout'];
 
@@ -98,6 +98,7 @@ export default function PagesTree({
 				onItemMove={onItemMove}
 				onLoadMore={onLoadMore}
 				selectionMode={null}
+				showExpanderOnHover={false}
 			>
 				{(item, selection, expand, load) => (
 					<ClayTreeView.Item>
@@ -105,10 +106,14 @@ export default function PagesTree({
 							active={
 								selectedLayoutId === item.id ? 'true' : null
 							}
-							className={classNames({
-								'treeview-link--with-children':
-									item.hasChildren || item.children?.length,
-							})}
+							onKeyDown={(event) => {
+								if (
+									event.keyCode === ENTER_KEYCODE &&
+									item.regularURL
+								) {
+									navigate(item.regularURL);
+								}
+							}}
 						>
 							{item.icon && <ClayIcon symbol={item.icon} />}
 
@@ -117,6 +122,7 @@ export default function PagesTree({
 									{item.regularURL ? (
 										<a
 											href={item.regularURL}
+											tabIndex="-1"
 											title={item.name}
 										>
 											{item.name}
@@ -125,29 +131,43 @@ export default function PagesTree({
 										<span>{item.name}</span>
 									)}
 								</div>
-
-								{item.actions && (
-									<ItemActionsDropdown
-										actions={item.actions}
-										namespace={namespace}
-									/>
-								)}
 							</div>
 						</ClayTreeView.ItemStack>
 
 						<ClayTreeView.Group items={item.children}>
 							{(item) => (
 								<ClayTreeView.Item
+									actions={
+										<ClayDropDownWithItems
+											items={normalizeActions(
+												item.actions,
+												namespace
+											)}
+											renderMenuOnClick
+											trigger={
+												<ClayButtonWithIcon
+													className="component-action quick-action-item"
+													displayType={null}
+													small
+													symbol="ellipsis-v"
+												/>
+											}
+										/>
+									}
 									active={
 										selectedLayoutId === item.id
 											? 'true'
 											: null
 									}
-									className={classNames({
-										'treeview-link--with-children':
-											item.hasChildren ||
-											item.children?.length,
-									})}
+									expandable={item.hasChildren}
+									onKeyDown={(event) => {
+										if (
+											event.keyCode === ENTER_KEYCODE &&
+											item.regularURL
+										) {
+											navigate(item.regularURL);
+										}
+									}}
 								>
 									{item.icon && (
 										<ClayIcon symbol={item.icon} />
@@ -155,20 +175,18 @@ export default function PagesTree({
 
 									<div className="align-items-center d-flex pl-2">
 										<div className="pages-tree__item-name">
-											<a
-												href={item.regularURL}
-												title={item.name}
-											>
-												{item.name}
-											</a>
+											{item.regularURL ? (
+												<a
+													href={item.regularURL}
+													tabIndex="-1"
+													title={item.name}
+												>
+													{item.name}
+												</a>
+											) : (
+												<span>{item.name}</span>
+											)}
 										</div>
-
-										{item.actions && (
-											<ItemActionsDropdown
-												actions={item.actions}
-												namespace={namespace}
-											/>
-										)}
 									</div>
 								</ClayTreeView.Item>
 							)}
@@ -200,56 +218,30 @@ PagesTree.propTypes = {
 	selectedLayoutId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-function ItemActionsDropdown({actions, namespace}) {
-	const items = useMemo(
-		() =>
-			actions.map((group) => ({
-				...group,
-				items: group.items.map((item) => {
-					const nextItem = {...item};
+function normalizeActions(actions, namespace) {
+	return actions.map((group) => ({
+		...group,
+		items: group.items.map((item) => {
+			const nextItem = {...item};
 
-					delete nextItem.data;
+			delete nextItem.data;
 
-					if (item.data?.url) {
-						nextItem.onClick = (event) => {
-							event.preventDefault();
+			if (item.data?.url) {
+				nextItem.onClick = (event) => {
+					event.preventDefault();
 
-							openModal({
-								id: `${namespace}pagesTreeModal`,
-								title: item.data.modalTitle,
-								url: item.data.url,
-							});
-						};
-					}
-
-					return nextItem;
-				}),
-			})),
-		[actions, namespace]
-	);
-
-	return (
-		<ClayDropDownWithItems
-			className="mr-2 text-right"
-			items={items}
-			renderMenuOnClick
-			trigger={
-				<ClayButtonWithIcon
-					className="text-white"
-					displayType="unstyled"
-					onClick={(event) => event.stopPropagation()}
-					small
-					symbol="ellipsis-v"
-				/>
+					openModal({
+						id: `${namespace}pagesTreeModal`,
+						title: item.data.modalTitle,
+						url: item.data.url,
+					});
+				};
 			}
-		/>
-	);
-}
 
-ItemActionsDropdown.propTypes = {
-	actions: PropTypes.array.isRequired,
-	namespace: PropTypes.string.isRequired,
-};
+			return nextItem;
+		}),
+	}));
+}
 
 function openErrorToast() {
 	openToast({

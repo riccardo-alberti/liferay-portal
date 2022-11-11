@@ -1,0 +1,15 @@
+{
+	"dependencies": {
+		"commerce-frontend-js": "*",
+		"metal-component": "2.16.8",
+		"metal-soy": "2.16.9",
+		"metal-state": "2.16.8"
+	},
+	"name": "pizza-connection",
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
+	},
+	"version": "1.0.0"
+}

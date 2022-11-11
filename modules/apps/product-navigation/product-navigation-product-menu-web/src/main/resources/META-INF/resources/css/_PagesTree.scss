@@ -13,24 +13,6 @@ html#{$cadmin-selector} {
 				background-color: rgba($white, 0.06);
 			}
 
-			.treeview-link {
-				&:not(.active, .treeview-link--with-children) {
-					cursor: default;
-
-					&:hover {
-						background-color: transparent;
-					}
-				}
-
-				.dropdown-toggle {
-					opacity: 0;
-				}
-
-				&:hover .dropdown-toggle {
-					opacity: 1;
-				}
-			}
-
 			&__item-name {
 				flex-grow: 1;
 				overflow: hidden;

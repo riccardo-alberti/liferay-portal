@@ -14,6 +14,7 @@
 
 package com.liferay.object.rest.internal.resource.v1_0;
 
+import com.liferay.object.entry.util.ObjectEntryNameUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
@@ -30,6 +31,7 @@ import com.liferay.object.service.ObjectRelationshipService;
 import com.liferay.object.system.SystemObjectDefinitionMetadata;
 import com.liferay.object.system.SystemObjectDefinitionMetadataTracker;
 import com.liferay.petra.function.UnsafeConsumer;
+import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -235,13 +237,18 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			_objectEntryManagerTracker.getObjectEntryManager(
 				_objectDefinition.getStorageType());
 
+		Predicate predicate = null;
+
+		if (contextHttpServletRequest != null) {
+			predicate = _filterPredicateFactory.create(
+				ParamUtil.getString(contextHttpServletRequest, "filter"),
+				_objectDefinition.getObjectDefinitionId());
+		}
+
 		return objectEntryManager.getObjectEntries(
 			contextCompany.getCompanyId(), _objectDefinition, null, aggregation,
-			_getDTOConverterContext(null), pagination,
-			_filterPredicateFactory.create(
-				ParamUtil.getString(contextHttpServletRequest, "filter"),
-				_objectDefinition.getObjectDefinitionId()),
-			search, sorts);
+			_getDTOConverterContext(null), pagination, predicate, search,
+			sorts);
 	}
 
 	@Override
@@ -548,9 +555,12 @@ public class ObjectEntryResourceImpl extends BaseObjectEntryResourceImpl {
 			"taskItemDelegateName");
 
 		if (taskItemDelegateName != null) {
+			taskItemDelegateName = ObjectEntryNameUtil.fromTechnicalName(
+				taskItemDelegateName);
+
 			_objectDefinition =
 				_objectDefinitionLocalService.fetchObjectDefinition(
-					contextCompany.getCompanyId(), "C_" + taskItemDelegateName);
+					contextCompany.getCompanyId(), taskItemDelegateName);
 
 			if (_objectDefinition != null) {
 				return;

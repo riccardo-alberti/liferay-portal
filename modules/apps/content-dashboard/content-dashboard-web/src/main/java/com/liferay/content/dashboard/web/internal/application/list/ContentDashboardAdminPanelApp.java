@@ -27,7 +27,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Cristina González
  */
 @Component(
-	immediate = true,
 	property = {
 		"panel.app.order:Integer=200",
 		"panel.category.key=" + PanelCategoryKeys.APPLICATIONS_MENU_APPLICATIONS_CONTENT
@@ -37,18 +36,17 @@ import org.osgi.service.component.annotations.Reference;
 public class ContentDashboardAdminPanelApp extends BasePanelApp {
 
 	@Override
-	public Portlet getPortlet() {
-		return _portlet;
-	}
-
-	@Override
 	public String getPortletId() {
 		return ContentDashboardPortletKeys.CONTENT_DASHBOARD_ADMIN;
 	}
 
+	@Override
 	@Reference(
-		target = "(javax.portlet.name=" + ContentDashboardPortletKeys.CONTENT_DASHBOARD_ADMIN + ")"
+		target = "(javax.portlet.name=" + ContentDashboardPortletKeys.CONTENT_DASHBOARD_ADMIN + ")",
+		unbind = "-"
 	)
-	private Portlet _portlet;
+	public void setPortlet(Portlet portlet) {
+		super.setPortlet(portlet);
+	}
 
 }
