@@ -470,9 +470,10 @@ Map<Long, List<CommerceOrderValidatorResult>> commerceOrderValidatorResultsMap =
 								showDisableCheckbox="<%= false %>"
 								yearParam="requestedDeliveryDateYear"
 								yearValue="<%= requestedDeliveryYear %>"
+								required="<%= true %>"
 							/>
 
-							<aui:select label="" name="time">
+							<aui:select label="" name="time" required="<%= true %>">
 		
 
 								<%

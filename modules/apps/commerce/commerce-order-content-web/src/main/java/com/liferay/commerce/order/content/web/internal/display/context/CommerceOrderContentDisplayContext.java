@@ -234,7 +234,7 @@ public class CommerceOrderContentDisplayContext {
 			return StringPool.BLANK;
 		}
 
-		return _commerceOrderDateFormatDate.format(date);
+		return _commerceOrderDateFormatDate.format(date) + " " + _commerceOrderDateFormatTime.format(date);
 	}
 
 	public List<CommerceAddress> getBillingCommerceAddresses(
