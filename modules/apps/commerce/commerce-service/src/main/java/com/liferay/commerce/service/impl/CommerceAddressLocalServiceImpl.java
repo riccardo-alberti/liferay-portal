@@ -271,6 +271,8 @@ public class CommerceAddressLocalServiceImpl
 							CommerceAddressConstants.
 								ADDRESS_TYPE_BILLING_AND_SHIPPING)
 					}
+				).put(
+					"billingAllowed", true
 				).build(),
 				start, end, sort);
 
@@ -296,6 +298,8 @@ public class CommerceAddressLocalServiceImpl
 							CommerceAddressConstants.
 								ADDRESS_TYPE_BILLING_AND_SHIPPING)
 					}
+				).put(
+					"billingAllowed", true
 				).build(),
 				-1, -1, null);
 
@@ -438,6 +442,8 @@ public class CommerceAddressLocalServiceImpl
 						CommerceAddressImpl.toAddressTypeId(
 							CommerceAddressConstants.ADDRESS_TYPE_SHIPPING)
 					}
+				).put(
+					"shippingAllowed", true
 				).build(),
 				start, end, sort);
 
@@ -463,6 +469,8 @@ public class CommerceAddressLocalServiceImpl
 						CommerceAddressImpl.toAddressTypeId(
 							CommerceAddressConstants.ADDRESS_TYPE_SHIPPING)
 					}
+				).put(
+					"shippingAllowed", true
 				).build(),
 				-1, -1, null);
 
