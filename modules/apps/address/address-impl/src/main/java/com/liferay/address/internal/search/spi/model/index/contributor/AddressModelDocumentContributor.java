@@ -37,18 +37,18 @@ public class AddressModelDocumentContributor
 	public void contribute(Document document, Address address) {
 		document.addText(Field.NAME, address.getName());
 		document.addText("city", address.getCity());
-		document.addText("countryName", _getCountryName(address));
+
+		Country country = address.getCountry();
+
+		document.addText("countryName", country.getName());
+		document.addKeyword("billingAllowed", country.isBillingAllowed());
+		document.addKeyword("shippingAllowed", country.isShippingAllowed());
+
 		document.addText("description", address.getDescription());
 		document.addKeyword("listTypeId", address.getListTypeId());
 		document.addText("regionName", _getRegionName(address));
 		document.addText("street1", address.getStreet1());
 		document.addText("zip", address.getZip());
-	}
-
-	private String _getCountryName(Address address) {
-		Country country = address.getCountry();
-
-		return country.getName();
 	}
 
 	private String _getRegionName(Address address) {
