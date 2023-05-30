@@ -471,7 +471,7 @@ public class CPDefinitionLocalServiceTest {
 		).when(
 			"external reference code is set"
 		).then(
-			"product definition should have that external reference code"
+			"product definition should have that external reference code chenge"
 		);
 
 		CPDefinition cpDefinition = CPTestUtil.addCPDefinitionFromCatalog(
