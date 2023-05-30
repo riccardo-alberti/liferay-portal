@@ -50,6 +50,10 @@ public class CommerceDiscountTestUtil {
 			groupId, BigDecimal.valueOf(RandomTestUtil.randomDouble()), level,
 			CommerceDiscountConstants.TARGET_PRODUCTS, cpDefinitionId);
 
+
+
+
+
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(groupId);
 
