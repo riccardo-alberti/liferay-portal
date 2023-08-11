@@ -22,6 +22,10 @@ public class CollectionQuery {
 		return _configuration;
 	}
 
+	public Object getContextAttribute(String contextAttributeName) {
+		return _contextAttributes.get(contextAttributeName);
+	}
+
 	public <T> T getInfoFilter(Class<? extends InfoFilter> clazz) {
 		if (MapUtil.isEmpty(_infoFilters)) {
 			return null;
@@ -57,6 +61,10 @@ public class CollectionQuery {
 		_configuration = configuration;
 	}
 
+	public void setContextAttributes(Map<String, Object> contextAttributes) {
+		_contextAttributes = contextAttributes;
+	}
+
 	public void setInfoFilters(Map<String, InfoFilter> infoFilters) {
 		_infoFilters = infoFilters;
 	}
@@ -74,6 +82,7 @@ public class CollectionQuery {
 	}
 
 	private Map<String, String[]> _configuration;
+	private Map<String, Object> _contextAttributes;
 	private Map<String, InfoFilter> _infoFilters;
 	private Pagination _pagination;
 	private Object _relatedItemObject;

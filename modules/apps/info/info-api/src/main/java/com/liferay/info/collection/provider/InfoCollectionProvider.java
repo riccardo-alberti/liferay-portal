@@ -27,6 +27,10 @@ public interface InfoCollectionProvider<T> extends Keyed, Labeled {
 		return clazz.getName();
 	}
 
+	public default String[] getCollectionQueryContextAttributeNames() {
+		return null;
+	}
+
 	public default boolean isAvailable() {
 		return true;
 	}

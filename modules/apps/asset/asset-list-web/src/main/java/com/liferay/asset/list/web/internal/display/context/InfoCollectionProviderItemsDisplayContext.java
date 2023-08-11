@@ -29,6 +29,9 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
@@ -117,6 +120,26 @@ public class InfoCollectionProviderItemsDisplayContext {
 			_getInfoCollectionProvider();
 
 		CollectionQuery collectionQuery = new CollectionQuery();
+
+		String[] collectionQueryContextAttributeNames =
+			infoCollectionProvider.getCollectionQueryContextAttributeNames();
+
+		if (collectionQueryContextAttributeNames != null) {
+			Map<String, Object> collectionQueryContextAttributes =
+				new HashMap<>();
+
+			for (String collectionQueryContextAttributeName :
+					collectionQueryContextAttributeNames) {
+
+				collectionQueryContextAttributes.put(
+					collectionQueryContextAttributeName,
+					_httpServletRequest.getAttribute(
+						collectionQueryContextAttributeName));
+			}
+
+			collectionQuery.setContextAttributes(
+				collectionQueryContextAttributes);
+		}
 
 		collectionQuery.setPagination(
 			Pagination.of(

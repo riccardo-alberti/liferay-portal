@@ -7,8 +7,8 @@ package com.liferay.commerce.product.content.web.internal.info.collection.provid
 
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.commerce.constants.CommerceWebKeys;
 import com.liferay.commerce.context.CommerceContext;
-import com.liferay.commerce.context.CommerceContextThreadLocal;
 import com.liferay.commerce.product.catalog.CPQuery;
 import com.liferay.commerce.product.configuration.CPDefinitionLinkTypeConfiguration;
 import com.liferay.commerce.product.model.CPDefinition;
@@ -61,7 +61,9 @@ public class CPDefinitionLinkInfoItemCollectionProvider
 		try {
 			AccountEntry accountEntry = null;
 
-			CommerceContext commerceContext = CommerceContextThreadLocal.get();
+			CommerceContext commerceContext =
+				(CommerceContext)collectionQuery.getContextAttribute(
+					CommerceWebKeys.COMMERCE_CONTEXT);
 
 			if (commerceContext != null) {
 				accountEntry = commerceContext.getAccountEntry();
@@ -93,6 +95,11 @@ public class CPDefinitionLinkInfoItemCollectionProvider
 		catch (PortalException portalException) {
 			throw new RuntimeException(portalException);
 		}
+	}
+
+	@Override
+	public String[] getCollectionQueryContextAttributeNames() {
+		return new String[] {CommerceWebKeys.COMMERCE_CONTEXT};
 	}
 
 	@Override
