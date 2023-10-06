@@ -15,6 +15,7 @@ import com.liferay.commerce.discount.application.strategy.CommerceDiscountApplic
 import com.liferay.commerce.discount.application.strategy.CommerceDiscountApplicationStrategyRegistry;
 import com.liferay.commerce.internal.util.CommercePriceConverterUtil;
 import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.object.repository.entity.CurrencyObjectEntity;
 import com.liferay.commerce.price.CommerceProductPrice;
 import com.liferay.commerce.price.CommerceProductPriceCalculation;
 import com.liferay.commerce.price.CommerceProductPriceImpl;
@@ -38,6 +39,7 @@ import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.model.CommerceChannelAccountEntryRel;
 import com.liferay.commerce.product.service.CPInstanceUnitOfMeasureLocalService;
 import com.liferay.commerce.util.CommerceUtil;
+import com.liferay.object.repository.ObjectRepository;
 import com.liferay.osgi.service.tracker.collections.map.ServiceReferenceMapperFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
@@ -106,6 +108,9 @@ public class CommerceProductPriceCalculationV2Impl
 		BigDecimal quantity = commerceProductPriceRequest.getQuantity();
 		String unitOfMeasureKey =
 			commerceProductPriceRequest.getUnitOfMeasureKey();
+
+		CurrencyObjectEntity objectEntryById =
+			_currencyObjectEntityObjectRepository.getObjectEntityById(34248);
 
 		CommerceContext commerceContext =
 			commerceProductPriceRequest.getCommerceContext();
@@ -1321,6 +1326,10 @@ public class CommerceProductPriceCalculationV2Impl
 	@Reference
 	private CPInstanceUnitOfMeasureLocalService
 		_cpInstanceUnitOfMeasureLocalService;
+
+	@Reference
+	private ObjectRepository<CurrencyObjectEntity>
+		_currencyObjectEntityObjectRepository;
 
 	private ServiceTrackerMap<String, CommercePriceListDiscovery>
 		_serviceTrackerMap;
