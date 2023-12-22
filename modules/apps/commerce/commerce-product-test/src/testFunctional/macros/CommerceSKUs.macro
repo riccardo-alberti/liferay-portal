@@ -224,7 +224,7 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro setSkuPricing(priceOnApplication = null, promoPrice = null, cost = null, basePrice = null) {
+	macro setSkuPricing(priceOnApplication = null, promoPrice = null, basePrice = null) {
 		if (isSet(priceOnApplication)) {
 			if (${priceOnApplication} == "true") {
 				Check.checkToggleSwitch(
@@ -240,7 +240,7 @@ definition {
 
 		if (isSet(basePrice)) {
 			Type(
-				key_text = "Base Price",
+				key_text = "Price List Price",
 				locator1 = "TextInput#ANY",
 				value1 = ${basePrice});
 		}
@@ -250,13 +250,6 @@ definition {
 				key_text = "Promotion Price",
 				locator1 = "TextInput#ANY",
 				value1 = ${promoPrice});
-		}
-
-		if (isSet(cost)) {
-			Type(
-				key_text = "Cost",
-				locator1 = "TextInput#ANY",
-				value1 = ${cost});
 		}
 	}
 
