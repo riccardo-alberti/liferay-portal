@@ -22,6 +22,7 @@ import {LeftSidebarItem, LeftSidebarObjectDefinitionItem} from '../types';
 import './LeftSidebar.scss';
 
 const TYPES_TO_SYMBOLS = {
+	dummyObjectDefinition: 'exclamation-circle',
 	linkedObjectDefinition: 'link',
 	objectDefinition: 'catalog',
 	objectFolder: 'folder',
@@ -40,7 +41,10 @@ export default function LeftSidebarTreeView({
 	setExpandedKeys: React.Dispatch<React.SetStateAction<Set<React.Key>>>;
 	showActions?: boolean;
 }) {
-	const [{selectedObjectFolder}, dispatch] = useObjectFolderContext();
+	const [
+		{baseResourceURL, selectedObjectFolder},
+		dispatch,
+	] = useObjectFolderContext();
 	const {setCenter} = useZoomPanHelper();
 
 	const {edges, nodes} = useStoreState((state) => state);
@@ -73,7 +77,7 @@ export default function LeftSidebarTreeView({
 		objectDefinitionId: number;
 		objectFolderName: string;
 	}) => {
-		const objectFolders = await API.getAllObjectFolders();
+		const {items: objectFolders} = await API.getAllObjectFolders();
 
 		const currentObjectFolder = objectFolders.find(
 			(objectFolder) => objectFolder.name === objectFolderName
@@ -105,6 +109,7 @@ export default function LeftSidebarTreeView({
 
 				setTimeout(async () => {
 					const payload = await getUpdatedModelBuilderStructurePayload(
+						baseResourceURL,
 						selectedObjectFolder.name
 					);
 
@@ -373,6 +378,8 @@ export default function LeftSidebarTreeView({
 									active={selected}
 									className={classNames({
 										'lfr-objects__model-builder-left-sidebar-item': selected,
+										'lfr-objects__model-builder-left-sidebar-item--danger':
+											type === 'dummyObjectDefinition',
 										'lfr-objects__model-builder-left-sidebar-item-linked': linked,
 									})}
 								>

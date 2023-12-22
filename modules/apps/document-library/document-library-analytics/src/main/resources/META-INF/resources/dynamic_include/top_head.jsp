@@ -7,11 +7,11 @@
 
 <%@ include file="/dynamic_include/init.jsp" %>
 
-<script data-senna-track="temporary" type="text/javascript">
+<aui:script senna="temporary" type="text/javascript">
 	if (window.Analytics) {
 		window.<%= DocumentLibraryAnalyticsConstants.JS_PREFIX %>isViewFileEntry = false;
 	}
-</script>
+</aui:script>
 
 <aui:script>
 	function getValueByAttribute(node, attr) {
@@ -21,7 +21,7 @@
 		);
 	}
 
-	function sendAnalyticsEvent(anchor) {
+	function sendDocumentDownloadedAnalyticsEvent(anchor) {
 		var fileEntryId = getValueByAttribute(anchor, 'analyticsFileEntryId');
 		var title = getValueByAttribute(anchor, 'analyticsFileEntryTitle');
 		var version = getValueByAttribute(anchor, 'analyticsFileEntryVersion');
@@ -40,16 +40,20 @@
 	function handleDownloadClick(event) {
 		if (window.Analytics) {
 			if (event.target.nodeName.toLowerCase() === 'a') {
-				sendAnalyticsEvent(event.target);
+				sendDocumentDownloadedAnalyticsEvent(event.target);
 			}
 			else if (
 				event.target.parentNode &&
 				event.target.parentNode.nodeName.toLowerCase() === 'a'
 			) {
-				sendAnalyticsEvent(event.target.parentNode);
+				sendDocumentDownloadedAnalyticsEvent(event.target.parentNode);
 			}
 			else {
 				var target = event.target;
+				var matchTextContent =
+					target.textContent &&
+					target.textContent.toLowerCase() ===
+						'<%= StringUtil.toLowerCase(LanguageUtil.get(request, "download")) %>';
 				var matchTitle =
 					target.title && target.title.toLowerCase() === 'download';
 				var matchAction = target.action === 'download';
@@ -68,6 +72,7 @@
 					target.parentNode.classList.contains('lexicon-icon-download');
 
 				if (
+					matchTextContent ||
 					matchTitle ||
 					matchParentTitle ||
 					matchAction ||
@@ -84,7 +89,7 @@
 							'[data-analytics-file-entry-id="' + value + '"]'
 						);
 
-						sendAnalyticsEvent(selectedFile);
+						sendDocumentDownloadedAnalyticsEvent(selectedFile);
 					});
 				}
 			}

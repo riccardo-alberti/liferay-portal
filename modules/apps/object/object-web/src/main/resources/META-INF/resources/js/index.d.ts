@@ -4,10 +4,11 @@
  */
 
 interface Actions {
-	delete: HTTPMethod;
-	get: HTTPMethod;
-	permissions: HTTPMethod;
-	update: HTTPMethod;
+	create?: HTTPMethod;
+	delete?: HTTPMethod;
+	get?: HTTPMethod;
+	permissions?: HTTPMethod;
+	update?: HTTPMethod;
 }
 
 interface AddObjectEntryDefinitions {
@@ -34,19 +35,19 @@ type DefinitionAction = {
 	method: string;
 };
 
-interface DeletedObjectDefinition {
-	hasObjectRelationship: boolean;
-	id: number;
-	name: string;
-	objectEntriesCount: number;
-}
-
 type DefinitionActions = {
 	delete: DefinitionAction;
 	get: DefinitionAction;
 	permissions: DefinitionAction;
 	update: DefinitionAction;
 };
+
+interface DeletedObjectDefinition {
+	hasObjectRelationship: boolean;
+	id: number;
+	name: string;
+	objectEntriesCount: number;
+}
 
 type ObjectFieldDeleteInfoProps = {
 	deleteLastPublishedObjectDefinitionObjectField: boolean;
@@ -183,7 +184,7 @@ interface ObjectDefinition {
 	accountEntryRestricted: boolean;
 	accountEntryRestrictedObjectFieldId: string;
 	accountEntryRestrictedObjectFieldName: string;
-	actions: DefinitionActions;
+	actions: Actions;
 	active: boolean;
 	dateCreated: string;
 	dateModified: string;
@@ -221,6 +222,11 @@ interface ObjectDefinition {
 	system: boolean;
 	titleObjectFieldId: number | string;
 	titleObjectFieldName: string;
+}
+
+interface ObjectDefinitions {
+	actions: Actions;
+	items: ObjectDefinition[];
 }
 
 interface ObjectDefinitionNodeData
@@ -406,6 +412,11 @@ interface ObjectFolderItem {
 	positionY: number;
 }
 
+interface ObjectFoldersRequestInfo {
+	actions: Actions;
+	items: ObjectFolder[];
+}
+
 interface ObjectRelationship {
 	deletionType: string;
 	edge?: boolean;
@@ -505,6 +516,7 @@ interface ViewObjectDefinitionsModals {
 	deleteObjectDefinition: boolean;
 	deleteObjectFolder: boolean;
 	editObjectFolder: boolean;
+	importModal: boolean;
 	moveObjectDefinition: boolean;
 	objectFieldDeletionNotAllowed: boolean;
 	unbindFromRootObjectDefinition: boolean;

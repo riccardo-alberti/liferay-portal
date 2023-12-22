@@ -636,7 +636,16 @@ public class JournalManagementToolbarDisplayContext
 
 	@Override
 	public Boolean isShowInfoButton() {
-		return _journalDisplayContext.isShowInfoButton();
+		try {
+			return _journalDisplayContext.isShowInfoButton();
+		}
+		catch (PortalException portalException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(portalException);
+			}
+		}
+
+		return false;
 	}
 
 	@Override
@@ -661,7 +670,7 @@ public class JournalManagementToolbarDisplayContext
 		if (FeatureFlagManagerUtil.isEnabled("LPS-196768")) {
 			filterNavigationDropdownItems.add(
 				DropdownItemBuilder.setActive(
-					_journalDisplayContext.isNavigationMine()
+					_journalDisplayContext.isNavigationHome()
 				).setHref(
 					PortletURLBuilder.create(
 						getPortletURL()
@@ -689,6 +698,8 @@ public class JournalManagementToolbarDisplayContext
 					).setHref(
 						PortletURLBuilder.create(
 							getPortletURL()
+						).setNavigation(
+							"mine"
 						).setParameter(
 							"navigationMine", Boolean.TRUE
 						).buildPortletURL()
@@ -703,6 +714,8 @@ public class JournalManagementToolbarDisplayContext
 				).setHref(
 					PortletURLBuilder.create(
 						getPortletURL()
+					).setNavigation(
+						"recent"
 					).setParameter(
 						"navigationRecent", Boolean.TRUE
 					).buildPortletURL()
@@ -713,7 +726,7 @@ public class JournalManagementToolbarDisplayContext
 		else {
 			filterNavigationDropdownItems.add(
 				DropdownItemBuilder.setActive(
-					_journalDisplayContext.isNavigationMine()
+					_journalDisplayContext.isNavigationHome()
 				).setHref(
 					PortletURLBuilder.create(
 						getPortletURL()
@@ -1051,7 +1064,24 @@ public class JournalManagementToolbarDisplayContext
 							).setMVCPath(
 								"/edit_article.jsp"
 							).setRedirect(
-								_journalDisplayContext.getRedirect()
+								() -> {
+									if (FeatureFlagManagerUtil.isEnabled(
+											"LPS-196768") &&
+										(_journalDisplayContext.
+											isFilterApplied() ||
+										 _journalDisplayContext.isSearch())) {
+
+										return PortletURLBuilder.
+											createRenderURL(
+												liferayPortletResponse
+											).buildString();
+									}
+
+									return PortalUtil.getCurrentURL(
+										httpServletRequest);
+								}
+							).setBackURL(
+								_themeDisplay.getURLCurrent()
 							).setParameter(
 								"backURLTitle",
 								() -> {

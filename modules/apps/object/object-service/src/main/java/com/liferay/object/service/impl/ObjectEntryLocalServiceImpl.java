@@ -150,6 +150,7 @@ import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Base64;
+import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -2934,6 +2935,12 @@ public class ObjectEntryLocalServiceImpl
 				if (result == null) {
 					result = "0";
 				}
+				else {
+					BigDecimal bigDecimal = new BigDecimal(result.toString());
+
+					result = String.valueOf(
+						BigDecimalUtil.stripTrailingZeros(bigDecimal));
+				}
 			}
 		}
 		catch (SQLException sqlException) {
@@ -3522,7 +3529,8 @@ public class ObjectEntryLocalServiceImpl
 		Map<String, Serializable> values) {
 
 		if (javaTypeClass == BigDecimal.class) {
-			values.put(name, (BigDecimal)object);
+			values.put(
+				name, BigDecimalUtil.stripTrailingZeros((BigDecimal)object));
 		}
 		else if (javaTypeClass == Blob.class) {
 			byte[] bytes = null;

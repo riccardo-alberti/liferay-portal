@@ -101,6 +101,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.Base64;
+import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -123,6 +124,7 @@ import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portal.vulcan.util.LocalDateTimeUtil;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.io.Serializable;
@@ -2148,15 +2150,23 @@ public class ObjectEntryLocalServiceTest {
 		Map<String, Serializable> systemValues =
 			_objectEntryLocalService.getSystemValues(objectEntry);
 
-		_assertTimestamp(
-			objectEntry.getCreateDate(),
-			(Timestamp)systemValues.get("createDate"));
+		Assert.assertEquals(
+			LocalDateTimeUtil.toLocalDateTime(
+				objectEntry.getCreateDate()
+			).toLocalDate(),
+			LocalDateTimeUtil.toLocalDateTime(
+				(Date)systemValues.get("createDate")
+			).toLocalDate());
 		Assert.assertEquals(
 			objectEntry.getExternalReferenceCode(),
 			systemValues.get("externalReferenceCode"));
-		_assertTimestamp(
-			objectEntry.getModifiedDate(),
-			(Timestamp)systemValues.get("modifiedDate"));
+		Assert.assertEquals(
+			LocalDateTimeUtil.toLocalDateTime(
+				objectEntry.getModifiedDate()
+			).toLocalDate(),
+			LocalDateTimeUtil.toLocalDateTime(
+				(Date)systemValues.get("modifiedDate")
+			).toLocalDate());
 		Assert.assertEquals(
 			objectEntry.getObjectEntryId(), systemValues.get("objectEntryId"));
 		Assert.assertEquals(
@@ -3008,20 +3018,6 @@ public class ObjectEntryLocalServiceTest {
 			objectValidationRuleResult.getObjectFieldName());
 	}
 
-	private void _assertTimestamp(Date date, Timestamp timestamp) {
-		Calendar calendar = Calendar.getInstance();
-
-		calendar.setTime(date);
-
-		calendar.set(Calendar.HOUR_OF_DAY, 0);
-		calendar.set(Calendar.MINUTE, 0);
-		calendar.set(Calendar.SECOND, 0);
-		calendar.set(Calendar.MILLISECOND, 0);
-
-		Assert.assertEquals(
-			new Timestamp(calendar.getTimeInMillis()), timestamp);
-	}
-
 	private boolean _containsObjectEntryValuesSQLQuery(LogCapture logCapture) {
 		List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -3067,9 +3063,7 @@ public class ObjectEntryLocalServiceTest {
 	}
 
 	private BigDecimal _getBigDecimal(long value) {
-		BigDecimal bigDecimal = BigDecimal.valueOf(value);
-
-		return bigDecimal.setScale(16);
+		return BigDecimalUtil.stripTrailingZeros(BigDecimal.valueOf(value));
 	}
 
 	private Map<String, Serializable> _getValuesFromCacheField(

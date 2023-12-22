@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,12 +81,12 @@ public class GenerateTestrayCSVUtil {
 			sb.append("\n");
 		}
 
-		if (sb.length() > 0) {
-			return JenkinsResultsParserUtil.combine(
-				testrayCaseResultType.toString(), " Failures\n", sb.toString());
+		if (sb.length() == 0) {
+			sb.append("NONE\n");
 		}
 
-		return "";
+		return JenkinsResultsParserUtil.combine(
+			testrayCaseResultType.toString(), " Failures\n", sb.toString());
 	}
 
 	private static List<TestrayCaseResult> _getTestrayCaseResults(
@@ -154,6 +155,10 @@ public class GenerateTestrayCSVUtil {
 
 	private static final String _CSV_DELIMITER = ",";
 
+	private static final List<String> _didNotRunErrorMessages = Arrays.asList(
+		"Aborted prior to running test", "Failed prior to running test",
+		"Failed for unknown reason");
+
 	private static class TestrayCaseResult {
 
 		public TestrayCaseResult(JSONObject resultJSONObject) {
@@ -202,14 +207,20 @@ public class GenerateTestrayCSVUtil {
 				throw new RuntimeException(malformedURLException);
 			}
 
-			TopLevelBuildReport topLevelBuildReport =
-				BuildReportFactory.newTopLevelBuildReport(
-					topLevelBuildReportURL);
+			try {
+				TopLevelBuildReport topLevelBuildReport =
+					BuildReportFactory.newTopLevelBuildReport(
+						topLevelBuildReportURL);
 
-			Map<String, String> buildParameters =
-				topLevelBuildReport.getBuildParameters();
+				Map<String, String> buildParameters =
+					topLevelBuildReport.getBuildParameters();
 
-			_pullRequestAuthor = buildParameters.get("GITHUB_SENDER_USERNAME");
+				_pullRequestAuthor = buildParameters.get(
+					"GITHUB_SENDER_USERNAME");
+			}
+			catch (Exception exception) {
+				_pullRequestAuthor = "Unknown";
+			}
 
 			return _pullRequestAuthor;
 		}
@@ -277,9 +288,7 @@ public class GenerateTestrayCSVUtil {
 				return _type;
 			}
 
-			if (Objects.equals(
-					getErrorMessage(), "Failed prior to running test")) {
-
+			if (_didNotRunErrorMessages.contains(getErrorMessage())) {
 				_type = Type.DID_NOT_RUN;
 			}
 			else {

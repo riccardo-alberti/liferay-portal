@@ -151,17 +151,9 @@ definition {
 		ApplicationsMenu.gotoPanel(panel = "Control Panel");
 
 		AssertElementPresent(
-			key_itemMenu = ${itemMenu},
-			locator1 = "ObjectPortlet#VIEW_FIELD_ON_MENU");
-	}
-
-	@summary = "Default summary"
-	macro assertObjectIsDisplayedOnControlPanel() {
-		ApplicationsMenuHelper.openApplicationsMenu();
-
-		ApplicationsMenu.gotoPanel(panel = "Control Panel");
-
-		AssertElementPresent(locator1 = "ObjectPortlet#CUSTOM_OBJECT_ON_CONTROL_PANEL");
+			key_category = "",
+			key_portlet = ${itemMenu},
+			locator1 = "ApplicationsMenu#PORTLET");
 	}
 
 	@summary = "Default summary"
@@ -258,11 +250,6 @@ definition {
 		WaitForElementNotPresent(
 			key_entry = ${entry},
 			locator1 = "ObjectPortlet#ENTRY_VALUE");
-	}
-
-	@summary = "Default summary"
-	macro goToCustomObjectPortletOnControlPanel() {
-		Click(locator1 = "ObjectPortlet#CUSTOM_OBJECT_ON_CONTROL_PANEL");
 	}
 
 	@summary = "Default summary"

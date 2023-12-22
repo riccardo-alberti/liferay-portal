@@ -9,6 +9,7 @@ import com.liferay.message.boards.constants.MBPortletKeys;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.BaseJSPSettingsConfigurationAction;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
@@ -32,6 +33,8 @@ import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -46,6 +49,15 @@ public class MBAdminConfigurationAction
 	extends BaseJSPSettingsConfigurationAction {
 
 	@Override
+	public String getJspPath(HttpServletRequest httpServletRequest) {
+		if (FeatureFlagManagerUtil.isEnabled("LPS-197692")) {
+			return "/message_boards_admin/configuration_browse.jsp";
+		}
+
+		return "/message_boards_admin/configuration.jsp";
+	}
+
+	@Override
 	public void processAction(
 			PortletConfig portletConfig, ActionRequest actionRequest,
 			ActionResponse actionResponse)
@@ -53,7 +65,10 @@ public class MBAdminConfigurationAction
 
 		validateEmail(actionRequest, "emailMessageAdded");
 		validateEmail(actionRequest, "emailMessageUpdated");
-		validateEmailFrom(actionRequest);
+
+		if (!FeatureFlagManagerUtil.isEnabled("LPS-197692")) {
+			validateEmailFrom(actionRequest);
+		}
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
