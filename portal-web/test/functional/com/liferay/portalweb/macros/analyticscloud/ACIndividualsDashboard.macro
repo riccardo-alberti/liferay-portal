@@ -158,7 +158,7 @@ definition {
 			var index = 1;
 		}
 
-		Click(
+		Click.clickNoMouseOver(
 			index = ${index},
 			locator1 = "ACIndividualsDashboard#INDIVIDUALS_ACTIVITIES_CHART_RECHARTS_BAR");
 	}
@@ -331,7 +331,7 @@ definition {
 
 			// The pause is necessary because the bar takes a while to load into the chart. For more information about pause see LRAC-9517
 
-			Pause(value1 = 2000);
+			Pause(value1 = 5000);
 		}
 
 		AssertVisible(

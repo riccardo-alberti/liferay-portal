@@ -255,20 +255,23 @@ typeSettings=&#91;&quot;friendlyURLMapping=perico&quot;,&quot;instanceable=false
 				<elseif>
 					<matches pattern=".*\.tar\.gz$" string="${archive.basename}" />
 					<then>
-						<untar
-							compression="gzip"
-							dest="@{dest}"
-							src="@{src}"
-						/>
+						<execute>
+							<![CDATA[
+								mkdir -p @{dest}
+
+								tar fxz @{src} -C @{dest}
+							]]>
+						</execute>
 					</then>
 				</elseif>
 				<elseif>
 					<matches pattern=".*\.zip$" string="${archive.basename}" />
 					<then>
-						<unzip
-							dest="@{dest}"
-							src="@{src}"
-						/>
+						<execute>
+							<![CDATA[
+								unzip -q @{src} -d @{dest}
+							]]>
+						</execute>
 					</then>
 				</elseif>
 				<else>
@@ -7201,6 +7204,12 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 			/>
 
 			<lstopwatch action="total" name="start.app.server.@{app.server.bundle.index}" />
+
+			<execute>
+				<![CDATA[
+					docker stats --no-stream
+				]]>
+			</execute>
 		</sequential>
 	</macrodef>
 
@@ -13668,19 +13677,11 @@ ANT_OPTS=${env.ANT_OPTS}</echo>
 					src="${java.io.tmpdir}/${bundle.file.name}"
 				/>
 
-				<move
-					todir="${app.server.parent.dir}"
-				>
-					<fileset
-						dir="${java.io.tmpdir}/bundle"
-						includes="liferay-*/**"
-					/>
-					<mapper
-						from="[^/]+/(.*)"
-						to="\1"
-						type="regexp"
-					/>
-				</move>
+				<execute>
+					<![CDATA[
+						mv ${java.io.tmpdir}/bundle/*/* ${app.server.parent.dir}
+					]]>
+				</execute>
 
 				<delete dir="${java.io.tmpdir}/bundle" />
 
@@ -16667,6 +16668,8 @@ CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.managemen
 	</target>
 
 	<target name="upgrade-legacy-database">
+		<lstopwatch action="start" name="upgrade-legacy-database" />
+
 		<prepare-database-upgrade-properties />
 
 		<get-java-jdk-bundle-version test.batch.name="${test.batch.name}" />
@@ -16737,6 +16740,15 @@ CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.managemen
 					</else>
 				</if>
 			</catch>
+			<finally>
+				<lstopwatch action="total" name="upgrade-legacy-database" />
+
+				<execute>
+					<![CDATA[
+						docker stats --no-stream
+					]]>
+				</execute>
+			</finally>
 		</trycatch>
 	</target>
 

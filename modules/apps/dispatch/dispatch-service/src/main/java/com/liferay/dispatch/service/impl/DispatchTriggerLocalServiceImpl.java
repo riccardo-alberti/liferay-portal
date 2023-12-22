@@ -305,6 +305,10 @@ public class DispatchTriggerLocalServiceImpl
 					timeZoneId));
 		}
 
+		DispatchTaskClusterMode oldDispatchTaskClusterMode =
+			DispatchTaskClusterMode.valueOf(
+				dispatchTrigger.getDispatchTaskClusterMode());
+
 		dispatchTrigger.setDispatchTaskClusterMode(
 			dispatchTaskClusterMode.getMode());
 		dispatchTrigger.setOverlapAllowed(overlapAllowed);
@@ -319,7 +323,7 @@ public class DispatchTriggerLocalServiceImpl
 		dispatchTrigger = dispatchTriggerPersistence.update(dispatchTrigger);
 
 		_dispatchTriggerHelper.deleteSchedulerJob(
-			dispatchTriggerId, dispatchTaskClusterMode.getStorageType());
+			dispatchTriggerId, oldDispatchTaskClusterMode.getStorageType());
 
 		if (active) {
 			_dispatchTriggerHelper.addSchedulerJob(

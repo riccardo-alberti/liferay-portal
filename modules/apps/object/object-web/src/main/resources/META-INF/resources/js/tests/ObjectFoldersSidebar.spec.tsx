@@ -5,20 +5,13 @@
 
 import '@testing-library/jest-dom/extend-expect';
 import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import ObjectFoldersSideBar from '../components/ViewObjectDefinitions/ObjectFoldersSidebar';
-const emptyAction = {href: '', method: ''};
-
-const objectFolderActions = {
-	delete: emptyAction,
-	get: emptyAction,
-	permissions: emptyAction,
-	update: emptyAction,
-};
 
 const ticketObjectFolder = {
-	actions: objectFolderActions,
+	actions: {get: {href: '', method: 'GET'}},
 	dateCreated: '2023-08-07T14:45:00Z',
 	dateModified: '2023-08-07T14:45:00Z',
 	externalReferenceCode: 'ticket',
@@ -29,7 +22,7 @@ const ticketObjectFolder = {
 };
 
 const uncategorizedObjectFolder = {
-	actions: objectFolderActions,
+	actions: {get: {href: '', method: 'GET'}},
 	dateCreated: '2023-08-07T14:42:21Z',
 	dateModified: '2023-08-07T14:42:21Z',
 	externalReferenceCode: 'uncategorized',
@@ -39,15 +32,25 @@ const uncategorizedObjectFolder = {
 	objectFolderItems: [],
 };
 
+const objectFoldersRequestInfo = {
+	actions: {create: {href: '', method: 'POST'}},
+	items: [ticketObjectFolder, uncategorizedObjectFolder],
+};
+
 describe('The ObjectFoldersSidebar component should', () => {
 	it('render all created object folders', () => {
 		render(
 			<ObjectFoldersSideBar
-				objectFolders={[ticketObjectFolder, uncategorizedObjectFolder]}
+				baseResourceURL=""
+				importObjectFolderURL=""
+				objectDefinitionsActions={{create: {href: '', method: 'POST'}}}
+				objectFoldersRequestInfo={objectFoldersRequestInfo}
+				portletNamespace=""
 				selectedObjectFolder={uncategorizedObjectFolder}
+				setModalImportProperties={() => {}}
 				setSelectedObjectFolder={() => {}}
 				setShowModal={() => {}}
-			></ObjectFoldersSideBar>
+			/>
 		);
 
 		expect(screen.getAllByRole('listitem')).toHaveLength(2);
@@ -55,5 +58,17 @@ describe('The ObjectFoldersSidebar component should', () => {
 		expect(screen.getByText('Ticket')).toBeInTheDocument();
 
 		expect(screen.getByText('Uncategorized')).toBeInTheDocument();
+
+		userEvent.click(
+			screen.getByRole('button', {name: 'object-folder-actions'})
+		);
+
+		const menuItem = screen.getAllByRole('menuitem');
+
+		expect(menuItem).toHaveLength(2);
+
+		expect(menuItem[0]).toHaveAttribute('value', 'exportObjectFolder');
+
+		expect(menuItem[1]).toHaveAttribute('value', 'importObjectFolder');
 	});
 });

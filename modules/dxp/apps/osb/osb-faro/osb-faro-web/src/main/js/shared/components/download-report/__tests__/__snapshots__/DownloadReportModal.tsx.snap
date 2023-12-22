@@ -134,7 +134,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                       placeholder="YYYY-MM-DD - YYYY-MM-DD"
                       readonly=""
                       type="text"
-                      value=""
+                      value="1970-01-01 - 1970-01-01"
                     />
                   </div>
                   <div
@@ -240,54 +240,9 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                             class="date-picker-select-root form-control"
                           >
                             <option
-                              value="2023"
+                              value="1970"
                             >
-                              2023
-                            </option>
-                            <option
-                              value="2022"
-                            >
-                              2022
-                            </option>
-                            <option
-                              value="2021"
-                            >
-                              2021
-                            </option>
-                            <option
-                              value="2020"
-                            >
-                              2020
-                            </option>
-                            <option
-                              value="2019"
-                            >
-                              2019
-                            </option>
-                            <option
-                              value="2018"
-                            >
-                              2018
-                            </option>
-                            <option
-                              value="2017"
-                            >
-                              2017
-                            </option>
-                            <option
-                              value="2016"
-                            >
-                              2016
-                            </option>
-                            <option
-                              value="2015"
-                            >
-                              2015
-                            </option>
-                            <option
-                              value="2014"
-                            >
-                              2014
+                              1970
                             </option>
                           </select>
                         </div>
@@ -315,7 +270,6 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                           aria-label="Next month"
                           class="button-root btn btn-monospaced btn-sm btn-secondary"
                           data-testid="next-month"
-                          disabled=""
                           type="button"
                         >
                           <svg
@@ -369,6 +323,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root outside-month btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     26
@@ -383,6 +338,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root outside-month btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     27
@@ -397,6 +353,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root outside-month btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     28
@@ -411,6 +368,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root outside-month btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     29
@@ -425,6 +383,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root outside-month btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     30
@@ -439,6 +398,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     1
@@ -453,6 +413,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     2
@@ -469,6 +430,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     3
@@ -483,6 +445,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     4
@@ -497,6 +460,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     5
@@ -511,6 +475,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     6
@@ -525,6 +490,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     7
@@ -539,6 +505,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     8
@@ -553,6 +520,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     9
@@ -569,6 +537,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     10
@@ -583,6 +552,7 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
+                                    disabled=""
                                     type="button"
                                   >
                                     11
@@ -1028,7 +998,6 @@ exports[`DownloadReportModal CSV renders component 1`] = `
                   <button
                     class="btn btn-primary"
                     data-testid="submit"
-                    disabled=""
                     type="submit"
                   >
                     Download
@@ -1873,7 +1842,6 @@ exports[`DownloadReportModal PDF renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
-                                    disabled=""
                                     type="button"
                                   >
                                     12
@@ -1888,7 +1856,6 @@ exports[`DownloadReportModal PDF renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
-                                    disabled=""
                                     type="button"
                                   >
                                     13
@@ -1903,7 +1870,6 @@ exports[`DownloadReportModal PDF renders component 1`] = `
                                 >
                                   <button
                                     class="button-root day-root btn btn-unstyled"
-                                    disabled=""
                                     type="button"
                                   >
                                     14

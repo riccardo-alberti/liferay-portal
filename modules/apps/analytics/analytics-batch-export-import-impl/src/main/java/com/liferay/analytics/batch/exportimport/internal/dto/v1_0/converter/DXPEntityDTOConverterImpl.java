@@ -18,9 +18,10 @@ import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.model.ExpandoTableConstants;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
-import com.liferay.expando.kernel.service.ExpandoTableLocalService;
+import com.liferay.expando.kernel.service.persistence.ExpandoTablePersistence;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
@@ -31,9 +32,16 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.persistence.GroupPersistence;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.TransactionConfig;
+import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.comparator.GroupNameComparator;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
@@ -47,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -66,49 +75,70 @@ public class DXPEntityDTOConverterImpl implements DXPEntityDTOConverter {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public DXPEntity toDTO(
 			DTOConverterContext dtoConverterContext, BaseModel<?> baseModel)
 		throws Exception {
 
-		Map<String, Object> modelAttributes = baseModel.getModelAttributes();
+		Map<String, Function<?, Object>> attributeGetterFunctions =
+			(Map<String, Function<?, Object>>)
+				baseModel.getAttributeGetterFunctions();
 
-		return _toDXPEntity(
-			_getExpandoFields(baseModel), _getFields(baseModel),
-			String.valueOf(baseModel.getPrimaryKeyObj()),
-			(Date)modelAttributes.get("modifiedDate"),
-			baseModel.getModelClassName());
+		Function<Object, Object> modifiedDateGetterFunction =
+			(Function<Object, Object>)attributeGetterFunctions.get(
+				"modifiedDate");
+
+		try {
+			return TransactionInvokerUtil.invoke(
+				_transactionConfig,
+				() -> _toDXPEntity(
+					_getExpandoFields(baseModel), _getFields(baseModel),
+					String.valueOf(baseModel.getPrimaryKeyObj()),
+					(Date)modifiedDateGetterFunction.apply(baseModel),
+					baseModel.getModelClassName()));
+		}
+		catch (Throwable throwable) {
+			throw new Exception(throwable);
+		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void _addFieldAttributes(
 		BaseModel<?> baseModel, List<Field> fields,
 		List<String> includeAttributeNames) {
 
-		Map<String, Object> modelAttributes = baseModel.getModelAttributes();
+		Map<String, Function<?, Object>> attributeGetterFunctions =
+			(Map<String, Function<?, Object>>)
+				baseModel.getAttributeGetterFunctions();
 
-		for (Map.Entry<String, Object> entry : modelAttributes.entrySet()) {
-			if (ListUtil.isNotEmpty(includeAttributeNames) &&
-				!includeAttributeNames.contains(entry.getKey())) {
+		for (String includeAttributeName : includeAttributeNames) {
+			Function<Object, Object> function =
+				(Function<Object, Object>)attributeGetterFunctions.get(
+					includeAttributeName);
 
+			if (function == null) {
 				continue;
 			}
 
 			Field field = new Field() {
 				{
-					name = entry.getKey();
+					name = includeAttributeName;
 
 					setValue(
 						() -> {
-							if (entry.getValue() instanceof Date) {
-								Date date = (Date)entry.getValue();
+							Object value = function.apply(baseModel);
+
+							if (value instanceof Date) {
+								Date date = (Date)value;
 
 								return String.valueOf(date.getTime());
 							}
 
-							if (Validator.isNull(entry.getValue())) {
+							if (Validator.isNull(value)) {
 								return StringPool.BLANK;
 							}
 
-							return String.valueOf(entry.getValue());
+							return String.valueOf(value);
 						});
 				}
 			};
@@ -326,39 +356,49 @@ public class DXPEntityDTOConverterImpl implements DXPEntityDTOConverter {
 						analyticsConfiguration.syncedContactFieldNames()),
 					includeAttributeNames));
 
+			long userId = user.getUserId();
+
+			long[] organizationIds =
+				_userPersistence.getOrganizationPrimaryKeys(userId);
+			long[] userGroupIds = _userPersistence.getUserGroupPrimaryKeys(
+				userId);
+
 			fields.add(
 				new Field() {
 					{
 						name = "groupIds";
-						value = _getGroupIds(user);
+						value = _getGroupIds(
+							userId, organizationIds, userGroupIds);
 					}
 				});
+
 			fields.add(
 				new Field() {
 					{
 						name = "organizationIds";
-						value = _getOrganizationIds(user);
+						value =
+							"[" + StringUtil.merge(organizationIds, ",") + "]";
 					}
 				});
 			fields.add(
 				new Field() {
 					{
 						name = "roleIds";
-						value = _getRoleIds(user);
+						value = _getRoleIds(userId);
 					}
 				});
 			fields.add(
 				new Field() {
 					{
 						name = "teamIds";
-						value = _getTeamIds(user);
+						value = _getTeamIds(userId);
 					}
 				});
 			fields.add(
 				new Field() {
 					{
 						name = "userGroupIds";
-						value = _getUserGroupIds(user);
+						value = "[" + StringUtil.merge(userGroupIds, ",") + "]";
 					}
 				});
 		}
@@ -396,91 +436,94 @@ public class DXPEntityDTOConverterImpl implements DXPEntityDTOConverter {
 		return fields.toArray(new Field[0]);
 	}
 
-	private String _getGroupIds(User user) {
+	private String _getGroupIds(
+		long userId, long[] organizationIds, long[] userGroupIds) {
+
 		try {
 			long[] ids = TransformUtil.transformToLongArray(
-				user.getSiteGroups(), Group::getGroupId);
+				_getUserSitesGroups(userId, organizationIds, userGroupIds),
+				Group::getGroupId);
 
 			return "[" + StringUtil.merge(ids, ",") + "]";
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to get group ids for user " + user.getUserId(),
-					exception);
+					"Unable to get group ids for user " + userId, exception);
 			}
 
 			return "[]";
 		}
 	}
 
-	private String _getOrganizationIds(User user) {
+	private String _getRoleIds(long userId) {
 		try {
-			return "[" + StringUtil.merge(user.getOrganizationIds(), ",") + "]";
+			long[] roleIds = _userPersistence.getRolePrimaryKeys(userId);
+
+			return "[" + StringUtil.merge(roleIds, ",") + "]";
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to get organization ids for user " +
-						user.getUserId(),
-					exception);
+					"Unable to get role ids for user " + userId, exception);
 			}
 
 			return "[]";
 		}
 	}
 
-	private String _getRoleIds(User user) {
+	private String _getTeamIds(long userId) {
 		try {
-			return "[" + StringUtil.merge(user.getRoleIds(), ",") + "]";
+			long[] teamIds = _userPersistence.getTeamPrimaryKeys(userId);
+
+			return "[" + StringUtil.merge(teamIds, ",") + "]";
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					"Unable to get role ids for user " + user.getUserId(),
-					exception);
+					"Unable to get team ids for user " + userId, exception);
 			}
 
 			return "[]";
 		}
 	}
 
-	private String _getTeamIds(User user) {
-		try {
-			return "[" + StringUtil.merge(user.getTeamIds(), ",") + "]";
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get team ids for user " + user.getUserId(),
-					exception);
+	private List<Group> _getUserSitesGroups(
+			long userId, long[] organizationIds, long[] userGroupIds)
+		throws PortalException {
+
+		List<Group> userSiteGroups = new ArrayList<>();
+
+		for (long userGroupId : _userPersistence.getGroupPrimaryKeys(userId)) {
+			Group group = _groupPersistence.findByPrimaryKey(userGroupId);
+
+			if (group.isSite()) {
+				userSiteGroups.add(group);
 			}
-
-			return "[]";
 		}
-	}
 
-	private String _getUserGroupIds(User user) {
-		try {
-			return "[" + StringUtil.merge(user.getUserGroupIds(), ",") + "]";
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get user group ids for user " + user.getUserId(),
-					exception);
+		if ((organizationIds.length != 0) || (userGroupIds.length != 0)) {
+			List<Group> userGroups = _groupLocalService.getUserGroups(
+				userId, true);
+
+			for (Group userGroup : userGroups) {
+				if (userGroup.isSite()) {
+					userSiteGroups.add(userGroup);
+				}
 			}
-
-			return "[]";
 		}
+
+		userSiteGroups.sort(new GroupNameComparator(true));
+
+		return userSiteGroups;
 	}
 
 	private boolean _isCustomField(String className, long tableId) {
 		long classNameId = _classNameLocalService.getClassNameId(className);
 
 		try {
-			ExpandoTable expandoTable = _expandoTableLocalService.getTable(
-				tableId);
+			ExpandoTable expandoTable =
+				_expandoTablePersistence.findByPrimaryKey(tableId);
 
 			if (Objects.equals(
 					ExpandoTableConstants.DEFAULT_TABLE_NAME,
@@ -546,6 +589,10 @@ public class DXPEntityDTOConverterImpl implements DXPEntityDTOConverter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DXPEntityDTOConverterImpl.class);
 
+	private static final TransactionConfig _transactionConfig =
+		TransactionConfig.Factory.create(
+			Propagation.SUPPORTS, new Class<?>[] {Exception.class});
+
 	@Reference
 	private AnalyticsConfigurationRegistry _analyticsConfigurationRegistry;
 
@@ -556,9 +603,18 @@ public class DXPEntityDTOConverterImpl implements DXPEntityDTOConverter {
 	private ExpandoColumnLocalService _expandoColumnLocalService;
 
 	@Reference
-	private ExpandoTableLocalService _expandoTableLocalService;
+	private ExpandoTablePersistence _expandoTablePersistence;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private GroupPersistence _groupPersistence;
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private UserPersistence _userPersistence;
 
 }

@@ -33,6 +33,7 @@ export declare type DropDownItems = {
 export declare type TAction =
 	| {
 			payload: {
+				dbTableName: string;
 				newObjectDefinition: ObjectDefinition;
 				objectDefinitionNodes: Node<ObjectDefinitionNodeData>[];
 				selectedObjectFolderName: string;
@@ -209,6 +210,7 @@ export declare type TState = {
 	forbiddenLastChars: string[];
 	forbiddenNames: string[];
 	isLoadingObjectFolder: boolean;
+	isRootDescendantNode: boolean;
 	leftSidebarItems: LeftSidebarItem[];
 	modelBuilderModals: ModelBuilderModals;
 	objectDefinitionPermissionsURL: string;
@@ -242,7 +244,10 @@ export interface LeftSidebarObjectDefinitionItem {
 	linked?: boolean;
 	name: string;
 	selected: boolean;
-	type: 'linkedObjectDefinition' | 'objectDefinition';
+	type:
+		| 'dummyObjectDefinition'
+		| 'linkedObjectDefinition'
+		| 'objectDefinition';
 }
 export interface ObjectRelationshipEdgeData {
 	defaultLanguageId?: Liferay.Language.Locale;

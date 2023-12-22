@@ -131,7 +131,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 import java.text.DateFormat;
 
@@ -585,8 +584,7 @@ public class DefaultObjectEntryManagerImplTest
 							"picklistObjectFieldName", _addListTypeEntry()
 						).put(
 							"precisionDecimalObjectFieldName",
-							new BigDecimal(
-								0.9876543217654321, MathContext.DECIMAL64)
+							new BigDecimal("0.9876543217654321")
 						).build();
 					}
 				},
@@ -617,8 +615,7 @@ public class DefaultObjectEntryManagerImplTest
 							"picklistObjectFieldName", listTypeEntryKey
 						).put(
 							"precisionDecimalObjectFieldName",
-							new BigDecimal(
-								0.1234567891234567, MathContext.DECIMAL64)
+							new BigDecimal("0.1234567891234567")
 						).put(
 							"richTextObjectFieldName",
 							StringBundler.concat(
@@ -732,7 +729,7 @@ public class DefaultObjectEntryManagerImplTest
 				{
 					properties = HashMapBuilder.<String, Object>put(
 						"averageAggregationObjectFieldName",
-						"0.55555555544444440000"
+						"0.5555555554444444"
 					).put(
 						"countAggregationObjectFieldName1", "2"
 					).put(
@@ -761,7 +758,7 @@ public class DefaultObjectEntryManagerImplTest
 				{
 					properties = HashMapBuilder.<String, Object>put(
 						"averageAggregationObjectFieldName",
-						"0.12345678912345670000"
+						"0.1234567891234567"
 					).put(
 						"countAggregationObjectFieldName1", "1"
 					).put(
@@ -2597,7 +2594,8 @@ public class DefaultObjectEntryManagerImplTest
 								BUSINESS_TYPE_LONG_VALUE_MAX)
 					).put(
 						"precisionDecimalObjectFieldName",
-						new BigDecimal(RandomTestUtil.randomDouble())
+						new BigDecimal(
+							String.valueOf(RandomTestUtil.randomDouble()))
 					).put(
 						"richTextObjectFieldName",
 						StringBundler.concat(
@@ -2620,7 +2618,7 @@ public class DefaultObjectEntryManagerImplTest
 				"longIntegerObjectFieldName", 200L
 			).put(
 				"precisionDecimalObjectFieldName",
-				new BigDecimal(0.8755445767, MathContext.DECIMAL64)
+				new BigDecimal("0.8755445767")
 			).put(
 				"richTextObjectFieldName", "<i>richTextObjectFieldNameValue</i>"
 			).build();
