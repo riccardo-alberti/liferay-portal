@@ -580,6 +580,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MINI_CART_ITEM_NAME_USING_SKU_2</td>
+	<td>//p[@class='item-sku' and contains(.,'${key_cartItemSku}')]/../../../a</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MINI_CART_ITEM_UOM_NAME</td>
 	<td>//div[@class='ml-2' and contains(.,'${key_uom}')]</td>
 	<td></td>
