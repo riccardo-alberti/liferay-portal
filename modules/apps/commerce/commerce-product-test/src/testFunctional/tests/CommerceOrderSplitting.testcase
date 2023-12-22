@@ -1,7 +1,7 @@
 @component-name = "portal-commerce"
 definition {
 
-	property custom.properties = "company.security.strangers.verify=false${line.separator}feature.flag.COMMERCE-10890=true${line.separator}feature.flag.COMMERCE-11026=true${line.separator}jsonws.web.service.paths.excludes=";
+	property custom.properties = "company.security.strangers.verify=false${line.separator}jsonws.web.service.paths.excludes=";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Order Management";
@@ -1571,6 +1571,12 @@ definition {
 			CommerceSKUs.generateAllSkuCombinations();
 
 			CommerceNavigator.gotoEntry(entryName = "VALUE1VALUE2");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Price");
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Base Price List");
 
 			CommerceEntry.editSkuPricingAndInventory(
 				basePrice = "20.00",

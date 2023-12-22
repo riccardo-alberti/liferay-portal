@@ -1309,6 +1309,17 @@ public class ObjectFieldLocalServiceImpl
 			_objectDefinitionPersistence.findByPrimaryKey(
 				newObjectField.getObjectDefinitionId());
 
+		if (Objects.equals(
+				businessType,
+				ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP) &&
+			objectDefinition.isRootDescendantNode() &&
+			!Objects.equals(oldObjectField.getReadOnly(), readOnly)) {
+
+			throw new ObjectFieldReadOnlyException(
+				"An object field's read only setting is defined by the root " +
+					"object definition and cannot be changed");
+		}
+
 		if (Validator.isNotNull(newObjectField.getRelationshipType())) {
 			_validateObjectRelationshipDeletionType(objectFieldId, required);
 

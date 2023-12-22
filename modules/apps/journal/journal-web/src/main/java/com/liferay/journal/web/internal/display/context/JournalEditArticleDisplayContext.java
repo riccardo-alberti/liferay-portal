@@ -298,6 +298,17 @@ public class JournalEditArticleDisplayContext {
 		return _availableLocales;
 	}
 
+	public String getBackURL() {
+		if (_backURL != null) {
+			return _backURL;
+		}
+
+		_backURL = ParamUtil.getString(
+			_httpServletRequest, "backURL", getRedirect());
+
+		return _backURL;
+	}
+
 	public Map<String, Object> getChangeDefaultLanguageData() {
 		return HashMapBuilder.<String, Object>put(
 			"defaultLanguage", getDefaultArticleLanguageId()
@@ -1559,8 +1570,8 @@ public class JournalEditArticleDisplayContext {
 		portletDisplay.setURLBackTitle(
 			ParamUtil.getString(_httpServletRequest, "backURLTitle"));
 
-		if (Validator.isNotNull(getRedirect())) {
-			portletDisplay.setURLBack(getRedirect());
+		if (Validator.isNotNull(getBackURL())) {
+			portletDisplay.setURLBack(getBackURL());
 		}
 		else if ((getClassNameId() ==
 					JournalArticleConstants.CLASS_NAME_ID_DEFAULT) &&
@@ -1593,6 +1604,7 @@ public class JournalEditArticleDisplayContext {
 	private AssetDisplayPageEntry _assetDisplayPageEntry;
 	private Long _assetDisplayPageId;
 	private Set<Locale> _availableLocales;
+	private String _backURL;
 	private Boolean _changeStructure;
 	private Long _classNameId;
 	private Long _classPK;

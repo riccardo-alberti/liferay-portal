@@ -944,22 +944,6 @@ public class JournalDisplayContext {
 		return portletURL;
 	}
 
-	public String getRedirect() {
-		if (_redirect != null) {
-			return _redirect;
-		}
-
-		_redirect = _themeDisplay.getURLCurrent();
-
-		if (FeatureFlagManagerUtil.isEnabled("LPS-196768")) {
-			_redirect = PortletURLBuilder.createRenderURL(
-				_liferayPortletResponse
-			).buildString();
-		}
-
-		return _redirect;
-	}
-
 	public int getRestrictionType() {
 		if (_restrictionType != null) {
 			return _restrictionType;
@@ -1032,14 +1016,22 @@ public class JournalDisplayContext {
 			"searchInCommentsURL",
 			String.valueOf(_getSearchInCommentsPortletURL())
 		).put(
-			"searchInOptions", _getSearchInOptionsJSONArray()
+			"searchInOptions",
+			() -> {
+				if (isSearch()) {
+					return _getSearchInOptionsJSONArray();
+				}
+
+				return null;
+			}
 		).put(
 			"searchLocation", _getSearchLocation()
 		).put(
 			"searchLocationOptions",
 			() -> {
-				if (getFolderId() ==
-						JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+				if ((getFolderId() ==
+						JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) ||
+					!isSearch()) {
 
 					return null;
 				}
@@ -1316,10 +1308,6 @@ public class JournalDisplayContext {
 	}
 
 	public boolean isSearch() {
-		if (!FeatureFlagManagerUtil.isEnabled("LPS-196768")) {
-			return _isSearch();
-		}
-
 		if (Validator.isNotNull(getKeywords())) {
 			return true;
 		}
@@ -1351,9 +1339,9 @@ public class JournalDisplayContext {
 		return false;
 	}
 
-	public boolean isShowInfoButton() {
+	public boolean isShowInfoButton() throws PortalException {
 		if (isNavigationMine() || isNavigationRecent() || isSearch() ||
-			ArrayUtil.isNotEmpty(_getAssetCategoryIds()) ||
+			isTypeVersions() || ArrayUtil.isNotEmpty(_getAssetCategoryIds()) ||
 			ArrayUtil.isNotEmpty(_getAssetTagNames())) {
 
 			return false;
@@ -2159,17 +2147,6 @@ public class JournalDisplayContext {
 		return false;
 	}
 
-	private boolean _isSearch() {
-		if (Validator.isNotNull(getKeywords()) ||
-			ArrayUtil.isNotEmpty(_getAssetCategoryIds()) ||
-			ArrayUtil.isNotEmpty(_getAssetTagNames())) {
-
-			return true;
-		}
-
-		return false;
-	}
-
 	private void _populateSearchContext(
 		int start, int end, SearchContext searchContext, boolean showVersions) {
 
@@ -2292,7 +2269,6 @@ public class JournalDisplayContext {
 	private String _orderByType;
 	private Long _parentFolderId;
 	private final PortalPreferences _portalPreferences;
-	private String _redirect;
 	private Integer _restrictionType;
 	private SearchContainer<?> _searchContainer;
 	private String _searchIn;

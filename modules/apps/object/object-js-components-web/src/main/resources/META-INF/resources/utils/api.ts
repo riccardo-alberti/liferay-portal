@@ -9,10 +9,10 @@ import {ERRORS} from './errors';
 import {stringToURLParameterFormat} from './string';
 
 interface Actions {
-	delete: HTTPMethod;
-	get: HTTPMethod;
-	permissions: HTTPMethod;
-	update: HTTPMethod;
+	delete?: HTTPMethod;
+	get?: HTTPMethod;
+	permissions?: HTTPMethod;
+	update?: HTTPMethod;
 }
 
 interface ErrorDetails extends Error {
@@ -78,6 +78,11 @@ export interface NotificationTemplate {
 	type: NotificationTemplateType;
 }
 
+interface ObjectDefinitions {
+	actions: Actions;
+	items: ObjectDefinition[];
+}
+
 interface ObjectFolderItem {
 	linkedObjectDefinition: boolean;
 	objectDefinitionExternalReferenceCode: string;
@@ -94,6 +99,11 @@ interface ObjectFolder {
 	label: LocalizedValue<string>;
 	name: string;
 	objectFolderItems: ObjectFolderItem[];
+}
+
+interface ObjectFolderRequestInfo {
+	actions: Actions;
+	items: ObjectFolder[];
 }
 
 type ObjectRelationshipType = 'manyToMany' | 'oneToMany' | 'oneToOne';
@@ -173,13 +183,15 @@ export async function fetchJSON<T>(input: RequestInfo, init?: RequestInit) {
 }
 
 export async function getAllObjectDefinitions() {
-	return await getList<ObjectDefinition>(
+	const fetchData = fetchJSON<ObjectDefinitions>(
 		'/o/object-admin/v1.0/object-definitions?page=-1'
 	);
+
+	return await fetchData;
 }
 
 export async function getAllObjectFolders() {
-	return await getList<ObjectFolder>(
+	return await fetchJSON<ObjectFolderRequestInfo>(
 		'/o/object-admin/v1.0/object-folders?pageSize=-1'
 	);
 }
