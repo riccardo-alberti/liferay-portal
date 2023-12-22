@@ -200,12 +200,13 @@ definition {
 			key_toggleSwitchLabel = "Purchasable",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Type(
-			key_fieldLabel = "Base Price",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "50.0");
-
 		Button.clickPublish();
+
+		CommerceEntry.gotoMenuTab(menuTab = "Price");
+
+		CommerceSKUs.addSKUPriceEntry(
+			priceList = "Master Base Price List",
+			unitPrice = 50);
 
 		Refresh();
 
@@ -249,12 +250,13 @@ definition {
 			key_toggleSwitchLabel = "Purchasable",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Type(
-			key_fieldLabel = "Base Price",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "10.0");
-
 		Button.click(button = "Publish");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Price");
+
+		CommerceSKUs.addSKUPriceEntry(
+			priceList = "Master Base Price List",
+			unitPrice = 10);
 
 		Refresh();
 
@@ -2144,7 +2146,7 @@ definition {
 			AssertElementPresent(
 				key_image = "Commerce_Black.jpg",
 				key_productName = "abs-sensor",
-				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE_SPECIFIC");
+				locator1 = "CommerceFrontStore#PRODUCT_CARD_IMAGE_SPECIFIC_IN_MINI_CART");
 		}
 	}
 
@@ -2456,7 +2458,8 @@ definition {
 
 		CommerceSKUs.addSKU(
 			noOption = "true",
-			optionValuesList = "Shoes:50.0");
+			optionValuesList = "Shoes:50.0",
+			priceList = "Master Base Price List");
 
 		CommerceProducts.openProductsAdmin();
 
@@ -2473,7 +2476,9 @@ definition {
 
 		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
 
-		CommerceSKUs.addSKU(optionValuesList = "Black:10.0");
+		CommerceSKUs.addSKU(
+			optionValuesList = "Black:10.0",
+			priceList = "Master Base Price List");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Options");
 
@@ -2558,12 +2563,13 @@ definition {
 			key_toggleSwitchLabel = "Purchasable",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Type(
-			key_fieldLabel = "Base Price",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "50.0");
-
 		Button.clickPublish();
+
+		CommerceEntry.gotoMenuTab(menuTab = "Price");
+
+		CommerceSKUs.addSKUPriceEntry(
+			priceList = "Master Base Price List",
+			unitPrice = 50);
 
 		Refresh();
 
@@ -2607,12 +2613,13 @@ definition {
 			key_toggleSwitchLabel = "Purchasable",
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
-		Type(
-			key_fieldLabel = "Base Price",
-			locator1 = "TextInput#GENERIC_TEXT_INPUT",
-			value1 = "10.0");
-
 		Button.click(button = "Publish");
+
+		CommerceEntry.gotoMenuTab(menuTab = "Price");
+
+		CommerceSKUs.addSKUPriceEntry(
+			priceList = "Master Base Price List",
+			unitPrice = 10);
 
 		Refresh();
 
@@ -2803,7 +2810,9 @@ definition {
 
 		CommerceEntry.gotoMenuTab(menuTab = "SKUs");
 
-		CommerceSKUs.addSKU(optionValuesList = "6:10.0,12:20.0,24:30.0,48:40.0,112:50.0");
+		CommerceSKUs.addSKU(
+			optionValuesList = "6:10.0,12:20.0,24:30.0,48:40.0,112:50.0",
+			priceList = "Minium Base Price List");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Media");
 
