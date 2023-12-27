@@ -3364,6 +3364,12 @@ definition {
 
 			CommerceNavigator.gotoEntry(entryName = "Minium Base Price List");
 
+			CommerceSKUs.addSKUPriceEntry(
+                priceList = "Minium Base Price List",
+                unitPrice = "0");
+
+            Click(locator1 = "Icon#CLOSE");
+
 			CommerceEntry.editSkuPricingAndInventory(
 				basePrice = "20.00",
 				italyQuantity = 20,
