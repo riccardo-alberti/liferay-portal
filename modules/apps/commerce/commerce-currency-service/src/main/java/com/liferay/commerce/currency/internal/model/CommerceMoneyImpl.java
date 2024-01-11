@@ -18,6 +18,7 @@ import java.util.Locale;
  * @author Marco Leo
  */
 public class CommerceMoneyImpl implements CommerceMoney {
+	// ciao
 
 	public CommerceMoneyImpl(
 		CommerceCurrency commerceCurrency,
