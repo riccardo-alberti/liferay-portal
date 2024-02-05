@@ -105,6 +105,7 @@ public class CommerceOrderEngineImpl implements CommerceOrderEngine {
 
 				@Override
 				public CommerceOrder call() throws Exception {
+					_commerceNotificationHelper.hashCode();
 					return _checkCommerceOrderShipmentStatus(
 						commerceOrder, secure);
 				}
