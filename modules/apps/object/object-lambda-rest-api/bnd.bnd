@@ -1,0 +1,6 @@
+Bundle-Name: Liferay Object Lambda REST API
+Bundle-SymbolicName: com.liferay.object.lambda.rest.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.object.lambda.rest.dto.v1_0,\
+	com.liferay.object.lambda.rest.resource.v1_0

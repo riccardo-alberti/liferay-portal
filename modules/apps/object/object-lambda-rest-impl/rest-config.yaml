@@ -1,0 +1,11 @@
+apiDir: "../object-lambda-rest-api/src/main/java"
+apiPackagePath: "com.liferay.object.lambda.rest"
+application:
+    baseURI: "/object-lambda-rest"
+    className: "ObjectLambdaRESTApplication"
+    name: "Liferay.Object.Lambda.REST"
+author: "Riccardo Alberti"
+compatibilityVersion: 6
+forcePredictableOperationId: true
+generateBatch: false
+testDir: "../object-lambda-rest-test/src/testIntegration/java"

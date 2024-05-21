@@ -1,0 +1,5 @@
+Bundle-Name: Liferay Object Lambda REST Implementation
+Bundle-SymbolicName: com.liferay.object.lambda.rest.impl
+Bundle-Version: 1.0.0
+Liferay-Client-Extension-Batch: com/liferay/object/lambda/rest/internal/batch
+-dsannotations-options: inherit
