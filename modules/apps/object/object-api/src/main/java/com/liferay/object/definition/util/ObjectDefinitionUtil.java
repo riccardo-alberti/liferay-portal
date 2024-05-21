@@ -90,7 +90,8 @@ public class ObjectDefinitionUtil {
 		"com.liferay.commerce.service", "com.liferay.cookies.impl",
 		"com.liferay.frontend.data.set.views.web",
 		"com.liferay.headless.builder.impl", "com.liferay.list.type.service",
-		"com.liferay.notification.service", "com.liferay.object.service"
+		"com.liferay.notification.service", "com.liferay.object.service",
+		"com.liferay.object.lambda.rest.impl"
 	};
 
 	private static final Map<String, String>
@@ -135,6 +136,8 @@ public class ObjectDefinitionUtil {
 			"FDSView", "/data-set-manager/views"
 		).put(
 			"FunctionalCookieEntry", "/functional-cookies-entries"
+		).put(
+			"Lambda", "/lambdas"
 		).put(
 			"NecessaryCookieEntry", "/necessary-cookies-entries"
 		).put(
