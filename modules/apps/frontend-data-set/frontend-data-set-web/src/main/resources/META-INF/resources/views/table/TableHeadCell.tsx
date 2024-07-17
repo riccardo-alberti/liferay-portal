@@ -5,10 +5,10 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
-import ClayLink from '@clayui/link';
 import classNames from 'classnames';
 import React, {useContext, useEffect, useState} from 'react';
 
+import {TSort} from '../..';
 import ViewsContext from '../ViewsContext';
 
 // @ts-ignore
@@ -48,80 +48,58 @@ const TableHeadCell = ({
 	function handleSortingCellClick(event: any) {
 		event.preventDefault();
 
-		const updatedSortedElements = sortingMatch
-			? sorts.map((element) =>
-					element.key === sortingKey
-						? {
-								...element,
-								direction:
-									element.direction === 'asc'
-										? 'desc'
-										: 'asc',
-						  }
-						: element
-			  )
-			: [
-					{
-						direction: 'asc',
-						fieldName,
-						key: sortingKey,
-					},
-			  ];
+		let updatedSortedElements: TSort[] = [];
+
+		if (Liferay.FeatureFlags['LPD-19465']) {
+			updatedSortedElements = sorts.map((element) =>
+				element.key === sortingKey
+					? {
+							...element,
+							active: true,
+							direction:
+								element.direction === 'asc' ? 'desc' : 'asc',
+						}
+					: {
+							...element,
+							active: false,
+						}
+			);
+
+			if (!sortingMatch && sortingKey) {
+				updatedSortedElements.push({
+					active: true,
+					direction: 'asc',
+					key: sortingKey,
+				});
+			}
+		}
+		else {
+			updatedSortedElements = sortingMatch
+				? sorts.map((element) =>
+						element.key === sortingKey
+							? {
+									...element,
+									direction:
+										element.direction === 'asc'
+											? 'desc'
+											: 'asc',
+								}
+							: element
+					)
+				: [
+						{
+							direction: 'asc',
+							fieldName,
+							key: sortingKey,
+						},
+					];
+		}
 
 		viewsDispatch({
 			type: VIEWS_ACTION_TYPES.UPDATE_SORTING,
 			value: updatedSortedElements,
 		});
 	}
-
-	const content = Liferay.FeatureFlags['LPS-193005'] ? (
-		<ClayLink
-			className="inline-item text-truncate-inline"
-			href="#"
-			onClick={handleSortingCellClick}
-		>
-			{!hideColumnLabel && <span className="text-truncate">{label}</span>}
-
-			{sortingMatch && (
-				<span className="inline-item inline-item-after">
-					<ClayIcon
-						symbol={
-							sortingMatch?.direction === 'asc'
-								? 'order-arrow-up'
-								: 'order-arrow-down'
-						}
-					/>
-				</span>
-			)}
-		</ClayLink>
-	) : (
-		<ClayButton
-			className="btn-sorting inline-item text-nowrap text-truncate-inline"
-			displayType="unstyled"
-			onClick={handleSortingCellClick}
-			size="sm"
-		>
-			{!hideColumnLabel && label}
-
-			<span className="inline-item inline-item-after sorting-icons-wrapper">
-				<ClayIcon
-					className={classNames(
-						'sorting-icon',
-						sortingMatch?.direction === 'asc' && 'active'
-					)}
-					symbol="order-arrow-up"
-				/>
-
-				<ClayIcon
-					className={classNames(
-						'sorting-icon',
-						sortingMatch?.direction === 'desc' && 'active'
-					)}
-					symbol="order-arrow-down"
-				/>
-			</span>
-		</ClayButton>
-	);
 
 	return (
 		<Cell
@@ -132,7 +110,40 @@ const TableHeadCell = ({
 			heading
 			resizable
 		>
-			{sortable ? content : !hideColumnLabel && label}
+			{sortable ? (
+				<ClayButton
+					className="btn-sorting inline-item text-nowrap text-truncate-inline"
+					displayType="unstyled"
+					onClick={handleSortingCellClick}
+					size="sm"
+				>
+					{!hideColumnLabel && label}
+
+					<span className="inline-item inline-item-after sorting-icons-wrapper">
+						<ClayIcon
+							className={classNames('sorting-icon', {
+								active: Liferay.FeatureFlags['LPD-19465']
+									? sortingMatch?.direction === 'asc' &&
+										sortingMatch?.active
+									: sortingMatch?.direction === 'asc',
+							})}
+							symbol="order-arrow-up"
+						/>
+
+						<ClayIcon
+							className={classNames('sorting-icon', {
+								active: Liferay.FeatureFlags['LPD-19465']
+									? sortingMatch?.direction === 'desc' &&
+										sortingMatch?.active
+									: sortingMatch?.direction === 'desc',
+							})}
+							symbol="order-arrow-down"
+						/>
+					</span>
+				</ClayButton>
+			) : (
+				!hideColumnLabel && label
+			)}
 		</Cell>
 	);
 };

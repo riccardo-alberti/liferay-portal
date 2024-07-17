@@ -229,11 +229,12 @@
 		</or>
 	</condition>
 
-	<fail message="Please use Java 1.8 or 21.">
+	<fail message="Please use Java 1.8, 17, or 21.">
 		<condition>
 			<not>
 				<or>
 					<equals arg1="${java.specification.version}" arg2="1.8" />
+					<equals arg1="${java.specification.version}" arg2="17" />
 					<equals arg1="${java.specification.version}" arg2="21" />
 					<isset property="env.JENKINS_HOME" />
 				</or>
@@ -727,6 +728,12 @@ information.
 						<entry key="groupId" value="${project.groupId}" />
 						<entry key="version" value="${artifact.version}" />
 					</propertyfile>
+
+					<replaceregexp
+						file="classes/META-INF/maven/${project.groupId}/${project.artifactId}/pom.properties"
+						match="#.*[0-9].*\n"
+						replace=""
+					/>
 				</then>
 			</if>
 		</sequential>
@@ -837,6 +844,7 @@ information.
 						<arg if:set="env.JENKINS_HOME" value="-Dorg.gradle.internal.http.socketTimeout=120000" />
 						<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.dirs=${build.patcher.hotfix.dirs}" />
 						<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.qualifier=${build.patcher.hotfix.qualifier}" />
+						<arg line="@{gradlejvmargs}" />
 						<arg value="tasks" />
 						<arg value="--all" />
 						<redirector errorproperty="tasks.error" outputproperty="tasks.output" unless:blank="tasks.output" />
@@ -978,6 +986,7 @@ information.
 								<arg if:set="env.JENKINS_HOME" value="-Dorg.gradle.internal.http.socketTimeout=120000" />
 								<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.dirs=${build.patcher.hotfix.dirs}" />
 								<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.qualifier=${build.patcher.hotfix.qualifier}" />
+								<arg line="@{gradlejvmargs}" />
 								<arg line="@{task}" />
 								<arg if:set="test.name" line="${test.name}" />
 								<redirector errorproperty="${redirector.error.property}" outputproperty="${redirector.output.property}" unless:blank="${redirector.output.property}" />
@@ -1050,23 +1059,6 @@ information.
 
 											<echo>${task.output}</echo>
 										</then>
-										<elseif>
-											<and>
-												<equals arg1="${gradle.build.scan.enabled}" arg2="true" />
-											</and>
-											<then>
-												<local name="task.output" />
-
-												<propertycopy from="${redirector.output.property}" name="task.output" />
-
-												<if>
-													<contains string="${task.output}" substring="Publishing build scan" />
-													<then>
-														<echo>${task.output}</echo>
-													</then>
-												</if>
-											</then>
-										</elseif>
 									</if>
 								</then>
 							</if>
@@ -1701,6 +1693,53 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 		</sequential>
 	</macrodef>
 
+	<macrodef name="setup-nodejs-sass">
+		<sequential>
+			<mkdir dir="${nodejs.sass.dir}" />
+			<if>
+				<os family="mac" />
+				<then>
+					<mirrors-get
+						dest="${nodejs.sass.dir}"
+						src="${nodejs.sass.mac.url}"
+					/>
+					<untar
+						compression="gzip"
+						dest="${nodejs.sass.dir}"
+						src="${nodejs.sass.dir}/${nodejs.sass.mac.name}"
+					/>
+				</then>
+				<elseif>
+					<os family="unix" />
+					<then>
+						<mirrors-get
+							dest="${nodejs.sass.dir}"
+							src="${nodejs.sass.linux.url}"
+						/>
+						<untar
+							compression="gzip"
+							dest="${nodejs.sass.dir}"
+							src="${nodejs.sass.dir}/${nodejs.sass.linux.name}"
+						/>
+					</then>
+				</elseif>
+				<elseif>
+					<os family="windows" />
+					<then>
+						<mirrors-get
+							dest="${nodejs.sass.dir}"
+							src="${nodejs.sass.windows.url}"
+						/>
+						<unzip
+							dest="${nodejs.sass.dir}"
+							src="${nodejs.sass.dir}/${nodejs.sass.windows.name}"
+						/>
+					</then>
+				</elseif>
+			</if>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="setup-sdk">
 		<attribute default="true" name="setupbinariescache" />
 
@@ -2065,13 +2104,20 @@ rerun your task.
 				</then>
 			</if>
 
+			<propertyregex
+				input="${junit.jvm.override}"
+				property="java.installation.paths.override"
+				regexp="[\/]bin[\/]java[\/]?$"
+				replace=""
+			/>
+
 			<propertyfile file="${gradle.properties.file}">
 				<entry key="database.jdbc.drivers.url" value="${test.jdbc.drivers.url}" />
 				<entry key="database.jdbc.oracle.driver" value="${jdbc.oracle.driver}" />
 				<entry key="database.oracle.version" value="${database.oracle.version}" />
 				<entry if:set="build.java.version.source.compatibility" key="java.version.source.compatibility" unless:blank="${build.java.version.source.compatibility}" value="${build.java.version.source.compatibility}" />
 				<entry if:set="build.java.version.target.compatibility" key="java.version.target.compatibility" unless:blank="${build.java.version.target.compatibility}" value="${build.java.version.target.compatibility}" />
-				<entry if:set="junit.jvm.override" key="org.gradle.java.installations.paths" unless:blank="${junit.jvm.override}" value="${junit.jvm.override}" />
+				<entry if:set="junit.jvm.override" key="org.gradle.java.installations.paths" unless:blank="${junit.jvm.override}" value="${java.installation.paths.override}" />
 				<entry key="systemProp.build.bnd.print.enabled" value="${build.bnd.print.enabled}" />
 				<entry key="systemProp.build.performance.logger.enabled" value="${build.performance.logger.enabled}" />
 				<entry key="systemProp.maven.repo.local" unless:blank="${build.repository.local.dir}" value="${build.repository.local.dir}" />
@@ -2264,7 +2310,7 @@ rerun your task.
 	</target>
 
 	<target name="gradle-execute-modules">
-		<gradle-execute dir="${dir}" task="${test.task}" test.name="${test.name}" />
+		<gradle-execute dir="${dir}" gradlejvmargs="${gradle.jvm.args}" task="${test.task}" test.name="${test.name}" />
 	</target>
 
 	<target name="print-properties">

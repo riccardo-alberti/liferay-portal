@@ -31,8 +31,8 @@ import useQueryParams from '../../common/hooks/useQueryParams';
 import {MDFClaimListItem} from '../../common/interfaces/mdfClaimListItem';
 import TableColumn from '../../common/interfaces/tableColumn';
 import {Filters} from '../../common/utils/constants/filters';
+import {maxPagination} from '../../common/utils/constants/maxPagination';
 import getDropDownFilterMenus from '../../common/utils/getDropDownFilterMenus';
-import setURLParams from '../../common/utils/setURLParams';
 import useDynamicFieldEntries from './hooks/useDynamicFieldEntries';
 import useFilters from './hooks/useFilters';
 import useGetListItemsFromMDFClaims from './hooks/useGetListItemsFromMDFClaims';
@@ -54,34 +54,30 @@ const MDFClaimList = () => {
 
 	const {companiesEntries} = useDynamicFieldEntries();
 
-	const {filters, filtersTerm, onFilter, setFilters} = useFilters(
+	const [claimTableSort, setClaimTableSort] =
+		useState<string>('dateCreated:desc');
+
+	const debouncedClaimTableSort = useDebounce(claimTableSort, 1000);
+
+	const {filters, onFilter, setFilters} = useFilters(
 		openClaimsFilter,
+		debouncedClaimTableSort,
 		urlParams,
 		isChannel
 	);
 
-	const pagination = usePagination(urlParams);
-
-	const [claimTableSort, setClaimTableSort] = useState<string>(
-		'dateCreated:desc'
-	);
-
-	const debouncedClaimTableSort = useDebounce(claimTableSort, 1000);
+	const pagination = usePagination();
 
 	const {data, isValidating, mutate} = useGetListItemsFromMDFClaims(
 		pagination.activePage,
 		pagination.activeDelta,
-		setURLParams({
-			filter: filtersTerm,
-			sort: debouncedClaimTableSort,
-			urlParams,
-		})
+		urlParams
 	);
 
 	const {data: dataCSV} = useGetListItemsFromMDFClaims(
 		pagination.activePage,
-		pagination.maxItems,
-		setURLParams({filter: filtersTerm, urlParams})
+		maxPagination.MAX_ITEMS.size,
+		urlParams
 	);
 
 	const siteURL = useLiferayNavigate();
@@ -216,6 +212,7 @@ const MDFClaimList = () => {
 							{
 								component: (
 									<DateFilter
+										clearInputs={filters?.submitDate}
 										dateFilters={(dates: {
 											endDate: string;
 											startDate: string;
@@ -264,9 +261,9 @@ const MDFClaimList = () => {
 							{
 								component: (
 									<CheckboxFilter
-										availableItems={companiesEntries?.map<
-											string
-										>((company) => company.label as string)}
+										availableItems={companiesEntries?.map<string>(
+											(company) => company.label as string
+										)}
 										clearCheckboxes={
 											!filters.partner.value?.length
 										}

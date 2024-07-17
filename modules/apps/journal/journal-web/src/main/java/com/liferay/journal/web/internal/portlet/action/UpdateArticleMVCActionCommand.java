@@ -249,7 +249,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 			uploadPortletRequest, "expirationDateAmPm");
 
 		boolean neverExpire = ParamUtil.getBoolean(
-			uploadPortletRequest, "neverExpire", displayDateYear == 0);
+			uploadPortletRequest, "neverExpire", expirationDateYear == 0);
 
 		if (!PropsValues.SCHEDULER_ENABLED) {
 			neverExpire = true;
@@ -273,7 +273,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 			uploadPortletRequest, "reviewDateAmPm");
 
 		boolean neverReview = ParamUtil.getBoolean(
-			uploadPortletRequest, "neverReview", displayDateYear == 0);
+			uploadPortletRequest, "neverReview", reviewDateYear == 0);
 
 		if (!PropsValues.SCHEDULER_ENABLED) {
 			neverReview = true;
@@ -715,9 +715,8 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	private String _getSaveAndContinueRedirect(
-			ActionRequest actionRequest, JournalArticle article,
-			String redirect)
-		throws Exception {
+		String actionName, ActionRequest actionRequest, JournalArticle article,
+		String redirect) {
 
 		return PortletURLBuilder.create(
 			PortletURLFactoryUtil.create(
@@ -733,6 +732,21 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 			"articleId", article.getArticleId()
 		).setParameter(
 			"folderId", article.getFolderId()
+		).setParameter(
+			"friendlyURL",
+			() -> {
+				if (!FeatureFlagManagerUtil.isEnabled("LPD-11228") ||
+					!Objects.equals(actionName, "/journal/add_article")) {
+
+					return null;
+				}
+
+				Map<Locale, String> friendlyURLMap =
+					article.getFriendlyURLMap();
+
+				return friendlyURLMap.get(
+					LocaleUtil.fromLanguageId(article.getDefaultLanguageId()));
+			}
 		).setParameter(
 			"groupId", article.getGroupId()
 		).setParameter(
@@ -809,7 +823,7 @@ public class UpdateArticleMVCActionCommand extends BaseMVCActionCommand {
 			(workflowAction == WorkflowConstants.ACTION_SAVE_DRAFT)) {
 
 			redirect = _getSaveAndContinueRedirect(
-				actionRequest, article, redirect);
+				actionName, actionRequest, article, redirect);
 		}
 		else {
 			redirect = _portal.escapeRedirect(redirect);

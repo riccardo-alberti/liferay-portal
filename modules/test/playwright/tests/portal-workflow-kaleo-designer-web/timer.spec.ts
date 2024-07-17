@@ -6,19 +6,11 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
-import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
 import {getRandomInt} from '../../utils/getRandomInt';
 
-export const test = mergeTests(
-	apiHelpersTest,
-	loginTest(),
-	featureFlagsTest({
-		'LPD-11179': true,
-	}),
-	workflowPagesTest
-);
+export const test = mergeTests(apiHelpersTest, loginTest(), workflowPagesTest);
 
 const roleTypes = [
 	{
@@ -99,13 +91,13 @@ test('can create timer notifications', async ({
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await nodePropertiesSidebarPage.createTimerNotification(timerNotifications);
 
 	await processBuilderPage.switchToSourceViewAndBackToDiagram();
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	const timerOption = processBuilderPage.page.getByRole('link', {
 		name: 'Duration: 3 week',
@@ -125,7 +117,7 @@ test('can create timer notifications', async ({
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await expect(timerOption).toBeVisible();
 
@@ -146,13 +138,13 @@ test('can create timer reassignments role type reassignment type', async ({
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await nodePropertiesSidebarPage.createTimerReassignmentRoleType(roleTypes);
 
 	await processBuilderPage.switchToSourceViewAndBackToDiagram();
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	const timerOption = processBuilderPage.page.getByRole('link', {
 		name: 'Duration: 3 week',
@@ -172,7 +164,7 @@ test('can create timer reassignments role type reassignment type', async ({
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await expect(timerOption).toBeVisible();
 
@@ -196,7 +188,7 @@ test('cannot save a workflow definition that has a timer action with groovy scri
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await nodePropertiesSidebarPage.createTimerAction(
 		'Groovy Action',
@@ -234,7 +226,7 @@ test('cannot save a workflow definition that has a Timer Action with java script
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickReviewNodeLink();
+	await diagramViewPage.clickNode('review');
 
 	await nodePropertiesSidebarPage.createTimerAction(
 		'Java Action',

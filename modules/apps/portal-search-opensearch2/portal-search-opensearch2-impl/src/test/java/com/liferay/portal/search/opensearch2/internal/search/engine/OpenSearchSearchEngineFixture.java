@@ -21,7 +21,6 @@ import com.liferay.portal.search.opensearch2.internal.configuration.OpenSearchCo
 import com.liferay.portal.search.opensearch2.internal.connection.OpenSearchConnectionManager;
 import com.liferay.portal.search.opensearch2.internal.connection.TestOpenSearchConnectionManager;
 import com.liferay.portal.search.opensearch2.internal.index.CompanyIndexFactory;
-import com.liferay.portal.search.opensearch2.internal.index.IndexConfigurationDynamicUpdatesExecutor;
 import com.liferay.portal.search.opensearch2.internal.index.IndexHelper;
 import com.liferay.portal.search.opensearch2.internal.index.IndexHelperImpl;
 import com.liferay.portal.search.opensearch2.internal.search.engine.adapter.OpenSearchEngineAdapterFixture;
@@ -83,7 +82,6 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 		_frameworkUtilMockedStatic = _createFrameworkUtil();
 		_indexNameBuilder = indexNameBuilder;
 		_openSearchSearchEngine = _createOpenSearchSearchEngine(
-			Mockito.mock(IndexConfigurationDynamicUpdatesExecutor.class),
 			indexNameBuilder, openSearchConfigurationWrapper);
 	}
 
@@ -153,8 +151,7 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 
 	private IndexHelper _createIndexHelper(
 		IndexNameBuilder indexNameBuilder,
-		OpenSearchConfigurationWrapper openSearchConfigurationWrapper,
-		SearchEngineAdapter searchEngineAdapter) {
+		OpenSearchConfigurationWrapper openSearchConfigurationWrapper) {
 
 		IndexHelper indexHelper = new IndexHelperImpl();
 
@@ -171,8 +168,6 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 		ReflectionTestUtil.setFieldValue(
 			indexHelper, "_openSearchConnectionManager",
 			_openSearchConnectionManager);
-		ReflectionTestUtil.setFieldValue(
-			indexHelper, "_searchEngineAdapter", searchEngineAdapter);
 
 		ReflectionTestUtil.invoke(
 			indexHelper, "activate", new Class<?>[] {BundleContext.class},
@@ -232,16 +227,11 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 	}
 
 	private OpenSearchSearchEngine _createOpenSearchSearchEngine(
-		IndexConfigurationDynamicUpdatesExecutor
-			indexConfigurationDynamicUpdatesExecutor,
 		IndexNameBuilder indexNameBuilder,
 		OpenSearchConfigurationWrapper openSearchConfigurationWrapper) {
 
-		SearchEngineAdapter searchEngineAdapter = _createSearchEngineAdapter();
-
 		_indexHelper = _createIndexHelper(
-			indexNameBuilder, openSearchConfigurationWrapper,
-			searchEngineAdapter);
+			indexNameBuilder, openSearchConfigurationWrapper);
 
 		_companyIndexFactory = _createCompanyIndexFactory(
 			_indexHelper, openSearchConfigurationWrapper);
@@ -249,9 +239,6 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 		OpenSearchSearchEngine openSearchSearchEngine =
 			new OpenSearchSearchEngine();
 
-		ReflectionTestUtil.setFieldValue(
-			openSearchSearchEngine, "_indexConfigurationDynamicUpdatesExecutor",
-			indexConfigurationDynamicUpdatesExecutor);
 		ReflectionTestUtil.setFieldValue(
 			openSearchSearchEngine, "_indexFactory", _companyIndexFactory);
 		ReflectionTestUtil.setFieldValue(
@@ -261,7 +248,7 @@ public class OpenSearchSearchEngineFixture implements SearchEngineFixture {
 			_openSearchConnectionManager);
 		ReflectionTestUtil.setFieldValue(
 			openSearchSearchEngine, "_searchEngineAdapter",
-			searchEngineAdapter);
+			_createSearchEngineAdapter());
 
 		return openSearchSearchEngine;
 	}

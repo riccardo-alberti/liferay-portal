@@ -172,7 +172,7 @@ function SelectionFilter({
 	);
 	const [items, setItems] = useState(apiURL ? [] : initialItems);
 	const [localItems, setLocalItems] = useState(
-		initialItems.length ? initialItems : []
+		initialItems?.length ? initialItems : []
 	);
 	const [loading, setLoading] = useState(false);
 	const [total, setTotal] = useState(apiURL ? 0 : initialItems?.length);
@@ -193,7 +193,7 @@ function SelectionFilter({
 		// @ts-ignore
 
 		(value: string) => {
-			setSearchOptions({currentPage: 1, query: '', search: value});
+			setSearchOptions({currentPage: 1, query: value, search: value});
 		},
 		DEFAULT_DEBOUNCE_DELAY
 	);
@@ -250,12 +250,12 @@ function SelectionFilter({
 		}
 		else if (localItems.length && autocompleteEnabled) {
 			setItems(
-				searchOptions.query
+				searchOptions.search
 					? localItems.filter(({label}) =>
 							label
 								.toLowerCase()
-								.match(searchOptions.query.toLowerCase())
-					  )
+								.match(searchOptions.search.toLowerCase())
+						)
 					: localItems
 			);
 		}
@@ -336,7 +336,7 @@ function SelectionFilter({
 		actionType === 'delete' ||
 		(!selectedData && selectedItems.length) ||
 		(selectedData &&
-			isValuesArrayChanged(selectedData.selectedItems, selectedItems)) ||
+			isValuesArrayChanged(selectedData?.selectedItems, selectedItems)) ||
 		(selectedData &&
 			selectedItems.length &&
 			selectedData.exclude !== exclude)
@@ -442,10 +442,13 @@ function SelectionFilter({
 														(element) =>
 															element.value !==
 															value
-												  )
+													)
 												: multiple
-												? [...selectedItems, newValue]
-												: [newValue]
+													? [
+															...selectedItems,
+															newValue,
+														]
+													: [newValue]
 										);
 									}}
 									value={value}
@@ -535,10 +538,11 @@ SelectionFilter.propTypes = {
 	setFilter: PropTypes.func.isRequired,
 };
 
-const filterImplementation: FilterImplementation<SelectionFilterImplementationArgs> = {
-	Component: SelectionFilter,
-	getOdataString,
-	getSelectedItemsLabel,
-};
+const filterImplementation: FilterImplementation<SelectionFilterImplementationArgs> =
+	{
+		Component: SelectionFilter,
+		getOdataString,
+		getSelectedItemsLabel,
+	};
 
 export default filterImplementation;

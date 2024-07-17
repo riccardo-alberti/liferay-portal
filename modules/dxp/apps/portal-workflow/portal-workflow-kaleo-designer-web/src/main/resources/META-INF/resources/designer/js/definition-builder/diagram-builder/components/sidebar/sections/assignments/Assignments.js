@@ -9,7 +9,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {DefinitionBuilderContext} from '../../../../../DefinitionBuilderContext';
 import {contextUrl} from '../../../../../constants';
 import {
-	headers,
+	HEADERS,
 	retrieveAccountRoles,
 	userBaseURL,
 } from '../../../../../util/fetchUtil';
@@ -48,14 +48,10 @@ const Assignments = (props) => {
 
 	const {resource} = useResource({
 		fetchOptions: {
-			headers: {
-				...headers,
-				'accept': `application/json`,
-				'x-csrf-token': Liferay.authToken,
-			},
+			headers: HEADERS,
 		},
 		fetchPolicy: 'cache-first',
-		link: `${window.location.origin}${contextUrl}${userBaseURL}/roles`,
+		link: `${window.location.origin}${contextUrl}${userBaseURL}/roles?restrictFields=rolePermissions`,
 		onNetworkStatusChange: setNetworkStatus,
 		variables: {
 			pageSize: -1,
@@ -95,6 +91,7 @@ const Assignments = (props) => {
 		else if (assignmentType === 'user') {
 			setSections(assignments.sectionsData);
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

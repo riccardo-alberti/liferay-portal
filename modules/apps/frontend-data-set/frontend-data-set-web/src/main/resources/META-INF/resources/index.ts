@@ -79,9 +79,9 @@ export interface IInlineEditingSettings {
 
 export interface IActionsDropdown extends IBaseActions {
 	loading: boolean;
-	menuActive: boolean;
+	menuActive?: boolean;
 	onClick: Function;
-	onMenuActiveChange: Function;
+	onMenuActiveChange?: Function;
 	setLoading: Function;
 }
 
@@ -116,6 +116,7 @@ export interface IItemsActions {
 
 export interface IItemActionsData {
 	confirmationMessage?: string;
+	disableHeader?: boolean;
 	errorMessage?: string;
 	id?: string | number;
 	method?: 'delete' | 'get' | 'patch' | 'post';
@@ -130,9 +131,12 @@ export interface IQuickActions extends IBaseActions {
 	onClick: Function;
 }
 
-type TSorting = {
+export type TSort = {
+	active?: boolean;
+	default?: boolean;
 	direction?: 'asc' | 'desc';
 	key?: string;
+	label?: string;
 };
 
 type TViews = {
@@ -203,7 +207,7 @@ export interface IFrontendDataSetProps {
 	showPagination?: boolean;
 	showSearch?: boolean;
 	sidePanelId?: string;
-	sorts?: TSorting[];
+	sorts?: TSort[];
 	style?: 'default' | 'fluid' | 'stacked';
 	views: TViews[];
 	viewsTitle?: string;

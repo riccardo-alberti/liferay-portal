@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.search.generic.MatchAllQuery;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -51,6 +52,8 @@ import com.liferay.portal.search.rest.dto.v1_0.SearchResult;
 import com.liferay.portal.search.rest.internal.facet.FacetRequestContributor;
 import com.liferay.portal.search.rest.internal.facet.FacetResponseProcessor;
 import com.liferay.portal.search.rest.internal.odata.entity.v1_0.SearchResultEntityModel;
+import com.liferay.portal.search.rest.internal.util.ScopeUtil;
+import com.liferay.portal.search.rest.internal.util.ValueUtil;
 import com.liferay.portal.search.rest.pagination.SearchPage;
 import com.liferay.portal.search.rest.resource.v1_0.SearchResultResource;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
@@ -98,8 +101,30 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 	}
 
 	@Override
+	public Page<SearchResult> getSearchPage(
+			String blueprintExternalReferenceCode, Boolean emptySearch,
+			String entryClassNames, String scope, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		SearchRequestBody searchRequestBody = new SearchRequestBody();
+
+		searchRequestBody.setAttributes(
+			() -> HashMapBuilder.<String, Object>put(
+				"search.empty.search", emptySearch
+			).put(
+				"search.experiences.blueprint.external.reference.code",
+				blueprintExternalReferenceCode
+			).build());
+
+		return postSearchPage(
+			entryClassNames, scope, search, filter, pagination, sorts,
+			searchRequestBody);
+	}
+
+	@Override
 	public Page<SearchResult> postSearchPage(
-			String entryClassNames, String search, Filter filter,
+			String entryClassNames, String scope, String search, Filter filter,
 			Pagination pagination, Sort[] sorts,
 			SearchRequestBody searchRequestBody)
 		throws Exception {
@@ -117,6 +142,7 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 					_localization.getLocalizedName(
 						com.liferay.portal.kernel.search.Field.CONTENT,
 						contextAcceptLanguage.getPreferredLanguageId()),
+					com.liferay.portal.kernel.search.Field.CREATE_DATE,
 					_localization.getLocalizedName(
 						com.liferay.portal.kernel.search.Field.DESCRIPTION,
 						contextAcceptLanguage.getPreferredLanguageId()),
@@ -127,12 +153,12 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 			).size(
 				pagination.getPageSize()
 			).withSearchContext(
-				searchContext -> _addSearchContextAttributes(
-					searchRequestBody.getAttributes(), filter, search,
+				searchContext -> _populateSearchContext(
+					searchRequestBody.getAttributes(), filter, scope, search,
 					searchContext, sorts)
 			);
 
-		String[] entryClassNamesArray = _toArray(entryClassNames);
+		String[] entryClassNamesArray = ValueUtil.toArray(entryClassNames);
 
 		if (!ArrayUtil.isEmpty(entryClassNamesArray)) {
 			searchRequestBuilder.entryClassNames(entryClassNamesArray);
@@ -154,49 +180,6 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 			Arrays.asList(
 				ParamUtil.getStringValues(contextHttpServletRequest, "fields")),
 			pagination, _searcher.search(searchRequestBuilder.build()));
-	}
-
-	private void _addSearchContextAttributes(
-		Map<String, Object> attributes, Filter filter, String search,
-		SearchContext searchContext, Sort[] sorts) {
-
-		MapUtil.isNotEmptyForEach(
-			attributes,
-			(key, value) -> {
-				if (_isAllowedSearchContextAttribute(key) && (value != null) &&
-					(value instanceof Serializable)) {
-
-					searchContext.setAttribute(key, (Serializable)value);
-				}
-			});
-
-		if (searchContext.getAttribute("search.experiences.ip.address") ==
-				null) {
-
-			searchContext.setAttribute(
-				"search.experiences.ip.address",
-				contextHttpServletRequest.getRemoteAddr());
-		}
-
-		if (filter != null) {
-			searchContext.setBooleanClauses(
-				new BooleanClause[] {
-					_getBooleanClause(
-						booleanQuery -> {
-						},
-						filter)
-				});
-		}
-
-		searchContext.setKeywords(search);
-		searchContext.setLocale(contextAcceptLanguage.getPreferredLocale());
-
-		if (!ArrayUtil.isEmpty(sorts)) {
-			searchContext.setSorts(sorts);
-		}
-
-		searchContext.setTimeZone(contextUser.getTimeZone());
-		searchContext.setUserId(contextUser.getUserId());
 	}
 
 	private Object _fetchObject(String entryClassName, Long entryClassPK) {
@@ -393,6 +376,67 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 		}
 	}
 
+	private void _populateSearchContext(
+		Map<String, Object> attributes, Filter filter, String scope,
+		String search, SearchContext searchContext, Sort[] sorts) {
+
+		MapUtil.isNotEmptyForEach(
+			attributes,
+			(key, value) -> {
+				if (_isAllowedSearchContextAttribute(key) && (value != null) &&
+					(value instanceof Serializable)) {
+
+					searchContext.setAttribute(key, (Serializable)value);
+				}
+			});
+
+		if (searchContext.getAttribute("search.experiences.ip.address") ==
+				null) {
+
+			searchContext.setAttribute(
+				"search.experiences.ip.address",
+				contextHttpServletRequest.getRemoteAddr());
+		}
+
+		if (filter != null) {
+			searchContext.setBooleanClauses(
+				new BooleanClause[] {
+					_getBooleanClause(
+						booleanQuery -> {
+						},
+						filter)
+				});
+		}
+
+		searchContext.setGroupIds(
+			ScopeUtil.toGroupIds(contextCompany.getCompanyId(), scope));
+		searchContext.setKeywords(search);
+		searchContext.setLocale(contextAcceptLanguage.getPreferredLocale());
+
+		if (!ArrayUtil.isEmpty(sorts)) {
+			searchContext.setSorts(sorts);
+		}
+
+		searchContext.setTimeZone(contextUser.getTimeZone());
+		searchContext.setUserId(contextUser.getUserId());
+	}
+
+	private void _setDateCreated(
+		Document document, List<String> fields, SearchResult searchResult) {
+
+		if (!_isEmptyOrContains(fields, "dateCreated")) {
+			return;
+		}
+
+		String createDate = document.getString(
+			com.liferay.portal.kernel.search.Field.CREATE_DATE);
+
+		if (createDate != null) {
+			searchResult.setDateCreated(
+				() -> _parseDateStringFieldValue(createDate));
+		}
+	}
+
 	private void _setDateModified(
 		Document document, List<String> fields, SearchResult searchResult) {
 
@@ -405,9 +449,7 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 
 		if (modifiedDate != null) {
 			searchResult.setDateModified(
-				() -> _parseDateStringFieldValue(
-					document.getString(
-						com.liferay.portal.kernel.search.Field.MODIFIED_DATE)));
+				() -> _parseDateStringFieldValue(modifiedDate));
 		}
 	}
 
@@ -558,16 +600,6 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 		return aggregations;
 	}
 
-	private String[] _toArray(String csvString) {
-		if (Validator.isBlank(csvString)) {
-			return new String[0];
-		}
-
-		csvString = StringUtil.trim(csvString);
-
-		return csvString.split("\\s*,\\s*");
-	}
-
 	private SearchPage<SearchResult> _toSearchPage(
 		FacetConfiguration[] facetConfigurations, List<String> fields,
 		Pagination pagination, SearchResponse searchResponse) {
@@ -619,6 +651,7 @@ public class SearchResultResourceImpl extends BaseSearchResultResourceImpl {
 				_setTitle(assetRenderer, fields, searchResult, summary);
 			}
 
+			_setDateCreated(document, fields, searchResult);
 			_setDateModified(document, fields, searchResult);
 			_setScore(fields, searchHit, searchResult);
 

@@ -381,7 +381,7 @@ definition {
 					User.logoutPG();
 
 					User.loginUserPG(
-						password = "test",
+						password = PropsUtil.get("default.admin.password"),
 						userEmailAddress = "userea${num}@liferay.com");
 
 					Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");
@@ -402,7 +402,7 @@ definition {
 
 			task ("Reorder the experiences as the following: Exp1 > Exp2 > Default > Exp3") {
 				User.loginUserPG(
-					password = "test",
+					password = PropsUtil.get("default.admin.password"),
 					userEmailAddress = "test@liferay.com");
 
 				Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name-staging/experience-content-page");
@@ -439,7 +439,7 @@ definition {
 					User.logoutPG();
 
 					User.loginUserPG(
-						password = "test",
+						password = PropsUtil.get("default.admin.password"),
 						userEmailAddress = "userea${num}@liferay.com");
 
 					Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/experience-content-page");

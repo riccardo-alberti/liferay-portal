@@ -93,7 +93,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "category.manager@liferay.com");
 		}
@@ -162,7 +162,6 @@ definition {
 	@priority = 3
 	test CanSee404UtilityPagesWorkOnMiniumSite {
 		property portal.acceptance = "false";
-		property portal.upstream = "quarantine";
 
 		var portalURL = PropsUtil.get("portal.url");
 

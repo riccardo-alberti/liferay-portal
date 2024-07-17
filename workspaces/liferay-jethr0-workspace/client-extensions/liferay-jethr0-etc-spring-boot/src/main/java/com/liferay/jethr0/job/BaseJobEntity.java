@@ -12,6 +12,7 @@ import com.liferay.jethr0.jenkins.cohort.JenkinsCohortEntity;
 import com.liferay.jethr0.routine.RoutineEntity;
 import com.liferay.jethr0.task.TaskEntity;
 import com.liferay.jethr0.testsuite.TestSuiteEntity;
+import com.liferay.jethr0.util.Jethr0ContextUtil;
 import com.liferay.jethr0.util.StringUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
@@ -85,8 +86,20 @@ public abstract class BaseJobEntity extends BaseEntity implements JobEntity {
 	}
 
 	@Override
+	public boolean getBlessed() {
+		return _blessed;
+	}
+
+	@Override
 	public Set<BuildEntity> getBuildEntities() {
 		return getRelatedEntities(BuildEntity.class);
+	}
+
+	@Override
+	public URL getEntityURL() {
+		return StringUtil.toURL(
+			StringUtil.combine(
+				Jethr0ContextUtil.getLiferayPortalURL(), "/#/jobs/", getId()));
 	}
 
 	@Override
@@ -142,6 +155,8 @@ public abstract class BaseJobEntity extends BaseEntity implements JobEntity {
 		JobEntity.Type type = getType();
 
 		jsonObject.put(
+			"blessed", getBlessed()
+		).put(
 			"name", getName()
 		).put(
 			"parameters", String.valueOf(_getParametersJSONArray())
@@ -263,6 +278,10 @@ public abstract class BaseJobEntity extends BaseEntity implements JobEntity {
 		removeRelatedEntity(testSuiteEntity);
 	}
 
+	public void setBlessed(boolean blessed) {
+		_blessed = blessed;
+	}
+
 	@Override
 	public void setGitCommitEntity(GitCommitEntity gitCommitEntity) {
 		_gitCommitEntity = gitCommitEntity;
@@ -284,6 +303,7 @@ public abstract class BaseJobEntity extends BaseEntity implements JobEntity {
 	public void setJSONObject(JSONObject jsonObject) {
 		super.setJSONObject(jsonObject);
 
+		_blessed = jsonObject.optBoolean("blessed");
 		_gitCommitEntityId = jsonObject.optLong(
 			"r_gitCommitToJobs_c_gitCommitId");
 		_name = jsonObject.getString("name");
@@ -548,6 +568,7 @@ public abstract class BaseJobEntity extends BaseEntity implements JobEntity {
 		"https://github.com/(?<userName>[^/]+)/(?<repositoryName>[^/]+)/tree/" +
 			"(?<branchName>[^/]+)");
 
+	private boolean _blessed;
 	private GitCommitEntity _gitCommitEntity;
 	private long _gitCommitEntityId;
 	private String _name;

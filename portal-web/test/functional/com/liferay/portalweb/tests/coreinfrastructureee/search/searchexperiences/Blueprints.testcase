@@ -48,10 +48,10 @@ definition {
 			Click.clickNoMouseOver(locator1 = "Blueprints#BLUEPRINTS_ADD_ELEMENTS_SIDEBAR_SEARCH_CLEAR");
 		}
 
-		Blueprints.searchBlueprintsPreview(searchTerm = "test");
+		Blueprints.searchBlueprintsPreview(searchTerm = "tree");
 
 		AssertElementPresent(
-			key_resultTitle = "Test",
+			key_resultTitle = "tree.png",
 			locator1 = "Blueprints#BLUEPRINTS_PREVIEW_SEARCH_RESULT_TITLE");
 
 		PortletEntry.save();
@@ -84,7 +84,6 @@ definition {
 	@priority = 3
 	test AddElementToQueryBuilder {
 		property environment.acceptance = "true";
-		property operating.system.types = "alpine,amazonlinux,centos,debian,fedora,orcllinux,osx,redhat,rockylinux,solaris,suse,ubuntu,windows";
 		property portal.acceptance = "true";
 
 		Blueprints.openBlueprintsAdmin();
@@ -668,7 +667,7 @@ definition {
 				groupName = "Guest",
 				title = "WC WebContent Title",
 				userEmailAddress = "userea@liferay.com",
-				userPassword = "test");
+				userPassword = PropsUtil.get("default.admin.password"));
 		}
 
 		task ("Create Blueprint with the element Limit Search to My Contents") {
@@ -895,6 +894,8 @@ definition {
 
 		Click(locator1 = "Link#DOWNLOAD");
 
+		Alert.viewSuccessMessage();
+
 		var outputDir = PropsUtil.get("output.dir.name");
 
 		var fileContent = FileUtil.read("${outputDir}/sxpElement.json");
@@ -964,6 +965,8 @@ definition {
 		SelectFrameTop();
 
 		Click(locator1 = "Link#DOWNLOAD");
+
+		Alert.viewSuccessMessage();
 
 		var outputDir = PropsUtil.get("output.dir.name");
 
@@ -1622,6 +1625,8 @@ definition {
 
 		Click(locator1 = "Link#DOWNLOAD");
 
+		Alert.viewSuccessMessage();
+
 		Blueprints.viewDownloadedContent(
 			fileName = "sxpElement.json",
 			text = "clauses");
@@ -1647,6 +1652,8 @@ definition {
 
 		Click(locator1 = "Link#DOWNLOAD");
 
+		Alert.viewSuccessMessage();
+
 		Blueprints.viewDownloadedContent(
 			fileName = "sxpElement.json",
 			text = "queryConfiguration");
@@ -1668,6 +1675,8 @@ definition {
 
 		Click(locator1 = "Link#DOWNLOAD");
 
+		Alert.viewSuccessMessage();
+
 		Blueprints.viewDownloadedContent(
 			fileName = "raw_response.json",
 			text = "hits");
@@ -1688,6 +1697,8 @@ definition {
 		SelectFrameTop();
 
 		Click(locator1 = "Link#DOWNLOAD");
+
+		Alert.viewSuccessMessage();
 
 		Blueprints.viewDownloadedContent(
 			fileName = "score_explanation.json",
@@ -3361,6 +3372,10 @@ definition {
 
 		Button.click(button = "Seleccionar");
 
+		WaitForElementPresent(
+			key_blueprintTitle = "Título en Español",
+			locator1 = "Blueprints#BLUEPRINTS_OPTION_WIDGET_TITLE");
+
 		AssertTextEquals(
 			key_blueprintTitle = "Título en Español",
 			locator1 = "Blueprints#BLUEPRINTS_OPTION_WIDGET_TITLE",
@@ -3919,9 +3934,15 @@ definition {
 
 		Navigator.gotoNavNested(navNested = "Query Settings");
 
-		Button.click(button = "Customize Contributors");
+		AssertChecked.assertCheckedNotVisible(
+			locator1 = "Radio#ANY",
+			radioLabel = "Disable All");
 
-		AssertElementNotPresent(locator1 = "Blueprints#BLUEPRINTS_CLAUSE_CONTRIBUTOR_TOGGLE_ENABLED");
+		Check.checkNotVisible(
+			locator1 = "Radio#ANY",
+			radioLabel = "Customize");
+
+		Button.click(button = "Customize Contributors");
 
 		ManagementBar.clickSelectAllCheckbox();
 
@@ -4818,6 +4839,10 @@ definition {
 		SelectWindow(value1 = "Creating and Managing Search Blueprints - Liferay Learn");
 
 		Close.closeAndSelectWindow(value1 = "Edit Blueprint - ${siteName}");
+
+		Check.checkNotVisible(
+			locator1 = "Radio#ANY",
+			radioLabel = "Enable All");
 
 		Navigator.gotoNavTab(navTab = "Configuration");
 

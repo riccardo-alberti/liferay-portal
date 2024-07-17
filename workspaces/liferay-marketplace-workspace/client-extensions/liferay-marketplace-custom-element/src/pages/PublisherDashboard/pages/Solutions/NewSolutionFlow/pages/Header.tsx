@@ -6,7 +6,6 @@
 import {ClayRadio, ClayRadioGroup} from '@clayui/form';
 import ClayModal, {useModal} from '@clayui/modal';
 import {filesize} from 'filesize';
-import ReactQuill from 'react-quill';
 
 import {DropzoneUpload} from '../../../../../../components/DropzoneUpload/DropzoneUpload';
 import {
@@ -21,11 +20,10 @@ import {
 	useSolutionContext,
 } from '../../../../../../context/SolutionContext';
 import i18n from '../../../../../../i18n';
+import {getRandomID} from '../../../../../../utils/string';
 import {swapImageElements} from '../../../../constants';
 import {ACCEPT_FILE_TYPES} from '../../../Apps/AppCreationFlow/StorefrontPage/CustomizeAppStorefrontPage';
 import {MAX_IMAGE_QUANTITY, MAX_SIZE_5MBS} from '../../constants';
-
-const MAX_FILES = 5;
 
 enum ContentMediaType {
 	EMBED_VIDEO_URL = 'embed-video-url',
@@ -43,9 +41,18 @@ const Header = () => {
 	] = useSolutionContext();
 
 	const handleUpload = (files: File[]) => {
+		if (
+			files?.length +
+				(contentType as HeaderContentTypeImages).content?.headerImages
+					?.length >
+			MAX_IMAGE_QUANTITY
+		) {
+			return onOpenChange(true);
+		}
 		if (contentType.type === ContentMediaType.UPLOAD_IMAGES) {
 			const totalImages =
-				(contentType.content.headerImages?.length || 0) + files.length;
+				(contentType.content?.headerImages?.length || 0) +
+				files?.length;
 
 			if (totalImages > MAX_IMAGE_QUANTITY) {
 				return;
@@ -56,7 +63,7 @@ const Header = () => {
 				error: false,
 				file,
 				fileName: file.name,
-				id: crypto.randomUUID(),
+				id: getRandomID(),
 				index: 0,
 				preview: URL.createObjectURL(file),
 				progress: 0,
@@ -72,7 +79,7 @@ const Header = () => {
 								? [
 										...contentType.content.headerImages,
 										...newUploadedFiles,
-								  ]
+									]
 								: newUploadedFiles,
 						},
 						type: ContentMediaType.UPLOAD_IMAGES,
@@ -84,9 +91,14 @@ const Header = () => {
 	};
 
 	const handleDelete = async (id: string) => {
-		const files = (contentType as HeaderContentTypeImages).content.headerImages.filter(
-			(uploadedFile) => uploadedFile.id !== id
-		);
+		const files = (
+			contentType as HeaderContentTypeImages
+		).content.headerImages.filter((uploadedFile) => uploadedFile.id !== id);
+
+		dispatch({
+			payload: id,
+			type: SolutionTypes.SET_DELETE_IMAGE,
+		});
 
 		dispatch({
 			payload: {
@@ -133,138 +145,169 @@ const Header = () => {
 
 			<hr />
 
-			<Form.Label className="mt-2" htmlFor="title" info="Title" required>
-				{i18n.translate('title')}
-			</Form.Label>
+			<Form.FormControl>
+				<Form.Label
+					className="mt-2"
+					htmlFor="title"
+					info="Title"
+					required
+				>
+					{i18n.translate('title')}
+				</Form.Label>
 
-			<Form.Input
-				name="title"
-				onChange={(event) =>
-					dispatch({
-						payload: {[event.target.name]: event.target.value},
-						type: SolutionTypes.SET_HEADER,
-					})
-				}
-				placeholder={i18n.translate('enter-title-header')}
-				type="text"
-				value={title}
-			/>
-
-			<Form.Label
-				className="mt-5"
-				htmlFor="description"
-				info="Description"
-				required
-			>
-				{i18n.translate('description')}
-			</Form.Label>
-
-			<div className="rich-text-editor">
-				<ReactQuill
-					onChange={(event: any) =>
+				<Form.Input
+					maxLength={110}
+					name="title"
+					onChange={(event) =>
 						dispatch({
-							payload: {description: event},
+							payload: {[event.target.name]: event.target.value},
 							type: SolutionTypes.SET_HEADER,
 						})
 					}
-					placeholder={i18n.translate('insert-text-here')}
-					value={description as any}
+					placeholder={i18n.translate('enter-title-header')}
+					type="text"
+					value={title}
 				/>
-			</div>
+			</Form.FormControl>
 
-			<Form.Label className="mt-5" htmlFor="text" required>
-				{i18n.translate('content-media-type')}
-			</Form.Label>
+			<Form.FormControl>
+				<Form.Label
+					className="mt-5"
+					htmlFor="description"
+					info="Description"
+					required
+				>
+					{i18n.translate('description')}
+				</Form.Label>
 
-			<ClayRadioGroup
-				className="d-flex flex-column mt-1"
-				onChange={(event: any) =>
-					dispatch({
-						payload: {
-							contentType: {
-								...contentType,
-								type: event,
-							},
-						},
-						type: SolutionTypes.SET_HEADER,
-					})
-				}
-				value={contentType.type}
-			>
-				<ClayRadio label="Upload images" value="upload-images" />
-
-				<ClayRadio label="Embed video URL" value="embed-video-url" />
-			</ClayRadioGroup>
-
-			{contentType.type === ContentMediaType.EMBED_VIDEO_URL && (
-				<>
-					<Form.Label className="mt-5" htmlFor="url" required>
-						{i18n.translate('video-url')}
-					</Form.Label>
-
-					<Form.Input
-						name="headerVideoUrl"
-						onChange={(event) =>
+				<div className="rich-text-editor">
+					<Form.RichTextEditor
+						maxLength={700}
+						onChange={(value) =>
 							dispatch({
-								payload: {
-									contentType: {
-										content: {
-											...contentType.content,
-											headerVideoUrl: event.target.value,
-										},
-										type: ContentMediaType.EMBED_VIDEO_URL,
-									},
-								},
+								payload: {description: value},
 								type: SolutionTypes.SET_HEADER,
 							})
 						}
-						placeholder="https://"
-						type="text"
-						value={contentType.content.headerVideoUrl}
+						placeholder={i18n.translate('insert-text-here')}
+						value={description}
 					/>
+				</div>
+			</Form.FormControl>
 
-					<Form.HelpMessage>
-						{i18n.translate(
-							'you-can-paste-links-directly-from-youtube'
-						)}
-					</Form.HelpMessage>
+			<Form.FormControl>
+				<Form.Label className="mt-5" htmlFor="text" required>
+					{i18n.translate('content-media-type')}
+				</Form.Label>
 
-					<div className="border d-flex flex-row mt-5 p-4 rounded">
-						<VideoThumbnail
-							videoURL={contentType.content.headerVideoUrl}
-						/>
+				<ClayRadioGroup
+					className="d-flex flex-column mt-1"
+					onChange={(event: any) =>
+						dispatch({
+							payload: {
+								contentType: {
+									content: {
+										headerImages: [],
+										headerVideoDescription: '',
+										headerVideoUrl: '',
+									},
+									type: event,
+								},
+							},
+							type: SolutionTypes.SET_HEADER,
+						})
+					}
+					value={contentType.type}
+				>
+					<ClayRadio label="Upload images" value="upload-images" />
+
+					<ClayRadio
+						label="Embed video URL"
+						value="embed-video-url"
+					/>
+				</ClayRadioGroup>
+			</Form.FormControl>
+
+			{contentType.type === ContentMediaType.EMBED_VIDEO_URL && (
+				<>
+					<Form.FormControl>
+						<Form.Label className="mt-5" htmlFor="url" required>
+							{i18n.translate('video-url')}
+						</Form.Label>
 
 						<Form.Input
-							className="ml-3"
-							name="headerVideoDescription"
+							name="headerVideoUrl"
 							onChange={(event) =>
 								dispatch({
 									payload: {
 										contentType: {
 											content: {
 												...contentType.content,
-												headerVideoDescription:
+												headerVideoUrl:
 													event.target.value,
 											},
-											type:
-												ContentMediaType.EMBED_VIDEO_URL,
+											type: ContentMediaType.EMBED_VIDEO_URL,
 										},
 									},
 									type: SolutionTypes.SET_HEADER,
 								})
 							}
-							placeholder={i18n.translate('video-description')}
+							placeholder="https://"
 							type="text"
-							value={contentType.content.headerVideoDescription}
+							value={contentType.content.headerVideoUrl}
 						/>
-					</div>
+
+						<Form.HelpMessage>
+							{i18n.translate(
+								'you-can-paste-links-directly-from-youtube'
+							)}
+						</Form.HelpMessage>
+					</Form.FormControl>
+
+					<Form.FormControl>
+						<div className="border d-flex flex-row mt-5 p-4 rounded">
+							<VideoThumbnail
+								videoURL={contentType.content.headerVideoUrl}
+							/>
+
+							<Form.Input
+								className="ml-3"
+								name="headerVideoDescription"
+								onChange={(event) =>
+									dispatch({
+										payload: {
+											contentType: {
+												content: {
+													...contentType.content,
+													headerVideoDescription:
+														event.target.value,
+												},
+												type: ContentMediaType.EMBED_VIDEO_URL,
+											},
+										},
+										type: SolutionTypes.SET_HEADER,
+									})
+								}
+								placeholder={i18n.translate(
+									'video-description'
+								)}
+								type="text"
+								value={
+									contentType.content.headerVideoDescription
+								}
+							/>
+						</div>
+					</Form.FormControl>
 				</>
 			)}
 
 			{contentType.type === ContentMediaType.UPLOAD_IMAGES && (
-				<>
+				<Form.FormControl>
 					<Form.Label className="mb-4 mt-2" htmlFor="description">
-						{i18n.sub('add-up-to-x-images', MAX_FILES.toString())}
+						{i18n.sub(
+							'add-up-to-x-images',
+							MAX_IMAGE_QUANTITY.toString()
+						)}
 					</Form.Label>
 
 					{!!contentType.content.headerImages?.length && (
@@ -278,8 +321,7 @@ const Header = () => {
 											content: {
 												headerImages: newImagesInputs,
 											},
-											type:
-												ContentMediaType.UPLOAD_IMAGES,
+											type: ContentMediaType.UPLOAD_IMAGES,
 										},
 									},
 									type: SolutionTypes.SET_HEADER,
@@ -299,21 +341,21 @@ const Header = () => {
 							'only-gif-jpg-png-are-allowed-ax-file-size-is-5mb'
 						)}
 						disabled={
-							contentType.content.headerImages.length ===
-							MAX_FILES
+							contentType.content.headerImages?.length ===
+							MAX_IMAGE_QUANTITY
 						}
-						maxFiles={MAX_FILES}
+						maxFiles={MAX_IMAGE_QUANTITY}
 						maxSize={MAX_SIZE_5MBS}
 						multiple
 						onDropRejected={(fileList) => {
-							if (fileList.length > MAX_FILES) {
+							if (fileList.length > MAX_IMAGE_QUANTITY) {
 								onOpenChange(true);
 							}
 						}}
 						onHandleUpload={handleUpload}
 						title={i18n.translate('drag-and-drop-to-upload-or')}
 					/>
-				</>
+				</Form.FormControl>
 			)}
 
 			{open && (
@@ -329,7 +371,7 @@ const Header = () => {
 					<ClayModal.Body className="pb-8">
 						{i18n.sub(
 							'you-cannot-upload-more-than-x-files',
-							MAX_FILES.toString()
+							MAX_IMAGE_QUANTITY.toString()
 						)}
 					</ClayModal.Body>
 				</ClayModal>

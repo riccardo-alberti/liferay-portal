@@ -4,8 +4,9 @@
  */
 
 import ClayIcon from '@clayui/icon';
+import {useAtom} from 'jotai';
 import {Dispatch, useContext, useState} from 'react';
-import {Link, useOutletContext, useParams} from 'react-router-dom';
+import {Link, useNavigate, useOutletContext, useParams} from 'react-router-dom';
 import {KeyedMutator} from 'swr';
 import Avatar from '~/components/Avatar';
 import AssignToMe from '~/components/Avatar/AssignToMe';
@@ -26,6 +27,7 @@ import useCaseResultGroupBy from '~/hooks/data/useCaseResultGroupBy';
 import useSubtaskScore from '~/hooks/data/useSubtaskScore';
 import useHeader from '~/hooks/useHeader';
 import useMutate from '~/hooks/useMutate';
+import {taskSidebarRefresh} from '~/hooks/useSidebarTask';
 import i18n from '~/i18n';
 import {Liferay} from '~/services/liferay';
 import {
@@ -47,6 +49,7 @@ import TaskHeaderActions from './TaskHeaderActions';
 
 type OutletContext = {
 	data: {
+		projectId: string;
 		testrayTask: TestrayTask & {
 			actions: {
 				[key: string]: string;
@@ -61,16 +64,16 @@ const ShortcutIcon = () => (
 );
 
 const TestFlowTasks = () => {
+	const [, setTaskSidebarRefresh] = useAtom(taskSidebarRefresh);
 	const {
-		data: {testrayTask, testrayTaskUser},
+		data: {projectId, testrayTask, testrayTaskUser},
 		revalidate: {revalidateSubtask},
 	} = useOutletContext<OutletContext>();
 	const {actions, completeModal, forceRefetch} = useSubtasksActions();
 	const {taskId} = useParams();
 	const {updateItemFromList} = useMutate();
 	const [isLoading, setIsLoading] = useState(false);
-
-	const projectId = String(testrayTask.build?.project?.id);
+	const navigate = useNavigate();
 
 	const [{myUserAccount}] = useContext(TestrayContext);
 
@@ -111,8 +114,9 @@ const TestFlowTasks = () => {
 		const subtasksWithDifferentAssignedUsers = subtasks
 			?.filter(
 				(subtask) =>
+					subtask?.user?.id.toString() &&
 					subtask?.user?.id.toString() !==
-						Liferay.ThemeDisplay.getUserId() || !subtask?.user?.id
+						Liferay.ThemeDisplay.getUserId()
 			)
 			?.map((subtask) => ({
 				text: i18n.sub(
@@ -131,7 +135,8 @@ const TestFlowTasks = () => {
 	) => {
 		setIsLoading(true);
 
-		await testraySubtaskImpl.mergedToSubtask(subtasks);
+		const {childTestraySubtasks, parentTestraySubtask} =
+			await testraySubtaskImpl.mergedToSubtask(subtasks);
 
 		updateItemFromList(
 			mutate,
@@ -142,12 +147,29 @@ const TestFlowTasks = () => {
 			}
 		);
 
+		setTaskSidebarRefresh(new Date().getTime());
+
 		dispatch({
 			payload: [],
 			type: ListViewTypes.SET_CLEAR_CHECKED_ROW,
 		});
 
 		setIsLoading(false);
+
+		Liferay.Util.openToast({
+			message: i18n.sub('x-successfully-merged-with-x-view-x', [
+				childTestraySubtasks[0].name,
+				parentTestraySubtask.name,
+				parentTestraySubtask.name,
+			]),
+			onClick: ({event}) => {
+				const {target} = event;
+
+				if (target?.id === 'testray-link') {
+					navigate(`subtasks/${parentTestraySubtask.id}`);
+				}
+			},
+		});
 	};
 
 	const searchBuilder = new SearchBuilder({useURIEncode: false});
@@ -161,7 +183,6 @@ const TestFlowTasks = () => {
 	return (
 		<>
 			{testrayTask.actions?.update && <TaskHeaderActions />}
-
 			<Container collapsable title={i18n.sub('task-x', 'details')}>
 				<div className="d-flex flex-wrap">
 					<div className="col-4 col-lg-4 col-md-12 p-0">
@@ -262,7 +283,6 @@ const TestFlowTasks = () => {
 					</div>
 				</div>
 			</Container>
-
 			<Container
 				className="mt-3"
 				collapsable
@@ -397,8 +417,14 @@ const TestFlowTasks = () => {
 															0,
 															{},
 															{
-																revalidate: true,
+																revalidate:
+																	true,
 															}
+														);
+													})
+													.then(() => {
+														setTaskSidebarRefresh(
+															new Date().getTime()
 														);
 													})
 											}
@@ -423,9 +449,10 @@ const TestFlowTasks = () => {
 						{items},
 						{dispatch, listViewContext: {selectedRows}, mutate}
 					) => {
-						const selectedSubtasks: TestraySubtask[] = selectedRows.map(
-							(rowId) => items.find(({id}) => rowId === id)
-						);
+						const selectedSubtasks: TestraySubtask[] =
+							selectedRows.map((rowId) =>
+								items.find(({id}) => rowId === id)
+							);
 
 						const alerts = getFloatingBoxAlerts(selectedSubtasks);
 
@@ -435,8 +462,7 @@ const TestFlowTasks = () => {
 								clearList={() =>
 									dispatch({
 										payload: [],
-										type:
-											ListViewTypes.SET_CLEAR_CHECKED_ROW,
+										type: ListViewTypes.SET_CLEAR_CHECKED_ROW,
 									})
 								}
 								isVisible={!!selectedRows.length}
@@ -448,7 +474,7 @@ const TestFlowTasks = () => {
 									)
 								}
 								primaryButtonProps={{
-									disabled: !!alerts.length && isLoading,
+									disabled: !!alerts.length,
 									loading: isLoading,
 									title: i18n.translate('merge-subtasks'),
 								}}
@@ -461,7 +487,6 @@ const TestFlowTasks = () => {
 					}}
 				</ListView>
 			</Container>
-
 			<SubtaskCompleteModal
 				modal={completeModal}
 				revalidateSubtask={revalidateSubtask}

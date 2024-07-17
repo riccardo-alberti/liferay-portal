@@ -181,6 +181,41 @@ public class JournalArticleLocalServiceTest {
 	}
 
 	@Test
+	public void testAddArticleWithURLWithURLWithConsecutiveSlashes()
+		throws Exception {
+
+		JournalArticle article = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "/test//////test",
+			"test");
+
+		Map<Locale, String> friendlyURLMap = article.getFriendlyURLMap();
+
+		Assert.assertFalse(friendlyURLMap.isEmpty());
+
+		for (Map.Entry<Locale, String> entry : friendlyURLMap.entrySet()) {
+			Assert.assertEquals("test/test", entry.getValue());
+		}
+	}
+
+	@Test
+	public void testAddArticleWithURLWithURLWithStartingSlash()
+		throws Exception {
+
+		JournalArticle article = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, "/test", "test");
+
+		Map<Locale, String> friendlyURLMap = article.getFriendlyURLMap();
+
+		Assert.assertFalse(friendlyURLMap.isEmpty());
+
+		for (Map.Entry<Locale, String> entry : friendlyURLMap.entrySet()) {
+			Assert.assertEquals("test", entry.getValue());
+		}
+	}
+
+	@Test
 	public void testArticleFriendlyURLValidation() throws Exception {
 		_assertArticleFriendlyURLMap(_group);
 
@@ -1092,7 +1127,7 @@ public class JournalArticleLocalServiceTest {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-				_group.getCreatorUserId(), _group.getGroupId(), 0,
+				null, _group.getCreatorUserId(), _group.getGroupId(), 0,
 				_portal.getClassNameId(JournalArticle.class.getName()),
 				ddmStructure.getStructureId(), RandomTestUtil.randomString(),
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,
@@ -1911,7 +1946,7 @@ public class JournalArticleLocalServiceTest {
 			_companyLocalService.getCompany(_group.getCompanyId()));
 
 		Layout layout = _layoutLocalService.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
+			null, TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			StringPool.BLANK, LayoutConstants.TYPE_PORTLET, false,

@@ -6,19 +6,11 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
-import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
 import {getRandomInt} from '../../utils/getRandomInt';
 
-export const test = mergeTests(
-	apiHelpersTest,
-	loginTest(),
-	featureFlagsTest({
-		'LPD-11179': true,
-	}),
-	workflowPagesTest
-);
+export const test = mergeTests(apiHelpersTest, loginTest(), workflowPagesTest);
 
 let workflowDefinitionId: number;
 let workflowDefinitionName: string;
@@ -60,7 +52,7 @@ test('can see Scripted Assignment option when script management configuration is
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickUpdateNodeLink();
+	await diagramViewPage.clickNode('update');
 
 	await nodePropertiesSidebarPage.editAssignmentButton.click();
 
@@ -84,7 +76,7 @@ test('cannot see Scripted Assignment option when script management configuration
 		workflowDefinitionName
 	);
 
-	await diagramViewPage.clickUpdateNodeLink();
+	await diagramViewPage.clickNode('update');
 
 	await nodePropertiesSidebarPage.editAssignmentButton.click();
 

@@ -16,18 +16,23 @@ export function getDTOFromMDFRequest(
 		additionalOption: mdfRequest.additionalOption,
 		claimPercent: mdfRequest.claimPercent,
 		companyName: mdfRequest.company?.name,
+		convertedTotalCostOfExpense: mdfRequest.convertedTotalCostOfExpense,
+		convertedTotalMDFRequestAmount:
+			mdfRequest.convertedTotalMDFRequestAmount,
 		currency: mdfRequest.currency,
+		currencyExchangeRate: mdfRequest.currencyExchangeRate,
 		emailAddress: mdfRequest.id
 			? mdfRequest.emailAddress
 			: Liferay.ThemeDisplay.getUserEmailAddress(),
 		externalReferenceCode: externalReferenceCodeFromSF,
-		liferayBusinessSalesGoals: mdfRequest.liferayBusinessSalesGoals?.includes(
-			'Other - Please describe'
-		)
-			? mdfRequest.liferayBusinessSalesGoals
-					?.filter((item) => item !== 'Other - Please describe')
-					.join('; ')
-			: mdfRequest.liferayBusinessSalesGoals?.join('; '),
+		liferayBusinessSalesGoals:
+			mdfRequest.liferayBusinessSalesGoals?.includes(
+				'Other - Please describe'
+			)
+				? mdfRequest.liferayBusinessSalesGoals
+						?.filter((item) => item !== 'Other - Please describe')
+						.join('; ')
+				: mdfRequest.liferayBusinessSalesGoals?.join('; '),
 		liferayBusinessSalesGoalsOther:
 			mdfRequest?.liferayBusinessSalesGoalsOther,
 		liferaysUserIdSF: mdfRequest.id

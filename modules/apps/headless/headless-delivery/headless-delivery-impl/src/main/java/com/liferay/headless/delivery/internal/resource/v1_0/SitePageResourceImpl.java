@@ -33,7 +33,6 @@ import com.liferay.headless.delivery.internal.odata.entity.v1_0.SitePageEntityMo
 import com.liferay.headless.delivery.resource.v1_0.SitePageResource;
 import com.liferay.layout.admin.kernel.model.LayoutTypePortletConstants;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
-import com.liferay.layout.helper.LayoutCopyHelper;
 import com.liferay.layout.importer.LayoutsImporter;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
@@ -432,8 +431,9 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 		ServiceContext serviceContext = _createServiceContext(siteId, sitePage);
 
 		Layout layout = _layoutService.addLayout(
-			siteId, false, parentLayoutId, nameMap, titleMap, descriptionMap,
-			keywordsMap, robotsMap, LayoutConstants.TYPE_CONTENT,
+			null, siteId, false, parentLayoutId, nameMap, titleMap,
+			descriptionMap, keywordsMap, robotsMap,
+			LayoutConstants.TYPE_CONTENT,
 			typeSettingsUnicodeProperties.toString(), hidden, friendlyUrlMap, 0,
 			serviceContext);
 
@@ -929,7 +929,8 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 	private Layout _updateDraftLayout(Layout layout) throws Exception {
 		Layout draftLayout = layout.fetchDraftLayout();
 
-		draftLayout = _layoutCopyHelper.copyLayoutContent(layout, draftLayout);
+		draftLayout = _layoutLocalService.copyLayoutContent(
+			layout, draftLayout);
 
 		draftLayout.setStatus(WorkflowConstants.STATUS_APPROVED);
 
@@ -1098,9 +1099,6 @@ public class SitePageResourceImpl extends BaseSitePageResourceImpl {
 
 	@Reference
 	private JSONFactory _jsonFactory;
-
-	@Reference
-	private LayoutCopyHelper _layoutCopyHelper;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

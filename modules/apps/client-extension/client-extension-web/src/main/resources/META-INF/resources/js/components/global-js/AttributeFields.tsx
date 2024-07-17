@@ -62,18 +62,38 @@ export default function AttributeFields({
 				<FieldBase
 					className="mb-0"
 					disabled={disabled}
+
+					// @ts-ignore
+
 					errorMessage={errorMessage}
 					id={nameId}
-					label={Liferay.Language.get('attribute')}
+
+					// @ts-ignore
+
+					label={
+						<>
+							{Liferay.Language.get('attribute')}
+
+							<span className="sr-only">
+								{Liferay.Language.get('spaces-are-not-allowed')}
+							</span>
+						</>
+					}
 					required
 				>
 					<ClayInput
+						aria-describedby={`${nameId}fieldFeedback`}
 						aria-required={true}
+						data-testid={`testId_${index}`}
 						defaultValue={name}
 						disabled={disabled}
 						id={nameId}
-						onChange={({target}) => {
-							if (target.value.toLowerCase().trim() === 'src') {
+						onChange={(event) => {
+							const value = event.target.value
+								.split(/\s/)
+								.join('');
+
+							if (value.toLowerCase() === 'src') {
 								setErrorMessage(
 									Liferay.Language.get(
 										'use-the-javascript-url-field'
@@ -84,7 +104,9 @@ export default function AttributeFields({
 								setErrorMessage(null);
 							}
 
-							onAttributeChange(index, {name: target.value});
+							onAttributeChange(index, {
+								name: value,
+							});
 						}}
 						type="text"
 						value={name}
@@ -105,6 +127,9 @@ export default function AttributeFields({
 						disabled={disabled}
 						id={typeId}
 						items={TYPE_ITEMS}
+
+						// @ts-ignore
+
 						onSelectionChange={(type) =>
 							onAttributeChange(index, {
 								type,
@@ -141,6 +166,9 @@ export default function AttributeFields({
 							disabled={disabled}
 							id={valueId}
 							items={BOOLEAN_VALUE_ITEMS}
+
+							// @ts-ignore
+
 							onSelectionChange={(value) =>
 								onAttributeChange(index, {
 									value: JSON.parse(value),
@@ -191,7 +219,7 @@ export default function AttributeFields({
 												Liferay.Language.get(
 													'attribute-field-is-required'
 												)
-										  )
+											)
 								}
 								symbol="plus"
 								title={Liferay.Language.get('add')}

@@ -47,7 +47,8 @@ const getProductBasePriceAndTrial = (
 	}
 
 	const {isFreeApp} = getProductPriceModel(product);
-	const skus = ((product.skus as unknown) as DeliverySKU[]).filter(
+
+	const skus = (product.skus as unknown as DeliverySKU[])?.filter(
 		({purchasable}) => purchasable
 	);
 
@@ -131,7 +132,7 @@ const GetAppOutlet = () => {
 	const navigate = useNavigate();
 
 	const productBasePriceAndTrial = getProductBasePriceAndTrial(
-		(product as unknown) as DeliveryProduct,
+		product as unknown as DeliveryProduct,
 		isCloudApp
 	);
 
@@ -183,7 +184,7 @@ const GetAppOutlet = () => {
 				? await cartUtil.updateCart(orderId, {
 						...cart,
 						cartItems: cartUtil.cartItems,
-				  })
+					})
 				: await postCartByPaymentMethod(cart, channel.id);
 
 			await postCheckoutCart({cartId: cartResponse.id});

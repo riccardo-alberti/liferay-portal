@@ -52,6 +52,7 @@ import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.search.test.rule.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
 import java.io.File;
@@ -125,7 +126,7 @@ public abstract class BaseDocumentResourceTestCase {
 		DocumentResource.Builder builder = DocumentResource.builder();
 
 		documentResource = builder.authentication(
-			"test@liferay.com", "test"
+			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
@@ -3303,6 +3304,22 @@ public abstract class BaseDocumentResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("dateExpired", additionalAssertFieldName)) {
+				if (document.getDateExpired() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("datePublished", additionalAssertFieldName)) {
+				if (document.getDatePublished() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("description", additionalAssertFieldName)) {
 				if (document.getDescription() == null) {
 					valid = false;
@@ -3726,10 +3743,32 @@ public abstract class BaseDocumentResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("dateExpired", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						document1.getDateExpired(),
+						document2.getDateExpired())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("dateModified", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						document1.getDateModified(),
 						document2.getDateModified())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("datePublished", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						document1.getDatePublished(),
+						document2.getDatePublished())) {
 
 					return false;
 				}
@@ -4329,6 +4368,37 @@ public abstract class BaseDocumentResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("dateExpired")) {
+			if (operator.equals("between")) {
+				Date date = document.getDateExpired();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_dateFormat.format(document.getDateExpired()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("dateModified")) {
 			if (operator.equals("between")) {
 				Date date = document.getDateModified();
@@ -4355,6 +4425,37 @@ public abstract class BaseDocumentResourceTestCase {
 				sb.append(" ");
 
 				sb.append(_dateFormat.format(document.getDateModified()));
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("datePublished")) {
+			if (operator.equals("between")) {
+				Date date = document.getDatePublished();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_dateFormat.format(document.getDatePublished()));
 			}
 
 			return sb.toString();
@@ -4762,7 +4863,8 @@ public abstract class BaseDocumentResourceTestCase {
 			"application/json");
 		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
 		httpInvoker.path("http://localhost:8080/o/graphql");
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
+		httpInvoker.userNameAndPassword(
+			"test@liferay.com:" + PropsValues.DEFAULT_ADMIN_PASSWORD);
 
 		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
 
@@ -4799,7 +4901,9 @@ public abstract class BaseDocumentResourceTestCase {
 				contentValue = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				dateCreated = RandomTestUtil.nextDate();
+				dateExpired = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
+				datePublished = RandomTestUtil.nextDate();
 				description = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				documentFolderId = RandomTestUtil.randomLong();

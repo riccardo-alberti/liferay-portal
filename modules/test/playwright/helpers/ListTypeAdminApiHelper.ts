@@ -21,7 +21,41 @@ export class ListTypeAdminApiHelper {
 		);
 	}
 
-	async postRandomListTypeDefinition() {
+	async getFilteredListTypeDefinition(
+		filterParamKey: string,
+		filterParamValue: string
+	): Promise<ListTypeDefinition[]> {
+		const response: ListTypeDefinitions = await this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/list-type-definitions?filter=${filterParamKey} eq '${filterParamValue}'`
+		);
+
+		return response.items;
+	}
+
+	async getListTypeDefinitions(): Promise<ListTypeDefinitions> {
+		return this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/list-type-definitions`
+		);
+	}
+
+	async postListTypeEntry(
+		listTypeDefinitionExternalReferenceCode: string,
+		listTypeEntryName: string
+	): Promise<ListTypeDefinition> {
+		const requestBody = {
+			key: listTypeEntryName.toLocaleLowerCase(),
+			name_i18n: {
+				en_US: listTypeEntryName,
+			},
+		};
+
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${this.basePath}/list-type-definitions/by-external-reference-code/${listTypeDefinitionExternalReferenceCode}/list-type-entries`,
+			{data: requestBody}
+		);
+	}
+
+	async postRandomListTypeDefinition(): Promise<ListTypeDefinition> {
 		const listTypeDefinitionExternalReferenceCode =
 			'ListTypeDefinition' + getRandomInt();
 

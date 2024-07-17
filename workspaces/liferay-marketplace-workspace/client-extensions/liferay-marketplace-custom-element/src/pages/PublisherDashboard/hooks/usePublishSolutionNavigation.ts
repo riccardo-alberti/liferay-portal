@@ -25,6 +25,8 @@ const usePublishSolutionNavigation = () => {
 		({path}) => path === lastPath
 	);
 
+	const isLastStep = activeIndex + 1 === publishSolutionSteps.length;
+
 	if (activeIndex === -1) {
 		activeIndex = 0;
 	}
@@ -40,11 +42,13 @@ const usePublishSolutionNavigation = () => {
 		navigate(publishSolutionSteps[activeIndex + 1].path);
 	};
 
-	const onExit = () => navigate('../solutions');
+	const onExit = () => navigate('/solutions');
 
 	return {
 		activeIndex,
 		activeRoute,
+		id,
+		isLastStep,
 		onClickContinue,
 		onClickPrevious,
 		onExit,

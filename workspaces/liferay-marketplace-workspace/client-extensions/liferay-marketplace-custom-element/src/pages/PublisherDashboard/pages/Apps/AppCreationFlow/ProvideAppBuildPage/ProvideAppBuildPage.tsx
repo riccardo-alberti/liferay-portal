@@ -5,13 +5,10 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
-import {filesize} from 'filesize';
 import {useCallback, useMemo, useState} from 'react';
 import ReactDOMServer from 'react-dom/server';
 
 import githubIcon from '../../../../../../assets/icons/github_icon.svg';
-import {DropzoneUpload} from '../../../../../../components/DropzoneUpload/DropzoneUpload';
-import {FileList} from '../../../../../../components/FileList/FileList';
 import {Header} from '../../../../../../components/Header/Header';
 import {NewAppPageFooterButtons} from '../../../../../../components/NewAppPageFooterButtons/NewAppPageFooterButtons';
 import {PackageVersionModal} from '../../../../../../components/PackageVersionModal/PackageVersionModal';
@@ -25,7 +22,6 @@ import {ProductVersionOption} from '../../../../../../enums/ProductVersionOption
 import {ProductVocabulary} from '../../../../../../enums/ProductVocabulary';
 import i18n from '../../../../../../i18n';
 import {
-	addExpandoValue,
 	createAttachmentAxios,
 	createProductSpecification,
 	getCategories,
@@ -36,18 +32,20 @@ import {
 	patchProductIdCategory,
 	updateProductSpecification,
 } from '../../../../../../utils/api';
-import {
-	getTemporaryProductIdForSpefication,
-	submitBase64EncodedFile,
-} from '../../../../../../utils/util';
+import {submitBase64EncodedFile} from '../../../../../../utils/util';
 import {useAppContext} from '../AppContext/AppManageState';
 import {TYPES} from '../AppContext/actionTypes';
 import OfferingTypeCheckbox from './components/OfferingTypeCheckbox';
 import {offeringTypesDescription} from './constants/offeringTypesDescriptions';
 
 import './ProvideAppBuildPage.scss';
-import {Liferay} from '../../../../../../liferay/liferay';
+import {useMarketplaceContext} from '../../../../../../context/MarketplaceContext';
+import {PRODUCT_WORKFLOW_STATUS_CODE} from '../../../../../../enums/Product';
+import useFeaturePreview from '../../../../../../hooks/useFeaturePreview';
+import HeadlessCommerceAdminCatalogImpl from '../../../../../../services/rest/HeadlessCommerceAdminCatalog';
+import {base64ToText, fileToBase64} from '../../../../../../utils/file';
 import ResourceRequirements from './ResourceRequirements';
+import UploadAppPackagesComponent from './components/UploadAppPackages';
 
 type ProvideAppBuildPageProps = {
 	onClickBack: () => void;
@@ -60,121 +58,12 @@ type BodyProductSpecificationProps = {
 	value: number | string;
 };
 
-type UploadAppPackagesComponentProps = {
-	isProcessing: boolean;
-	versionName: string;
-};
-
-const acceptFileTypes = {
-	[ProductType.CLOUD]: {
-		'application/java-archive': ['.zip'],
-	},
-	[ProductType.DXP]: {
-		'application/java-archive': ['.jar'],
-		'application/octet-stream': ['.war'],
-	},
-};
-
-const UPLOAD_MAX_SIZE = 500_000_000;
-
-const UploadAppPackagesComponent = ({
-	isProcessing,
-	versionName,
-}: UploadAppPackagesComponentProps) => {
-	const [{appType, buildAppPackages}, dispatch] = useAppContext();
-
-	const enableUploadFiles =
-		!isProcessing &&
-		(!buildAppPackages[versionName]?.length ||
-			buildAppPackages[versionName]?.length < 10);
-
-	const handleUploadAppPackages = (files: File[], versionName?: string) => {
-		const newUploadedPackage = files.map((file) => ({
-			error: false,
-			file,
-			fileName: file.name,
-			id: crypto.randomUUID(),
-			preview: URL.createObjectURL(file),
-			progress: 0,
-			readableSize: filesize(file.size),
-			uploaded: false,
-			versionName,
-		}));
-
-		const currentVersionFiles =
-			buildAppPackages[versionName as string] ?? [];
-
-		dispatch({
-			payload: {
-				files: currentVersionFiles.length
-					? [
-							...buildAppPackages[versionName as string],
-							...newUploadedPackage,
-					  ]
-					: newUploadedPackage,
-				versionName,
-			},
-			type: TYPES.UPLOAD_BUILD_PACKAGE_FILES,
-		});
-	};
-
-	const handleRemoveAppPackages = (fileId: string, versionName?: string) =>
-		dispatch({
-			payload: {
-				files: buildAppPackages[versionName as string]?.filter(
-					(value) => value.id !== fileId
-				),
-				versionName,
-			},
-			type: TYPES.UPLOAD_BUILD_PACKAGE_FILES,
-		});
-
-	return (
-		<>
-			<FileList
-				isProcessing={isProcessing}
-				onDelete={handleRemoveAppPackages}
-				type="document"
-				uploadedFiles={
-					buildAppPackages ? buildAppPackages[versionName] : []
-				}
-				versionName={versionName}
-			/>
-
-			{enableUploadFiles && (
-				<DropzoneUpload
-					acceptFileTypes={
-						acceptFileTypes[
-							appType.value as keyof typeof acceptFileTypes
-						]
-					}
-					buttonText={i18n.translate('select-a-file')}
-					description={
-						appType.value === ProductType.CLOUD
-							? i18n.translate(
-									'only-zip-files-are-allowed-max-file-size-is-500-mb'
-							  )
-							: i18n.translate(
-									'only-jar-war-files-are-allowed-max-file-size-is-500mb'
-							  )
-					}
-					maxFiles={10}
-					maxSize={UPLOAD_MAX_SIZE}
-					multiple={true}
-					onHandleUpload={handleUploadAppPackages}
-					title={i18n.translate('drag-and-drop-to-upload-or')}
-					versionName={versionName}
-				/>
-			)}
-		</>
-	);
-};
-
 export function ProvideAppBuildPage({
 	onClickBack,
 	onClickContinue,
 }: ProvideAppBuildPageProps) {
 	const [isProcessing, setProcessing] = useState(false);
+	const {properties} = useMarketplaceContext();
 
 	const [
 		{
@@ -189,17 +78,18 @@ export function ProvideAppBuildPage({
 		dispatch,
 	] = useAppContext();
 
+	const {getTemporaryProductIdForSpefication} = useFeaturePreview();
+
 	const _tempProductId = getTemporaryProductIdForSpefication({
 		appId,
-		appProductId,
+		productId: appProductId,
 	});
 
 	const [selectedCheckboxValue, setSelectedCheckboxValue] = useState<
 		string[]
 	>([]);
-	const [visibleSelectVersionModal, setVisibleSelectVersionModal] = useState(
-		false
-	);
+	const [visibleSelectVersionModal, setVisibleSelectVersionModal] =
+		useState(false);
 
 	const bodySpecification = useMemo(
 		() => [
@@ -353,19 +243,69 @@ export function ProvideAppBuildPage({
 	};
 
 	const submitAppBuildPackages = async () => {
+		if (properties.featureFlags?.includes('LPD-21582')) {
+			const items = [];
+			const liferayVersionSpecifications = [];
+
+			const dataProductSpecifications = await getProductSpecifications({
+				appProductId,
+			});
+
+			const filteredProductSpecifications =
+				dataProductSpecifications.filter(
+					(specification) =>
+						specification.specificationKey !== 'liferay-version'
+				);
+
+			for (const versionKey in buildAppPackages) {
+				const appPackagesByVersion = buildAppPackages[versionKey];
+
+				for (const appPackage of appPackagesByVersion) {
+					items.push({
+						attachment: base64ToText(
+							(await fileToBase64(appPackage.file)) as string
+						),
+						version: versionKey,
+					});
+					liferayVersionSpecifications.push({
+						specificationKey: 'liferay-version',
+						value: {
+							en_US: versionKey,
+						},
+					});
+				}
+			}
+
+			await HeadlessCommerceAdminCatalogImpl.updateProductByExternalReferenceCode(
+				appERC,
+				{
+					productSpecifications: [
+						...filteredProductSpecifications,
+						...liferayVersionSpecifications,
+					],
+					productStatus: PRODUCT_WORKFLOW_STATUS_CODE.DRAFT,
+					productVirtualSettings: {
+						productVirtualSettingsFileEntries: items,
+					},
+				}
+			);
+
+			return;
+		}
+
 		for (const versionKey in buildAppPackages) {
 			const appPackagesByVersion = buildAppPackages[versionKey];
 
 			try {
 				for (const appPackage of appPackagesByVersion) {
 					if (appPackage.uploaded) {
+
 						// eslint-disable-next-line no-console
 						console.info('File already uploaded', appPackage);
 
 						continue;
 					}
-
-					const buildAppPackageId = await submitBase64EncodedFile({
+					await submitBase64EncodedFile({
 						appERC,
 						callback: (progress) => {
 							buildAppPackages[versionKey] = buildAppPackages[
@@ -404,24 +344,13 @@ export function ProvideAppBuildPage({
 
 							return file;
 						});
-
-						dispatch({
-							payload: buildAppPackages,
-							type: TYPES.UPDATE_BUILD_PACKAGE_FILES,
-						});
-					});
-
-					await addExpandoValue({
-						attributeValues: {
-							'Liferay Version': versionKey,
-						},
-						className:
-							'com.liferay.commerce.product.model.CPAttachmentFileEntry',
-						classPK: buildAppPackageId as number,
-						companyId: Liferay.ThemeDisplay.getCompanyId(),
-						tableName: 'CUSTOM_FIELDS',
 					});
 				}
+
+				dispatch({
+					payload: buildAppPackages,
+					type: TYPES.UPDATE_BUILD_PACKAGE_FILES,
+				});
 			}
 			catch (error) {
 				console.error(
@@ -516,6 +445,43 @@ export function ProvideAppBuildPage({
 		!buildAppPackageValues.length ||
 		buildAppPackageValues.some((versionEntry) => !versionEntry?.length);
 
+	const BuildAppPackageVersionsComponent = () => (
+		<>
+			{buildAppPackageVersions.map((version, index) => (
+				<div
+					className="mt-4 provide-app-build-page-dropzone-container"
+					key={index}
+				>
+					<div className="align-center d-flex font-weight-bold justify-content-between p-3 provide-app-build-page-dropzone-container-header">
+						<span>{version}</span>
+						<ClayButton
+							displayType="unstyled"
+							onClick={() => handleRemovePackageVersion(version)}
+						>
+							{i18n.translate('remove-a-version')}
+						</ClayButton>
+					</div>
+
+					<UploadAppPackagesComponent
+						isProcessing={isProcessing}
+						versionName={version}
+					/>
+				</div>
+			))}
+
+			{!isProcessing && (
+				<ClayButton
+					className="btn-block provide-app-build-page-add-package-button"
+					displayType="secondary"
+					onClick={() => setVisibleSelectVersionModal(true)}
+				>
+					<ClayIcon className="mr-1" symbol="plus" />
+					{i18n.translate('add-packages')}
+				</ClayButton>
+			)}
+		</>
+	);
+
 	return (
 		<div className="provide-app-build-page-container">
 			<Header
@@ -587,9 +553,9 @@ export function ProvideAppBuildPage({
 							<OfferingTypeCheckbox
 								handleSelectCheckbox={handleSelectCheckbox}
 								offeringTypes={
-									(offeringTypesDescription[
+									offeringTypesDescription[
 										appType.value as ProductType
-									] as unknown) as OfferingType[]
+									] as unknown as OfferingType[]
 								}
 								selectedValue={selectedCheckboxValue}
 							/>
@@ -643,7 +609,7 @@ export function ProvideAppBuildPage({
 										? i18n.translate('via-zip-upload')
 										: i18n.translate(
 												'via-liferay-plugin-packages'
-										  )
+											)
 								}
 								tooltip={ReactDOMServer.renderToString(
 									<span>
@@ -704,79 +670,43 @@ export function ProvideAppBuildPage({
 
 					<Section
 						description={i18n.translate(
-							appType.value === ProductType.CLOUD
+							!properties.featureFlags?.includes('LPD-21582') &&
+								appType.value === ProductType.CLOUD
 								? 'select-a-local-file-to-upload'
 								: 'if-the-app-is-compatible-with-different-updates-of-74-please-upload-multiple-packages-for-each-update-or-update-compatibility-range'
 						)}
 						label={i18n.translate(
-							appType.value === ProductType.CLOUD
+							!properties.featureFlags?.includes('LPD-21582') &&
+								appType.value === ProductType.CLOUD
 								? 'upload-zip-files'
 								: 'upload-liferay-plugin-packages'
 						)}
 						required
 						tooltip={i18n.translate(
-							appType.value === ProductType.CLOUD
+							!properties.featureFlags?.includes('LPD-21582') &&
+								appType.value === ProductType.CLOUD
 								? 'you-can-upload-one-or-many-zip-files-max-total-size-is-500-mb'
 								: 'only-jar-war-files-are-allowed-max-file-size-is-500mb'
 						)}
 						tooltipText={i18n.translate('more-info')}
 					>
-						{appType.value === ProductType.CLOUD && (
-							<UploadAppPackagesComponent
-								isProcessing={isProcessing}
-								versionName={ProductType.CLOUD}
-							/>
-						)}
-
-						{appType.value === ProductType.DXP && (
+						{!properties.featureFlags?.includes('LPD-21582') && (
 							<>
-								{buildAppPackageVersions.map(
-									(version, index) => (
-										<div
-											className="mt-4 provide-app-build-page-dropzone-container"
-											key={index}
-										>
-											<div className="align-center d-flex font-weight-bold justify-content-between p-3 provide-app-build-page-dropzone-container-header">
-												<span>{version}</span>
-
-												<ClayButton
-													displayType="unstyled"
-													onClick={() =>
-														handleRemovePackageVersion(
-															version
-														)
-													}
-												>
-													{i18n.translate(
-														'remove-a-version'
-													)}
-												</ClayButton>
-											</div>
-
-											<UploadAppPackagesComponent
-												isProcessing={isProcessing}
-												versionName={version}
-											/>
-										</div>
-									)
+								{appType.value === ProductType.CLOUD && (
+									<UploadAppPackagesComponent
+										isProcessing={isProcessing}
+										versionName={ProductType.CLOUD}
+									/>
 								)}
 
-								{!isProcessing && (
-									<ClayButton
-										className="btn-block provide-app-build-page-add-package-button"
-										displayType="secondary"
-										onClick={() =>
-											setVisibleSelectVersionModal(true)
-										}
-									>
-										<ClayIcon
-											className="mr-1"
-											symbol="plus"
-										/>
-										{i18n.translate('add-packages')}
-									</ClayButton>
+								{appType.value === ProductType.DXP && (
+									<BuildAppPackageVersionsComponent />
 								)}
 							</>
+						)}
+
+						{properties.featureFlags?.includes('LPD-21582') && (
+							<BuildAppPackageVersionsComponent />
 						)}
 
 						{visibleSelectVersionModal && (
@@ -801,8 +731,8 @@ export function ProvideAppBuildPage({
 
 					try {
 						await submitAppBuildCategories();
-						await submitAppBuildTypeSpecification();
 						await submitAppBuildPackages();
+						await submitAppBuildTypeSpecification();
 
 						if (isCloud) {
 							await submitAppBuildCloudResourceRequirements(

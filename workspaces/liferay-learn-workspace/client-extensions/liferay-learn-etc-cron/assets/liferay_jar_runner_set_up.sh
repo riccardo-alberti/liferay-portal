@@ -27,6 +27,8 @@ function clone_repository {
 	then
 		pushd ${LIFERAY_LEARN_ETC_CRON_GIT_REPOSITORY_DIR}
 
+		rm -f .git/index.lock
+
 		git reset --hard origin/master && git pull
 
 		popd
@@ -81,6 +83,8 @@ function copy_resources {
 
 function generate_docs {
 	pushd ${LIFERAY_LEARN_ETC_CRON_GIT_REPOSITORY_DIR}
+
+	export LIFERAY_LEARN_SKIP_DIFF_CHECK=${LIFERAY_LEARN_ETC_SKIP_DIFF_CHECK}
 
 	./generate_docs.sh
 

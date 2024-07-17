@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {useAtomValue} from 'jotai';
 import {useEffect} from 'react';
 import {Outlet, useLocation, useParams} from 'react-router-dom';
 import PageRenderer from '~/components/PageRenderer';
+import {taskSidebarRefresh} from '~/hooks/useSidebarTask';
 
 import SearchBuilder from '../../core/SearchBuilder';
 import {useFetch} from '../../hooks/useFetch';
@@ -66,14 +68,23 @@ const TestflowNavigationOutlet = () => {
 
 const TestflowOutlet = () => {
 	const params = useParams();
+	const refresh = useAtomValue(taskSidebarRefresh);
 
 	const taskId = params.taskId as string;
 
-	const {data: testrayTask, error, loading, mutate: mutateTask} = useFetch<
-		TestrayTask
-	>(testrayTaskImpl.getResource(taskId), {
-		transformData: (response) => testrayTaskImpl.transformData(response),
-	});
+	const {
+		data: testrayTask,
+		error,
+		loading,
+		mutate: mutateTask,
+	} = useFetch<TestrayTask>(
+		testrayTaskImpl.getResource(taskId) + '&t=' + refresh,
+		{
+			transformData: (response) =>
+				testrayTaskImpl.transformData(response),
+		}
+	);
+	const projectId = String(testrayTask?.build?.project?.id);
 
 	const {data: testrayTaskCaseTypes} = useFetch<
 		APIResponse<TestrayTaskCaseTypes>
@@ -128,6 +139,7 @@ const TestflowOutlet = () => {
 					context={{
 						actions: testrayTask?.actions,
 						data: {
+							projectId,
 							testraySubtasks,
 							testrayTask,
 							testrayTaskCaseTypes:

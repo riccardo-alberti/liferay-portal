@@ -1,10 +1,10 @@
-@component-name = "portal-batch-planner"
+@component-name = "portal-headless"
 definition {
 
 	property custom.properties = "feature.flag.COMMERCE-8087=true${line.separator}feature.flag.LPS-186620=true";
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Import/Export";
+	property testray.main.component.name = "Data Migration Center";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -41,7 +41,7 @@ definition {
 
 			ImportExport.gotoImport();
 
-			ImportExport.selectEntity(entityType = "C_Student (v1_0 - Liferay Object REST)");
+			ImportExport.selectEntity(entityType = "Student (v1.0 - Liferay Object REST)");
 		}
 
 		task ("When I download a sample file of this entity") {
@@ -105,7 +105,7 @@ definition {
 
 		task ("When user export custom object as entity type") {
 			ImportExport.exportAndUnzipFile(
-				entityType = "C_Subject (v1_0 - Liferay Object REST)",
+				entityType = "Subject (v1.0 - Liferay Object REST)",
 				exportFields = "Attribute Code",
 				exportFileFormat = "JSON");
 		}
@@ -164,7 +164,7 @@ definition {
 
 		task ("When user export custom object as entity type") {
 			ImportExport.exportAndUnzipFile(
-				entityType = "C_Student (v1_0 - Liferay Object REST)",
+				entityType = "Student (v1.0 - Liferay Object REST)",
 				exportFields = "Attribute Code",
 				exportFileFormat = "JSON");
 		}
@@ -197,7 +197,7 @@ definition {
 
 		task ("When user export custom object as entity type and map attribute codes") {
 			ImportExport.exportAndUnzipFile(
-				entityType = "C_Student (v1_0 - Liferay Object REST)",
+				entityType = "Student (v1.0 - Liferay Object REST)",
 				exportFields = "Attribute Code",
 				exportFileFormat = "JSON");
 		}
@@ -222,7 +222,7 @@ definition {
 
 		task ("When user export custom object with all attribute codes selected") {
 			ImportExport.exportAndUnzipFile(
-				entityType = "C_Student (v1_0 - Liferay Object REST)",
+				entityType = "Student (v1.0 - Liferay Object REST)",
 				exportFields = "Attribute Code",
 				exportFileFormat = "JSON");
 		}
@@ -254,7 +254,7 @@ definition {
 
 		task ("When save as template with a template name") {
 			ImportExport.configureExport(
-				entityType = "C_Student (v1_0 - Liferay Object REST)",
+				entityType = "Student (v1.0 - Liferay Object REST)",
 				exportFields = "Attribute Code",
 				exportFileFormat = "JSON");
 
@@ -270,8 +270,6 @@ definition {
 		}
 	}
 
-	@description = "Ignored due to LPS-189103"
-	@ignore = "true"
 	@priority = 3
 	test SaveImportCustomObjectAsTemplate {
 		task ("And Given I create an import task with custom objects") {
@@ -282,8 +280,8 @@ definition {
 				requiredStringFieldName = "name");
 
 			ImportExport.importFile(
-				entityType = "C_Student (v1_0 - Liferay Object REST)",
-				fieldMappings = "name:Student Name,externalReferenceCode:External Reference Code",
+				entityType = "Student (v1.0 - Liferay Object REST)",
+				fieldMappings = "name:name,externalReferenceCode:externalReferenceCode",
 				fileName = "csv_student_import.csv",
 				noImport = "true");
 		}
@@ -318,7 +316,7 @@ definition {
 
 			ImportExport.gotoExport();
 
-			ImportExport.selectEntity(entityType = "C_Student (v1_0 - Liferay Object REST)");
+			ImportExport.selectEntity(entityType = "Student (v1.0 - Liferay Object REST)");
 		}
 
 		task ("Then no error in server console") {

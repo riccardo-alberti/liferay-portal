@@ -6,28 +6,33 @@
 import ClayIcon from '@clayui/icon';
 import {ReactNode} from 'react';
 
+import './VideoThumbnail.scss';
+
 type VideoThumbnailProps = {
 	videoURL: string;
 };
 
 const getThumbnail = (videoURL: string) => {
 	if (!videoURL?.startsWith('https://')) {
-		return;
+		return '';
 	}
 
-	const url = new URL(videoURL) as URL;
+	try {
+		const url = new URL(videoURL);
 
-	if (url.hostname.includes('youtube.com')) {
-		const videoId = url.searchParams.get('v');
+		if (url && url.hostname.includes('youtube.com')) {
+			const videoId = url.searchParams.get('v');
 
-		return videoId ? `https://img.youtube.com/vi/${videoId}/0.jpg` : '';
+			return videoId ? `https://img.youtube.com/vi/${videoId}/0.jpg` : '';
+		}
 	}
+	catch {}
 
 	return '';
 };
 
 const Wrapper: React.FC<{children: ReactNode}> = ({children}) => (
-	<div className="align-items-center d-flex justify-content-center rounded video-player">
+	<div className="align-items-center d-flex justify-content-center position-relative video-player">
 		{children}
 	</div>
 );
@@ -38,14 +43,30 @@ const VideoThumbnail: React.FC<VideoThumbnailProps> = ({videoURL}) => {
 	if (!thumbnail) {
 		return (
 			<Wrapper>
-				<ClayIcon symbol="video" />
+				<ClayIcon aria-label="video thumbnail empty" symbol="video" />
 			</Wrapper>
 		);
 	}
 
 	return (
 		<Wrapper>
-			<img height={140} src={getThumbnail(videoURL)} width={140} />
+			<a
+				className="align-items-center d-flex justify-content-center position-relative"
+				href={videoURL}
+				target="_blank"
+			>
+				<img
+					aria-label="video-thumbnail"
+					className="video-preview"
+					src={getThumbnail(videoURL)}
+				/>
+
+				<ClayIcon
+					aria-label="video thumbnail empty"
+					className="video-thumbnail-play-symbol"
+					symbol="video"
+				/>
+			</a>
 		</Wrapper>
 	);
 };

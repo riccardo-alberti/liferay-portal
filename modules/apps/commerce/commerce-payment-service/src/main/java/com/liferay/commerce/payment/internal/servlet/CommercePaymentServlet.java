@@ -137,14 +137,23 @@ public class CommercePaymentServlet extends HttpServlet {
 			_log.error(exception);
 
 			try {
-				PermissionThreadLocal.setPermissionChecker(
-					PermissionCheckerFactoryUtil.create(
-						_portal.getUser(httpServletRequest)));
+				CommerceOrder commerceOrder =
+					_commerceOrderLocalService.fetchCommerceOrder(
+						_commerceOrderId);
 
-				_commercePaymentEngine.updateOrderPaymentStatus(
-					_commerceOrderId,
-					CommerceOrderPaymentConstants.STATUS_FAILED,
-					StringPool.BLANK, StringPool.BLANK);
+				if ((commerceOrder != null) &&
+					!(commerceOrder.getPaymentStatus() ==
+						CommercePaymentEntryConstants.STATUS_COMPLETED)) {
+
+					PermissionThreadLocal.setPermissionChecker(
+						PermissionCheckerFactoryUtil.create(
+							_portal.getUser(httpServletRequest)));
+
+					_commercePaymentEngine.updateOrderPaymentStatus(
+						_commerceOrderId,
+						CommerceOrderPaymentConstants.STATUS_FAILED,
+						StringPool.BLANK, StringPool.BLANK);
+				}
 
 				httpServletResponse.sendRedirect(
 					_portal.getPortalURL(httpServletRequest));
@@ -240,7 +249,7 @@ public class CommercePaymentServlet extends HttpServlet {
 					commerceOrder.getCommerceOrderId(), commerceChannelId,
 					commerceOrder.getTotal(), null, null,
 					commerceCurrency.getCode(),
-					_language.getLanguageId(httpServletRequest), null,
+					_language.getLanguageId(httpServletRequest), null, null,
 					commerceOrder.getCommercePaymentMethodKey(),
 					commercePaymentIntegration.getPaymentIntegrationType(),
 					null, null, CommercePaymentEntryConstants.TYPE_PAYMENT,

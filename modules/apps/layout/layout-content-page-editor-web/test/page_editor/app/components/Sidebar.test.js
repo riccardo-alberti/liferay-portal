@@ -3,13 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {
-	act,
-	fireEvent,
-	render,
-	screen,
-	waitForElementToBeRemoved,
-} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import {sessionStorage} from 'frontend-js-web';
 import React from 'react';
 import {DndProvider} from 'react-dnd';
@@ -17,13 +11,13 @@ import {HTML5Backend} from 'react-dnd-html5-backend';
 
 import Sidebar, {
 	MAX_SIDEBAR_WIDTH,
-	MIN_SIZEBAR_WIDTH,
+	MIN_SIDEBAR_WIDTH,
 	SIDEBAR_WIDTH_RESIZE_STEP,
 } from '../../../../src/main/resources/META-INF/resources/page_editor/app/components/Sidebar';
 import {DragAndDropContextProvider} from '../../../../src/main/resources/META-INF/resources/page_editor/app/utils/drag_and_drop/useDragAndDrop';
 import StoreMother from '../../../../src/main/resources/META-INF/resources/page_editor/test_utils/StoreMother';
 
-const renderSidebar = async () => {
+const renderSidebar = () =>
 	render(
 		<StoreMother.Component>
 			<DndProvider backend={HTML5Backend}>
@@ -33,11 +27,6 @@ const renderSidebar = async () => {
 			</DndProvider>
 		</StoreMother.Component>
 	);
-
-	await waitForElementToBeRemoved(() =>
-		document.querySelector('.loading-animation')
-	);
-};
 
 describe('Sidebar', () => {
 	describe('resize', () => {
@@ -82,7 +71,7 @@ describe('Sidebar', () => {
 			});
 
 			expect(handler.getAttribute('aria-valuenow')).toBe(
-				(MIN_SIZEBAR_WIDTH + 100).toString()
+				(MIN_SIDEBAR_WIDTH + 100).toString()
 			);
 		});
 
@@ -105,7 +94,7 @@ describe('Sidebar', () => {
 			});
 
 			expect(handler.getAttribute('aria-valuenow')).toBe(
-				(MIN_SIZEBAR_WIDTH + SIDEBAR_WIDTH_RESIZE_STEP).toString()
+				(MIN_SIDEBAR_WIDTH + SIDEBAR_WIDTH_RESIZE_STEP).toString()
 			);
 
 			act(() => {
@@ -135,7 +124,7 @@ describe('Sidebar', () => {
 			});
 
 			expect(handler.getAttribute('aria-valuenow')).toBe(
-				MIN_SIZEBAR_WIDTH.toString()
+				MIN_SIDEBAR_WIDTH.toString()
 			);
 		});
 	});

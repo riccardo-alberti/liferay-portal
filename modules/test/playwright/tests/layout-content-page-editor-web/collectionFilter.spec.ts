@@ -3,19 +3,21 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {expect, mergeTests} from '@playwright/test';
+import {Page, expect, mergeTests} from '@playwright/test';
 
 import {collectionsPagesTest} from '../../fixtures/CollectionsPageTest';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {wemSiteTest} from '../../fixtures/wemSiteTest';
+import {ANIMALS_COLLECTION_NAME} from '../../setup/wem-site/constants';
+import {clickAndExpectToBeHidden} from '../../utils/clickAndExpectToBeHidden';
 import getRandomString from '../../utils/getRandomString';
 import addApprovedStructuredContent from '../../utils/structured-content/addApprovedStructuredContent';
 import getBasicWebContentStructureId from '../../utils/structured-content/getBasicWebContentStructureId';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import createPageWithCollectionAndFilterCollection from './utils/createPageWithCollectionAndFilterCollection';
 import getCollectionDefinition from './utils/getCollectionDefinition';
 import getCollectionItemDefinition from './utils/getCollectionItemDefinition';
@@ -38,30 +40,53 @@ const FRAGMENT_FIELDS = [
 	},
 ];
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	collectionsPagesTest,
 	featureFlagsTest({
 		'LPS-178052': true,
 	}),
-	isolatedSiteTest,
 	journalPagesTest,
 	loginTest(),
 	pageEditorPagesTest,
 	wemSiteTest
 );
 
-export const testWithIsolatedSite = mergeTests(
-	apiHelpersTest,
-	collectionsPagesTest,
-	featureFlagsTest({
-		'LPS-178052': true,
-	}),
-	isolatedSiteTest,
-	journalPagesTest,
-	loginTest(),
-	pageEditorPagesTest
-);
+const testWithIsolatedSite = mergeTests(test, isolatedSiteTest);
+
+const configureFilter = async (page: Page, option: 'category' | 'keywords') => {
+	await page.getByLabel('Select', {exact: true}).click();
+
+	await page.getByLabel(ANIMALS_COLLECTION_NAME).check();
+
+	await page.getByLabel('Filter', {exact: true}).selectOption(option);
+
+	if (option === 'category') {
+		await page.getByLabel('Select Source').click();
+
+		await page
+			.frameLocator('iframe[title="Select"]')
+			.getByRole('link', {name: ANIMALS_COLLECTION_NAME})
+			.click();
+
+		await expect(
+			page
+				.frameLocator('iframe[title="Select"]')
+				.getByRole('button', {name: 'Select This Level'})
+		).toBeEnabled();
+
+		await clickAndExpectToBeHidden({
+			target: page.locator('.modal-dialog'),
+			trigger: page
+				.frameLocator('iframe[title="Select"]')
+				.getByRole('button', {name: 'Select This Level'}),
+		});
+
+		await expect(page.getByLabel('Source', {exact: true})).toHaveValue(
+			ANIMALS_COLLECTION_NAME
+		);
+	}
+};
 
 const selectFilter = async (page, categories) => {
 	await page.getByRole('button', {name: 'Select'}).click();
@@ -88,27 +113,24 @@ test('filters a web content collection by single and multiple categories', async
 
 	const collectionFilterId = getRandomString();
 
-	const collectionFilterDefinition = getFragmentDefinition(
-		collectionFilterId,
-		'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer'
-	);
+	const collectionFilterDefinition = getFragmentDefinition({
+		id: collectionFilterId,
+		key: 'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer',
+	});
 
 	// Create definition for a collection mapped to Animals collection
 
-	const collectionName = 'Animals';
-
 	const animalsClassPK = await collectionsPage.getCollectionClassPK(
-		collectionName,
+		ANIMALS_COLLECTION_NAME,
 		wemSite.friendlyUrlPath
 	);
 
 	const animalsCollection = getCollectionItemDefinition(getRandomString(), [
-		getFragmentDefinition(
-			getRandomString(),
-			'BASIC_COMPONENT-heading',
-			{},
-			FRAGMENT_FIELDS
-		),
+		getFragmentDefinition({
+			fragmentFields: FRAGMENT_FIELDS,
+			id: getRandomString(),
+			key: 'BASIC_COMPONENT-heading',
+		}),
 	]);
 
 	const collectionDefinition = getCollectionDefinition({
@@ -128,7 +150,7 @@ test('filters a web content collection by single and multiple categories', async
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, wemSite.friendlyUrlPath);
+	await pageEditorPage.goto(layout, wemSite.friendlyUrlPath);
 
 	// Go to edit mode of the created page and select the Collection Filter fragment
 
@@ -136,23 +158,7 @@ test('filters a web content collection by single and multiple categories', async
 
 	// Set Filter configuration for categories
 
-	await page.getByLabel('Select', {exact: true}).click();
-
-	await page.getByLabel(collectionName).check();
-
-	await page.getByLabel('Filter', {exact: true}).selectOption('category');
-
-	await page.getByLabel('Select Source').click();
-
-	await page
-		.frameLocator('iframe[title="Select"]')
-		.getByRole('link', {name: 'Animals'})
-		.click();
-
-	await page
-		.frameLocator('iframe[title="Select"]')
-		.getByRole('button', {name: 'Select This Level'})
-		.click();
+	await configureFilter(page, 'category');
 
 	// Check the option to show the label with the selected vocabulary
 
@@ -171,7 +177,9 @@ test('filters a web content collection by single and multiple categories', async
 	).toBeVisible();
 	await expect(page.getByText('Animal 02 - Dogs category')).toBeVisible();
 
-	await expect(page.getByText('Animals', {exact: true})).toBeVisible();
+	await expect(
+		page.getByText(ANIMALS_COLLECTION_NAME, {exact: true})
+	).toBeVisible();
 
 	// Select category filter: Cats
 
@@ -208,7 +216,7 @@ testWithIsolatedSite(
 
 		for (const tagName of ['Dogs', 'Cats']) {
 			tags.push(
-				await apiHelpers.headlessAdminTaxonomy.createTag({
+				await apiHelpers.headlessAdminTaxonomy.postSiteKeyword({
 					name: tagName,
 					siteId: site.id,
 				})
@@ -217,9 +225,8 @@ testWithIsolatedSite(
 
 		// Create two Web Contents with tags
 
-		const contentStructureId = await getBasicWebContentStructureId(
-			apiHelpers
-		);
+		const contentStructureId =
+			await getBasicWebContentStructureId(apiHelpers);
 		const webContents = [
 			{
 				name: 'Web content with the tag Dogs',
@@ -269,7 +276,7 @@ testWithIsolatedSite(
 
 		// Go to edit mode of the created page and select the Collection Filter fragment
 
-		await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 		await pageEditorPage.selectFragment(collectionFilterId);
 
@@ -325,27 +332,24 @@ test('enables search field in dropdown list of Collection Filter', async ({
 
 	const collectionFilterId = getRandomString();
 
-	const collectionFilterDefinition = getFragmentDefinition(
-		collectionFilterId,
-		'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer'
-	);
+	const collectionFilterDefinition = getFragmentDefinition({
+		id: collectionFilterId,
+		key: 'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer',
+	});
 
 	// Create definition for a collection mapped to Animals collection
 
-	const collectionName = 'Animals';
-
 	const animalsClassPK = await collectionsPage.getCollectionClassPK(
-		collectionName,
+		ANIMALS_COLLECTION_NAME,
 		wemSite.friendlyUrlPath
 	);
 
 	const animalsCollection = getCollectionItemDefinition(getRandomString(), [
-		getFragmentDefinition(
-			getRandomString(),
-			'BASIC_COMPONENT-heading',
-			{},
-			FRAGMENT_FIELDS
-		),
+		getFragmentDefinition({
+			fragmentFields: FRAGMENT_FIELDS,
+			id: getRandomString(),
+			key: 'BASIC_COMPONENT-heading',
+		}),
 	]);
 
 	const collectionDefinition = getCollectionDefinition({
@@ -367,29 +371,13 @@ test('enables search field in dropdown list of Collection Filter', async ({
 
 	// Go to edit mode of the created page and select the Collection Filter fragment
 
-	await pageEditorPage.goToEditMode(layout, wemSite.friendlyUrlPath);
+	await pageEditorPage.goto(layout, wemSite.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(collectionFilterId);
 
 	// Set Filter configuration for categories
 
-	await page.getByLabel('Select', {exact: true}).click();
-
-	await page.getByLabel(collectionName).check();
-
-	await page.getByLabel('Filter', {exact: true}).selectOption('category');
-
-	await page.getByLabel('Select Source').click();
-
-	await page
-		.frameLocator('iframe[title="Select"]')
-		.getByRole('link', {name: 'Animals'})
-		.click();
-
-	await page
-		.frameLocator('iframe[title="Select"]')
-		.getByRole('button', {name: 'Select This Level'})
-		.click();
+	await configureFilter(page, 'category');
 
 	await page.getByLabel('Include Search Field').check();
 
@@ -425,32 +413,29 @@ test('filters the collection content by keywords using two filters', async ({
 	const firstCollectionFilterId = getRandomString();
 	const secondCollectionFilterId = getRandomString();
 
-	const firstCollectionFilterDefinition = getFragmentDefinition(
-		firstCollectionFilterId,
-		'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer'
-	);
+	const firstCollectionFilterDefinition = getFragmentDefinition({
+		id: firstCollectionFilterId,
+		key: 'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer',
+	});
 
-	const secondFilterDefinition = getFragmentDefinition(
-		secondCollectionFilterId,
-		'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer'
-	);
+	const secondFilterDefinition = getFragmentDefinition({
+		id: secondCollectionFilterId,
+		key: 'com.liferay.fragment.renderer.collection.filter.internal.CollectionFilterFragmentRenderer',
+	});
 
 	// Create definition for a collection mapped to Animals collection
 
-	const collectionName = 'Animals';
-
 	const animalsClassPK = await collectionsPage.getCollectionClassPK(
-		collectionName,
+		ANIMALS_COLLECTION_NAME,
 		wemSite.friendlyUrlPath
 	);
 
 	const animalsCollection = getCollectionItemDefinition(getRandomString(), [
-		getFragmentDefinition(
-			getRandomString(),
-			'BASIC_COMPONENT-heading',
-			{},
-			FRAGMENT_FIELDS
-		),
+		getFragmentDefinition({
+			fragmentFields: FRAGMENT_FIELDS,
+			id: getRandomString(),
+			key: 'BASIC_COMPONENT-heading',
+		}),
 	]);
 
 	const collectionDefinition = getCollectionDefinition({
@@ -473,27 +458,21 @@ test('filters the collection content by keywords using two filters', async ({
 
 	// Go to edit mode
 
-	await pageEditorPage.goToEditMode(layout, wemSite.friendlyUrlPath);
+	await pageEditorPage.goto(layout, wemSite.friendlyUrlPath);
 
 	// Configure the first filter by keywords
 
 	await pageEditorPage.selectFragment(firstCollectionFilterId);
 
-	await page.getByLabel('Select', {exact: true}).click();
-
-	await page.getByLabel(collectionName).check();
-
-	await page.getByLabel('Filter', {exact: true}).selectOption('keywords');
+	await configureFilter(page, 'keywords');
+	await pageEditorPage.waitForChangesSaved();
 
 	// Configure the second filter by keywords
 
 	await pageEditorPage.selectFragment(secondCollectionFilterId);
 
-	await page.getByLabel('Select', {exact: true}).click();
-
-	await page.getByLabel(collectionName).check();
-
-	await page.getByLabel('Filter', {exact: true}).selectOption('keywords');
+	await configureFilter(page, 'keywords');
+	await pageEditorPage.waitForChangesSaved();
 
 	// Publish the page
 

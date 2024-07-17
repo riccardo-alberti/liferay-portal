@@ -12,34 +12,40 @@ import {getRandomInt} from '../../utils/getRandomInt';
 
 export const test = mergeTests(apiHelpersTest, loginTest(), objectPagesTest);
 
-export const createdEntities = {
+const createdEntities = {
 	listTypeDefinitionIds: [],
-	objectDefinitionIds: [],
+	objectDefinition: {},
+} as {
+	listTypeDefinitionIds: number[];
+	objectDefinition: ObjectDefinition;
 };
 
+test.beforeEach(async ({apiHelpers}) => {
+	const newObjectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			objectFolderExternalReferenceCode: 'default',
+			status: {code: 0},
+		});
+
+	createdEntities.objectDefinition = newObjectDefinition;
+});
+
 test.afterEach(async ({apiHelpers}) => {
+	await apiHelpers.objectAdmin.deleteObjectDefinition(
+		createdEntities.objectDefinition.id
+	);
+
 	if (createdEntities.listTypeDefinitionIds.length) {
 		await Promise.all(
-			createdEntities.listTypeDefinitionIds.map((listTypeDefinitionId) =>
-				apiHelpers.listTypeAdmin.deleteListTypeDefinition(
-					listTypeDefinitionId
-				)
+			createdEntities.listTypeDefinitionIds.map(
+				async (listTypeDefinitionId) =>
+					await apiHelpers.listTypeAdmin.deleteListTypeDefinition(
+						listTypeDefinitionId
+					)
 			)
 		);
 
 		createdEntities.listTypeDefinitionIds = [];
-	}
-
-	if (createdEntities.objectDefinitionIds.length) {
-		await Promise.all(
-			createdEntities.objectDefinitionIds.map((objectDefinitionId) =>
-				apiHelpers.objectAdmin.deleteObjectDefinition(
-					objectDefinitionId
-				)
-			)
-		);
-
-		createdEntities.objectDefinitionIds = [];
 	}
 });
 
@@ -50,22 +56,20 @@ test.describe('Manage object fields through Model Builder', () => {
 		page,
 		viewObjectDefinitionsPage,
 	}) => {
+		const {listTypeDefinitionIds, objectDefinition} = createdEntities;
+
 		await page.goto('/');
 
 		const listTypeDefinition =
 			await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
 
-		const objectDefinition =
-			await apiHelpers.objectAdmin.postRandomObjectDefinition({
-				objectFolderExternalReferenceCode: 'default',
-				status: {code: 0},
-			});
+		listTypeDefinitionIds.push(listTypeDefinition.id);
 
 		await viewObjectDefinitionsPage.goto();
 
 		await viewObjectDefinitionsPage.openObjectFolder('default');
 
-		await viewObjectDefinitionsPage.viewInModelBuilder();
+		await viewObjectDefinitionsPage.viewInModelBuilderButton.click();
 
 		const objectFieldLabel = 'objectFieldLabel' + getRandomInt();
 
@@ -82,24 +86,14 @@ test.describe('Manage object fields through Model Builder', () => {
 				.filter({hasText: objectDefinition.label['en_US']})
 				.getByText(objectFieldLabel)
 		).toBeVisible();
-
-		// Clean up
-
-		await apiHelpers.objectAdmin.deleteObjectDefinition(
-			objectDefinition.id
-		);
-
-		await apiHelpers.listTypeAdmin.deleteListTypeDefinition(
-			listTypeDefinition.id
-		);
 	});
 
 	test('all picklist definitions are listed during object field creation', async ({
 		apiHelpers,
 		modelBuilderPage,
-		page,
-		viewObjectDefinitionsPage,
 	}) => {
+		const {listTypeDefinitionIds, objectDefinition} = createdEntities;
+
 		const listTypeDefinitions = await Promise.all(
 			Array(22)
 				.fill(null)
@@ -108,30 +102,11 @@ test.describe('Manage object fields through Model Builder', () => {
 				)
 		);
 
-		createdEntities.listTypeDefinitionIds = listTypeDefinitions.map(
-			({id}) => id
-		);
+		listTypeDefinitions.forEach(({id}) => listTypeDefinitionIds.push(id));
 
-		const objectDefinition = [
-			await apiHelpers.objectAdmin.postRandomObjectDefinition({
-				objectFolderExternalReferenceCode: 'default',
-				status: {code: 0},
-			}),
-		];
+		await modelBuilderPage.goto({objectFolderName: 'Default'});
 
-		objectDefinition.map((objectDefinition) =>
-			createdEntities.objectDefinitionIds.push(objectDefinition.id)
-		);
-
-		await page.goto('/');
-
-		await viewObjectDefinitionsPage.goto();
-
-		await viewObjectDefinitionsPage.openObjectFolder('default');
-
-		await viewObjectDefinitionsPage.viewInModelBuilder();
-
-		await modelBuilderPage.openNewFieldModal(objectDefinition[0].name);
+		await modelBuilderPage.openNewFieldModal(objectDefinition.name);
 
 		await modelBuilderPage.fillNewObjectFieldLabel(
 			'objectFieldLabel' + getRandomInt()
@@ -153,11 +128,161 @@ test.describe('Manage object fields through Model Builder', () => {
 		);
 	});
 
+	test('can show and hide object fields in the object definition node', async ({
+		apiHelpers,
+		modelBuilderPage,
+		page,
+	}) => {
+		const {objectDefinition} = createdEntities;
+		const dateFieldName = 'dateField' + getRandomInt();
+		const integerFieldName = 'integerField' + getRandomInt();
+
+		await apiHelpers.objectAdmin.postObjectFieldByExternalReferenceCode(
+			objectDefinition.externalReferenceCode,
+			{
+				DBType: 'Integer',
+				businessType: 'Integer',
+				externalReferenceCode: integerFieldName,
+				indexed: true,
+				indexedAsKeyword: false,
+				indexedLanguageId: '',
+				label: {en_US: integerFieldName},
+				listTypeDefinitionId: 0,
+				localized: false,
+				name: integerFieldName,
+				readOnly: 'false',
+				required: false,
+				state: false,
+				system: false,
+			}
+		);
+
+		await apiHelpers.objectAdmin.postObjectFieldByExternalReferenceCode(
+			objectDefinition.externalReferenceCode,
+			{
+				DBType: 'Date',
+				businessType: 'Date',
+				externalReferenceCode: dateFieldName,
+				indexed: true,
+				indexedAsKeyword: false,
+				indexedLanguageId: '',
+				label: {en_US: dateFieldName},
+				listTypeDefinitionId: 0,
+				localized: false,
+				name: dateFieldName,
+				readOnly: 'false',
+				required: false,
+				state: false,
+				system: false,
+			}
+		);
+
+		await modelBuilderPage.goto({objectFolderName: 'Default'});
+
+		await modelBuilderPage.clickLeftSideBarItem(
+			objectDefinition.label['en_US']
+		);
+
+		await expect(page.getByText(integerFieldName)).not.toBeVisible();
+		await expect(page.getByText(dateFieldName)).not.toBeVisible();
+
+		await modelBuilderPage.clickShowAllFieldsButton(
+			objectDefinition.label['en_US']
+		);
+
+		await expect(page.getByText(integerFieldName)).toBeVisible();
+		await expect(page.getByText(dateFieldName)).toBeVisible();
+
+		await modelBuilderPage.clickHideFieldsButton(
+			objectDefinition.label['en_US']
+		);
+
+		await expect(page.getByText(integerFieldName)).not.toBeVisible();
+		await expect(page.getByText(dateFieldName)).not.toBeVisible();
+	});
+
+	test('cannot delete an objectField that belongs to a unique composite key validation through Model Builder', async ({
+		apiHelpers,
+		modelBuilderPage,
+		page,
+	}) => {
+		const {objectDefinition} = createdEntities;
+
+		const integerFieldName = 'integerField' + getRandomInt();
+
+		await apiHelpers.objectAdmin.postObjectFieldByExternalReferenceCode(
+			objectDefinition.externalReferenceCode,
+			{
+				DBType: 'Integer',
+				businessType: 'Integer',
+				externalReferenceCode: integerFieldName,
+				indexed: true,
+				indexedAsKeyword: false,
+				indexedLanguageId: '',
+				label: {en_US: integerFieldName},
+				listTypeDefinitionId: 0,
+				localized: false,
+				name: integerFieldName,
+				readOnly: 'false',
+				required: false,
+				state: false,
+				system: false,
+			}
+		);
+
+		const objectValidationName =
+			'Unique Composite Key Object Validation' + getRandomInt();
+
+		await apiHelpers.objectAdmin.postObjectValidation(
+			objectDefinition.externalReferenceCode,
+			{
+				active: true,
+				engine: 'compositeKey',
+				engineLabel: 'Composite Key',
+				errorLabel: {
+					en_US: 'Unique composite key object validation error',
+				},
+				name: {
+					en_US: objectValidationName,
+				},
+				objectValidationRuleSettings: [
+					{
+						name: 'compositeKeyObjectFieldExternalReferenceCode',
+						value: 'textField',
+					},
+					{
+						name: 'compositeKeyObjectFieldExternalReferenceCode',
+						value: integerFieldName,
+					},
+				],
+				outputType: 'fullValidation',
+				script: '',
+				system: false,
+			}
+		);
+
+		await modelBuilderPage.goto({objectFolderName: 'Default'});
+
+		await modelBuilderPage.leftSidebarItems
+			.filter({hasText: objectDefinition.name})
+			.click();
+
+		await modelBuilderPage.clickShowAllFieldsButton(objectDefinition.name);
+
+		await page.getByText(integerFieldName).click();
+
+		await modelBuilderPage.deleteButton.click();
+
+		await expect(page.getByText('Deletion Not Allowed')).toBeVisible();
+		await expect(
+			page.getByText(
+				`The object field "${integerFieldName}" cannot be deleted because it is used in a unique composite key validation. To remove this object field, you must first delete the associated unique composite key validation.`
+			)
+		).toBeVisible();
+	});
+
 	test('can delete object field', async ({apiHelpers, modelBuilderPage}) => {
-		const objectDefinition =
-			await apiHelpers.objectAdmin.postRandomObjectDefinition({
-				status: {code: 0},
-			});
+		const {objectDefinition} = createdEntities;
 
 		await apiHelpers.objectAdmin.postObjectFieldByExternalReferenceCode(
 			objectDefinition.externalReferenceCode,
@@ -185,9 +310,7 @@ test.describe('Manage object fields through Model Builder', () => {
 			.filter({hasText: objectDefinition.name})
 			.click();
 
-		await modelBuilderPage.clickObjectDefinitionShowAllFieldsButton(
-			objectDefinition.name
-		);
+		await modelBuilderPage.clickShowAllFieldsButton(objectDefinition.name);
 
 		await modelBuilderPage.objectDefinitionNodes
 			.filter({hasText: objectDefinition.name})
@@ -203,11 +326,187 @@ test.describe('Manage object fields through Model Builder', () => {
 				.filter({hasText: objectDefinition.name})
 				.getByText('intField')
 		).toBeHidden();
+	});
+});
 
-		// Clean up
+test.describe('Manage objectFields through Objects Admin UI', () => {
+	test('cannot delete an objectField that belongs to a unique composite key validation through Objects Admin UI', async ({
+		apiHelpers,
+		objectFieldsPage,
+		page,
+	}) => {
+		const {objectDefinition} = createdEntities;
+		const integerFieldName = 'integerField' + getRandomInt();
 
-		await apiHelpers.objectAdmin.deleteObjectDefinition(
-			objectDefinition.id
+		await apiHelpers.objectAdmin.postObjectFieldByExternalReferenceCode(
+			objectDefinition.externalReferenceCode,
+			{
+				DBType: 'Integer',
+				businessType: 'Integer',
+				externalReferenceCode: integerFieldName,
+				indexed: true,
+				indexedAsKeyword: false,
+				indexedLanguageId: '',
+				label: {en_US: integerFieldName},
+				listTypeDefinitionId: 0,
+				localized: false,
+				name: integerFieldName,
+				readOnly: 'false',
+				required: false,
+				state: false,
+				system: false,
+			}
 		);
+
+		const objectValidationName =
+			'Unique Composite Key Object Validation' + getRandomInt();
+
+		await apiHelpers.objectAdmin.postObjectValidation(
+			objectDefinition.externalReferenceCode,
+			{
+				active: true,
+				engine: 'compositeKey',
+				engineLabel: 'Composite Key',
+				errorLabel: {
+					en_US: 'Unique composite key object validation error',
+				},
+				name: {
+					en_US: objectValidationName,
+				},
+				objectValidationRuleSettings: [
+					{
+						name: 'compositeKeyObjectFieldExternalReferenceCode',
+						value: 'textField',
+					},
+					{
+						name: 'compositeKeyObjectFieldExternalReferenceCode',
+						value: integerFieldName,
+					},
+				],
+				outputType: 'fullValidation',
+				script: '',
+				system: false,
+			}
+		);
+
+		await objectFieldsPage.goto(objectDefinition.label['en_US']);
+
+		await objectFieldsPage.deleteObjectField(-1);
+
+		await expect(page.getByText('Deletion Not Allowed')).toBeVisible();
+		await expect(
+			page.getByText(
+				`The object field "${integerFieldName}" cannot be deleted because it is used in a unique composite key validation. To remove this object field, you must first delete the associated unique composite key validation.`
+			)
+		).toBeVisible();
+	});
+
+	test('can create object fields of multiple types (except AutoIncrement, Date and Time, Encrypted and Aggregation)', async ({
+		apiHelpers,
+		objectFieldsPage,
+		page,
+	}) => {
+		const {listTypeDefinitionIds, objectDefinition} = createdEntities;
+
+		const listTypeDefinition =
+			await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
+
+		listTypeDefinitionIds.push(listTypeDefinition.id);
+
+		await objectFieldsPage.goto(objectDefinition.label['en_US']);
+
+		const objectFieldsMock = [
+			{
+				objectFieldBusinessType: 'Attachment',
+				objectFieldLabel: 'Custom Attachment',
+			},
+			{
+				objectFieldBusinessType: 'Boolean',
+				objectFieldLabel: 'Custom Boolean',
+			},
+			{
+				objectFieldBusinessType: 'Date',
+				objectFieldLabel: 'Custom Date',
+			},
+			{
+				objectFieldBusinessType: 'Decimal',
+				objectFieldLabel: 'Custom Decimal',
+			},
+			{
+				objectFieldBusinessType: 'Integer',
+				objectFieldLabel: 'Custom Integer',
+			},
+			{
+				objectFieldBusinessType: 'Long Integer',
+				objectFieldLabel: 'Custom Long Integer',
+			},
+			{
+				objectFieldBusinessType: 'Long Text',
+				objectFieldLabel: 'Custom Long Text',
+			},
+			{
+				objectFieldBusinessType: 'Multiselect Picklist',
+				objectFieldLabel: 'Custom Multiselect Picklist',
+			},
+			{
+				objectFieldBusinessType: 'Picklist',
+				objectFieldLabel: 'Custom Picklist',
+			},
+
+			{
+				objectFieldBusinessType: 'Precision Decimal',
+				objectFieldLabel: 'Custom Precision Decimal',
+			},
+			{
+				objectFieldBusinessType: 'Rich Text',
+				objectFieldLabel: 'Custom Rich Text',
+			},
+			{
+				objectFieldBusinessType: 'Text',
+				objectFieldLabel: 'Custom Text',
+			},
+		] as {
+			objectFieldBusinessType: string;
+			objectFieldLabel: string;
+		}[];
+
+		for (let i = 0; i < objectFieldsMock.length; i++) {
+			const {objectFieldBusinessType, objectFieldLabel} =
+				objectFieldsMock[i];
+
+			if (objectFieldBusinessType === 'Attachment') {
+				await objectFieldsPage.addObjectField({
+					attachmentSource: 'Upload Directly from the User',
+					objectFieldBusinessType,
+					objectFieldLabel,
+				});
+
+				continue;
+			}
+
+			if (
+				objectFieldBusinessType === 'Picklist' ||
+				objectFieldBusinessType === `Multiselect Picklist`
+			) {
+				await objectFieldsPage.addObjectField({
+					listTypeDefinitionName: listTypeDefinition.name,
+					objectFieldBusinessType,
+					objectFieldLabel,
+				});
+
+				continue;
+			}
+
+			await objectFieldsPage.addObjectField({
+				objectFieldBusinessType,
+				objectFieldLabel,
+			});
+		}
+
+		for (let i = 0; i < objectFieldsMock.length; i++) {
+			const {objectFieldLabel} = objectFieldsMock[i];
+
+			await expect(page.getByText(objectFieldLabel)).toBeVisible();
+		}
 	});
 });

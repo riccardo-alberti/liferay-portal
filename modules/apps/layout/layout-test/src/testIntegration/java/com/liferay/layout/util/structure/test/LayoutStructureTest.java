@@ -66,7 +66,7 @@ public class LayoutStructureTest {
 		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
 
 		_fragmentEntry = _fragmentEntryLocalService.addFragmentEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(), 0,
+			null, TestPropsValues.getUserId(), _group.getGroupId(), 0,
 			StringUtil.randomString(), StringUtil.randomString(),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			RandomTestUtil.randomString(), false, "{fieldSets: []}", null, 0,
@@ -79,7 +79,7 @@ public class LayoutStructureTest {
 
 		_fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				TestPropsValues.getUserId(), _group.getGroupId(), 0,
+				null, TestPropsValues.getUserId(), _group.getGroupId(), 0,
 				_fragmentEntry.getFragmentEntryId(),
 				defaultSegmentsExperienceId, layout.getPlid(),
 				_fragmentEntry.getCss(), _fragmentEntry.getHtml(),

@@ -44,7 +44,7 @@ export function FormGeneralPanel({item}) {
 	const updateItemLocalConfig = useUpdateItemLocalConfig();
 
 	const onValueSelect = useCallback(
-		(nextConfig) => {
+		(nextConfig, fields) => {
 			const isMapping = Boolean(nextConfig.classNameId);
 
 			if (isMapping) {
@@ -56,6 +56,7 @@ export function FormGeneralPanel({item}) {
 
 			dispatch(
 				updateFormItemConfig({
+					fields,
 					itemConfig: nextConfig,
 					itemId: item.itemId,
 				})
@@ -235,7 +236,7 @@ function SuccessInteractionOptions({item, onValueSelect}) {
 				: {
 						...interactionConfig,
 						...config,
-				  };
+					};
 
 			onValueSelect({successMessage: nextConfig});
 		},

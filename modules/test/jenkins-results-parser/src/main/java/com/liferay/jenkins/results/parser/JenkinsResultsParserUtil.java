@@ -1428,7 +1428,7 @@ public class JenkinsResultsParserUtil {
 				properties.load(
 					new StringReader(
 						toString(
-							getLocalURL(url), false, 0, null, null, 0,
+							getLocalURL(url), false, 3, null, null, 30,
 							_MILLIS_TIMEOUT_DEFAULT, null, true)));
 			}
 
@@ -2919,6 +2919,7 @@ public class JenkinsResultsParserUtil {
 		Set<String> optSet = new LinkedHashSet<>(Arrays.asList(opts));
 
 		optSet.remove(null);
+		optSet.remove("");
 
 		opts = optSet.toArray(new String[0]);
 
@@ -4056,7 +4057,7 @@ public class JenkinsResultsParserUtil {
 	public static void pullDockerImageDependencies(
 		File baseDir, String[] excludedDockerImageNames) {
 
-		String dockerEnabled = System.getenv("DOCKER_ENABLED");
+		String dockerEnabled = System.getenv("LIFERAY_DOCKER_ENABLED");
 
 		if (isNullOrEmpty(dockerEnabled) || !dockerEnabled.equals("true")) {
 			return;
@@ -4099,7 +4100,7 @@ public class JenkinsResultsParserUtil {
 
 				if (process.exitValue() != 0) {
 					System.out.println(
-						"Failed to pull Docker image " + dockerImageName);
+						"Unable to pull Docker image " + dockerImageName);
 
 					return;
 				}
@@ -4108,7 +4109,7 @@ public class JenkinsResultsParserUtil {
 			}
 			catch (IOException | TimeoutException exception) {
 				System.out.println(
-					"Failed to pull Docker image " + dockerImageName);
+					"Unable to pull Docker image " + dockerImageName);
 
 				exception.printStackTrace();
 			}
@@ -4710,16 +4711,13 @@ public class JenkinsResultsParserUtil {
 						buildProperties.getProperty("jenkins.admin.user.name"));
 				}
 
-				boolean testrayRequest = false;
+				boolean testray1Request = false;
 
-				if (url.matches("https://testray.liferay.com/?.+") ||
-					url.matches(
-						"https://webserver-testray-dev.lfr.cloud/?.+")) {
-
-					testrayRequest = true;
+				if (url.matches("https://testray-old.liferay.com/?.+")) {
+					testray1Request = true;
 				}
 
-				if ((httpAuthorizationHeader == null) && testrayRequest) {
+				if ((httpAuthorizationHeader == null) && testray1Request) {
 					Properties buildProperties = getBuildProperties();
 
 					httpAuthorizationHeader = new BasicHTTPAuthorization(
@@ -4727,6 +4725,33 @@ public class JenkinsResultsParserUtil {
 							buildProperties, "testray.admin.user.password"),
 						getProperty(
 							buildProperties, "testray.admin.user.name"));
+				}
+
+				Matcher testray2URLMatcher = _testray2URLPattern.matcher(url);
+
+				if ((httpAuthorizationHeader == null) &&
+					testray2URLMatcher.find() &&
+					!url.contains("/o/oauth2/token")) {
+
+					Properties buildProperties = getBuildProperties();
+
+					URL tokenURL = new URL(
+						testray2URLMatcher.group("baseURL") +
+							"/o/oauth2/token");
+
+					String lxcEnvironment = testray2URLMatcher.group(
+						"lxcEnvironment");
+
+					String clientId = getProperty(
+						buildProperties, "testray.oauth2.client.id",
+						lxcEnvironment);
+					String clientSecret = getProperty(
+						buildProperties, "testray.oauth2.client.secret",
+						lxcEnvironment);
+
+					httpAuthorizationHeader =
+						new ClientCredentialsHTTPAuthorization(
+							clientId, clientSecret, tokenURL);
 				}
 
 				URL urlObject = new URL(url);
@@ -4782,13 +4807,13 @@ public class JenkinsResultsParserUtil {
 							"Authorization",
 							httpAuthorizationHeader.toString());
 
-						if (!testrayRequest) {
+						if (!testray1Request) {
 							httpURLConnection.setRequestProperty(
 								"Content-Type", "application/json");
 						}
 					}
 
-					if (url.contains("/o/oauth2/token")) {
+					if (url.contains("/oauth2/")) {
 						httpURLConnection.setRequestProperty(
 							"accept", "application/json");
 						httpURLConnection.setRequestProperty(
@@ -5747,6 +5772,66 @@ public class JenkinsResultsParserUtil {
 
 	}
 
+	public static class ClientCredentialsHTTPAuthorization
+		extends HTTPAuthorization {
+
+		public ClientCredentialsHTTPAuthorization(
+			String clientId, String clientSecret, URL tokenURL) {
+
+			super(Type.CLIENT_CREDENTIALS);
+
+			_clientId = clientId;
+			_clientSecret = clientSecret;
+			_tokenURL = tokenURL;
+		}
+
+		@Override
+		public String toString() {
+			_refreshToken();
+
+			return _tokenType + " " + _token;
+		}
+
+		private void _refreshToken() {
+			Date currentDate = new Date();
+
+			if ((_tokenExpirationDate != null) &&
+				currentDate.before(_tokenExpirationDate)) {
+
+				return;
+			}
+
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("grant_type=client_credentials&client_id=");
+			sb.append(_clientId);
+			sb.append("&client_secret=");
+			sb.append(_clientSecret);
+
+			try {
+				JSONObject jsonObject = toJSONObject(
+					String.valueOf(_tokenURL), sb.toString());
+
+				_token = jsonObject.getString("access_token");
+				_tokenExpirationDate = new Date(
+					currentDate.getTime() +
+						((jsonObject.optInt("expires_in", 600) - 60) * 1000L));
+				_tokenType = jsonObject.getString("token_type");
+			}
+			catch (IOException ioException) {
+				throw new RuntimeException(ioException);
+			}
+		}
+
+		private final String _clientId;
+		private final String _clientSecret;
+		private String _token;
+		private Date _tokenExpirationDate;
+		private String _tokenType;
+		private final URL _tokenURL;
+
+	}
+
 	public abstract static class HTTPAuthorization {
 
 		public Type getType() {
@@ -5755,7 +5840,7 @@ public class JenkinsResultsParserUtil {
 
 		public static enum Type {
 
-			BASIC, BEARER, TOKEN
+			BASIC, BEARER, CLIENT_CREDENTIALS, TOKEN
 
 		}
 
@@ -6673,7 +6758,7 @@ public class JenkinsResultsParserUtil {
 	private static final Pattern _dockerFilePattern = Pattern.compile(
 		".*FROM (?<dockerImageName>[^\\s]+)( AS builder)?\\n[\\s\\S]*");
 	private static final List<String> _forbiddenRedactTokens = Arrays.asList(
-		"liferay", "test");
+		"admin", "liferay", "test");
 	private static JSONArray _gitDirectoriesJSONArray;
 	private static final Pattern _gitHubAPIURLPattern = Pattern.compile(
 		"https\\:\\/\\/api\\.github\\.com(.*)");
@@ -6724,6 +6809,9 @@ public class JenkinsResultsParserUtil {
 		}
 	};
 
+	private static final Pattern _testray2URLPattern = Pattern.compile(
+		"(?<baseURL>https://webserver-testray2(-(?<lxcEnvironment>.+))?" +
+			"\\.lfr\\.cloud|https://testray\\.liferay\\.com).*");
 	private static final Set<String> _timeStamps = new HashSet<>();
 	private static final List<HttpRequestMethod> _updatingHttpRequestMethods =
 		Arrays.asList(

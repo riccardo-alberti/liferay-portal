@@ -4,13 +4,13 @@
 	sampleUserModel = dataFactory.newSampleUserModel()
 
 	userGroupModel = dataFactory.newGroupModel(sampleUserModel)
-
-	layoutModel = dataFactory.newLayoutModel(userGroupModel.groupId, "home", "", "")
 />
 
-<@insertLayout _layoutModel=layoutModel />
+<#list dataFactory.newLayoutModels(userGroupModel.groupId, "home", "", "") as layoutModel>
+	<@insertLayout _layoutModel = layoutModel />
+</#list>
 
-<@insertGroup _groupModel=userGroupModel />
+<@insertGroup _groupModel = userGroupModel />
 
 <#assign
 	groupIds = dataFactory.getSequence(dataFactory.maxGroupCount)
@@ -18,7 +18,7 @@
 />
 
 <@insertUser
-	_groupIds=groupIds
-	_roleIds=roleIds
-	_userModel=sampleUserModel
+	_groupIds = groupIds
+	_roleIds = roleIds
+	_userModel = sampleUserModel
 />

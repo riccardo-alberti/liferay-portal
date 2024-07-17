@@ -39,10 +39,19 @@ export class ObjectAdminApiHelper {
 		);
 	}
 
-	async postObjectDefinition(data: DataObject) {
-		return this.apiHelpers.post(
-			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions`,
-			{data}
+	async getObjectActionsByExternalReferenceCode(
+		objectDefinitionExternalReferenceCode: string
+	) {
+		return this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions/by-external-reference-code/${objectDefinitionExternalReferenceCode}/object-actions`
+		);
+	}
+
+	async getObjectDefinitionByExternalReferenceCode(
+		externalReferenceCode: string
+	) {
+		return this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions/by-external-reference-code/${externalReferenceCode}`
 		);
 	}
 
@@ -56,12 +65,26 @@ export class ObjectAdminApiHelper {
 		);
 	}
 
-	async postObjectFieldByExternalReferenceCode(
-		objectDefinitionExternalReferenceCode: string,
-		objectField: Partial<ObjectField>
-	) {
+	async postObjectDefinition(data: DataObject): Promise<ObjectDefinition> {
 		return this.apiHelpers.post(
-			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions/by-external-reference-code/${objectDefinitionExternalReferenceCode}/object-fields`,
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions`,
+			{data}
+		);
+	}
+
+	async postObjectDefinitionPublish(objectDefinitionId: number) {
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions/${objectDefinitionId}/publish`,
+			{}
+		);
+	}
+
+	async postObjectFieldByExternalReferenceCode(
+		externalReferenceCode: string,
+		objectField: Partial<ObjectField>
+	): Promise<ObjectField> {
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions/by-external-reference-code/${externalReferenceCode}/object-fields`,
 			{data: objectField}
 		);
 	}
@@ -86,11 +109,15 @@ export class ObjectAdminApiHelper {
 	}
 
 	async postRandomObjectDefinition({
+		objectFields,
 		objectFolderExternalReferenceCode,
 		status,
+		titleObjectFieldName,
 	}: {
+		objectFields?: ObjectField[];
 		objectFolderExternalReferenceCode?: string;
 		status: {code: number};
+		titleObjectFieldName?: string;
 	}) {
 		const objectDefinitionExternalReferenceCode =
 			'ObjectDefinition' + getRandomInt();
@@ -102,7 +129,7 @@ export class ObjectAdminApiHelper {
 				en_US: objectDefinitionExternalReferenceCode,
 			},
 			name: objectDefinitionExternalReferenceCode,
-			objectFields: [
+			objectFields: objectFields || [
 				{
 					DBType: 'String',
 					businessType: 'Text',
@@ -124,6 +151,7 @@ export class ObjectAdminApiHelper {
 			},
 			scope: 'company',
 			status,
+			titleObjectFieldName: titleObjectFieldName ?? 'id',
 		};
 
 		if (objectFolderExternalReferenceCode) {
@@ -152,6 +180,16 @@ export class ObjectAdminApiHelper {
 					name: objectFolderExternalReferenceCode,
 				},
 			}
+		);
+	}
+
+	async putObjectRelationship(
+		objectRelationshipId: number,
+		objectRelationship: Partial<ObjectRelationship>
+	) {
+		return this.apiHelpers.put(
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-relationships/${objectRelationshipId}`,
+			{data: objectRelationship}
 		);
 	}
 }

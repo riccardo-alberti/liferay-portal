@@ -11,9 +11,11 @@ import {useState} from 'react';
 
 import Form from '../../../../../../components/MarketplaceForm';
 import {
+	BLOCK_DIRECTIONS,
 	SolutionTypes,
 	useSolutionContext,
 } from '../../../../../../context/SolutionContext';
+import i18n from '../../../../../../i18n';
 import IconsBlock from '../../components/Blocks/IconBlock';
 import ImagesGrid from '../../components/Blocks/ImagesGrid';
 import SingleImage from '../../components/Blocks/SingleImage';
@@ -35,9 +37,6 @@ const items = [
 	{label: 'Text & Images Block', value: 'text-images-block'},
 	{label: 'Text & Video Block', value: 'text-video-block'},
 	{label: 'Text Block', value: 'text-block'},
-	{disabled: true, label: 'Single Image Block', value: 'single-image-block'},
-	{disabled: true, label: 'Icons Block', value: 'icons-block'},
-	{disabled: true, label: 'Images Grid Block', value: 'images-grid-block'},
 ];
 
 const Details = () => {
@@ -54,20 +53,72 @@ const Details = () => {
 			{blocks.map((block, index) => {
 				const Component = (blockTypes as any)[block.type];
 
+				const handleMoveOrDeleteBlock = (
+					direction: BLOCK_DIRECTIONS
+				) => {
+					dispatch({
+						payload: {
+							direction,
+							index,
+						},
+						type: SolutionTypes.SET_BLOCK_MOVE,
+					});
+				};
+
+				const dropdownItems = [
+					{
+						disabled: index === 0,
+						name: i18n.translate('move-to-top'),
+						onClick: () =>
+							handleMoveOrDeleteBlock(
+								BLOCK_DIRECTIONS.MOVE_TO_TOP
+							),
+					},
+					{
+						disabled: index === 0,
+						name: i18n.translate('move-up'),
+						onClick: () =>
+							handleMoveOrDeleteBlock(BLOCK_DIRECTIONS.MOVE_UP),
+					},
+					{
+						disabled: index === blocks.length - 1,
+						name: i18n.translate('move-down'),
+						onClick: () =>
+							handleMoveOrDeleteBlock(BLOCK_DIRECTIONS.MOVE_DOWN),
+					},
+					{
+						disabled: index === blocks.length - 1,
+						name: i18n.translate('move-to-bottom'),
+						onClick: () =>
+							handleMoveOrDeleteBlock(
+								BLOCK_DIRECTIONS.MOVE_TO_BOTTOM
+							),
+					},
+					{
+						name: i18n.translate('delete'),
+						onClick: () =>
+							handleMoveOrDeleteBlock(BLOCK_DIRECTIONS.DELETE),
+					},
+				];
+
 				return (
 					<Form.SectionWithControllers
+						dropdownItems={dropdownItems}
 						index={index}
 						key={index}
 						name={
 							items.find(({value}) => value === block.type)
 								?.label as string
 						}
+						onArrowClick={(direction) => {
+							handleMoveOrDeleteBlock(direction);
+						}}
 						position={blocks.length}
 					>
 						<Component
 							block={block}
 							key={index}
-							onChange={(content: any) =>
+							onChange={(content: any) => {
 								dispatch({
 									payload: {
 										block: {
@@ -80,6 +131,12 @@ const Details = () => {
 										index,
 									},
 									type: SolutionTypes.SET_UPDATE_BLOCK,
+								});
+							}}
+							onDeleteImage={(payload: string) =>
+								dispatch({
+									payload,
+									type: SolutionTypes.SET_DELETE_IMAGE,
 								})
 							}
 						/>
@@ -135,7 +192,6 @@ const Details = () => {
 						>
 							{items.map((item, index) => (
 								<ClaySelect.Option
-									disabled={item.disabled}
 									key={index}
 									label={item.label}
 									value={item.value}

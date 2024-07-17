@@ -9,12 +9,12 @@ import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import getRandomString from '../../utils/getRandomString';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
@@ -38,7 +38,7 @@ test('allows renaming an experience', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create experience and rename it
 
@@ -65,7 +65,7 @@ test('allows changing the segment of an existing experience', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create experience and rename it
 
@@ -92,10 +92,10 @@ test('creates new experiences as expected', async ({
 	// Create a page with a Heading fragment and go to edit mode
 
 	const headingId = getRandomString();
-	const headingDefinition = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingDefinition = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingDefinition]),
@@ -103,7 +103,7 @@ test('creates new experiences as expected', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create new experience and check it's the last one and inactive
 
@@ -122,7 +122,7 @@ test('creates new experiences as expected', async ({
 
 	// Edit heading text in E1 experience
 
-	await pageEditorPage.editEditableText(headingId, 'element-text', 'E1 Text');
+	await pageEditorPage.editTextEditable(headingId, 'element-text', 'E1 Text');
 
 	await pageEditorPage.publishPage();
 
@@ -149,7 +149,7 @@ test('keeps modal open when canceling segment creation', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Open experience creation modal and go to create new segment
 
@@ -181,10 +181,10 @@ test('styles changes affect to current experience only', async ({
 	// Create a page with a Heading fragment and go to edit mode
 
 	const headingId = getRandomString();
-	const headingDefinition = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingDefinition = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingDefinition]),
@@ -192,15 +192,19 @@ test('styles changes affect to current experience only', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Change heading margin top
 
 	await pageEditorPage.changeFragmentSpacing(headingId, 'Margin Top', '2');
 
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'8px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('8px');
 
 	// Create new experience and change margin top again
 
@@ -213,17 +217,25 @@ test('styles changes affect to current experience only', async ({
 		'px'
 	);
 
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'5px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('5px');
 
 	// Change to Default experience again and check previous margin
 
 	await pageEditorPage.switchExperience('Default');
 
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'8px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('8px');
 });
 
 test('allows duplicating an experience', async ({
@@ -240,7 +252,7 @@ test('allows duplicating an experience', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create new experience and duplicate it
 
@@ -267,10 +279,10 @@ test('allows creating experiences with different fragments', async ({
 	// Create a page with a Heading fragment and go to edit mode
 
 	const headingId = getRandomString();
-	const headingDefinition = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingDefinition = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingDefinition]),
@@ -278,7 +290,7 @@ test('allows creating experiences with different fragments', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create new experience and remove the fragment
 
@@ -307,7 +319,7 @@ test('allows editing and deleting an experience', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Create new experienc
 

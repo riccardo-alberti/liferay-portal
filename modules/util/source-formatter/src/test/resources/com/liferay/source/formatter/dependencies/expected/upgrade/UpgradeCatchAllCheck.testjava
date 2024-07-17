@@ -8,12 +8,14 @@ package com.liferay.source.formatter.dependencies.upgrade;
 import com.liferay.commerce.constants.CommerceOrderPaymentConstants;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.util.DLURLHelperUtil;
+import com.liferay.info.item.InfoItemReference;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.cookies.CookiesManagerUtil;
 import com.liferay.portal.kernel.cookies.constants.CookiesConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.HtmlParser;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.ArrayList;
@@ -26,6 +28,8 @@ import org.osgi.service.component.annotations.Reference;
 public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 	public void method() {
+		_countryService.fetchCountryByA2(123, "test123");
+
 		AccountPortletKeys.ACCOUNT_USERS_ADMIN;
 		AccountPortletKeys.ACCOUNT_GROUPS_ADMIN;
 
@@ -33,11 +37,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		CommerceOrderPaymentConstants.STATUS_COMPLETED;
 		CommerceOrderPaymentConstants.STATUS_PENDING;
 
-		for (CommerceOrderItem commerceOrderItem : commerceOrder.getCommerceOrderItems()) {
-			commerceOrderItem.getQuantity();
-		}
-
-		_countryService.fetchCountryByA2(123, "test123");
+		CookiesConstants.NAME_COMMERCE_CONTINUE_AS_GUEST;
+		CookiesConstants.NAME_ID;
+		CookiesConstants.NAME_USER_UUID;
 
 		DestinationNames.COMMERCE_BASE_PRICE_LIST;
 		DestinationNames.COMMERCE_ORDER_STATUS;
@@ -52,18 +54,94 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 		fDSTableSchemaBuilder.add("test123", "test123");
 
+		for (CommerceOrderItem commerceOrderItem : commerceOrder.getCommerceOrderItems()) {
+			commerceOrderItem.getQuantity();
+		}
+
 		_htmlParser.extractText(null);
+
+		_http.hasProxyConfig();
+		HttpComponentsUtil.addParameter(null, null, null);
+		HttpComponentsUtil.decodePath(null);
+		HttpComponentsUtil.decodeURL(null);
+		HttpComponentsUtil.encodeParameters(null);
+		HttpComponentsUtil.encodePath(null);
+		HttpComponentsUtil.fixPath(null);
+		HttpComponentsUtil.getCompleteURL(null, null, null);
+		HttpComponentsUtil.getDomain(null);
+		HttpComponentsUtil.getIpAddress(null);
+		HttpComponentsUtil.getParameter(null, null);
+		HttpComponentsUtil.getParameterMap(null);
+		HttpComponentsUtil.getPath(null);
+		HttpComponentsUtil.getProtocol(null);
+		HttpComponentsUtil.getQueryString(null);
+		HttpComponentsUtil.getRequestURL(null);
+		HttpComponentsUtil.getURI(null);
+		HttpComponentsUtil.hasDomain(null);
+		HttpComponentsUtil.hasProtocol(null);
+		HttpComponentsUtil.isForwarded(null);
+		HttpComponentsUtil.isSecure(null);
+		HttpComponentsUtil.normalizePath(null);
+		HttpComponentsUtil.parameterMapFromString(null);
+		HttpComponentsUtil.protocolize(null, null);
+		HttpComponentsUtil.removeDomain(null);
+		HttpComponentsUtil.removeParameter(null);
+		HttpComponentsUtil.removePathParameters(null);
+		HttpComponentsUtil.removeProtocol(null);
+		HttpComponentsUtil.sanitizeHeader(null);
+		HttpComponentsUtil.setParameter(null, null, null);
+		HttpComponentsUtil.shortenURL(null);
+
+		HttpUtil.hasProxyConfig();
+		HttpComponentsUtil.addParameter(null, null, null);
+		HttpComponentsUtil.decodePath(null);
+		HttpComponentsUtil.decodeURL(null);
+		HttpComponentsUtil.encodeParameters(null);
+		HttpComponentsUtil.encodePath(null);
+		HttpComponentsUtil.fixPath(null);
+		HttpComponentsUtil.getCompleteURL(null, null, null);
+		HttpComponentsUtil.getDomain(null);
+		HttpComponentsUtil.getIpAddress(null);
+		HttpComponentsUtil.getParameter(null, null);
+		HttpComponentsUtil.getParameterMap(null);
+		HttpComponentsUtil.getPath(null);
+		HttpComponentsUtil.getProtocol(null);
+		HttpComponentsUtil.getQueryString(null);
+		HttpComponentsUtil.getRequestURL(null);
+		HttpComponentsUtil.getURI(null);
+		HttpComponentsUtil.hasDomain(null);
+		HttpComponentsUtil.hasProtocol(null);
+		HttpComponentsUtil.isForwarded(null);
+		HttpComponentsUtil.isSecure(null);
+		HttpComponentsUtil.normalizePath(null);
+		HttpComponentsUtil.parameterMapFromString(null);
+		HttpComponentsUtil.protocolize(null, null);
+		HttpComponentsUtil.removeDomain(null);
+		HttpComponentsUtil.removeParameter(null);
+		HttpComponentsUtil.removePathParameters(null);
+		HttpComponentsUtil.removeProtocol(null);
+		HttpComponentsUtil.sanitizeHeader(null);
+		HttpComponentsUtil.setParameter(null, null, null);
+		HttpComponentsUtil.shortenURL(null);
 
 		new ArrayList<>(LanguageUtil.getAvailableLocales());
 
-		CookiesConstants.NAME_COMMERCE_CONTINUE_AS_GUEST;
-		CookiesConstants.NAME_ID;
-		CookiesConstants.NAME_USER_UUID;
+		AssetListEntryCreateDateComparator.getInstance(false);
+		AssetTagCountComparator.getInstance(false);
+		CommercePriceEntryUOMCreateDateComparator.getInstance(false);
+		CommercePriceListCreateDateComparator.getInstance(false);
+		CommercePriceListDisplayDateComparator.getInstance(false);
+		CommercePriceListPriorityComparator.getInstance(false);
+		CommercePricingClassCreateDateComparator.getInstance(false);
+		CommerceTierPriceEntryMinQuantityComparator.getInstance(false);
 
 		PortletDisplayTemplateConstants.DISPLAY_STYLE_PREFIX;
 		PortletDisplayTemplateConstants.ENTRIES;
 
 		ServiceTrackerList<Class<E>> serviceTrackerList = ServiceTrackerListFactory.open(null, null);
+
+		StructureStructureKeyComparator.getInstance(true);
+		StructureStructureKeyComparator.getInstance(false);
 	}
 
 	public void method(
@@ -85,6 +163,21 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 	public void method(AssetCategory<?> assetCategory) {
 		AssetCategory::getCategoryId;
 		assetCategory.getCategoryId;
+	}
+
+	public void method(boolean showHiddenPages) {
+		LayoutItemSelectorCriterion layoutItemSelectorCriterion = new LayoutItemSelectorCriterion();
+
+		layoutItemSelectorCriterion.setShowHiddenPages(null);
+
+		AssetListEntryCreateDateComparator.getInstance(showHiddenPages);
+		AssetTagCountComparator.getInstance(showHiddenPages);
+		CommercePricingClassCreateDateComparator.getInstance(showHiddenPages);
+		CommerceTierPriceEntryMinQuantityComparator.getInstance(showHiddenPages);
+		CommercePriceListPriorityComparator.getInstance(showHiddenPages);
+		CommercePriceListDisplayDateComparator.getInstance(showHiddenPages);
+		CommercePriceListCreateDateComparator.getInstance(showHiddenPages);
+		CommercePriceEntryUOMCreateDateComparator.getInstance(showHiddenPages);
 	}
 
 	public void method(CommerceAddress commerceAddress) {
@@ -143,6 +236,10 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 		Map<Indexer<?>, Indexer<?>> indexerRequests = new LinkedHashMap<>();
 		List<Indexer<?>> indexers = portlet.getIndexerInstances();
+	}
+
+	public void method(Layout layout, String friendlyURL) {
+		LayoutFriendlyURLComposite(layout, friendlyURL, false);
 	}
 
 	public void method(long commerceOrderId) {
@@ -428,6 +525,10 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		AssetVocabularyLocalServiceUtil.fetchAssetVocabularyByExternalReferenceCode(companyId, externalReferenceCode);
 		_assetVocabularyLocalService.fetchAssetVocabularyByExternalReferenceCode(companyId, externalReferenceCode);
 
+		CommerceCatalogLocalServiceUtil.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
+		_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(123, "test123");
+		_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
+
 		CommercePriceListLocalServiceUtil.fetchByExternalReferenceCode(externalReferenceCode, companyId);
 		_commercePriceListLocalService.fetchByExternalReferenceCode(123, "test123");
 		_commercePriceListLocalService.fetchByExternalReferenceCode(externalReferenceCode, companyId);
@@ -509,10 +610,37 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		portletDisplay.getPortletInstanceConfiguration(null);
 	}
 
+	public void method(Product product) {
+		product.getProductConfiguration();
+	}
+
 	public void method(
 		ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
 
 		CaptchaUtil.serveImage(PortalUtil.getHttpServletRequest(resourceRequest), PortalUtil.getHttpServletResponse(resourceResponse));
+	}
+
+	public void method(String searchEngineId) {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+			new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setSearchEngineId("test123");
+	}
+
+	public void method(
+		String searchEngineId, long companyId, Collection<Document> documents,
+		boolean commitImmediately) {
+
+		IndexWriterHelperUtil.updateDocument(companyId, documents);
+		IndexWriterHelperUtil.updateDocument("test123", 123, null, null);
+	}
+
+	public void method(
+		String className, long classPK, Locale locale,
+		ThemeDisplay themeDisplay) {
+
+		_assetDisplayPageFriendlyURLProvider.getFriendlyURL(new InfoItemReference(className, classPK), locale, themeDisplay);
+		_assetDisplayPageFriendlyURLProvider.getFriendlyURL("test123", 123, locale, themeDisplay);
 	}
 
 	public void method(
@@ -533,6 +661,13 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		CommercePriceEntryLocalServiceUtil.addCommercePriceEntry(externalReferenceCode, cProductId, cpInstanceUuid, commercePriceListId, price, false, promoPrice, null, serviceContext);
 		_commercePriceEntryLocalService.addCommercePriceEntry("test123", cProductId, cpInstanceUuid, commercePriceListId, price, promoPrice, serviceContext);
 		_commercePriceEntryLocalService.addCommercePriceEntry(externalReferenceCode, cProductId, cpInstanceUuid, commercePriceListId, price, false, promoPrice, null, serviceContext);
+	}
+
+	public void method(
+		String className, long classPK, ThemeDisplay themeDisplay) {
+
+		_assetDisplayPageFriendlyURLProvider.getFriendlyURL(new InfoItemReference(className, classPK), themeDisplay);
+		_assetDisplayPageFriendlyURLProvider.getFriendlyURL("test123", 123, themeDisplay);
 	}
 
 	public void method(String name, String label, BigDecimal amount) {
@@ -565,6 +700,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
+	private AssetDisplayPageFriendlyURLProvider _assetDisplayPageFriendlyURLProvider;
+
+	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
 	@Reference
@@ -581,6 +719,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 	@Reference
 	private CommerceAddressLocalService _commerceAddressLocalService;
+
+	@Reference
+	private CommerceCatalogLocalService _commerceCatalogLocalService;
 
 	@Reference
 	private CommerceOrderItemLocalService _commerceOrderItemLocalService;
@@ -632,6 +773,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 	@Reference
 	private HtmlParser _htmlParser;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private JournalFolderLocalService _journalFolderLocalService;

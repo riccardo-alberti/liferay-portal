@@ -1199,6 +1199,7 @@
 		<!-- Other fields -->
 
 		<column name="CPOptionCategoryId" type="long" />
+		<column name="listTypeDefinitionId" type="long" />
 		<column localized="true" name="title" type="String" />
 		<column localized="true" name="description" type="String" />
 		<column name="facetable" type="boolean" />
@@ -1219,6 +1220,9 @@
 		</finder>
 		<finder name="CPOptionCategoryId" return-type="Collection">
 			<finder-column name="CPOptionCategoryId" />
+		</finder>
+		<finder name="ListTypeDefinitionId" return-type="Collection">
+			<finder-column name="listTypeDefinitionId" />
 		</finder>
 		<finder name="C_K" return-type="CPSpecificationOption" unique="true">
 			<finder-column name="companyId" />
@@ -1290,13 +1294,18 @@
 		<exception>CPDefinitionSubscriptionLength</exception>
 		<exception>CPDisplayLayoutEntry</exception>
 		<exception>CPDisplayLayoutEntryUuid</exception>
+		<exception>CPInstanceCost</exception>
 		<exception>CPInstanceDeliverySubscriptionLength</exception>
+		<exception>CPInstanceDepth</exception>
 		<exception>CPInstanceDiscontinuedDate</exception>
 		<exception>CPInstanceDisplayDate</exception>
 		<exception>CPInstanceExpirationDate</exception>
+		<exception>CPInstanceHeight</exception>
 		<exception>CPInstanceJson</exception>
 		<exception>CPInstanceMaxPriceValue</exception>
 		<exception>CPInstanceMinPriceValue</exception>
+		<exception>CPInstancePrice</exception>
+		<exception>CPInstancePromoPrice</exception>
 		<exception>CPInstanceReplacementCPInstanceUuid</exception>
 		<exception>CPInstanceSku</exception>
 		<exception>CPInstanceSubscriptionLength</exception>
@@ -1305,6 +1314,8 @@
 		<exception>CPInstanceUnitOfMeasureName</exception>
 		<exception>CPInstanceUnitOfMeasureRate</exception>
 		<exception>CPInstanceUnitOfMeasureSku</exception>
+		<exception>CPInstanceWeight</exception>
+		<exception>CPInstanceWidth</exception>
 		<exception>CPMeasurementUnitType</exception>
 		<exception>CPOptionCategoryKey</exception>
 		<exception>CPOptionKey</exception>

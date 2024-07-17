@@ -1,4 +1,4 @@
-@component-name = "portal-database-upgrade-tool"
+@component-name = "portal-upgrades"
 definition {
 
 	property app.server.types = "tomcat";
@@ -16,13 +16,13 @@ definition {
 	@priority = 5
 	test CanAutoUpgradeLargePartitionedDatabase7413 {
 		property custom.properties = "upgrade.report.enabled=true";
-		property custom.startup.timeout = "300";
+		property custom.startup.timeout = "540";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property database.auto.upgrade.enabled = "true";
 		property minimum.slave.ram = "24";
 		property portal.release = "false";
 		property portal.upstream = "false";
-		property portal.version = "2023.q3.1";
+		property portal.version = "2024.q2.3";
 		property skip.upgrade-legacy-database = "true";
 		property test.assert.warning.exceptions = "false";
 
@@ -44,7 +44,7 @@ definition {
 		property minimum.slave.ram = "24";
 		property portal.release = "false";
 		property portal.upstream = "false";
-		property portal.version = "2023.q3.1";
+		property portal.version = "2024.q2.3";
 		property skip.upgrade-legacy-database = "true";
 		property test.assert.warning.exceptions = "false";
 
@@ -66,12 +66,12 @@ definition {
 
 	@priority = 5
 	test CanUpgradeLargePartitionedDatabase7413 {
-		property custom.startup.timeout = "490";
+		property custom.startup.timeout = "600";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property minimum.slave.ram = "24";
 		property portal.release = "false";
 		property portal.upstream = "false";
-		property portal.version = "2023.q3.1";
+		property portal.version = "2024.q2.3";
 		property test.assert.warning.exceptions = "false";
 		property upgrade.reports.enabled = "true";
 
@@ -91,7 +91,7 @@ definition {
 		property minimum.slave.ram = "24";
 		property portal.release = "false";
 		property portal.upstream = "false";
-		property portal.version = "2023.q3.1";
+		property portal.version = "2024.q2.3";
 		property test.assert.warning.exceptions = "false";
 		property upgrade.reports.enabled = "true";
 
@@ -119,7 +119,7 @@ definition {
 
 		User.loginPG(
 			nodePort = 8080,
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userEmailAddress = "test@liferay.com");
 
 		SearchAdministration.executeReindex();
@@ -136,7 +136,7 @@ definition {
 		task ("Validate www.able.com and www.baker.com partitions") {
 			User.loginPG(
 				nodePort = 8080,
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "test@liferay.com");
 
 			SearchAdministration.executeReindex();
@@ -179,7 +179,7 @@ definition {
 		task ("Ensure that both www.able.com and www.baker.com are accessible") {
 			User.loginPG(
 				nodePort = 8080,
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "test@liferay.com");
 
 			SearchAdministration.executeReindex();

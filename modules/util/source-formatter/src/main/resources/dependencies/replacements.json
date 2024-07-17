@@ -1,5 +1,192 @@
 [
 	{
+		"classNames": [
+			"Product"
+		],
+		"from": "getConfiguration",
+		"issueKey": "LPD-7749",
+		"to": "getProductConfiguration"
+	},
+	{
+		"classNames": [
+			"CommerceCatalogLocalService",
+			"CommerceCatalogLocalServiceUtil"
+		],
+		"from": "fetchCommerceCatalogByExternalReferenceCode(long paramName, String paramName)",
+		"issueKey": "LPD-7751",
+		"to": "fetchCommerceCatalogByExternalReferenceCode(param#1#, param#0#)"
+	},
+	{
+		"classNames": [
+			"AssetDisplayPageFriendlyURLProvider"
+		],
+		"from": "getFriendlyURL(String paramName, long paramName, Locale paramName, ThemeDisplay paramName)",
+		"issueKey": "LPD-7996",
+		"newImports": [
+			"com.liferay.info.item.InfoItemReference"
+		],
+		"to": "getFriendlyURL(new InfoItemReference(param#0#, param#1#), param#2#, param#3#)"
+	},
+	{
+		"classNames": [
+			"AssetDisplayPageFriendlyURLProvider"
+		],
+		"from": "getFriendlyURL(String paramName, long paramName, ThemeDisplay paramName)",
+		"issueKey": "LPD-7996",
+		"newImports": [
+			"com.liferay.info.item.InfoItemReference"
+		],
+		"to": "getFriendlyURL(new InfoItemReference(param#0#, param#1#), param#2#)"
+	},
+	{
+		"classNames": [
+			"IndexableActionableDynamicQuery"
+		],
+		"from": "setSearchEngineId(String paramName)",
+		"issueKey": "LPD-8002",
+		"to": ""
+	},
+	{
+		"classNames": [
+			"IndexWriterHelperUtil"
+		],
+		"from": "updateDocument(String paramName, long paramName, Collection<Document> paramName, boolean paramName)",
+		"issueKey": "LPD-8003",
+		"to": "updateDocument(param#1#, param#2#)"
+	},
+	{
+		"from": "LayoutFriendlyURLComposite(Layout paramName, String paramName)",
+		"issueKey": "LPD-8025",
+		"skipParametersValidation": true,
+		"to": "LayoutFriendlyURLComposite(param#0#, param#1#, false)"
+	},
+	{
+		"classNames": [
+			"LayoutItemSelectorCriterion"
+		],
+		"from": "setShowHiddenPages(boolean paramName)",
+		"issueKey": "LPD-8038",
+		"to": ""
+	},
+	{
+		"classNames": [
+			"Http",
+			"HttpUtil"
+		],
+		"from": "regex:(http|_http|HttpUtil)\\.(?<methodName>addParameter|decodePath|decodeURL|encodeParameters|encodePath|fixPath|getCompleteURL|getDomain|getIpAddress|getParameter|getParameterMap|getPath|getProtocol|getQueryString|getRequestURL|getURI|hasDomain|hasProtocol|isForwarded|isSecure|normalizePath|parameterMapFromString|protocolize|removeDomain|removeParameter|removePathParameters|removeProtocol|sanitizeHeader|setParameter|shortenURL)",
+		"issueKey": "LPD-8040",
+		"newImports": [
+			"com.liferay.portal.kernel.util.HttpComponentsUtil"
+		],
+		"to": "HttpComponentsUtil.${methodName}"
+	},
+	{
+		"from": "new AssetListEntryCreateDateComparator()",
+		"issueKey": "LPD-26157",
+		"skipParametersValidation": true,
+		"to": "AssetListEntryCreateDateComparator.getInstance(false)"
+	},
+	{
+		"from": "new AssetListEntryCreateDateComparator(boolean paramName)",
+		"issueKey": "LPD-26157",
+		"skipParametersValidation": true,
+		"to": "AssetListEntryCreateDateComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new AssetTagCountComparator()",
+		"issueKey": "LPD-26157",
+		"skipParametersValidation": true,
+		"to": "AssetTagCountComparator.getInstance(false)"
+	},
+	{
+		"from": "new AssetTagCountComparator(boolean paramName)",
+		"issueKey": "LPD-26157",
+		"skipParametersValidation": true,
+		"to": "AssetTagCountComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "StructureStructureKeyComparator.INSTANCE_ASCENDING",
+		"issueKey": "LPD-26157",
+		"to": "StructureStructureKeyComparator.getInstance(true)"
+	},
+	{
+		"from": "StructureStructureKeyComparator.INSTANCE_DESCENDING",
+		"issueKey": "LPD-26157",
+		"to": "StructureStructureKeyComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePriceEntryUOMCreateDateComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceEntryUOMCreateDateComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePriceEntryUOMCreateDateComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceEntryUOMCreateDateComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new CommercePriceListCreateDateComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListCreateDateComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePriceListCreateDateComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListCreateDateComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new CommercePriceListDisplayDateComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListDisplayDateComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePriceListDisplayDateComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListDisplayDateComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new CommercePriceListPriorityComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListPriorityComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePriceListPriorityComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePriceListPriorityComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new CommercePricingClassCreateDateComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePricingClassCreateDateComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommercePricingClassCreateDateComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommercePricingClassCreateDateComparator.getInstance(param#0#)"
+	},
+	{
+		"from": "new CommerceTierPriceEntryMinQuantityComparator()",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommerceTierPriceEntryMinQuantityComparator.getInstance(false)"
+	},
+	{
+		"from": "new CommerceTierPriceEntryMinQuantityComparator(boolean paramName)",
+		"issueKey": "LPD-28067",
+		"skipParametersValidation": true,
+		"to": "CommerceTierPriceEntryMinQuantityComparator.getInstance(param#0#)"
+	},
+	{
 		"from": "CookieKeys.COMMERCE_CONTINUE_AS_GUEST",
 		"issueKey": "LPS-159679",
 		"newImports": [
@@ -8,20 +195,20 @@
 		"to": "CookiesConstants.NAME_COMMERCE_CONTINUE_AS_GUEST"
 	},
 	{
-		"from": "CookieKeys.ID",
-		"issueKey": "LPS-159679",
-		"newImports": [
-			"com.liferay.portal.kernel.cookies.constants.CookiesConstants"
-		],
-		"to": "CookiesConstants.NAME_ID"
-	},
-	{
 		"from": "CookieKeys.getCookie(HttpServletRequest paramName, String paramName)",
 		"issueKey": "LPS-159679",
 		"newImports": [
 			"com.liferay.portal.kernel.cookies.CookiesManagerUtil"
 		],
 		"to": "CookiesManagerUtil.getCookieValue(param#1#, param#0#)"
+	},
+	{
+		"from": "CookieKeys.ID",
+		"issueKey": "LPS-159679",
+		"newImports": [
+			"com.liferay.portal.kernel.cookies.constants.CookiesConstants"
+		],
+		"to": "CookiesConstants.NAME_ID"
 	},
 	{
 		"from": "CookieKeys.SCREEN_NAME",
@@ -88,18 +275,18 @@
 			"Country",
 			"CommerceAddress"
 		],
-		"from": "setThreeLettersISOCode",
+		"from": "getTwoLettersISOCode",
 		"issueKey": "LPS-186923",
-		"to": "setA3"
+		"to": "getA2"
 	},
 	{
 		"classNames": [
 			"Country",
 			"CommerceAddress"
 		],
-		"from": "getTwoLettersISOCode",
+		"from": "setThreeLettersISOCode",
 		"issueKey": "LPS-186923",
-		"to": "getA2"
+		"to": "setA3"
 	},
 	{
 		"classNames": [
@@ -374,14 +561,6 @@
 		"to": "addFolder(null, param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#)"
 	},
 	{
-		"from": "compat/mixins",
-		"issueKey": "LPS-194519",
-		"to": "clay/cadmin-variables",
-		"validExtensions": [
-			"scss"
-		]
-	},
-	{
 		"classNames": [
 			"DLAppLocalService",
 			"DLAppLocalServiceUtil"
@@ -406,6 +585,14 @@
 			"java.util.Date"
 		],
 		"to": "updateFileEntry(param#0#, param#1#, param#2#, param#3#, param#4#, null, param#5#, param#6#, param#7#, param#8#, null, null, param#9#)"
+	},
+	{
+		"from": "compat/mixins",
+		"issueKey": "LPS-194519",
+		"to": "clay/cadmin-variables",
+		"validExtensions": [
+			"scss"
+		]
 	},
 	{
 		"classNames": [

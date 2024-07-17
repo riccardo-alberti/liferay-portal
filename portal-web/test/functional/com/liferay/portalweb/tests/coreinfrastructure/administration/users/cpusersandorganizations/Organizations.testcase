@@ -1,4 +1,4 @@
-@component-name = "portal-user-management"
+@component-name = "portal-commerce"
 definition {
 
 	property portal.release = "true";
@@ -273,53 +273,6 @@ definition {
 			url = "${portalURL}/web/organization-name/public-page");
 
 		PagesAdmin.viewPageItemPresent(pageName = "Public Page");
-	}
-
-	@priority = 4
-	test AddOrganizationTeam {
-		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
-		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-		property portal.acceptance = "true";
-		property test.liferay.virtual.instance = "false";
-		property testray.component.names = "Training";
-
-		JSONOrganization.addOrganization(organizationName = "Organization Name");
-
-		Organization.openOrganizationsAdmin();
-
-		Organization.addSiteCP(orgName = "Organization Name");
-
-		Site.openSiteSettingsAdmin(siteURLKey = "organization-name");
-
-		Site.manageMembershipOptions(allowManualMembershipManagement = "true");
-
-		Organization.openOrganizationsAdmin();
-
-		Organization.assignUser(
-			orgName = "Organization Name",
-			userFirstName = "Test",
-			userLastName = "Test",
-			userName = "Test Test",
-			userScreenName = "test");
-
-		PagesAdmin.openPagesAdmin(siteURLKey = "Organization Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			portlet = "Pages");
-
-		PagesAdmin.addPage(pageName = "Organization Public Page");
-
-		PagesAdmin.openPagesAdmin(siteURLKey = "Organization Name");
-
-		ProductMenu.gotoPortlet(
-			category = "People",
-			portlet = "Teams");
-
-		Team.addCP(
-			siteName = "Organization Name",
-			teamDescription = "Site Team Description",
-			teamName = "Site Team Name");
 	}
 
 	@priority = 4
@@ -1150,7 +1103,7 @@ definition {
 		User.logoutPG();
 
 		User.loginPG(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userEmailAddress = "test@liferay.com");
 	}
 
@@ -1589,7 +1542,7 @@ definition {
 		User.logoutPG();
 
 		User.loginPG(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userEmailAddress = "userea1@liferay.com");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/united-states/mb-page");
@@ -1599,7 +1552,7 @@ definition {
 		User.logoutPG();
 
 		User.loginPG(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userEmailAddress = "userea2@liferay.com");
 
 		Navigator.openSpecificURL(url = "${portalURL}/web/canada/mb-page");

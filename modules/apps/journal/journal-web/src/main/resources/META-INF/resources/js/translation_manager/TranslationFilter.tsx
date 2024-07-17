@@ -19,6 +19,7 @@ const Trigger = React.forwardRef(
 	({children, ...otherProps}, ref: LegacyRef<HTMLButtonElement>) => (
 		<button
 			{...otherProps}
+			aria-label={Liferay.Language.get('select-a-filter')}
 			className="btn btn-block btn-secondary btn-sm form-control-select"
 			ref={ref}
 			tabIndex={0}
@@ -123,14 +124,14 @@ export default function TranslationFilter({
 						if (
 							(translationProgress?.translatedItems[
 								selectedLanguageId
-							] ?? 0) > 1
+							] ?? 0) < (translationProgress?.totalItems ?? 0)
 						) {
-							contentWrapper.hidden = true;
-							emptyPlaceholder.hidden = false;
-						}
-						else {
 							contentWrapper.hidden = false;
 							emptyPlaceholder.hidden = true;
+						}
+						else {
+							contentWrapper.hidden = true;
+							emptyPlaceholder.hidden = false;
 						}
 					}
 					else {
@@ -138,9 +139,10 @@ export default function TranslationFilter({
 						metadataWrapper.hidden = false;
 
 						if (
-							!translationProgress?.translatedItems[
+							(translationProgress?.translatedItems[
 								selectedLanguageId
-							]
+							] ?? 0) <
+							(translationProgress?.totalItems ?? 0) - 1
 						) {
 							contentWrapper.hidden = false;
 						}
@@ -163,6 +165,7 @@ export default function TranslationFilter({
 
 	useEffect(() => {
 		handleSelection('all-fields');
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedLanguageId]);
 

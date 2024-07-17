@@ -95,7 +95,7 @@ function TopperContent({
 	itemElement,
 }) {
 	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
-	const commentsPanelId = config.sidebarPanels?.comments?.sidebarPanelId;
+	const commentsPanelId = config.sidebarPanelsMap?.comments?.sidebarPanelId;
 	const dispatch = useDispatch();
 	const editableProcessorUniqueId = useEditableProcessorUniqueId();
 	const hoverItem = useHoverItem();
@@ -156,18 +156,16 @@ function TopperContent({
 		);
 	};
 
-	const {
-		handlerRef: itemHandlerRef,
-		isDraggingSource: itemIsDraggingSource,
-	} = useDragItem(
-		{...item, fragmentEntryType, isWidget, name},
-		onDragEnd,
-		() => {
-			if (!isActive) {
-				selectItem(item.itemId);
+	const {handlerRef: itemHandlerRef, isDraggingSource: itemIsDraggingSource} =
+		useDragItem(
+			{...item, fragmentEntryType, isWidget, name},
+			onDragEnd,
+			() => {
+				if (!isActive) {
+					selectItem(item.itemId);
+				}
 			}
-		}
-	);
+		);
 
 	const {
 		handlerRef: topperHandlerRef,
@@ -293,7 +291,8 @@ function TopperContent({
 											dispatch(
 												switchSidebarPanel({
 													sidebarOpen: true,
-													sidebarPanelId: commentsPanelId,
+													sidebarPanelId:
+														commentsPanelId,
 												})
 											);
 										}}

@@ -4,10 +4,11 @@
  */
 
 import {addDays} from 'date-fns';
+import {useEffect, useMemo, useState} from 'react';
 import useSWR from 'swr';
 
 import SearchBuilder from '../../../core/SearchBuilder';
-import {ORDER_STATUS, ORDER_TYPES} from '../../../enums/Order';
+import {ORDER_TYPES, ORDER_WORKFLOW_STATUS_CODE} from '../../../enums/Order';
 import useMarketplaceSpringBootOAuth2 from '../../../hooks/useMarketplaceSpringBootOAuth2';
 import HeadlessCommerceAdminOrderImpl from '../../../services/rest/HeadlessCommerceAdminOrder';
 
@@ -20,9 +21,47 @@ export const METRIC_PARAMETER = {
 	week: 7,
 };
 
+const trialSearchBuilder = new SearchBuilder()
+	.eq('orderTypeExternalReferenceCode', ORDER_TYPES.SOLUTIONS7)
+	.and();
+
+const getPeriodMetrics = (
+	lastPeriodValue: number,
+	beforeLastPeriodvalue: number
+) => {
+	const newOrders = lastPeriodValue - beforeLastPeriodvalue;
+
+	let growth = Number(((newOrders / lastPeriodValue) * 100).toFixed(3));
+
+	if (Number.isNaN(growth)) {
+		growth = 0;
+	}
+
+	return {
+		beforeLastPeriod: beforeLastPeriodvalue,
+		growth,
+		lastPeriod: lastPeriodValue,
+		totalCount: lastPeriodValue,
+	};
+};
+
+const getExiredQuantity = (orderLastPeriod: Order[]) =>
+	orderLastPeriod?.filter(
+		(order: Order) =>
+			new Date() >
+			new Date(order?.customFields?.['trial-end-date'] as string)
+	).length;
+
 type FilterType = 'month' | 'q1' | 'q2' | 'q3' | 'q4' | 'week';
 
+const ACTIVE_REFRESH_INTERVAL = 60 * 1000;
+const DEFAULT_REFRESH_INTERVAL = 240 * 1000;
+
 const useTrialMetrics = (param: FilterType) => {
+	const [refreshInterval, setRefreshInterval] = useState(
+		DEFAULT_REFRESH_INTERVAL
+	);
+
 	const marketplaceSpringBootOAuth2 = useMarketplaceSpringBootOAuth2();
 
 	const beforeLastPeriod = addDays(
@@ -40,30 +79,25 @@ const useTrialMetrics = (param: FilterType) => {
 
 	const requestsParams = [
 		new URLSearchParams({
-			fields:
-				'id,account,orderStatusInfo,createDate,customFields,name,accountId',
-			filter: new SearchBuilder()
-				.eq('orderTypeExternalReferenceCode', ORDER_TYPES.SOLUTIONS7)
-				.build(),
+			fields: 'id,account,orderStatusInfo,createDate,customFields,name,accountId',
+			filter: trialSearchBuilder.clone().build(),
 			nestedFields: 'account,orderItems',
-			pageSize: '15',
+			pageSize: '30',
 			sort: 'createDate:desc',
 		}),
 		new URLSearchParams({
 			fields: 'id,orderStatus,customFields',
-			filter: new SearchBuilder()
+			filter: trialSearchBuilder
+				.clone()
 				.gt('createDate', lastPeriod.toISOString())
-				.and()
-				.eq('orderTypeExternalReferenceCode', ORDER_TYPES.SOLUTIONS7)
 				.build(),
 			pageSize: '-1',
 			sort: 'createDate:desc',
 		}),
 		new URLSearchParams({
 			fields: 'orderStatus,customFields',
-			filter: new SearchBuilder()
-				.eq('orderTypeExternalReferenceCode', ORDER_TYPES.SOLUTIONS7)
-				.and()
+			filter: trialSearchBuilder
+				.clone()
 				.lt('createDate', lastPeriod.toISOString())
 				.and()
 				.gt('createDate', beforeLastPeriod.toISOString())
@@ -74,14 +108,17 @@ const useTrialMetrics = (param: FilterType) => {
 		}),
 		new URLSearchParams({
 			fields: 'orderStatus',
-			filter: new SearchBuilder()
-				.eq('orderTypeExternalReferenceCode', ORDER_TYPES.SOLUTIONS7)
-				.build(),
+			filter: trialSearchBuilder.clone().build(),
 			pageSize: '-1',
 		}),
 	];
 
-	const {data: trialDataResponse = [], error, isLoading} = useSWR<any>(
+	const {
+		data: trialDataResponse = [],
+		error,
+		isLoading,
+		mutate,
+	} = useSWR<any>(
 		'administrator-dashboard/metrics/trial',
 		() =>
 			Promise.all([
@@ -89,7 +126,8 @@ const useTrialMetrics = (param: FilterType) => {
 				...requestsParams.map((searchParam) =>
 					HeadlessCommerceAdminOrderImpl.getOrders(searchParam)
 				),
-			])
+			]),
+		{refreshInterval}
 	);
 
 	const [
@@ -100,19 +138,31 @@ const useTrialMetrics = (param: FilterType) => {
 		ordersTrial,
 	] = trialDataResponse;
 
-	const getExiredQuantity = (orderLastPeriod: Order[]) =>
-		orderLastPeriod?.filter(
-			(order: Order) =>
-				new Date() >
-				new Date(order?.customFields?.['trial-end-date'] as string)
-		).length;
+	const orderItems = useMemo(
+		() => orderTableData?.items ?? [],
+		[orderTableData?.items]
+	);
+
+	useEffect(() => {
+		const isProcessing = orderItems.some(({orderStatusInfo}: any) =>
+			[
+				ORDER_WORKFLOW_STATUS_CODE.PROCESSING,
+				ORDER_WORKFLOW_STATUS_CODE.ON_HOLD,
+			].includes(orderStatusInfo.code)
+		);
+
+		setRefreshInterval(
+			isProcessing ? ACTIVE_REFRESH_INTERVAL : DEFAULT_REFRESH_INTERVAL
+		);
+	}, [orderItems]);
 
 	const resourcesAvailable = `${
 		availabilityResponse?.max - availabilityResponse?.available
 	} / ${availabilityResponse?.max}`;
 
 	const onHold = ordersTrial?.items?.filter(
-		(order: Order) => order.orderStatus === ORDER_STATUS.ON_HOLD
+		(order: Order) =>
+			order.orderStatus === ORDER_WORKFLOW_STATUS_CODE.ON_HOLD
 	).length;
 
 	const expiredTrialsLastPeriod = getExiredQuantity(orderLastPeriod?.items);
@@ -120,26 +170,6 @@ const useTrialMetrics = (param: FilterType) => {
 	const expiredTrialsBeforeLastPeriod = getExiredQuantity(
 		orderBeforeLastPeriod?.items
 	);
-
-	const getPeriodMetrics = (
-		lastPeriodValue: number,
-		beforeLastPeriodvalue: number
-	) => {
-		const newOrders = lastPeriodValue - beforeLastPeriodvalue;
-
-		let growth = Number(((newOrders / lastPeriodValue) * 100).toFixed(3));
-
-		if (Number.isNaN(growth)) {
-			growth = 0;
-		}
-
-		return {
-			beforeLastPeriod: beforeLastPeriodvalue,
-			growth,
-			lastPeriod: lastPeriodValue,
-			totalCount: lastPeriodValue,
-		};
-	};
 
 	return {
 		availability: {
@@ -153,6 +183,7 @@ const useTrialMetrics = (param: FilterType) => {
 			expiredTrialsBeforeLastPeriod
 		),
 		isLoading,
+		mutate,
 		orderTableData,
 		orders: getPeriodMetrics(
 			orderLastPeriod?.totalCount,

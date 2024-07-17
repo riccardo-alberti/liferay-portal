@@ -5,6 +5,7 @@
 
 package com.liferay.layout.page.template.service.persistence.impl;
 
+import com.liferay.layout.page.template.exception.DuplicateLayoutPageTemplateEntryExternalReferenceCodeException;
 import com.liferay.layout.page.template.exception.NoSuchPageTemplateEntryException;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntryTable;
@@ -27,15 +28,21 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -2060,7 +2067,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -2261,7 +2270,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -3757,7 +3768,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -3965,7 +3978,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -5043,7 +5058,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -5262,7 +5279,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -6049,7 +6068,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -6255,7 +6276,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -6414,7 +6437,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -7523,7 +7548,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -7729,7 +7756,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -8566,7 +8595,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -8792,7 +8823,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -9655,7 +9688,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -9868,7 +9903,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -10708,7 +10745,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -10923,7 +10962,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -11136,79 +11177,92 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	private static final String _FINDER_COLUMN_G_L_S_STATUS_2 =
 		"layoutPageTemplateEntry.status = ?";
 
-	private FinderPath _finderPathFetchByG_N_T;
+	private FinderPath _finderPathWithPaginationFindByG_N_T;
+	private FinderPath _finderPathWithoutPaginationFindByG_N_T;
 	private FinderPath _finderPathCountByG_N_T;
 
 	/**
-	 * Returns the layout page template entry where groupId = &#63; and name = &#63; and type = &#63; or throws a <code>NoSuchPageTemplateEntryException</code> if it could not be found.
+	 * Returns all the layout page template entries where groupId = &#63; and name = &#63; and type = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param name the name
 	 * @param type the type
-	 * @return the matching layout page template entry
-	 * @throws NoSuchPageTemplateEntryException if a matching layout page template entry could not be found
+	 * @return the matching layout page template entries
 	 */
 	@Override
-	public LayoutPageTemplateEntry findByG_N_T(
-			long groupId, String name, int type)
-		throws NoSuchPageTemplateEntryException {
-
-		LayoutPageTemplateEntry layoutPageTemplateEntry = fetchByG_N_T(
-			groupId, name, type);
-
-		if (layoutPageTemplateEntry == null) {
-			StringBundler sb = new StringBundler(8);
-
-			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			sb.append("groupId=");
-			sb.append(groupId);
-
-			sb.append(", name=");
-			sb.append(name);
-
-			sb.append(", type=");
-			sb.append(type);
-
-			sb.append("}");
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(sb.toString());
-			}
-
-			throw new NoSuchPageTemplateEntryException(sb.toString());
-		}
-
-		return layoutPageTemplateEntry;
-	}
-
-	/**
-	 * Returns the layout page template entry where groupId = &#63; and name = &#63; and type = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
-	 *
-	 * @param groupId the group ID
-	 * @param name the name
-	 * @param type the type
-	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
-	 */
-	@Override
-	public LayoutPageTemplateEntry fetchByG_N_T(
+	public List<LayoutPageTemplateEntry> findByG_N_T(
 		long groupId, String name, int type) {
 
-		return fetchByG_N_T(groupId, name, type, true);
+		return findByG_N_T(
+			groupId, name, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
 	/**
-	 * Returns the layout page template entry where groupId = &#63; and name = &#63; and type = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns a range of all the layout page template entries where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutPageTemplateEntryModelImpl</code>.
+	 * </p>
 	 *
 	 * @param groupId the group ID
 	 * @param name the name
 	 * @param type the type
-	 * @param useFinderCache whether to use the finder cache
-	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 * @param start the lower bound of the range of layout page template entries
+	 * @param end the upper bound of the range of layout page template entries (not inclusive)
+	 * @return the range of matching layout page template entries
 	 */
 	@Override
-	public LayoutPageTemplateEntry fetchByG_N_T(
-		long groupId, String name, int type, boolean useFinderCache) {
+	public List<LayoutPageTemplateEntry> findByG_N_T(
+		long groupId, String name, int type, int start, int end) {
+
+		return findByG_N_T(groupId, name, type, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the layout page template entries where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutPageTemplateEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param start the lower bound of the range of layout page template entries
+	 * @param end the upper bound of the range of layout page template entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching layout page template entries
+	 */
+	@Override
+	public List<LayoutPageTemplateEntry> findByG_N_T(
+		long groupId, String name, int type, int start, int end,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator) {
+
+		return findByG_N_T(
+			groupId, name, type, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the layout page template entries where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutPageTemplateEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param start the lower bound of the range of layout page template entries
+	 * @param end the upper bound of the range of layout page template entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching layout page template entries
+	 */
+	@Override
+	public List<LayoutPageTemplateEntry> findByG_N_T(
+		long groupId, String name, int type, int start, int end,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
+		boolean useFinderCache) {
 
 		try (SafeCloseable safeCloseable =
 				ctPersistenceHelper.setCTCollectionIdWithSafeCloseable(
@@ -11216,33 +11270,56 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 			name = Objects.toString(name, "");
 
+			FinderPath finderPath = null;
 			Object[] finderArgs = null;
 
-			if (useFinderCache) {
-				finderArgs = new Object[] {groupId, name, type};
+			if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
+				(orderByComparator == null)) {
+
+				if (useFinderCache) {
+					finderPath = _finderPathWithoutPaginationFindByG_N_T;
+					finderArgs = new Object[] {groupId, name, type};
+				}
+			}
+			else if (useFinderCache) {
+				finderPath = _finderPathWithPaginationFindByG_N_T;
+				finderArgs = new Object[] {
+					groupId, name, type, start, end, orderByComparator
+				};
 			}
 
-			Object result = null;
+			List<LayoutPageTemplateEntry> list = null;
 
 			if (useFinderCache) {
-				result = finderCache.getResult(
-					_finderPathFetchByG_N_T, finderArgs, this);
-			}
+				list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
+					finderPath, finderArgs, this);
 
-			if (result instanceof LayoutPageTemplateEntry) {
-				LayoutPageTemplateEntry layoutPageTemplateEntry =
-					(LayoutPageTemplateEntry)result;
+				if ((list != null) && !list.isEmpty()) {
+					for (LayoutPageTemplateEntry layoutPageTemplateEntry :
+							list) {
 
-				if ((groupId != layoutPageTemplateEntry.getGroupId()) ||
-					!Objects.equals(name, layoutPageTemplateEntry.getName()) ||
-					(type != layoutPageTemplateEntry.getType())) {
+						if ((groupId != layoutPageTemplateEntry.getGroupId()) ||
+							!name.equals(layoutPageTemplateEntry.getName()) ||
+							(type != layoutPageTemplateEntry.getType())) {
 
-					result = null;
+							list = null;
+
+							break;
+						}
+					}
 				}
 			}
 
-			if (result == null) {
-				StringBundler sb = new StringBundler(5);
+			if (list == null) {
+				StringBundler sb = null;
+
+				if (orderByComparator != null) {
+					sb = new StringBundler(
+						5 + (orderByComparator.getOrderByFields().length * 2));
+				}
+				else {
+					sb = new StringBundler(5);
+				}
 
 				sb.append(_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
 
@@ -11260,6 +11337,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				}
 
 				sb.append(_FINDER_COLUMN_G_N_T_TYPE_2);
+
+				if (orderByComparator != null) {
+					appendOrderByComparator(
+						sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator);
+				}
+				else {
+					sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				}
 
 				String sql = sb.toString();
 
@@ -11280,21 +11365,13 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 					queryPos.add(type);
 
-					List<LayoutPageTemplateEntry> list = query.list();
+					list = (List<LayoutPageTemplateEntry>)QueryUtil.list(
+						query, getDialect(), start, end);
 
-					if (list.isEmpty()) {
-						if (useFinderCache) {
-							finderCache.putResult(
-								_finderPathFetchByG_N_T, finderArgs, list);
-						}
-					}
-					else {
-						LayoutPageTemplateEntry layoutPageTemplateEntry =
-							list.get(0);
+					cacheResult(list);
 
-						result = layoutPageTemplateEntry;
-
-						cacheResult(layoutPageTemplateEntry);
+					if (useFinderCache) {
+						finderCache.putResult(finderPath, finderArgs, list);
 					}
 				}
 				catch (Exception exception) {
@@ -11305,32 +11382,739 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				}
 			}
 
-			if (result instanceof List<?>) {
-				return null;
-			}
-			else {
-				return (LayoutPageTemplateEntry)result;
-			}
+			return list;
 		}
 	}
 
 	/**
-	 * Removes the layout page template entry where groupId = &#63; and name = &#63; and type = &#63; from the database.
+	 * Returns the first layout page template entry in the ordered set where groupId = &#63; and name = &#63; and type = &#63;.
 	 *
 	 * @param groupId the group ID
 	 * @param name the name
 	 * @param type the type
-	 * @return the layout page template entry that was removed
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a matching layout page template entry could not be found
 	 */
 	@Override
-	public LayoutPageTemplateEntry removeByG_N_T(
-			long groupId, String name, int type)
+	public LayoutPageTemplateEntry findByG_N_T_First(
+			long groupId, String name, int type,
+			OrderByComparator<LayoutPageTemplateEntry> orderByComparator)
 		throws NoSuchPageTemplateEntryException {
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry = findByG_N_T(
-			groupId, name, type);
+		LayoutPageTemplateEntry layoutPageTemplateEntry = fetchByG_N_T_First(
+			groupId, name, type, orderByComparator);
 
-		return remove(layoutPageTemplateEntry);
+		if (layoutPageTemplateEntry != null) {
+			return layoutPageTemplateEntry;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("groupId=");
+		sb.append(groupId);
+
+		sb.append(", name=");
+		sb.append(name);
+
+		sb.append(", type=");
+		sb.append(type);
+
+		sb.append("}");
+
+		throw new NoSuchPageTemplateEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the first layout page template entry in the ordered set where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByG_N_T_First(
+		long groupId, String name, int type,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator) {
+
+		List<LayoutPageTemplateEntry> list = findByG_N_T(
+			groupId, name, type, 0, 1, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the last layout page template entry in the ordered set where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry findByG_N_T_Last(
+			long groupId, String name, int type,
+			OrderByComparator<LayoutPageTemplateEntry> orderByComparator)
+		throws NoSuchPageTemplateEntryException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = fetchByG_N_T_Last(
+			groupId, name, type, orderByComparator);
+
+		if (layoutPageTemplateEntry != null) {
+			return layoutPageTemplateEntry;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		sb.append("groupId=");
+		sb.append(groupId);
+
+		sb.append(", name=");
+		sb.append(name);
+
+		sb.append(", type=");
+		sb.append(type);
+
+		sb.append("}");
+
+		throw new NoSuchPageTemplateEntryException(sb.toString());
+	}
+
+	/**
+	 * Returns the last layout page template entry in the ordered set where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByG_N_T_Last(
+		long groupId, String name, int type,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator) {
+
+		int count = countByG_N_T(groupId, name, type);
+
+		if (count == 0) {
+			return null;
+		}
+
+		List<LayoutPageTemplateEntry> list = findByG_N_T(
+			groupId, name, type, count - 1, count, orderByComparator);
+
+		if (!list.isEmpty()) {
+			return list.get(0);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the layout page template entries before and after the current layout page template entry in the ordered set where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param layoutPageTemplateEntryId the primary key of the current layout page template entry
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a layout page template entry with the primary key could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry[] findByG_N_T_PrevAndNext(
+			long layoutPageTemplateEntryId, long groupId, String name, int type,
+			OrderByComparator<LayoutPageTemplateEntry> orderByComparator)
+		throws NoSuchPageTemplateEntryException {
+
+		name = Objects.toString(name, "");
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = findByPrimaryKey(
+			layoutPageTemplateEntryId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			LayoutPageTemplateEntry[] array =
+				new LayoutPageTemplateEntryImpl[3];
+
+			array[0] = getByG_N_T_PrevAndNext(
+				session, layoutPageTemplateEntry, groupId, name, type,
+				orderByComparator, true);
+
+			array[1] = layoutPageTemplateEntry;
+
+			array[2] = getByG_N_T_PrevAndNext(
+				session, layoutPageTemplateEntry, groupId, name, type,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected LayoutPageTemplateEntry getByG_N_T_PrevAndNext(
+		Session session, LayoutPageTemplateEntry layoutPageTemplateEntry,
+		long groupId, String name, int type,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				6 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(5);
+		}
+
+		sb.append(_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+		sb.append(_FINDER_COLUMN_G_N_T_GROUPID_2);
+
+		boolean bindName = false;
+
+		if (name.isEmpty()) {
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_3);
+		}
+		else {
+			bindName = true;
+
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_2);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_TYPE_2);
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByConditionFields[i]);
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				sb.append(_ORDER_BY_ENTITY_ALIAS);
+				sb.append(orderByFields[i]);
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+		}
+
+		String sql = sb.toString();
+
+		Query query = session.createQuery(sql);
+
+		query.setFirstResult(0);
+		query.setMaxResults(2);
+
+		QueryPos queryPos = QueryPos.getInstance(query);
+
+		queryPos.add(groupId);
+
+		if (bindName) {
+			queryPos.add(name);
+		}
+
+		queryPos.add(type);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(
+						layoutPageTemplateEntry)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<LayoutPageTemplateEntry> list = query.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Returns all the layout page template entries that the user has permission to view where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the matching layout page template entries that the user has permission to view
+	 */
+	@Override
+	public List<LayoutPageTemplateEntry> filterFindByG_N_T(
+		long groupId, String name, int type) {
+
+		return filterFindByG_N_T(
+			groupId, name, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the layout page template entries that the user has permission to view where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutPageTemplateEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param start the lower bound of the range of layout page template entries
+	 * @param end the upper bound of the range of layout page template entries (not inclusive)
+	 * @return the range of matching layout page template entries that the user has permission to view
+	 */
+	@Override
+	public List<LayoutPageTemplateEntry> filterFindByG_N_T(
+		long groupId, String name, int type, int start, int end) {
+
+		return filterFindByG_N_T(groupId, name, type, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the layout page template entries that the user has permissions to view where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>LayoutPageTemplateEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param start the lower bound of the range of layout page template entries
+	 * @param end the upper bound of the range of layout page template entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching layout page template entries that the user has permission to view
+	 */
+	@Override
+	public List<LayoutPageTemplateEntry> filterFindByG_N_T(
+		long groupId, String name, int type, int start, int end,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator) {
+
+		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
+			return findByG_N_T(
+				groupId, name, type, start, end, orderByComparator);
+		}
+
+		name = Objects.toString(name, "");
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				5 + (orderByComparator.getOrderByFields().length * 2));
+		}
+		else {
+			sb = new StringBundler(6);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_GROUPID_2);
+
+		boolean bindName = false;
+
+		if (name.isEmpty()) {
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_3);
+		}
+		else {
+			bindName = true;
+
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_2);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_TYPE_2_SQL);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			if (getDB().isSupportsInlineDistinct()) {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_ALIAS, orderByComparator, true);
+			}
+			else {
+				appendOrderByComparator(
+					sb, _ORDER_BY_ENTITY_TABLE, orderByComparator, true);
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
+			}
+			else {
+				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), LayoutPageTemplateEntry.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			if (getDB().isSupportsInlineDistinct()) {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_ALIAS, LayoutPageTemplateEntryImpl.class);
+			}
+			else {
+				sqlQuery.addEntity(
+					_FILTER_ENTITY_TABLE, LayoutPageTemplateEntryImpl.class);
+			}
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(groupId);
+
+			if (bindName) {
+				queryPos.add(name);
+			}
+
+			queryPos.add(type);
+
+			return (List<LayoutPageTemplateEntry>)QueryUtil.list(
+				sqlQuery, getDialect(), start, end);
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	/**
+	 * Returns the layout page template entries before and after the current layout page template entry in the ordered set of layout page template entries that the user has permission to view where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param layoutPageTemplateEntryId the primary key of the current layout page template entry
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a layout page template entry with the primary key could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry[] filterFindByG_N_T_PrevAndNext(
+			long layoutPageTemplateEntryId, long groupId, String name, int type,
+			OrderByComparator<LayoutPageTemplateEntry> orderByComparator)
+		throws NoSuchPageTemplateEntryException {
+
+		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
+			return findByG_N_T_PrevAndNext(
+				layoutPageTemplateEntryId, groupId, name, type,
+				orderByComparator);
+		}
+
+		name = Objects.toString(name, "");
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = findByPrimaryKey(
+			layoutPageTemplateEntryId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			LayoutPageTemplateEntry[] array =
+				new LayoutPageTemplateEntryImpl[3];
+
+			array[0] = filterGetByG_N_T_PrevAndNext(
+				session, layoutPageTemplateEntry, groupId, name, type,
+				orderByComparator, true);
+
+			array[1] = layoutPageTemplateEntry;
+
+			array[2] = filterGetByG_N_T_PrevAndNext(
+				session, layoutPageTemplateEntry, groupId, name, type,
+				orderByComparator, false);
+
+			return array;
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	protected LayoutPageTemplateEntry filterGetByG_N_T_PrevAndNext(
+		Session session, LayoutPageTemplateEntry layoutPageTemplateEntry,
+		long groupId, String name, int type,
+		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
+		boolean previous) {
+
+		StringBundler sb = null;
+
+		if (orderByComparator != null) {
+			sb = new StringBundler(
+				7 + (orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
+		}
+		else {
+			sb = new StringBundler(6);
+		}
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sb.append(_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+		}
+		else {
+			sb.append(
+				_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_NO_INLINE_DISTINCT_WHERE_1);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_GROUPID_2);
+
+		boolean bindName = false;
+
+		if (name.isEmpty()) {
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_3);
+		}
+		else {
+			bindName = true;
+
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_2);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_TYPE_2_SQL);
+
+		if (!getDB().isSupportsInlineDistinct()) {
+			sb.append(
+				_FILTER_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_NO_INLINE_DISTINCT_WHERE_2);
+		}
+
+		if (orderByComparator != null) {
+			String[] orderByConditionFields =
+				orderByComparator.getOrderByConditionFields();
+
+			if (orderByConditionFields.length > 0) {
+				sb.append(WHERE_AND);
+			}
+
+			for (int i = 0; i < orderByConditionFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByConditionFields[i],
+							true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByConditionFields[i],
+							true));
+				}
+
+				if ((i + 1) < orderByConditionFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN_HAS_NEXT);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(WHERE_GREATER_THAN);
+					}
+					else {
+						sb.append(WHERE_LESSER_THAN);
+					}
+				}
+			}
+
+			sb.append(ORDER_BY_CLAUSE);
+
+			String[] orderByFields = orderByComparator.getOrderByFields();
+
+			for (int i = 0; i < orderByFields.length; i++) {
+				if (getDB().isSupportsInlineDistinct()) {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_ALIAS, orderByFields[i], true));
+				}
+				else {
+					sb.append(
+						getColumnName(
+							_ORDER_BY_ENTITY_TABLE, orderByFields[i], true));
+				}
+
+				if ((i + 1) < orderByFields.length) {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC_HAS_NEXT);
+					}
+					else {
+						sb.append(ORDER_BY_DESC_HAS_NEXT);
+					}
+				}
+				else {
+					if (orderByComparator.isAscending() ^ previous) {
+						sb.append(ORDER_BY_ASC);
+					}
+					else {
+						sb.append(ORDER_BY_DESC);
+					}
+				}
+			}
+		}
+		else {
+			if (getDB().isSupportsInlineDistinct()) {
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
+			}
+			else {
+				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
+			}
+		}
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), LayoutPageTemplateEntry.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
+
+		SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+		sqlQuery.setFirstResult(0);
+		sqlQuery.setMaxResults(2);
+
+		if (getDB().isSupportsInlineDistinct()) {
+			sqlQuery.addEntity(
+				_FILTER_ENTITY_ALIAS, LayoutPageTemplateEntryImpl.class);
+		}
+		else {
+			sqlQuery.addEntity(
+				_FILTER_ENTITY_TABLE, LayoutPageTemplateEntryImpl.class);
+		}
+
+		QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+		queryPos.add(groupId);
+
+		if (bindName) {
+			queryPos.add(name);
+		}
+
+		queryPos.add(type);
+
+		if (orderByComparator != null) {
+			for (Object orderByConditionValue :
+					orderByComparator.getOrderByConditionValues(
+						layoutPageTemplateEntry)) {
+
+				queryPos.add(orderByConditionValue);
+			}
+		}
+
+		List<LayoutPageTemplateEntry> list = sqlQuery.list();
+
+		if (list.size() == 2) {
+			return list.get(1);
+		}
+		else {
+			return null;
+		}
+	}
+
+	/**
+	 * Removes all the layout page template entries where groupId = &#63; and name = &#63; and type = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 */
+	@Override
+	public void removeByG_N_T(long groupId, String name, int type) {
+		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
+				findByG_N_T(
+					groupId, name, type, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+					null)) {
+
+			remove(layoutPageTemplateEntry);
+		}
 	}
 
 	/**
@@ -11411,6 +12195,77 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 	}
 
+	/**
+	 * Returns the number of layout page template entries that the user has permission to view where groupId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the number of matching layout page template entries that the user has permission to view
+	 */
+	@Override
+	public int filterCountByG_N_T(long groupId, String name, int type) {
+		if (!InlineSQLHelperUtil.isEnabled(groupId)) {
+			return countByG_N_T(groupId, name, type);
+		}
+
+		name = Objects.toString(name, "");
+
+		StringBundler sb = new StringBundler(4);
+
+		sb.append(_FILTER_SQL_COUNT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+		sb.append(_FINDER_COLUMN_G_N_T_GROUPID_2);
+
+		boolean bindName = false;
+
+		if (name.isEmpty()) {
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_3);
+		}
+		else {
+			bindName = true;
+
+			sb.append(_FINDER_COLUMN_G_N_T_NAME_2);
+		}
+
+		sb.append(_FINDER_COLUMN_G_N_T_TYPE_2_SQL);
+
+		String sql = InlineSQLHelperUtil.replacePermissionCheck(
+			sb.toString(), LayoutPageTemplateEntry.class.getName(),
+			_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
+
+			sqlQuery.addScalar(
+				COUNT_COLUMN_NAME, com.liferay.portal.kernel.dao.orm.Type.LONG);
+
+			QueryPos queryPos = QueryPos.getInstance(sqlQuery);
+
+			queryPos.add(groupId);
+
+			if (bindName) {
+				queryPos.add(name);
+			}
+
+			queryPos.add(type);
+
+			Long count = (Long)sqlQuery.uniqueResult();
+
+			return count.intValue();
+		}
+		catch (Exception exception) {
+			throw processException(exception);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
 	private static final String _FINDER_COLUMN_G_N_T_GROUPID_2 =
 		"layoutPageTemplateEntry.groupId = ? AND ";
 
@@ -11422,6 +12277,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 	private static final String _FINDER_COLUMN_G_N_T_TYPE_2 =
 		"layoutPageTemplateEntry.type = ?";
+
+	private static final String _FINDER_COLUMN_G_N_T_TYPE_2_SQL =
+		"layoutPageTemplateEntry.type_ = ?";
 
 	private FinderPath _finderPathWithPaginationFindByG_T_LikeN;
 	private FinderPath _finderPathWithPaginationCountByG_T_LikeN;
@@ -12053,7 +12911,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -12278,7 +13138,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -12458,7 +13320,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -13713,7 +14577,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -13925,7 +14791,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -14094,7 +14962,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -14679,6 +15549,330 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 	private static final String _FINDER_COLUMN_G_T_S_STATUS_2 =
 		"layoutPageTemplateEntry.status = ?";
+
+	private FinderPath _finderPathFetchByG_L_N_T;
+	private FinderPath _finderPathCountByG_L_N_T;
+
+	/**
+	 * Returns the layout page template entry where groupId = &#63; and layoutPageTemplateCollectionId = &#63; and name = &#63; and type = &#63; or throws a <code>NoSuchPageTemplateEntryException</code> if it could not be found.
+	 *
+	 * @param groupId the group ID
+	 * @param layoutPageTemplateCollectionId the layout page template collection ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the matching layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry findByG_L_N_T(
+			long groupId, long layoutPageTemplateCollectionId, String name,
+			int type)
+		throws NoSuchPageTemplateEntryException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = fetchByG_L_N_T(
+			groupId, layoutPageTemplateCollectionId, name, type);
+
+		if (layoutPageTemplateEntry == null) {
+			StringBundler sb = new StringBundler(10);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("groupId=");
+			sb.append(groupId);
+
+			sb.append(", layoutPageTemplateCollectionId=");
+			sb.append(layoutPageTemplateCollectionId);
+
+			sb.append(", name=");
+			sb.append(name);
+
+			sb.append(", type=");
+			sb.append(type);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchPageTemplateEntryException(sb.toString());
+		}
+
+		return layoutPageTemplateEntry;
+	}
+
+	/**
+	 * Returns the layout page template entry where groupId = &#63; and layoutPageTemplateCollectionId = &#63; and name = &#63; and type = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param layoutPageTemplateCollectionId the layout page template collection ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByG_L_N_T(
+		long groupId, long layoutPageTemplateCollectionId, String name,
+		int type) {
+
+		return fetchByG_L_N_T(
+			groupId, layoutPageTemplateCollectionId, name, type, true);
+	}
+
+	/**
+	 * Returns the layout page template entry where groupId = &#63; and layoutPageTemplateCollectionId = &#63; and name = &#63; and type = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param groupId the group ID
+	 * @param layoutPageTemplateCollectionId the layout page template collection ID
+	 * @param name the name
+	 * @param type the type
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByG_L_N_T(
+		long groupId, long layoutPageTemplateCollectionId, String name,
+		int type, boolean useFinderCache) {
+
+		try (SafeCloseable safeCloseable =
+				ctPersistenceHelper.setCTCollectionIdWithSafeCloseable(
+					LayoutPageTemplateEntry.class)) {
+
+			name = Objects.toString(name, "");
+
+			Object[] finderArgs = null;
+
+			if (useFinderCache) {
+				finderArgs = new Object[] {
+					groupId, layoutPageTemplateCollectionId, name, type
+				};
+			}
+
+			Object result = null;
+
+			if (useFinderCache) {
+				result = finderCache.getResult(
+					_finderPathFetchByG_L_N_T, finderArgs, this);
+			}
+
+			if (result instanceof LayoutPageTemplateEntry) {
+				LayoutPageTemplateEntry layoutPageTemplateEntry =
+					(LayoutPageTemplateEntry)result;
+
+				if ((groupId != layoutPageTemplateEntry.getGroupId()) ||
+					(layoutPageTemplateCollectionId !=
+						layoutPageTemplateEntry.
+							getLayoutPageTemplateCollectionId()) ||
+					!Objects.equals(name, layoutPageTemplateEntry.getName()) ||
+					(type != layoutPageTemplateEntry.getType())) {
+
+					result = null;
+				}
+			}
+
+			if (result == null) {
+				StringBundler sb = new StringBundler(6);
+
+				sb.append(_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+				sb.append(_FINDER_COLUMN_G_L_N_T_GROUPID_2);
+
+				sb.append(
+					_FINDER_COLUMN_G_L_N_T_LAYOUTPAGETEMPLATECOLLECTIONID_2);
+
+				boolean bindName = false;
+
+				if (name.isEmpty()) {
+					sb.append(_FINDER_COLUMN_G_L_N_T_NAME_3);
+				}
+				else {
+					bindName = true;
+
+					sb.append(_FINDER_COLUMN_G_L_N_T_NAME_2);
+				}
+
+				sb.append(_FINDER_COLUMN_G_L_N_T_TYPE_2);
+
+				String sql = sb.toString();
+
+				Session session = null;
+
+				try {
+					session = openSession();
+
+					Query query = session.createQuery(sql);
+
+					QueryPos queryPos = QueryPos.getInstance(query);
+
+					queryPos.add(groupId);
+
+					queryPos.add(layoutPageTemplateCollectionId);
+
+					if (bindName) {
+						queryPos.add(name);
+					}
+
+					queryPos.add(type);
+
+					List<LayoutPageTemplateEntry> list = query.list();
+
+					if (list.isEmpty()) {
+						if (useFinderCache) {
+							finderCache.putResult(
+								_finderPathFetchByG_L_N_T, finderArgs, list);
+						}
+					}
+					else {
+						LayoutPageTemplateEntry layoutPageTemplateEntry =
+							list.get(0);
+
+						result = layoutPageTemplateEntry;
+
+						cacheResult(layoutPageTemplateEntry);
+					}
+				}
+				catch (Exception exception) {
+					throw processException(exception);
+				}
+				finally {
+					closeSession(session);
+				}
+			}
+
+			if (result instanceof List<?>) {
+				return null;
+			}
+			else {
+				return (LayoutPageTemplateEntry)result;
+			}
+		}
+	}
+
+	/**
+	 * Removes the layout page template entry where groupId = &#63; and layoutPageTemplateCollectionId = &#63; and name = &#63; and type = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param layoutPageTemplateCollectionId the layout page template collection ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the layout page template entry that was removed
+	 */
+	@Override
+	public LayoutPageTemplateEntry removeByG_L_N_T(
+			long groupId, long layoutPageTemplateCollectionId, String name,
+			int type)
+		throws NoSuchPageTemplateEntryException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = findByG_L_N_T(
+			groupId, layoutPageTemplateCollectionId, name, type);
+
+		return remove(layoutPageTemplateEntry);
+	}
+
+	/**
+	 * Returns the number of layout page template entries where groupId = &#63; and layoutPageTemplateCollectionId = &#63; and name = &#63; and type = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param layoutPageTemplateCollectionId the layout page template collection ID
+	 * @param name the name
+	 * @param type the type
+	 * @return the number of matching layout page template entries
+	 */
+	@Override
+	public int countByG_L_N_T(
+		long groupId, long layoutPageTemplateCollectionId, String name,
+		int type) {
+
+		try (SafeCloseable safeCloseable =
+				ctPersistenceHelper.setCTCollectionIdWithSafeCloseable(
+					LayoutPageTemplateEntry.class)) {
+
+			name = Objects.toString(name, "");
+
+			FinderPath finderPath = _finderPathCountByG_L_N_T;
+
+			Object[] finderArgs = new Object[] {
+				groupId, layoutPageTemplateCollectionId, name, type
+			};
+
+			Long count = (Long)finderCache.getResult(
+				finderPath, finderArgs, this);
+
+			if (count == null) {
+				StringBundler sb = new StringBundler(5);
+
+				sb.append(_SQL_COUNT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+				sb.append(_FINDER_COLUMN_G_L_N_T_GROUPID_2);
+
+				sb.append(
+					_FINDER_COLUMN_G_L_N_T_LAYOUTPAGETEMPLATECOLLECTIONID_2);
+
+				boolean bindName = false;
+
+				if (name.isEmpty()) {
+					sb.append(_FINDER_COLUMN_G_L_N_T_NAME_3);
+				}
+				else {
+					bindName = true;
+
+					sb.append(_FINDER_COLUMN_G_L_N_T_NAME_2);
+				}
+
+				sb.append(_FINDER_COLUMN_G_L_N_T_TYPE_2);
+
+				String sql = sb.toString();
+
+				Session session = null;
+
+				try {
+					session = openSession();
+
+					Query query = session.createQuery(sql);
+
+					QueryPos queryPos = QueryPos.getInstance(query);
+
+					queryPos.add(groupId);
+
+					queryPos.add(layoutPageTemplateCollectionId);
+
+					if (bindName) {
+						queryPos.add(name);
+					}
+
+					queryPos.add(type);
+
+					count = (Long)query.uniqueResult();
+
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
+				catch (Exception exception) {
+					throw processException(exception);
+				}
+				finally {
+					closeSession(session);
+				}
+			}
+
+			return count.intValue();
+		}
+	}
+
+	private static final String _FINDER_COLUMN_G_L_N_T_GROUPID_2 =
+		"layoutPageTemplateEntry.groupId = ? AND ";
+
+	private static final String
+		_FINDER_COLUMN_G_L_N_T_LAYOUTPAGETEMPLATECOLLECTIONID_2 =
+			"layoutPageTemplateEntry.layoutPageTemplateCollectionId = ? AND ";
+
+	private static final String _FINDER_COLUMN_G_L_N_T_NAME_2 =
+		"layoutPageTemplateEntry.name = ? AND ";
+
+	private static final String _FINDER_COLUMN_G_L_N_T_NAME_3 =
+		"(layoutPageTemplateEntry.name IS NULL OR layoutPageTemplateEntry.name = '') AND ";
+
+	private static final String _FINDER_COLUMN_G_L_N_T_TYPE_2 =
+		"layoutPageTemplateEntry.type = ?";
 
 	private FinderPath _finderPathWithPaginationFindByG_L_LikeN_S;
 	private FinderPath _finderPathWithPaginationCountByG_L_LikeN_S;
@@ -15373,7 +16567,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -15608,7 +16804,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -16517,7 +17715,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -16735,7 +17935,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -17627,7 +18829,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -17846,7 +19050,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -18726,7 +19932,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -18944,7 +20152,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -19838,7 +21048,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -20069,7 +21281,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -20261,7 +21475,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -21613,7 +22829,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -21831,7 +23049,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -22774,7 +23994,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -23010,7 +24232,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -23977,7 +25201,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -24200,7 +25426,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -25143,7 +26371,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -25367,7 +26597,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -26361,7 +27593,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -26604,7 +27838,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 		else {
 			if (getDB().isSupportsInlineDistinct()) {
-				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_JPQL);
+				sb.append(
+					LayoutPageTemplateEntryModelImpl.
+						ORDER_BY_SQL_INLINE_DISTINCT);
 			}
 			else {
 				sb.append(LayoutPageTemplateEntryModelImpl.ORDER_BY_SQL);
@@ -26901,6 +28137,275 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	private static final String _FINDER_COLUMN_G_C_C_LIKEN_T_S_STATUS_2 =
 		"layoutPageTemplateEntry.status = ?";
 
+	private FinderPath _finderPathFetchByERC_G;
+	private FinderPath _finderPathCountByERC_G;
+
+	/**
+	 * Returns the layout page template entry where externalReferenceCode = &#63; and groupId = &#63; or throws a <code>NoSuchPageTemplateEntryException</code> if it could not be found.
+	 *
+	 * @param externalReferenceCode the external reference code
+	 * @param groupId the group ID
+	 * @return the matching layout page template entry
+	 * @throws NoSuchPageTemplateEntryException if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry findByERC_G(
+			String externalReferenceCode, long groupId)
+		throws NoSuchPageTemplateEntryException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = fetchByERC_G(
+			externalReferenceCode, groupId);
+
+		if (layoutPageTemplateEntry == null) {
+			StringBundler sb = new StringBundler(6);
+
+			sb.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+			sb.append("externalReferenceCode=");
+			sb.append(externalReferenceCode);
+
+			sb.append(", groupId=");
+			sb.append(groupId);
+
+			sb.append("}");
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(sb.toString());
+			}
+
+			throw new NoSuchPageTemplateEntryException(sb.toString());
+		}
+
+		return layoutPageTemplateEntry;
+	}
+
+	/**
+	 * Returns the layout page template entry where externalReferenceCode = &#63; and groupId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param externalReferenceCode the external reference code
+	 * @param groupId the group ID
+	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByERC_G(
+		String externalReferenceCode, long groupId) {
+
+		return fetchByERC_G(externalReferenceCode, groupId, true);
+	}
+
+	/**
+	 * Returns the layout page template entry where externalReferenceCode = &#63; and groupId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param externalReferenceCode the external reference code
+	 * @param groupId the group ID
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
+	 */
+	@Override
+	public LayoutPageTemplateEntry fetchByERC_G(
+		String externalReferenceCode, long groupId, boolean useFinderCache) {
+
+		try (SafeCloseable safeCloseable =
+				ctPersistenceHelper.setCTCollectionIdWithSafeCloseable(
+					LayoutPageTemplateEntry.class)) {
+
+			externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+			Object[] finderArgs = null;
+
+			if (useFinderCache) {
+				finderArgs = new Object[] {externalReferenceCode, groupId};
+			}
+
+			Object result = null;
+
+			if (useFinderCache) {
+				result = finderCache.getResult(
+					_finderPathFetchByERC_G, finderArgs, this);
+			}
+
+			if (result instanceof LayoutPageTemplateEntry) {
+				LayoutPageTemplateEntry layoutPageTemplateEntry =
+					(LayoutPageTemplateEntry)result;
+
+				if (!Objects.equals(
+						externalReferenceCode,
+						layoutPageTemplateEntry.getExternalReferenceCode()) ||
+					(groupId != layoutPageTemplateEntry.getGroupId())) {
+
+					result = null;
+				}
+			}
+
+			if (result == null) {
+				StringBundler sb = new StringBundler(4);
+
+				sb.append(_SQL_SELECT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+				boolean bindExternalReferenceCode = false;
+
+				if (externalReferenceCode.isEmpty()) {
+					sb.append(_FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_3);
+				}
+				else {
+					bindExternalReferenceCode = true;
+
+					sb.append(_FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_2);
+				}
+
+				sb.append(_FINDER_COLUMN_ERC_G_GROUPID_2);
+
+				String sql = sb.toString();
+
+				Session session = null;
+
+				try {
+					session = openSession();
+
+					Query query = session.createQuery(sql);
+
+					QueryPos queryPos = QueryPos.getInstance(query);
+
+					if (bindExternalReferenceCode) {
+						queryPos.add(externalReferenceCode);
+					}
+
+					queryPos.add(groupId);
+
+					List<LayoutPageTemplateEntry> list = query.list();
+
+					if (list.isEmpty()) {
+						if (useFinderCache) {
+							finderCache.putResult(
+								_finderPathFetchByERC_G, finderArgs, list);
+						}
+					}
+					else {
+						LayoutPageTemplateEntry layoutPageTemplateEntry =
+							list.get(0);
+
+						result = layoutPageTemplateEntry;
+
+						cacheResult(layoutPageTemplateEntry);
+					}
+				}
+				catch (Exception exception) {
+					throw processException(exception);
+				}
+				finally {
+					closeSession(session);
+				}
+			}
+
+			if (result instanceof List<?>) {
+				return null;
+			}
+			else {
+				return (LayoutPageTemplateEntry)result;
+			}
+		}
+	}
+
+	/**
+	 * Removes the layout page template entry where externalReferenceCode = &#63; and groupId = &#63; from the database.
+	 *
+	 * @param externalReferenceCode the external reference code
+	 * @param groupId the group ID
+	 * @return the layout page template entry that was removed
+	 */
+	@Override
+	public LayoutPageTemplateEntry removeByERC_G(
+			String externalReferenceCode, long groupId)
+		throws NoSuchPageTemplateEntryException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry = findByERC_G(
+			externalReferenceCode, groupId);
+
+		return remove(layoutPageTemplateEntry);
+	}
+
+	/**
+	 * Returns the number of layout page template entries where externalReferenceCode = &#63; and groupId = &#63;.
+	 *
+	 * @param externalReferenceCode the external reference code
+	 * @param groupId the group ID
+	 * @return the number of matching layout page template entries
+	 */
+	@Override
+	public int countByERC_G(String externalReferenceCode, long groupId) {
+		try (SafeCloseable safeCloseable =
+				ctPersistenceHelper.setCTCollectionIdWithSafeCloseable(
+					LayoutPageTemplateEntry.class)) {
+
+			externalReferenceCode = Objects.toString(externalReferenceCode, "");
+
+			FinderPath finderPath = _finderPathCountByERC_G;
+
+			Object[] finderArgs = new Object[] {externalReferenceCode, groupId};
+
+			Long count = (Long)finderCache.getResult(
+				finderPath, finderArgs, this);
+
+			if (count == null) {
+				StringBundler sb = new StringBundler(3);
+
+				sb.append(_SQL_COUNT_LAYOUTPAGETEMPLATEENTRY_WHERE);
+
+				boolean bindExternalReferenceCode = false;
+
+				if (externalReferenceCode.isEmpty()) {
+					sb.append(_FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_3);
+				}
+				else {
+					bindExternalReferenceCode = true;
+
+					sb.append(_FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_2);
+				}
+
+				sb.append(_FINDER_COLUMN_ERC_G_GROUPID_2);
+
+				String sql = sb.toString();
+
+				Session session = null;
+
+				try {
+					session = openSession();
+
+					Query query = session.createQuery(sql);
+
+					QueryPos queryPos = QueryPos.getInstance(query);
+
+					if (bindExternalReferenceCode) {
+						queryPos.add(externalReferenceCode);
+					}
+
+					queryPos.add(groupId);
+
+					count = (Long)query.uniqueResult();
+
+					finderCache.putResult(finderPath, finderArgs, count);
+				}
+				catch (Exception exception) {
+					throw processException(exception);
+				}
+				finally {
+					closeSession(session);
+				}
+			}
+
+			return count.intValue();
+		}
+	}
+
+	private static final String _FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_2 =
+		"layoutPageTemplateEntry.externalReferenceCode = ? AND ";
+
+	private static final String _FINDER_COLUMN_ERC_G_EXTERNALREFERENCECODE_3 =
+		"(layoutPageTemplateEntry.externalReferenceCode IS NULL OR layoutPageTemplateEntry.externalReferenceCode = '') AND ";
+
+	private static final String _FINDER_COLUMN_ERC_G_GROUPID_2 =
+		"layoutPageTemplateEntry.groupId = ?";
+
 	public LayoutPageTemplateEntryPersistenceImpl() {
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
@@ -26955,11 +28460,20 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				layoutPageTemplateEntry);
 
 			finderCache.putResult(
-				_finderPathFetchByG_N_T,
+				_finderPathFetchByG_L_N_T,
 				new Object[] {
 					layoutPageTemplateEntry.getGroupId(),
+					layoutPageTemplateEntry.getLayoutPageTemplateCollectionId(),
 					layoutPageTemplateEntry.getName(),
 					layoutPageTemplateEntry.getType()
+				},
+				layoutPageTemplateEntry);
+
+			finderCache.putResult(
+				_finderPathFetchByERC_G,
+				new Object[] {
+					layoutPageTemplateEntry.getExternalReferenceCode(),
+					layoutPageTemplateEntry.getGroupId()
 				},
 				layoutPageTemplateEntry);
 		}
@@ -27088,14 +28602,27 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 			args = new Object[] {
 				layoutPageTemplateEntryModelImpl.getGroupId(),
+				layoutPageTemplateEntryModelImpl.
+					getLayoutPageTemplateCollectionId(),
 				layoutPageTemplateEntryModelImpl.getName(),
 				layoutPageTemplateEntryModelImpl.getType()
 			};
 
 			finderCache.putResult(
-				_finderPathCountByG_N_T, args, Long.valueOf(1));
+				_finderPathCountByG_L_N_T, args, Long.valueOf(1));
 			finderCache.putResult(
-				_finderPathFetchByG_N_T, args,
+				_finderPathFetchByG_L_N_T, args,
+				layoutPageTemplateEntryModelImpl);
+
+			args = new Object[] {
+				layoutPageTemplateEntryModelImpl.getExternalReferenceCode(),
+				layoutPageTemplateEntryModelImpl.getGroupId()
+			};
+
+			finderCache.putResult(
+				_finderPathCountByERC_G, args, Long.valueOf(1));
+			finderCache.putResult(
+				_finderPathFetchByERC_G, args,
 				layoutPageTemplateEntryModelImpl);
 		}
 	}
@@ -27246,6 +28773,77 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			String uuid = PortalUUIDUtil.generate();
 
 			layoutPageTemplateEntry.setUuid(uuid);
+		}
+
+		if (Validator.isNull(
+				layoutPageTemplateEntry.getExternalReferenceCode())) {
+
+			layoutPageTemplateEntry.setExternalReferenceCode(
+				layoutPageTemplateEntry.getUuid());
+		}
+		else {
+			if (!Objects.equals(
+					layoutPageTemplateEntryModelImpl.getColumnOriginalValue(
+						"externalReferenceCode"),
+					layoutPageTemplateEntry.getExternalReferenceCode())) {
+
+				long userId = GetterUtil.getLong(
+					PrincipalThreadLocal.getName());
+
+				if (userId > 0) {
+					long companyId = layoutPageTemplateEntry.getCompanyId();
+
+					long groupId = layoutPageTemplateEntry.getGroupId();
+
+					long classPK = 0;
+
+					if (!isNew) {
+						classPK = layoutPageTemplateEntry.getPrimaryKey();
+					}
+
+					try {
+						layoutPageTemplateEntry.setExternalReferenceCode(
+							SanitizerUtil.sanitize(
+								companyId, groupId, userId,
+								LayoutPageTemplateEntry.class.getName(),
+								classPK, ContentTypes.TEXT_HTML,
+								Sanitizer.MODE_ALL,
+								layoutPageTemplateEntry.
+									getExternalReferenceCode(),
+								null));
+					}
+					catch (SanitizerException sanitizerException) {
+						throw new SystemException(sanitizerException);
+					}
+				}
+			}
+
+			LayoutPageTemplateEntry ercLayoutPageTemplateEntry = fetchByERC_G(
+				layoutPageTemplateEntry.getExternalReferenceCode(),
+				layoutPageTemplateEntry.getGroupId());
+
+			if (isNew) {
+				if (ercLayoutPageTemplateEntry != null) {
+					throw new DuplicateLayoutPageTemplateEntryExternalReferenceCodeException(
+						"Duplicate layout page template entry with external reference code " +
+							layoutPageTemplateEntry.getExternalReferenceCode() +
+								" and group " +
+									layoutPageTemplateEntry.getGroupId());
+				}
+			}
+			else {
+				if ((ercLayoutPageTemplateEntry != null) &&
+					(layoutPageTemplateEntry.getLayoutPageTemplateEntryId() !=
+						ercLayoutPageTemplateEntry.
+							getLayoutPageTemplateEntryId())) {
+
+					throw new DuplicateLayoutPageTemplateEntryExternalReferenceCodeException(
+						"Duplicate layout page template entry with external reference code " +
+							layoutPageTemplateEntry.getExternalReferenceCode() +
+								" and group " +
+									layoutPageTemplateEntry.getGroupId());
+				}
+			}
 		}
 
 		ServiceContext serviceContext =
@@ -27807,6 +29405,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		ctControlColumnNames.add("mvccVersion");
 		ctControlColumnNames.add("ctCollectionId");
 		ctStrictColumnNames.add("uuid_");
+		ctStrictColumnNames.add("externalReferenceCode");
 		ctStrictColumnNames.add("groupId");
 		ctStrictColumnNames.add("companyId");
 		ctStrictColumnNames.add("userId");
@@ -27847,7 +29446,13 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		_uniqueIndexColumnNames.add(
 			new String[] {"groupId", "layoutPageTemplateEntryKey"});
 
-		_uniqueIndexColumnNames.add(new String[] {"groupId", "name", "type_"});
+		_uniqueIndexColumnNames.add(
+			new String[] {
+				"groupId", "layoutPageTemplateCollectionId", "name", "type_"
+			});
+
+		_uniqueIndexColumnNames.add(
+			new String[] {"externalReferenceCode", "groupId"});
 	}
 
 	/**
@@ -28133,8 +29738,17 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			},
 			false);
 
-		_finderPathFetchByG_N_T = new FinderPath(
-			FINDER_CLASS_NAME_ENTITY, "fetchByG_N_T",
+		_finderPathWithPaginationFindByG_N_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_N_T",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				Integer.class.getName(), Integer.class.getName(),
+				Integer.class.getName(), OrderByComparator.class.getName()
+			},
+			new String[] {"groupId", "name", "type_"}, true);
+
+		_finderPathWithoutPaginationFindByG_N_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_N_T",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
 				Integer.class.getName()
@@ -28198,6 +29812,28 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				Integer.class.getName()
 			},
 			new String[] {"groupId", "type_", "status"}, false);
+
+		_finderPathFetchByG_L_N_T = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByG_L_N_T",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				String.class.getName(), Integer.class.getName()
+			},
+			new String[] {
+				"groupId", "layoutPageTemplateCollectionId", "name", "type_"
+			},
+			true);
+
+		_finderPathCountByG_L_N_T = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_L_N_T",
+			new String[] {
+				Long.class.getName(), Long.class.getName(),
+				String.class.getName(), Integer.class.getName()
+			},
+			new String[] {
+				"groupId", "layoutPageTemplateCollectionId", "name", "type_"
+			},
+			false);
 
 		_finderPathWithPaginationFindByG_L_LikeN_S = new FinderPath(
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L_LikeN_S",
@@ -28492,6 +30128,16 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				"status"
 			},
 			false);
+
+		_finderPathFetchByERC_G = new FinderPath(
+			FINDER_CLASS_NAME_ENTITY, "fetchByERC_G",
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"externalReferenceCode", "groupId"}, true);
+
+		_finderPathCountByERC_G = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByERC_G",
+			new String[] {String.class.getName(), Long.class.getName()},
+			new String[] {"externalReferenceCode", "groupId"}, false);
 
 		LayoutPageTemplateEntryUtil.setPersistence(this);
 	}

@@ -503,6 +503,11 @@ public class ContentPageEditorDisplayContext {
 				_getResourceURL(
 					"/layout_content_page_editor/get_info_item_field_value")
 			).put(
+				"getInfoItemOneToManyRelationshipsURL",
+				_getResourceURL(
+					"/layout_content_page_editor" +
+						"/get_info_item_one_to_many_relationships")
+			).put(
 				"getLayoutFriendlyURL",
 				_getResourceURL(
 					"/layout_content_page_editor/get_layout_friendly_url")
@@ -647,12 +652,13 @@ public class ContentPageEditorDisplayContext {
 				() -> {
 					Layout layout = themeDisplay.getLayout();
 
+					Theme theme = layout.getTheme();
+
 					LayoutSet layoutSet = _layoutSetLocalService.fetchLayoutSet(
 						themeDisplay.getSiteGroupId(), false);
 
-					if (layout.isInheritLookAndFeel() ||
-						Objects.equals(
-							layout.getThemeId(), layoutSet.getThemeId())) {
+					if (Objects.equals(
+							theme.getThemeId(), layoutSet.getThemeId())) {
 
 						return true;
 					}
@@ -1033,29 +1039,15 @@ public class ContentPageEditorDisplayContext {
 				continue;
 			}
 
-			if (contentPageEditorSidebarPanel.includeSeparator() &&
-				!sidebarPanels.isEmpty()) {
-
-				sidebarPanels.add(
-					HashMapBuilder.<String, Object>put(
-						"sidebarPanelId", "separator"
-					).build());
-			}
-
 			sidebarPanels.add(
 				HashMapBuilder.<String, Object>put(
 					"icon", contentPageEditorSidebarPanel.getIcon()
-				).put(
-					"isLink", contentPageEditorSidebarPanel.isLink()
 				).put(
 					"label",
 					contentPageEditorSidebarPanel.getLabel(
 						themeDisplay.getLocale())
 				).put(
 					"sidebarPanelId", contentPageEditorSidebarPanel.getId()
-				).put(
-					"url",
-					contentPageEditorSidebarPanel.getURL(httpServletRequest)
 				).build());
 		}
 

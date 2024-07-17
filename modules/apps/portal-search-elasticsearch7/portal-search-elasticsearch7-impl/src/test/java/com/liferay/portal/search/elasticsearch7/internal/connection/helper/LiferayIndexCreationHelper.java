@@ -8,10 +8,10 @@ package com.liferay.portal.search.elasticsearch7.internal.connection.helper;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchClientResolver;
 import com.liferay.portal.search.elasticsearch7.internal.index.LiferayDocumentTypeFactory;
+import com.liferay.portal.search.elasticsearch7.internal.settings.SettingsBuilder;
 
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.client.indices.CreateIndexRequest;
 
 /**
  * @author André de Oliveira
@@ -27,34 +27,35 @@ public class LiferayIndexCreationHelper implements IndexCreationHelper {
 	@Override
 	public void contribute(CreateIndexRequest createIndexRequest) {
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory =
-			_getLiferayDocumentTypeFactory();
+			_getLiferayDocumentTypeFactory(null);
 
-		liferayDocumentTypeFactory.createRequiredDefaultTypeMappings(
-			createIndexRequest);
+		liferayDocumentTypeFactory.setMappings(createIndexRequest);
 	}
 
 	@Override
-	public void contributeIndexSettings(Settings.Builder builder) {
+	public void contributeIndexSettings(SettingsBuilder settingsBuilder) {
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory =
-			_getLiferayDocumentTypeFactory();
+			_getLiferayDocumentTypeFactory(null);
 
-		liferayDocumentTypeFactory.createRequiredDefaultAnalyzers(builder);
+		liferayDocumentTypeFactory.loadDefaultAnalyzers(settingsBuilder);
 	}
 
 	@Override
 	public void whenIndexCreated(String indexName) {
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory =
-			_getLiferayDocumentTypeFactory();
+			_getLiferayDocumentTypeFactory(indexName);
 
-		liferayDocumentTypeFactory.createOptionalDefaultTypeMappings(indexName);
+		liferayDocumentTypeFactory.putDefaultTypeMappingTemplate();
 	}
 
-	private LiferayDocumentTypeFactory _getLiferayDocumentTypeFactory() {
+	private LiferayDocumentTypeFactory _getLiferayDocumentTypeFactory(
+		String indexName) {
+
 		RestHighLevelClient restHighLevelClient =
 			_elasticsearchClientResolver.getRestHighLevelClient();
 
 		return new LiferayDocumentTypeFactory(
-			restHighLevelClient.indices(), new JSONFactoryImpl());
+			indexName, restHighLevelClient.indices(), new JSONFactoryImpl());
 	}
 
 	private final ElasticsearchClientResolver _elasticsearchClientResolver;

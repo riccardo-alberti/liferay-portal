@@ -537,3 +537,27 @@ The search amplification uses a better algorithm to speed permission filtering.
 
 If the total time spent searching is still a concern, regulate it with the new Permission Filtering Time Limit at Control Panel &rarr; System Settings &rarr; Search &rarr; Default Search Result Permission Filter.
 ```
+
+----
+
+# 6de9f9ce7bd603ca6b0dbb5035c359c2c9c2ed4f
+
+This commit is missing a breaking change message. The correct message is:
+
+```
+LPS-196539 SF rename variable name
+
+# breaking
+
+## What portal-kernel/src/com/liferay/portal/kernel/theme/PortletDisplay.java
+
+The getPortletSetup() method is renamed to getPortletPreferences(), and setPortletSetup() is renamed to setPortletPreferences().
+
+## Why
+
+This change makes the method names consistent with the `PortletPreferences` variable.
+
+## Alternatives
+
+Use getPortletPreferences() and setPortletPreferences() instead.
+```

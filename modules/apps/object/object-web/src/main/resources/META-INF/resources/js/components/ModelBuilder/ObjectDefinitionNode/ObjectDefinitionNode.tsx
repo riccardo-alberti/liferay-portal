@@ -11,9 +11,9 @@ import {Handle, NodeProps, Position, useStore} from 'react-flow-renderer';
 import {getObjectDefinitionNodeActions} from '../../ViewObjectDefinitions/objectDefinitionUtil';
 import {useObjectFolderContext} from '../ModelBuilderContext/objectFolderContext';
 import {TYPES} from '../ModelBuilderContext/typesEnum';
+import {ObjectDefinitionNodeFields} from './ObjectDefinitionNodeFields';
 import ObjectDefinitionNodeFooter from './ObjectDefinitionNodeFooter';
 import ObjectDefinitionNodeHeader from './ObjectDefinitionNodeHeader';
-import ObjectDefinitionNodeFields from './ObjectDefinitionNodeObjectFields';
 
 import './NodeContainer.scss';
 
@@ -100,8 +100,10 @@ export function ObjectDefinitionNode({
 				className={classNames(
 					'lfr-objects__model-builder-node-container',
 					{
-						'lfr-objects__model-builder-node-container--link': linkedObjectDefinition,
-						'lfr-objects__model-builder-node-container--selected': selected,
+						'lfr-objects__model-builder-node-container--link':
+							linkedObjectDefinition,
+						'lfr-objects__model-builder-node-container--selected':
+							selected,
 					}
 				)}
 				onMouseEnter={() => {

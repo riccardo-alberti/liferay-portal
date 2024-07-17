@@ -82,6 +82,7 @@ import com.liferay.portal.vulcan.util.SearchUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -215,9 +216,8 @@ public class ObjectDefinitionResourceImpl
 		com.liferay.object.model.ObjectDefinition
 			serviceBuilderObjectDefinition;
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-23379")) {
-			objectDefinition.setEnableIndexSearch(() -> true);
-		}
+		Locale defaultLocale = LocaleUtil.fromLanguageId(
+			objectDefinition.getDefaultLanguageId());
 
 		if (GetterUtil.getBoolean(objectDefinition.getSystem())) {
 			serviceBuilderObjectDefinition =
@@ -252,9 +252,6 @@ public class ObjectDefinitionResourceImpl
 							_objectFilterLocalService)));
 		}
 		else {
-			Locale defaultLocale = LocaleUtil.fromLanguageId(
-				objectDefinition.getDefaultLanguageId());
-
 			serviceBuilderObjectDefinition =
 				_objectDefinitionService.addCustomObjectDefinition(
 					_getObjectFolderId(
@@ -329,8 +326,22 @@ public class ObjectDefinitionResourceImpl
 					serviceBuilderObjectField.getObjectFieldId());
 		}
 
+		if (objectDefinition.getObjectFields() != null) {
+			for (ObjectField objectField : objectDefinition.getObjectFields()) {
+				if (StringUtil.equals(
+						objectField.getBusinessTypeAsString(),
+						ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP)) {
+
+					_addObjectRelationship(
+						objectDefinition.getDefaultLanguageId(), objectField,
+						serviceBuilderObjectDefinition);
+				}
+			}
+		}
+
 		_addObjectDefinitionResources(
-			Collections.emptySet(), objectDefinition.getObjectActions(),
+			Collections.emptySet(), LocaleUtil.toLanguageId(defaultLocale),
+			objectDefinition.getObjectActions(),
 			serviceBuilderObjectDefinition.getObjectDefinitionId(),
 			objectDefinition.getObjectLayouts(),
 			objectDefinition.getObjectRelationships(),
@@ -474,17 +485,6 @@ public class ObjectDefinitionResourceImpl
 					getObjectFieldId();
 		}
 
-		long titleObjectFieldId = 0;
-
-		com.liferay.object.model.ObjectField titleServiceBuilderObjectField =
-			_objectFieldLocalService.fetchObjectField(
-				objectDefinitionId, objectDefinition.getTitleObjectFieldName());
-
-		if (titleServiceBuilderObjectField != null) {
-			titleObjectFieldId =
-				titleServiceBuilderObjectField.getObjectFieldId();
-		}
-
 		int statusInt = serviceBuilderObjectDefinition.getStatus();
 
 		if ((objectDefinition.getStatus() != null) &&
@@ -503,13 +503,9 @@ public class ObjectDefinitionResourceImpl
 					_getObjectFolderId(
 						objectDefinition.
 							getObjectFolderExternalReferenceCode()),
-					titleObjectFieldId);
+					0);
 		}
 		else {
-			if (!FeatureFlagManagerUtil.isEnabled("LPD-23379")) {
-				objectDefinition.setEnableIndexSearch(() -> true);
-			}
-
 			serviceBuilderObjectDefinition =
 				_objectDefinitionService.updateCustomObjectDefinition(
 					objectDefinition.getExternalReferenceCode(),
@@ -518,7 +514,7 @@ public class ObjectDefinitionResourceImpl
 					_getObjectFolderId(
 						objectDefinition.
 							getObjectFolderExternalReferenceCode()),
-					titleObjectFieldId,
+					0,
 					GetterUtil.getBoolean(
 						objectDefinition.getAccountEntryRestricted()),
 					GetterUtil.getBoolean(
@@ -635,6 +631,10 @@ public class ObjectDefinitionResourceImpl
 						objectDefinitionId);
 
 				if (existingObjectField == null) {
+					_addObjectRelationship(
+						objectDefinition.getDefaultLanguageId(), objectField,
+						serviceBuilderObjectDefinition);
+
 					continue;
 				}
 			}
@@ -645,15 +645,15 @@ public class ObjectDefinitionResourceImpl
 				contextUser.getUserId(), listTypeDefinitionId,
 				objectDefinitionId, objectField.getBusinessTypeAsString(), null,
 				null, objectField.getDBTypeAsString(), objectField.getIndexed(),
-				objectField.getIndexedAsKeyword(),
+				GetterUtil.getBoolean(objectField.getIndexedAsKeyword()),
 				objectField.getIndexedLanguageId(),
 				LocalizedMapUtil.getLocalizedMap(objectField.getLabel()),
 				GetterUtil.getBoolean(objectField.getLocalized()),
 				objectField.getName(), objectField.getReadOnlyAsString(),
 				objectField.getReadOnlyConditionExpression(),
-				objectField.getRequired(),
+				GetterUtil.getBoolean(objectField.getRequired()),
 				GetterUtil.getBoolean(objectField.getState()),
-				objectField.getSystem(),
+				GetterUtil.getBoolean(objectField.getSystem()),
 				ObjectFieldSettingUtil.toObjectFieldSettings(
 					listTypeDefinitionId, objectField,
 					_objectFieldSettingLocalService,
@@ -677,6 +677,17 @@ public class ObjectDefinitionResourceImpl
 
 			_objectFieldLocalService.deleteObjectField(
 				serviceBuilderObjectField);
+		}
+
+		com.liferay.object.model.ObjectField titleServiceBuilderObjectField =
+			_objectFieldLocalService.fetchObjectField(
+				objectDefinitionId, objectDefinition.getTitleObjectFieldName());
+
+		if (titleServiceBuilderObjectField != null) {
+			serviceBuilderObjectDefinition =
+				_objectDefinitionService.updateTitleObjectFieldId(
+					serviceBuilderObjectDefinition.getObjectDefinitionId(),
+					titleServiceBuilderObjectField.getObjectFieldId());
 		}
 
 		Set<String> deleteObjectActionsERCs = SetUtil.asymmetricDifference(
@@ -770,6 +781,8 @@ public class ObjectDefinitionResourceImpl
 
 		_addObjectDefinitionResources(
 			accountEntryRestrictedObjectRelationshipsNames,
+			_localization.getDefaultLanguageId(
+				serviceBuilderObjectDefinition.getLabel()),
 			objectActions.toArray(new ObjectAction[0]), objectDefinitionId,
 			objectLayouts,
 			objectRelationships.toArray(new ObjectRelationship[0]),
@@ -828,8 +841,8 @@ public class ObjectDefinitionResourceImpl
 
 	private void _addObjectDefinitionResources(
 			Set<String> accountEntryRestrictedObjectRelationshipsNames,
-			ObjectAction[] objectActions, long objectDefinitionId,
-			ObjectLayout[] objectLayouts,
+			String defaultLanguageId, ObjectAction[] objectActions,
+			long objectDefinitionId, ObjectLayout[] objectLayouts,
 			ObjectRelationship[] objectRelationships,
 			ObjectValidationRule[] objectValidationRules,
 			ObjectView[] objectViews)
@@ -857,6 +870,25 @@ public class ObjectDefinitionResourceImpl
 
 					continue;
 				}
+
+				Map<String, String> labelMap = new HashMap<>(
+					objectAction.getLabel());
+
+				String siteDefaultLanguageId = LocaleUtil.toLanguageId(
+					LocaleUtil.getSiteDefault());
+
+				if (!Objects.equals(defaultLanguageId, siteDefaultLanguageId) &&
+					Validator.isNull(labelMap.get(siteDefaultLanguageId)) &&
+					Validator.isNotNull(labelMap.get(defaultLanguageId))) {
+
+					labelMap.put(
+						siteDefaultLanguageId, labelMap.get(defaultLanguageId));
+				}
+
+				labelMap.putIfAbsent(
+					siteDefaultLanguageId, objectAction.getName());
+
+				objectAction.setLabel(() -> labelMap);
 
 				objectActionResource.postObjectDefinitionObjectAction(
 					objectDefinitionId, objectAction);
@@ -1018,6 +1050,62 @@ public class ObjectDefinitionResourceImpl
 					objectDefinitionId, objectView);
 			}
 		}
+	}
+
+	private void _addObjectRelationship(
+			String defaultLanguageId, ObjectField objectField,
+			com.liferay.object.model.ObjectDefinition
+				serviceBuilderObjectDefinition2)
+		throws Exception {
+
+		String objectDefinitionExternalReferenceCode1 =
+			objectField.getObjectDefinitionExternalReferenceCode1();
+
+		if (Validator.isNull(objectDefinitionExternalReferenceCode1) ||
+			StringUtil.equals(
+				objectDefinitionExternalReferenceCode1,
+				serviceBuilderObjectDefinition2.getExternalReferenceCode())) {
+
+			return;
+		}
+
+		com.liferay.object.model.ObjectDefinition
+			serviceBuilderObjectDefinition1 =
+				_objectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						objectDefinitionExternalReferenceCode1,
+						serviceBuilderObjectDefinition2.getCompanyId());
+
+		if (serviceBuilderObjectDefinition1 == null) {
+			serviceBuilderObjectDefinition1 =
+				_objectDefinitionLocalService.addObjectDefinition(
+					objectDefinitionExternalReferenceCode1,
+					contextUser.getUserId(),
+					serviceBuilderObjectDefinition2.getObjectFolderId(),
+					serviceBuilderObjectDefinition2.getRootObjectDefinitionId(),
+					true, false);
+		}
+
+		com.liferay.object.model.ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.
+				fetchObjectRelationshipByExternalReferenceCode(
+					objectField.getObjectRelationshipExternalReferenceCode(),
+					serviceBuilderObjectDefinition1.getObjectDefinitionId());
+
+		if (objectRelationship != null) {
+			return;
+		}
+
+		_objectRelationshipLocalService.addObjectRelationship(
+			objectField.getObjectRelationshipExternalReferenceCode(),
+			contextUser.getUserId(),
+			serviceBuilderObjectDefinition1.getObjectDefinitionId(),
+			serviceBuilderObjectDefinition2.getObjectDefinitionId(),
+			ObjectFieldUtil.toObjectField(
+				LocaleUtil.fromLanguageId(defaultLanguageId), false,
+				_listTypeDefinitionLocalService, objectField,
+				_objectFieldLocalService, _objectFieldSettingLocalService,
+				_objectFilterLocalService));
 	}
 
 	private com.liferay.object.model.ObjectDefinition

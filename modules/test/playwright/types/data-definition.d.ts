@@ -10,6 +10,7 @@ type DataDefinition = {
 	dataDefinitionFields: DefinitionField[];
 	defaultDataLayout: DataLayout;
 	defaultLanguageId: Locale;
+	id: string;
 	name: {[keys: string]: string};
 };
 
@@ -19,6 +20,7 @@ type DefinitionField = {
 		displayStyle: 'singleline' | 'multiline';
 		fieldReference: string;
 	};
+	defaultValue: {[keys: string]: string};
 	fieldType: 'text' | 'select';
 	indexType: 'keyword' | 'text' | 'none';
 	label: {[keys: string]: string};
@@ -33,7 +35,7 @@ type DataLayouRow = {
 		{
 			columnSize: number;
 			fieldNames: string[];
-		}
+		},
 	];
 };
 
@@ -43,7 +45,7 @@ type DataLayout = {
 			dataLayoutRows: DataLayouRow[];
 			description: {[keys: string]: string};
 			title: {[keys: string]: string};
-		}
+		},
 	];
 	name: {[keys: string]: string};
 	paginationMode: 'single-page';

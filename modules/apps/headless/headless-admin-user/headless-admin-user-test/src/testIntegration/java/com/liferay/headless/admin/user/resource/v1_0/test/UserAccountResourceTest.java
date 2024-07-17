@@ -142,6 +142,8 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		_testUser = _userLocalService.getUserByEmailAddress(
 			testGroup.getCompanyId(), "test@liferay.com");
 
+		_userGroup = UserGroupTestUtil.addUserGroup();
+
 		_userLocalService.deleteGroupUser(
 			testGroup.getGroupId(), _testUser.getUserId());
 
@@ -419,6 +421,19 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 
 	@Override
 	@Test
+	public void testGetUserAccountsByStatusPage() throws Exception {
+		super.testGetUserAccountsByStatusPage();
+
+		Page<UserAccount> page =
+			userAccountResource.getUserAccountsByStatusPage(
+				testGetUserAccountsByStatusPage_getStatus(), null,
+				"status eq 0", Pagination.of(1, 2), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
+	}
+
+	@Override
+	@Test
 	public void testGetUserAccountsPage() throws Exception {
 		UserAccount userAccount1 = testGetUserAccountsPage_addUserAccount(
 			randomUserAccount());
@@ -506,6 +521,22 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 			"userGroupRoleNames/any(f:contains(f, 'Test group role '))",
 			userAccount2);
 		_testGetUserAccountsPage("userGroupRoleNames/any(f:f eq 'Test Role')");
+
+		UserAccount userAccount6 =
+			testGetUserAccountsByStatusPage_addUserAccount(
+				"inactive", randomUserAccount());
+
+		_testGetUserAccountsPage("status eq 5", userAccount6);
+
+		idFilterString = String.format(
+			"id in ('%s','%s','%s','%s')", userAccount1.getId(),
+			userAccount2.getId(), userAccount3.getId(), userAccount6.getId());
+
+		_testGetUserAccountsPage(
+			String.format(
+				"%s and %s", idFilterString,
+				"((status eq 0) or (status eq 5))"),
+			userAccount1, userAccount2, userAccount3, userAccount6);
 	}
 
 	@Ignore
@@ -1075,7 +1106,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 	@Override
 	protected String[] getIgnoredEntityFieldNames() {
 		return new String[] {
-			"alternateName", "emailAddress", "lastLoginDate", "name"
+			"alternateName", "emailAddress", "lastLoginDate", "name", "status"
 		};
 	}
 
@@ -1381,6 +1412,23 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 		throws Exception {
 
 		return _addUserAccount(testGroup.getGroupId(), userAccount);
+	}
+
+	@Override
+	protected UserAccount testGetUserGroupUsersPage_addUserAccount(
+			Long userGroupId, UserAccount userAccount)
+		throws Exception {
+
+		userAccount = _addUserAccount(testGroup.getGroupId(), userAccount);
+
+		_userLocalService.addUserGroupUser(userGroupId, userAccount.getId());
+
+		return userAccount;
+	}
+
+	@Override
+	protected Long testGetUserGroupUsersPage_getUserGroupId() throws Exception {
+		return _userGroup.getUserGroupId();
 	}
 
 	@Override
@@ -1869,6 +1917,7 @@ public class UserAccountResourceTest extends BaseUserAccountResourceTestCase {
 	private SAPEntryLocalService _sapEntryLocalService;
 
 	private User _testUser;
+	private UserGroup _userGroup;
 
 	@Inject
 	private UserGroupLocalService _userGroupLocalService;

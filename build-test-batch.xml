@@ -943,12 +943,12 @@ mariadb.executable=${mariadb.executable}]]></echo>
 				</then>
 			</if>
 
+			<property name="test.batch.name" unless:set="test.batch.name" value="${env.TEST_BATCH_NAME}" />
+
 			<if>
 				<equals arg1="${suite.search.engine}" arg2="solr" />
 				<then>
 					<ant antfile="build-test-solr.xml" target="start-solr" />
-
-					<property name="test.batch.name" unless:set="test.batch.name" value="${env.TEST_BATCH_NAME}" />
 
 					<if>
 						<contains string="${test.batch.name}" substring="unit" />
@@ -2418,6 +2418,8 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 
 							<antcall target="prepare-portal-test-object-storage-salesforce-properties" />
 
+							<antcall target="prepare-portal-test-object-storage-sugarcrm-properties" />
+
 							<ant dir="portal-test" inheritAll="false" target="deploy" />
 
 							<setup-test-batch-testable-tomcat test.portal.bundle.version="@{test.portal.bundle.version}" />
@@ -2432,11 +2434,9 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 
 							<lstopwatch action="start" name="test.execution.duration" />
 
-							<run-modules-junit-test test.class.group="${test.class.group}" test.task="testIntegration">
-								<arg value="--continue" />
-								<arg value="-Dbuild.exclude.ant.plugin=true" />
-								<arg value="-Dtest.class.group.index=${axis.variable}" />
-							</run-modules-junit-test>
+							<property name="test.junit.args" value="--continue -Dbuild.exclude.ant.plugin=true -Dtest.class.group.index=${axis.variable}" />
+
+							<run-modules-junit-test test.class.group="${test.class.group}" test.junit.args="${test.junit.args}" test.task="testIntegration" />
 
 							<lstopwatch action="total" name="test.execution.duration" />
 
@@ -2612,9 +2612,8 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 
 	<macrodef name="run-modules-junit-test">
 		<attribute name="test.class.group" />
+		<attribute default="" name="test.junit.args" />
 		<attribute name="test.task" />
-
-		<element implicit="true" name="args" optional="true" />
 
 		<sequential>
 			<sequential>
@@ -2748,26 +2747,23 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 						for (Map.Entry projectTestEntry : projectTestMap.entrySet()) {
 							Map parameters = new HashMap();
 
-							List projectTestList = projectTestEntry.getValue();
-
-							String projectName = projectTestEntry.getKey();
-
-							parameters.put("test.task", projectName + ":" + "@{test.task}");
+							parameters.put("dir", "modules");
+							parameters.put("gradle.jvm.args", "@{test.junit.args}");
 
 							StringBuilder sb = new StringBuilder();
-
 							int testCount = 1;
 
-							for (String test : projectTestList) {
+							for (String test : projectTestEntry.getValue()) {
 								sb.append("--tests ");
 								sb.append(test);
 								sb.append(" ");
+
 								testCount++;
 							}
 
 							parameters.put("test.name", sb.toString());
 
-							parameters.put("dir", "modules");
+							parameters.put("test.task", projectTestEntry.getKey() + ":" + "@{test.task}");
 
 							int timeout = Integer.parseInt(project.getProperty("test.class.timeout.minutes"));
 
@@ -2777,7 +2773,7 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 								AntUtil.callTargetWithTimeout(projectDir, "build-common.xml", "gradle-execute-modules", parameters, timeout, true);
 							}
 							catch(Exception exception) {
-								throw new RuntimeException("Unable to run gradle execute modules target.");
+								throw new RuntimeException("Unable to run Gradle execute modules target.");
 							}
 						}
 					]]>
@@ -2823,7 +2819,7 @@ ${poshi.runner.testsuite.testcase.name}</echo>
 									<exec executable="/bin/bash">
 										<arg value="modules/test/playwright/env/set_up.sh" />
 										<env key="LIFERAY_HOME" value="${liferay.home}" />
-										<env key="LIFERAY_PORTAL_URL" value="http://${env.HOSTNAME}:8080" />
+										<env key="LIFERAY_PORTAL_URL" value="http://${env.NODE_NAME}:8080" />
 										<env key="PLAYWRIGHT_PROJECT_NAME" value="${playwright.project.name}" />
 									</exec>
 
@@ -6272,10 +6268,22 @@ information. Make sure to commit in all format-javadoc results.
 	<target name="js-unit-jdk8">
 		<run-batch-test>
 			<test-action>
-				<gradle-execute dir="modules" task="packageRunTest">
-					<arg value="--continue" />
-					<arg value="--parallel" />
-				</gradle-execute>
+				<for delimiter=" " list="${modules.test.class.group}" param="modules.test.class" trim="true">
+					<sequential>
+						<echo>Executing Gradle tasks: @{modules.test.class}.</echo>
+
+						<trycatch property="gradle.failure">
+							<try>
+								<gradle-execute dir="modules" task="@{modules.test.class}">
+									<arg value="--continue" />
+								</gradle-execute>
+							</try>
+							<catch>
+								<echo>${gradle.failure}</echo>
+							</catch>
+						</trycatch>
+					</sequential>
+				</for>
 
 				<replace
 					dir="modules"
@@ -7340,15 +7348,21 @@ information. Make sure to commit in all format-javadoc results.
 					</then>
 				</if>
 
-				<run-modules-junit-test test.class.group="${test.class.group}" test.task="test">
-					<arg value="--continue" />
-					<arg value="-Dbuild.exclude.ant.plugin=true" />
-					<arg if:true="${run.opensearch2.unit.tests}" value="-Dcom.liferay.portal.search.opensearch2.test.unit.enabled=true" />
-					<arg if:true="${run.solr.unit.tests}" value="-Dcom.liferay.portal.search.solr8.test.unit.started=true" />
-					<arg value="-Djunit.code.coverage=${test.batch.code.coverage}" />
-					<arg if:set="project.templates.test.builds" value="-Dproject.templates.test.builds=${project.templates.test.builds}" />
-					<arg value="-Dtest.class.group.index=${axis.variable}" />
-				</run-modules-junit-test>
+				<condition else="" property="test.arg.opensearch2.unit.tests" value="-Dcom.liferay.portal.search.opensearch2.test.unit.enabled=true">
+					<istrue value="${run.opensearch2.unit.tests}" />
+				</condition>
+
+				<condition else="" property="test.arg.project.templates" value="-Dproject.templates.test.builds=${project.templates.test.builds}">
+					<isset property="project.templates.test.builds" />
+				</condition>
+
+				<condition else="" property="test.arg.solr.unit.tests" value="-Dcom.liferay.portal.search.solr8.test.unit.started=true">
+					<istrue value="${run.solr.unit.tests}" />
+				</condition>
+
+				<property name="test.junit.args" value="--continue -Dbuild.exclude.ant.plugin=true ${test.arg.opensearch2.unit.tests} ${test.arg.project.templates} ${test.arg.solr.unit.tests} -Djunit.code.coverage=${test.batch.code.coverage} -Dtest.class.group.index=${axis.variable}" />
+
+				<run-modules-junit-test test.class.group="${test.class.group}" test.junit.args="${test.junit.args}" test.task="test" />
 
 				<lstopwatch action="total" name="test.execution.duration" />
 			</test-action>
@@ -8530,6 +8544,7 @@ information. Make sure to commit in all build services results.
 					<or>
 						<contains string="${git.diff}" substring="modules${file.separator}util${file.separator}source-formatter" />
 						<contains string="${git.diff}" substring="source-formatter.properties" />
+						<matches pattern="release-((\d{4})\.q([1-4])|(7\.[0-4]\.[0-9]?[0-9]\.\d+))" string="${liferay.portal.branch}" />
 					</or>
 					<then>
 						<antcall target="compile" />
@@ -8542,7 +8557,20 @@ information. Make sure to commit in all build services results.
 								<gradle-execute dir="modules/util/source-formatter" task="deploy" />
 							</then>
 						</if>
+					</then>
+					<else>
+						<antcall target="setup-sdk" />
 
+						<antcall target="setup-yarn" />
+					</else>
+				</if>
+
+				<if>
+					<or>
+						<contains string="${git.diff}" substring="modules${file.separator}util${file.separator}source-formatter" />
+						<contains string="${git.diff}" substring="source-formatter.properties" />
+					</or>
+					<then>
 						<ant dir="portal-impl" target="format-source-all">
 							<property name="source.auto.fix" value="false" />
 							<property name="source.fail.on.auto.fix" value="true" />
@@ -8553,10 +8581,6 @@ information. Make sure to commit in all build services results.
 						</ant>
 					</then>
 					<else>
-						<antcall target="setup-sdk" />
-
-						<antcall target="setup-yarn" />
-
 						<ant dir="portal-impl" target="format-source-current-branch">
 							<property name="check.vulnerabilities" value="true" />
 							<property name="source.auto.fix" value="false" />

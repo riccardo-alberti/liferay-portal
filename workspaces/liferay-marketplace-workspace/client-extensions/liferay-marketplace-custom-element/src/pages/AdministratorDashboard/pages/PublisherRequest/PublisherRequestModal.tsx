@@ -41,7 +41,7 @@ const PublisherRequestModal: React.FC<PublisherRequestModalProps> = ({
 
 	const onUpdateRequestStatus = async (status: 'completed' | 'rejected') => {
 		await fetcher.patch(
-			`o/c/requestpublisheraccounts/${Number(selectedRequest?.id)}`,
+			`o/c/requestpublisheraccounts/${selectedRequest?.id}`,
 			{
 				requestStatus: status,
 			}
@@ -74,7 +74,7 @@ const PublisherRequestModal: React.FC<PublisherRequestModalProps> = ({
 							displayType="primary"
 							onClick={() => onUpdateRequestStatus('completed')}
 						>
-							{i18n.translate('aprove')}
+							{i18n.translate('approve')}
 						</ClayButton>
 					</div>
 				) : undefined
@@ -87,7 +87,16 @@ const PublisherRequestModal: React.FC<PublisherRequestModalProps> = ({
 			}`}
 			visible={open}
 		>
-			<PublisherSummaryContent userInfo={selectedRequest} />
+			<PublisherSummaryContent
+				userInfo={{
+					...selectedRequest,
+					publisherType: Array.isArray(selectedRequest?.publisherType)
+						? (selectedRequest?.publisherType as any[])?.map(
+								({name}) => name
+							)
+						: ['App Publisher'],
+				}}
+			/>
 		</Modal>
 	);
 };

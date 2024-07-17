@@ -114,9 +114,9 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 
 								<c:if test="<%= !journalDisplayContext.hasGuestViewPermission(curArticle) %>">
 									<clay:icon
-										aria-label="<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>"
+										aria-label='<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>'
 										cssClass="c-ml-2 c-mt-1 lfr-portal-tooltip text-4 text-secondary"
-										data-title="<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>"
+										data-title='<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>'
 										symbol="password-policies"
 									/>
 								</c:if>
@@ -162,11 +162,7 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 								String scheduledArticleMessage = journalDisplayContext.getScheduledArticleMessage(curArticle);
 								%>
 
-									<span
-										aria-label='<%= scheduledArticleMessage %>'
-										class="icon-tooltip lfr-portal-tooltip"
-										title='<%= scheduledArticleMessage %>'
-									>
+									<span aria-label="<%= scheduledArticleMessage %>" class="icon-tooltip lfr-portal-tooltip" title="<%= scheduledArticleMessage %>">
 										<clay:icon
 											cssClass="mt-0"
 											symbol="question-circle-full"
@@ -232,9 +228,9 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 
 										<c:if test="<%= !journalDisplayContext.hasGuestViewPermission(curArticle) %>">
 											<clay:icon
-												aria-label="<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>"
+												aria-label='<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>'
 												cssClass="c-ml-1 c-mt-0 lfr-portal-tooltip text-4 text-secondary"
-												data-title="<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>"
+												data-title='<%= LanguageUtil.get(request, "not-visible-to-guest-users") %>'
 												symbol="password-policies"
 											/>
 										</c:if>
@@ -313,13 +309,11 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							value="<%= curArticle.getDisplayDate() %>"
 						/>
 
-						<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-11218") %>'>
 							<liferay-ui:search-container-column-date
 								cssClass="table-cell-expand-smallest table-cell-ws-nowrap"
 								name="create-date"
 								value="<%= curArticle.getCreateDate() %>"
 							/>
-						</c:if>
 
 						<liferay-ui:search-container-column-text>
 							<clay:dropdown-actions
@@ -514,13 +508,11 @@ Map<String, Object> componentContext = journalDisplayContext.getComponentContext
 							value="--"
 						/>
 
-						<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-11218") %>'>
-							<liferay-ui:search-container-column-date
-								cssClass="table-cell-expand-smallest table-cell-ws-nowrap"
-								name="create-date"
-								value="<%= curFolder.getCreateDate() %>"
-							/>
-						</c:if>
+						<liferay-ui:search-container-column-date
+							cssClass="table-cell-expand-smallest table-cell-ws-nowrap"
+							name="create-date"
+							value="<%= curFolder.getCreateDate() %>"
+						/>
 
 						<liferay-ui:search-container-column-text>
 							<clay:dropdown-actions

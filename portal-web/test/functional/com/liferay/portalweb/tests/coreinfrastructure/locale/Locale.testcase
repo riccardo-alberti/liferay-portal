@@ -1,4 +1,4 @@
-@component-name = "portal-locale"
+@component-name = "portal-core-infra"
 definition {
 
 	property ci.retries.disabled = "true";
@@ -207,7 +207,7 @@ definition {
 			PortalSettings.configureCurrentLanguagesCP(currentPortalLanguages = "English (United States)");
 
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
@@ -415,7 +415,7 @@ definition {
 			localizedAgree = "Acepto",
 			localizedAnswer = "Respuesta",
 			localizedSaveButton = "Guardar",
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			specificURL = "http://www.able.com:8080",
 			userEmailAddress = "test@www.able.com");
 
@@ -702,7 +702,7 @@ definition {
 			ContentPages.viewFragmentImage(
 				fragmentName = "image",
 				id = "image-square",
-				image = "tree-png");
+				image = "tree");
 		}
 
 		task ("View the default instance language is Spanish") {
@@ -974,7 +974,7 @@ definition {
 			localizedAgree = "Sono d'accordo",
 			localizedAnswer = "Risposta",
 			localizedSaveButton = "Salva",
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			specificURL = "http://www.able.com:8080",
 			userEmailAddress = "test@www.able.com");
 	}

@@ -17,6 +17,8 @@ import {useMemo} from 'react';
 import AppToolbar from '../../../../../components/AppToolBar/AppToolBar';
 import Modal from '../../../../../components/Modal';
 import {useSolutionContext} from '../../../../../context/SolutionContext';
+import {PRODUCT_WORKFLOW_STATUS_CODE} from '../../../../../enums/Product';
+import i18n from '../../../../../i18n';
 import usePublishSolutionHeader from '../../../hooks/usePublishSolutionHeader';
 import usePublishSolutionNavigation from '../../../hooks/usePublishSolutionNavigation';
 import usePublishSolutionSubmission from '../../../hooks/usePublishSolutionSubmission';
@@ -31,15 +33,20 @@ const PublishSolutionOutlet = () => {
 	const {
 		activeIndex,
 		activeRoute,
+		isLastStep,
 		onClickContinue,
 		onClickPrevious,
 		onExit,
 		publishSolutionSteps,
 	} = usePublishSolutionNavigation();
 
-	const {onSaveAsDraft} = usePublishSolutionSubmission(context, dispatch);
+	const {onSave, onSaveAsDraft} = usePublishSolutionSubmission(
+		context,
+		dispatch
+	);
 
 	const {observer, onOpenChange, open} = useModal();
+	const onExitModal = useModal();
 
 	const parsedSchema = useMemo(() => {
 		const parseSchema = activeRoute?.parseSchema;
@@ -51,6 +58,14 @@ const PublishSolutionOutlet = () => {
 		return null;
 	}, [activeRoute, context]);
 
+	const isDisabled = parsedSchema ? !parsedSchema.success : false;
+
+	const isDraft = (status?: number) =>
+		status === PRODUCT_WORKFLOW_STATUS_CODE.DRAFT;
+
+	const isSaveAsDraft =
+		!context._product || isDraft(context._product.productStatus);
+
 	return (
 		<>
 			<AppToolbar
@@ -58,25 +73,32 @@ const PublishSolutionOutlet = () => {
 				accountName={account?.name as string}
 				appImage={context.profile.file?.preview}
 				appName={context.profile.name}
-				display={{preview: true, saveAsDraft: true}}
+				display={{
+					preview: true,
+					saveAsDraft: isSaveAsDraft,
+					submit:
+						!!context._product &&
+						!isDraft(context._product.productStatus),
+				}}
 				exitProps={{
 					onClick: () => {
-						onOpenChange(true);
+						isSaveAsDraft
+							? onOpenChange(true)
+							: onExitModal.onOpenChange(true);
 					},
-					to: undefined as any,
 				}}
 				previewProps={{
-					disabled: true,
+					disabled: false,
 					onClick: () => alert('Preview...'),
 				}}
 				saveAsDraftProps={{
-					disabled: activeIndex < 1,
+					disabled: isDisabled,
 					onClick: onSaveAsDraft,
 				}}
+				submitProps={{
+					onClick: onSave,
+				}}
 			/>
-			<details>
-				<pre>{JSON.stringify(context._product, null, 2)}</pre>
-			</details>
 
 			<hr />
 
@@ -90,10 +112,6 @@ const PublishSolutionOutlet = () => {
 					<h1 className="header-title mb-4">{activeRoute.title}</h1>
 					{activeRoute.description}
 
-					<details>
-						<pre>{JSON.stringify(context.profile, null, 2)}</pre>
-					</details>
-
 					<div className="mt-6 solutions-form">
 						<Outlet />
 					</div>
@@ -105,18 +123,24 @@ const PublishSolutionOutlet = () => {
 								displayType="secondary"
 								onClick={onClickPrevious}
 							>
-								Back
+								{i18n.translate('back')}
 							</ClayButton>
 						)}
 
 						<ClayButton
-							disabled={
-								parsedSchema ? !parsedSchema.success : false
-							}
+							disabled={isDisabled}
 							displayType="primary"
-							onClick={onClickContinue}
+							onClick={async () => {
+								if (isLastStep) {
+									return onSave().then(onExit);
+								}
+
+								onClickContinue();
+							}}
 						>
-							Continue
+							{i18n.translate(
+								isLastStep ? 'submit-solution' : 'continue'
+							)}
 						</ClayButton>
 					</div>
 				</div>
@@ -129,14 +153,11 @@ const PublishSolutionOutlet = () => {
 							displayType="secondary"
 							onClick={() => onSaveAsDraft().then(onExit)}
 						>
-							Save as a draft & exit
+							{i18n.translate('save-as-a-draft-exit')}
 						</ClayButton>
 
-						<Link
-							className="btn btn-primary ml-2"
-							to="../solutions"
-						>
-							Exit
+						<Link className="btn btn-primary ml-2" to="/solutions">
+							{i18n.translate('exit')}
 						</Link>
 					</>
 				}
@@ -146,11 +167,37 @@ const PublishSolutionOutlet = () => {
 				visible={open}
 			>
 				<p>
-					All progress and information related to the creation of the
-					solution will be lost unless you save the solution as a
-					draft, Do you still want to exit?
+					{i18n.translate(
+						'all-progress-and-information-related-to-the-creation-of-the-solution-will-be-lost-unless-you-save-the-solution-as-a-draft-do-you-still-want-to-exit'
+					)}
 				</p>
 			</Modal>
+
+			{onExitModal.open && (
+				<Modal
+					last={
+						<>
+							<ClayButton
+								className="btn btn-primary ml-2"
+								displayType="primary"
+								onClick={onExit}
+							>
+								{i18n.translate('exit')}
+							</ClayButton>
+						</>
+					}
+					observer={onExitModal.observer}
+					size={'md' as any}
+					title="Exit from creating a solution"
+					visible={onExitModal.open}
+				>
+					<p>
+						{i18n.translate(
+							'all-progress-and-information-related-to-the-creation-of-the-solution-will-be-lost-do-you-still-want-to-exit'
+						)}
+					</p>
+				</Modal>
+			)}
 		</>
 	);
 };

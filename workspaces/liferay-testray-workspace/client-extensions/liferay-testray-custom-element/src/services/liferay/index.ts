@@ -22,6 +22,10 @@ export type LiferayStorage = Storage & {
 	setItem(key: string, value: string, consentType: CONSENT_TYPE): void;
 };
 
+interface LiferaySession {
+	reset: () => void;
+}
+
 interface LiferayUtil {
 	LocalStorage: LiferayStorage;
 	SessionStorage: LiferayStorage;
@@ -38,9 +42,7 @@ type FetchType = (
 ) => Promise<Response>;
 
 interface OAuth2Client {
-	FromUserAgentApplication: (
-		_userAgent: string
-	) => {
+	FromUserAgentApplication: (_userAgent: string) => {
 		authorizeURL: string;
 		clientId: string;
 		encodedRedirectURL: string;
@@ -53,6 +55,7 @@ interface OAuth2Client {
 
 interface ILiferay {
 	OAuth2Client: OAuth2Client;
+	Session: LiferaySession;
 	ThemeDisplay: IThemeDisplay;
 	Util: LiferayUtil;
 	authToken: string;
@@ -74,6 +77,9 @@ export const Liferay = window.Liferay || {
 			redirectURIs: [''],
 			tokenURL: '',
 		}),
+	},
+	Session: {
+		reset: () => null,
 	},
 	ThemeDisplay: {
 		getBCP47LanguageId: () => 'en-US',

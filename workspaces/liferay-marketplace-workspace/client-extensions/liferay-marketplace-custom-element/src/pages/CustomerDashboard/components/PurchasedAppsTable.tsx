@@ -88,7 +88,7 @@ const AppsTable: React.FC<AppsTableProps> = ({items}) => {
 				{
 					key: 'type',
 					render: (type) => (
-						<span className="dashboard-table-row-type">{type}</span>
+						<div className="dashboard-table-row-type">{type}</div>
 					),
 					title: i18n.translate('license-type'),
 				},
@@ -178,7 +178,7 @@ const AppsTable: React.FC<AppsTableProps> = ({items}) => {
 																orderStatusIsNotCompleted
 																	? i18n.translate(
 																			'the-order-must-be-completed-before-licensing-this-app.'
-																	  )
+																		)
 																	: undefined
 															}
 														>
@@ -237,6 +237,15 @@ const AppsTable: React.FC<AppsTableProps> = ({items}) => {
 															: orderStatusIsNotCompleted
 													}
 													onClick={() => {
+														if (
+															properties.featureFlags?.includes(
+																'LPD-21582'
+															)
+														) {
+															return navigate(
+																`order/${id}/download`
+															);
+														}
 														if (!virtualURL) {
 															Analytics.track(
 																'VIRTUAL_URL_NOT_FOUND',
@@ -259,7 +268,7 @@ const AppsTable: React.FC<AppsTableProps> = ({items}) => {
 														orderStatusIsNotCompleted
 															? i18n.translate(
 																	'this-order-must-be-completed-before-downloading-this-app.'
-															  )
+																)
 															: undefined
 													}
 												>

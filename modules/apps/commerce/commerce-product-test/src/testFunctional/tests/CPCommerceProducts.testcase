@@ -531,7 +531,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "categorymanager@liferay.com");
 
@@ -562,7 +562,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "categorymanager@liferay.com");
 
@@ -769,7 +769,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -806,7 +806,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "buyer@liferay.com");
 
@@ -873,7 +873,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "categorymanager@liferay.com");
 
@@ -1039,7 +1039,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "categorymanager@liferay.com");
 
@@ -1069,7 +1069,7 @@ definition {
 		User.logoutPG();
 
 		CommerceLogin.miniumLogin(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			urlAppend = "web/minium",
 			userEmailAddress = "categorymanager@liferay.com");
 
@@ -1274,7 +1274,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 		}
@@ -1294,7 +1294,7 @@ definition {
 				orderId = ${orderId},
 				parameter = "nestedFields",
 				parameterValue = "orderItems",
-				password = "test");
+				password = PropsUtil.get("default.admin.password"));
 		}
 
 		task ("And the virtualItemURLs field is empty") {
@@ -1323,7 +1323,7 @@ definition {
 				orderId = ${orderId},
 				parameter = "nestedFields",
 				parameterValue = "orderItems",
-				password = "test");
+				password = PropsUtil.get("default.admin.password"));
 		}
 
 		task ("And the GET order item API is called") {
@@ -1331,7 +1331,7 @@ definition {
 				email = "buyer@liferay.com",
 				jsonPath = "$..virtualItemURLs[:1]",
 				orderId = ${orderId},
-				password = "test");
+				password = PropsUtil.get("default.admin.password"));
 		}
 
 		task ("Then the URL into the response is the same for both the API calls") {
@@ -1463,7 +1463,7 @@ definition {
 				orderId = ${orderId},
 				parameter = "nestedFields",
 				parameterValue = "orderItems",
-				password = "test");
+				password = PropsUtil.get("default.admin.password"));
 		}
 
 		task ("Then the buyer can't receive the URL") {
@@ -1476,17 +1476,15 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
 			var virtualItemURLs = CommerceJSONOrdersAPI.getOrderField(
-				email = "test@liferay.com",
 				jsonPath = "$..virtualItemURLs[:1]",
 				orderId = ${orderId},
 				parameter = "nestedFields",
-				parameterValue = "orderItems",
-				password = "test");
+				parameterValue = "orderItems");
 		}
 
 		task ("Then the buyer will not be able to download the resource") {
@@ -1733,7 +1731,7 @@ definition {
 		}
 
 		task ("When the search result is cleared") {
-			Search.clearSearchResult();
+			Click(locator1 = "//button[text()='Clear']");
 		}
 
 		task ("Then all three products previously added are shown on the Grouped tab") {
@@ -1999,10 +1997,11 @@ definition {
 		task ("When a product is created with an image using JSON") {
 			var baseURL = PropsUtil.get("portal.url");
 			var catalogId = CommerceJSONCatalogsAPI._getCommerceCatalogIdByName(catalogName = "Master");
+			var userLoginInfo = JSONUtil2.formatJSONUser();
 
 			var curl = '''
 				${baseURL}/o/headless-commerce-admin-catalog/v1.0/products \
-					-u test@liferay.com:test \
+					-u ${userLoginInfo} \
 					-H 'accept: application/json' \
 					-H 'Content-Type: application/json' \
 					-d '{
@@ -2120,7 +2119,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 		}
@@ -2285,7 +2284,7 @@ definition {
 				virtualHost = "www.able.com");
 
 			User.firstLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "test@www.able.com",
 				virtualHostsURL = "http://www.able.com:8080");
 
@@ -2807,8 +2806,6 @@ definition {
 
 	@priority = 5
 	test ProductPublishing {
-		property environment.acceptance = "true";
-		property operating.system.types = "alpine,amazonlinux,centos,debian,fedora,orcllinux,osx,redhat,rockylinux,solaris,suse,ubuntu,windows";
 		property portal.acceptance = "true";
 
 		CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");

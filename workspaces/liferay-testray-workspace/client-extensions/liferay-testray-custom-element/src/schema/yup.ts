@@ -98,6 +98,7 @@ const yupSchema = {
 		caseId: yup.number(),
 		comment: yup.string(),
 		dueStatus: yup.string().required(),
+		errors: yup.string().nullable(),
 		issues: yup.string(),
 		mbMessageId: yup.number().nullable(),
 		mbThreadId: yup.number().nullable(),
@@ -142,10 +143,6 @@ const yupSchema = {
 		buildId: yup.number(),
 		id: yup.string(),
 		number: yup.number(),
-	}),
-	jiraImportRequirement: yup.object({
-		issues: yup.string().required(),
-		projectId: yup.number().required(),
 	}),
 	jiraIssues: yup.object({
 		issues: yup.array(

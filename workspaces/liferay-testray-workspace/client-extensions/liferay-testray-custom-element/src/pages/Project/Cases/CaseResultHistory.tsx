@@ -13,15 +13,16 @@ import StatusBadge from '../../../components/StatusBadge';
 import {StatusBadgeType} from '../../../components/StatusBadge/StatusBadge';
 import {TableProps} from '../../../components/Table';
 import i18n from '../../../i18n';
-import {PickList, testrayCaseResultImpl} from '../../../services/rest';
 import dayjs from '../../../util/date';
 
 type CaseResultHistoryProps = {
+	caseId: string;
 	listViewProps?: Partial<ListViewProps>;
 	tableProps?: Partial<TableProps>;
 };
 
 const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
+	caseId,
 	listViewProps,
 	tableProps,
 }) => {
@@ -31,10 +32,6 @@ const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
 		<ListView
 			initialContext={{
 				pageSize: 200,
-				sort: {
-					direction: 'DESC',
-					key: 'dueDate',
-				},
 			}}
 			managementToolbarProps={{
 				applyFilters: true,
@@ -42,60 +39,58 @@ const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
 				title: i18n.translate('test-history'),
 				visible: true,
 			}}
-			resource={testrayCaseResultImpl.resource}
+			resource={`/testray-case-result-history/${caseId}`}
 			tableProps={{
 				columns: [
 					{
 						clickable: true,
-						key: 'dueDate',
+						key: 'executionDate',
 						render: (date) => (
 							<p style={{maxWidth: '11ch'}}>
 								{dayjs(date).format('lll')}
 							</p>
 						),
-						value: i18n.translate('create-date'),
+						value: i18n.translate('execution-date'),
 					},
 					{
 						clickable: true,
-						key: 'build',
-						render: (build) =>
-							build?.gitHash === 'null' || ''
-								? '-'
-								: build?.gitHash,
+						key: 'gitHash',
+						render: (gitHash) =>
+							gitHash === 'null' || '' ? '-' : gitHash,
 						value: i18n.translate('git-hash'),
 					},
 					{
 						clickable: true,
-						key: 'product-version',
-						render: (_, {build}) => build?.productVersion?.name,
+						key: 'testrayProductVersionName',
 						value: i18n.translate('product-version'),
 					},
 					{
 						clickable: true,
-						key: 'run',
-						render: (run) => run?.name,
+						key: 'testrayRunName',
 						value: i18n.translate('environment'),
 						width: '250',
 					},
 					{
 						clickable: true,
-						key: 'routine',
-						render: (_, {build}) => build?.routine?.name,
+						key: 'testrayRoutineName',
 						value: i18n.translate('routine'),
 					},
 					{
-						key: 'dueStatus',
-						render: (dueStatus: PickList) => (
-							<StatusBadge
-								type={dueStatus.key as StatusBadgeType}
-							>
-								{dueStatus.name}
+						key: 'status',
+						render: (dueStatus) => (
+							<StatusBadge type={dueStatus as StatusBadgeType}>
+								{dueStatus}
 							</StatusBadge>
 						),
 						value: i18n.translate('status'),
 					},
 					{
-						key: 'warnings',
+						clickable: true,
+						key: 'testrayTeamName',
+						value: i18n.translate('team'),
+					},
+					{
+						key: 'warning',
 						value: i18n.translate('warnings'),
 					},
 					{
@@ -109,7 +104,7 @@ const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
 						value: i18n.translate('issues'),
 					},
 					{
-						key: 'errors',
+						key: 'error',
 						render: (errors: string) =>
 							errors && (
 								<Code title={errors as string}>
@@ -118,17 +113,15 @@ const CaseResultHistory: React.FC<CaseResultHistoryProps> = ({
 							),
 						size: 'xl',
 						value: i18n.translate('errors'),
+						width: '400',
 					},
 				],
-				highlight: (caseResult) =>
-					caseResult.id === Number(caseResultId),
+				highlight: ({testrayCaseResultId}) =>
+					testrayCaseResultId === Number(caseResultId),
 				responsive: true,
 				rowWrap: true,
 				...tableProps,
 			}}
-			transformData={(response) =>
-				testrayCaseResultImpl.transformDataFromList(response)
-			}
 			{...listViewProps}
 		/>
 	);

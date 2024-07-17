@@ -1,6 +1,5 @@
 {
 	"pageElement": {
-		"id": "e80d27fd-f68e-d1a0-50c7-98fcb27a8867",
 		"pageElements": [
 			{
 				"definition": {
@@ -152,6 +151,9 @@
 				"pageElements": [
 					{
 						"definition": {
+							"cssClasses": [
+								"page-tabs"
+							],
 							"customCSS": ".[$FRAGMENT_CLASS$] {\n.navbar-collapse{\njustify-content: center;\n}\n.show {\nz-index: 2 !important;\n}\n}",
 							"fragment": {
 								"key": "dialect-tabs",
@@ -272,7 +274,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/cloud"
+																"en_US": "/capabilities/cloud",
+																"ja_JP": "/capabilities/cloud"
 															}
 														}
 													},
@@ -318,7 +321,7 @@
 																			},
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/cloud-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/cloud.svg$]"
 																				}
 																			}
 																		},
@@ -425,7 +428,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/commerce"
+																"en_US": "/capabilities/commerce",
+																"ja_JP": "/capabilities/commerce"
 															}
 														}
 													},
@@ -466,7 +470,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/commerce-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/commerce.svg$]"
 																				}
 																			}
 																		},
@@ -573,7 +577,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/content-management-system"
+																"en_US": "/capabilities/content-management-system",
+																"ja_JP": "/capabilities/content-management-system"
 															}
 														}
 													},
@@ -614,7 +619,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/content_ms-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/content_ms.svg$]"
 																				}
 																			}
 																		},
@@ -721,7 +726,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/development-and-tooling"
+																"en_US": "/capabilities/development-and-tooling",
+																"ja_JP": "/capabilities/development-and-tooling"
 															}
 														}
 													},
@@ -762,7 +768,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/development_t-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/development_t.svg$]"
 																				}
 																			}
 																		},
@@ -869,7 +875,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/digital-asset-management"
+																"en_US": "/capabilities/digital-asset-management",
+																"ja_JP": "/capabilities/digital-asset-management"
 															}
 														}
 													},
@@ -910,7 +917,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/digital_ams-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/digital_ams.svg$]"
 																				}
 																			}
 																		},
@@ -1017,7 +1024,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/dxp-self-hosted-installation-maintenance-and-administration"
+																"en_US": "/capabilities/dxp-self-hosted-installation-maintenance-and-administration",
+																"ja_JP": "/capabilities/dxp-self-hosted-installation-maintenance-and-administration"
 															}
 														}
 													},
@@ -1058,7 +1066,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/dxp_shima-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/dxp_shima.svg$]"
 																				}
 																			}
 																		},
@@ -1165,7 +1173,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/integration"
+																"en_US": "/capabilities/integration",
+																"ja_JP": "/capabilities/integration"
 															}
 														}
 													},
@@ -1206,7 +1215,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/integration-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/integration.svg$]"
 																				}
 																			}
 																		},
@@ -1313,7 +1322,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/personalization"
+																"en_US": "/capabilities/personalization",
+																"ja_JP": "/capabilities/personalization"
 															}
 														}
 													},
@@ -1354,7 +1364,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/personalization-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/personalization.svg$]"
 																				}
 																			}
 																		},
@@ -1461,7 +1471,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/platform"
+																"en_US": "/capabilities/platform",
+																"ja_JP": "/capabilities/platform"
 															}
 														}
 													},
@@ -1502,7 +1513,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/platform-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/platform.svg$]"
 																				}
 																			}
 																		},
@@ -1609,7 +1620,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/search"
+																"en_US": "/capabilities/search",
+																"ja_JP": "/capabilities/search"
 															}
 														}
 													},
@@ -1650,7 +1662,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/search-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/search.svg$]"
 																				}
 																			}
 																		},
@@ -1757,7 +1769,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/security"
+																"en_US": "/capabilities/security",
+																"ja_JP": "/capabilities/security"
 															}
 														}
 													},
@@ -1798,7 +1811,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/security-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/security.svg$]"
 																				}
 																			}
 																		},
@@ -1905,7 +1918,8 @@
 													"fragmentLink": {
 														"href": {
 															"value_i18n": {
-																"en_US": "/capabilities/sites"
+																"en_US": "/capabilities/sites",
+																"ja_JP": "/capabilities/sites"
 															}
 														}
 													},
@@ -1946,7 +1960,7 @@
 																		"fragmentImage": {
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/guest/sites-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/sites.svg$]"
 																				}
 																			}
 																		},
@@ -2095,7 +2109,8 @@
 															"fragmentLink": {
 																"href": {
 																	"value_i18n": {
-																		"en_US": "/w/analytics-cloud/index"
+																		"en_US": "/w/analytics-cloud/index",
+																		"ja_JP": "/w/analytics-cloud/index"
 																	}
 																}
 															},
@@ -2103,6 +2118,7 @@
 																"backgroundColor": "colorNeutral0",
 																"borderRadius": "borderRadiusLg",
 																"borderWidth": "1px",
+																"height": "100%",
 																"maxWidth": "300px",
 																"paddingBottom": "3",
 																"paddingLeft": "3",
@@ -2135,7 +2151,7 @@
 																				"fragmentImage": {
 																					"url": {
 																						"value_i18n": {
-																							"en_US": "/documents/d/guest/analytics_c-svg?imagePreview=1"
+																							"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/analytics_c.svg$]"
 																						}
 																					}
 																				},
@@ -2242,7 +2258,8 @@
 															"fragmentLink": {
 																"href": {
 																	"value_i18n": {
-																		"en_US": "/w/commerce/index"
+																		"en_US": "/w/commerce/index",
+																		"ja_JP": "/w/commerce/index"
 																	}
 																}
 															},
@@ -2250,6 +2267,7 @@
 																"backgroundColor": "colorNeutral0",
 																"borderRadius": "borderRadiusLg",
 																"borderWidth": "1px",
+																"height": "100%",
 																"maxWidth": "300px",
 																"paddingBottom": "3",
 																"paddingLeft": "3",
@@ -2282,7 +2300,7 @@
 																				"fragmentImage": {
 																					"url": {
 																						"value_i18n": {
-																							"en_US": "/documents/d/guest/commerce_product-svg?imagePreview=1"
+																							"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/commerce_product.svg$]"
 																						}
 																					}
 																				},
@@ -2389,7 +2407,8 @@
 															"fragmentLink": {
 																"href": {
 																	"value_i18n": {
-																		"en_US": "/w/dxp/index"
+																		"en_US": "/w/dxp/index",
+																		"ja_JP": "/w/dxp/index"
 																	}
 																}
 															},
@@ -2397,6 +2416,7 @@
 																"backgroundColor": "colorNeutral0",
 																"borderRadius": "borderRadiusLg",
 																"borderWidth": "1px",
+																"height": "100%",
 																"maxWidth": "300px",
 																"paddingBottom": "3",
 																"paddingLeft": "3",
@@ -2429,7 +2449,7 @@
 																				"fragmentImage": {
 																					"url": {
 																						"value_i18n": {
-																							"en_US": "/documents/d/guest/dxp_p-svg?imagePreview=1"
+																							"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/dxp_p.svg$]"
 																						}
 																					}
 																				},
@@ -2536,7 +2556,8 @@
 															"fragmentLink": {
 																"href": {
 																	"value_i18n": {
-																		"en_US": "/w/liferay-cloud/index"
+																		"en_US": "/w/liferay-cloud/index",
+																		"ja_JP": "/w/liferay-cloud/index"
 																	}
 																}
 															},
@@ -2544,6 +2565,7 @@
 																"backgroundColor": "colorNeutral0",
 																"borderRadius": "borderRadiusLg",
 																"borderWidth": "1px",
+																"height": "100%",
 																"maxWidth": "300px",
 																"paddingBottom": "3",
 																"paddingLeft": "3",
@@ -2576,7 +2598,7 @@
 																				"fragmentImage": {
 																					"url": {
 																						"value_i18n": {
-																							"en_US": "/documents/d/guest/dxp_c-svg?imagePreview=1"
+																							"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/dxp_c.svg$]"
 																						}
 																					}
 																				},
@@ -2683,7 +2705,8 @@
 															"fragmentLink": {
 																"href": {
 																	"value_i18n": {
-																		"en_US": "/w/reference/index"
+																		"en_US": "/w/reference/index",
+																		"ja_JP": "/w/reference/index"
 																	}
 																}
 															},
@@ -2691,6 +2714,7 @@
 																"backgroundColor": "colorNeutral0",
 																"borderRadius": "borderRadiusLg",
 																"borderWidth": "1px",
+																"height": "100%",
 																"maxWidth": "300px",
 																"paddingBottom": "3",
 																"paddingLeft": "3",
@@ -2723,7 +2747,7 @@
 																				"fragmentImage": {
 																					"url": {
 																						"value_i18n": {
-																							"en_US": "/documents/d/guest/reference-svg?imagePreview=1"
+																							"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/reference.svg$]"
 																						}
 																					}
 																				},

@@ -15,9 +15,27 @@
 		}
 	},
 	{
+		"key": "for-more-information-please-click-x",
+		"value": {
+			"en-US": "For more information, please click {0}.",
+			"es-ES": "Para más información, haz clic {0}.",
+			"ja-JP": "詳細については、{0} をクリックしてください。",
+			"pt-BR": "Para mais informações, por favor clique {0}."
+		}
+	},
+	{
 		"key": "help-center",
 		"value": {
 			"en-US": "Help Center"
+		}
+	},
+	{
+		"key": "here",
+		"value": {
+			"en-US": "here",
+			"es-ES": "aquí",
+			"ja-JP": "こちら",
+			"pt-BR": "aqui"
 		}
 	},
 	{
@@ -81,6 +99,15 @@
 		"key": "sites",
 		"value": {
 			"en-US": "Sites"
+		}
+	},
+	{
+		"key": "there-are-no-breaking-changes-in-out-of-the-box-features-and-capabilities-for-this-quarterly-release",
+		"value": {
+			"en-US": "There are no breaking changes in out-of-the-box features and capabilities for this quarterly release.",
+			"es-ES": "No hay cambios rupturistas (breaking changes) en funcionalidades o capacidades listas para su uso en esta versión trimestral (Quarterly Release).",
+			"ja-JP": "この四半期ごとのリリースでは、基本機能および性能に重大な変更点はありません。",
+			"pt-BR": "Não há alterações significativas nos recursos e capacidades prontos para uso nesta versão trimestral (Quarterly Release)."
 		}
 	}
 ]

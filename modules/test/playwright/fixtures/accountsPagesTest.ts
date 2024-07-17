@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-// @ts-ignore
-
 import {test} from '@playwright/test';
 
+import {AccountAccountGroupsPage} from '../pages/account-admin-web/AccountAccountGroupsPage';
 import {AccountContactAddressPage} from '../pages/account-admin-web/AccountContactAddressPage';
+import {AccountManagementWidgetPage} from '../pages/account-admin-web/AccountManagementWidgetPage';
+import {AccountOrganizationsPage} from '../pages/account-admin-web/AccountOrganizationsPage';
+import {AccountRolesPage} from '../pages/account-admin-web/AccountRolesPage';
+import {AccountUsersPage} from '../pages/account-admin-web/AccountUsersPage';
 import {AccountsPage} from '../pages/account-admin-web/AccountsPage';
 import {EditAccountContactAddressPage} from '../pages/account-admin-web/EditAccountContactAddressPage';
 import {EditAccountContactInformationPage} from '../pages/account-admin-web/EditAccountContactInformationPage';
@@ -18,7 +21,12 @@ import {EditAccountPhonePage} from '../pages/account-admin-web/EditAccountPhoneP
 import {EditAccountWebsitePage} from '../pages/account-admin-web/EditAccountWebsitePage';
 
 const accountsPagesTest = test.extend<{
+	accountAccountGroupsPage: AccountAccountGroupsPage;
 	accountContactAddressPage: AccountContactAddressPage;
+	accountManagementWidgetPage: AccountManagementWidgetPage;
+	accountOrganizationsPage: AccountOrganizationsPage;
+	accountRolesPage: AccountRolesPage;
+	accountUsersPage: AccountUsersPage;
 	accountsPage: AccountsPage;
 	editAccountContactAddressPage: EditAccountContactAddressPage;
 	editAccountContactInformationPage: EditAccountContactInformationPage;
@@ -28,8 +36,23 @@ const accountsPagesTest = test.extend<{
 	editAccountPhonePage: EditAccountPhonePage;
 	editAccountWebsitePage: EditAccountWebsitePage;
 }>({
+	accountAccountGroupsPage: async ({page}, use) => {
+		await use(new AccountAccountGroupsPage(page));
+	},
 	accountContactAddressPage: async ({page}, use) => {
 		await use(new AccountContactAddressPage(page));
+	},
+	accountManagementWidgetPage: async ({page}, use) => {
+		await use(new AccountManagementWidgetPage(page));
+	},
+	accountOrganizationsPage: async ({page}, use) => {
+		await use(new AccountOrganizationsPage(page));
+	},
+	accountRolesPage: async ({page}, use) => {
+		await use(new AccountRolesPage(page));
+	},
+	accountUsersPage: async ({page}, use) => {
+		await use(new AccountUsersPage(page));
 	},
 	accountsPage: async ({page}, use) => {
 		await use(new AccountsPage(page));

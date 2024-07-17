@@ -12,11 +12,10 @@ import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
 import getRandomString from '../../utils/getRandomString';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
-		'LPS-196847': true,
 	}),
 	isolatedSiteTest,
 	loginTest(),
@@ -50,17 +49,6 @@ test('checks the correct label for restricted pages in the preview selector', as
 	const styleBookName = getRandomString();
 
 	await styleBooksPage.createStyleBook(styleBookName, site.friendlyUrlPath);
-
-	await page
-		.getByText('Success:Your request completed successfully.')
-		.waitFor();
-
-	const loadingAnimation = await page.locator(
-		'.style-book-editor__page-preview .loading-animation'
-	);
-
-	await loadingAnimation.waitFor();
-	await loadingAnimation.waitFor({state: 'hidden'});
 
 	// Check the restricted page label in the preview selector
 

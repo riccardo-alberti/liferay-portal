@@ -149,7 +149,7 @@ function getPageContents({
 	});
 }
 
-function getStructureRelationships({
+function getInfoItemRelationships({
 	classNameId,
 	classTypeId,
 }: {
@@ -167,10 +167,12 @@ function getStructureRelationships({
 		body.classTypeId = classTypeId;
 	}
 
-	return Promise.resolve([
-		{classNameId: 'relationship-1', label: 'Relationship 1'},
-		{classNameId: 'relationship-2', label: 'Relationship 2'},
-	]);
+	return serviceFetch(config.getInfoItemOneToManyRelationshipsURL, {
+		body: {
+			classNameId,
+			classTypeId,
+		},
+	});
 }
 
 export default {
@@ -180,6 +182,6 @@ export default {
 	getAvailableTemplates,
 	getInfoItemActionErrorMessage,
 	getInfoItemFieldValue,
+	getInfoItemRelationships,
 	getPageContents,
-	getStructureRelationships,
 };

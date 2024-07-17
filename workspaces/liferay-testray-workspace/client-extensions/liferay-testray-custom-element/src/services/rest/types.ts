@@ -86,7 +86,6 @@ export type UserAccount = {
 	givenName: string;
 	id: number;
 	image: string;
-	jiraAuthorization: boolean;
 	name: string;
 	roleBriefs: Role[];
 	userGroupBriefs: UserGroup[];
@@ -136,7 +135,27 @@ export type TestrayBuild = {
 	tasks: TestrayTask[];
 	template: boolean;
 	templateTestrayBuildId: string;
-} & CaseResultAggregation;
+} & CaseResultAggregation &
+	Partial<TestrayBuildCustomAPI>;
+
+export type TestrayBuildCustomAPI = {
+	testrayBuildArchived: boolean;
+	testrayBuildId: number;
+	testrayBuildName: string;
+	testrayBuildPromoted: boolean;
+	testrayBuildTaskStatus: string;
+	testrayStatusMetric: TestrayStatusMetric;
+};
+
+export type TestrayStatusMetric = {
+	blocked: number;
+	failed: number;
+	inProgress: number;
+	passed: number;
+	testfix: number;
+	total: number;
+	untested: number;
+};
 
 export type TestrayCase = {
 	actions: ObjectActionsItems;
@@ -150,6 +169,7 @@ export type TestrayCase = {
 	description: string;
 	descriptionType: string;
 	estimatedDuration: number;
+	flaky?: boolean;
 	id: number;
 	name: string;
 	number: number;
@@ -197,7 +217,10 @@ export type TestrayCaseResult = {
 	run?: TestrayRun;
 	runId?: number;
 	startDate: string;
+	status?: string;
+	testrayCaseResultId?: number;
 	user?: UserAccount;
+	userName: string;
 	warnings: number;
 } & CaseResultAggregation;
 
@@ -231,11 +254,6 @@ export type TestrayFactorOption = {
 
 export type TestrayOptionsByCategory = {
 	[key: string]: any;
-};
-
-export type TestrayJiraImportRequirement = {
-	actions: ObjectActionsItems;
-	issues: string;
 };
 
 export type TestrayProductVersion = {
@@ -317,10 +335,10 @@ export type TestraySubtask = {
 	issues: string;
 	mbMessageId: number;
 	mbThreadId: number;
-	mergedToSubtaskId: TestraySubtask;
+	mergedToSubtask: TestraySubtask;
 	name: string;
 	number: number;
-	r_mergedToTestraySubtask_c_subtaskId: TestraySubtask;
+	r_mergedToTestraySubtask_c_subtask: TestraySubtask;
 	r_splitFromTestraySubtask_c_subtask: TestraySubtask;
 	r_taskToSubtasks_c_task: TestrayTask;
 	r_userToSubtasks_user: UserAccount;
@@ -389,6 +407,7 @@ export type TestrayTask = {
 	r_buildToTasks_c_build?: TestrayBuild;
 	subtaskScore: string;
 	subtaskScoreCompleted: string;
+	subtaskScoreSelfCompleted: string;
 	subtaskScoreSelfIncomplete: string;
 	taskToTasksUsers: any;
 };
@@ -454,6 +473,7 @@ export type TestrayRoutine = {
 	routineToBuilds: TestrayBuild[];
 	routineToProjects?: TestrayProject;
 	testrayBuildDueDate: string;
+	testrayRoutineId?: number;
 };
 
 export type TestrayFactor = {

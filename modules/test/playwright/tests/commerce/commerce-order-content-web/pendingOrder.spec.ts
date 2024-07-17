@@ -11,7 +11,10 @@ import {commercePagesTest} from '../../../fixtures/commercePagesTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {notificationPagesTest} from '../../../fixtures/notificationPagesTest';
+import {usersAndOrganizationsPagesTest} from '../../../fixtures/usersAndOrganizationsPagesTest';
 import getRandomString from '../../../utils/getRandomString';
+import performLogin, {performLogout} from '../../../utils/performLogin';
+import {miniumSetUp} from '../utils/commerce';
 
 export const test = mergeTests(
 	apiHelpersTest,
@@ -19,7 +22,8 @@ export const test = mergeTests(
 	commercePagesTest,
 	dataApiHelpersTest,
 	loginTest(),
-	notificationPagesTest
+	notificationPagesTest,
+	usersAndOrganizationsPagesTest
 );
 
 test('LPD-13627 Edit pending order item with UOM', async ({
@@ -81,7 +85,7 @@ test('LPD-13627 Edit pending order item with UOM', async ({
 			cartItems: [
 				{
 					options: '[]',
-					quantity: 1,
+					quantity: 3,
 					replacedSkuId: 0,
 					skuId: sku1.id,
 					skuUnitOfMeasure: {key: uom1.key},
@@ -193,6 +197,8 @@ test('LPD-4174 Sales agent can receive email notifications for new orders placed
 	page,
 	queuePage,
 }) => {
+	test.setTimeout(180000);
+
 	const site = await apiHelpers.headlessSite.createSite({
 		name: 'Sales agent can receive email notifications Site',
 		templateKey: 'minium-initializer',
@@ -388,4 +394,178 @@ test('LPD-4174 Sales agent can receive email notifications for new orders placed
 			user.id
 		);
 	}
+});
+
+test('COMMERCE-7697 Verify user can download CSV template', async ({
+	apiHelpers,
+	page,
+}) => {
+	test.setTimeout(180000);
+
+	const {channel, site} = await miniumSetUp(apiHelpers);
+
+	const account = await apiHelpers.headlessAdminUser.postAccount({
+		name: 'Download CSV',
+		type: 'business',
+	});
+
+	apiHelpers.data.push({id: account.id, type: 'account'});
+
+	await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
+		account.id,
+		['test@liferay.com']
+	);
+
+	const cart = await apiHelpers.headlessCommerceDeliveryCart.postCart(
+		{
+			accountId: account.id,
+		},
+		channel.id
+	);
+
+	await page.goto(
+		`/web/${site.name}/pending-orders/-/pending-order/${cart.id}`
+	);
+
+	await page
+		.locator(
+			"//div[contains(@class, 'dropdown')]/a[contains(@class, 'action') and contains(@class, 'btn-primary')]"
+		)
+		.click();
+	await page.getByRole('menuitem', {name: 'Import from CSV'}).click();
+
+	const downloadPromise = page.waitForEvent('download');
+
+	await page
+		.frameLocator('iframe[title="Import from CSV"]')
+		.getByRole('button', {name: 'Download Template'})
+		.click();
+
+	const download = await downloadPromise;
+	expect(download.suggestedFilename()).toEqual('csv_template.csv');
+});
+
+test('LPD-28683 When clicking on order item without visibility the user is not redirected to the catalog page', async ({
+	apiHelpers,
+	commerceLayoutsPage,
+	commerceMiniCartPage,
+	commerceThemeMiniumPage,
+	editUserPage,
+	page,
+	pendingOrdersPage,
+	usersAndOrganizationsPage,
+}) => {
+	const site = await apiHelpers.headlessSite.createSite({
+		name: 'Minium',
+		templateKey: 'minium-initializer',
+		templateType: 'site-initializer',
+	});
+
+	apiHelpers.data.push({id: site.id, type: 'site'});
+
+	const account = await apiHelpers.headlessAdminUser.postAccount({
+		name: 'admin',
+		type: 'business',
+	});
+
+	apiHelpers.data.push({id: account.id, type: 'account'});
+
+	await commerceLayoutsPage.cleanupSiteInitializerData(apiHelpers, site.name);
+
+	const accountGroup = await apiHelpers.headlessAdminUser.postAccountGroup({
+		name: 'AG1',
+	});
+
+	apiHelpers.data.push({id: accountGroup.id, type: 'accountGroup'});
+
+	await apiHelpers.headlessAdminUser.assignAccountToAccountGroup(
+		account.externalReferenceCode,
+		accountGroup.externalReferenceCode
+	);
+
+	await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
+		account.id,
+		['demo.unprivileged@liferay.com']
+	);
+
+	const user =
+		await apiHelpers.headlessAdminUser.getUserAccountByEmailAddress(
+			'demo.unprivileged@liferay.com'
+		);
+
+	const rolesResponse = await apiHelpers.headlessAdminUser.getAccountRoles(
+		account.id
+	);
+
+	const accountRoleBuyer = rolesResponse?.items?.filter((role) => {
+		return role.name === 'Buyer';
+	});
+
+	await apiHelpers.headlessAdminUser.assignAccountRoles(
+		account.externalReferenceCode,
+		accountRoleBuyer[0].id,
+		user.emailAddress
+	);
+
+	const product = await apiHelpers.headlessCommerceAdminCatalog.getProducts(
+		new URLSearchParams({
+			filter: `name eq 'U-Joint'`,
+			nestedFields: `productSkus`,
+		})
+	);
+
+	await apiHelpers.headlessCommerceAdminCatalog.patchProduct(
+		product.items[0].productId,
+		{
+			productAccountGroupFilter: true,
+			productAccountGroups: [
+				{
+					accountGroupId: accountGroup.id,
+				},
+			],
+		}
+	);
+
+	const productAccountGroups =
+		await apiHelpers.headlessCommerceAdminCatalog.getProductAccountGroups(
+			product.items[0].productId
+		);
+
+	await usersAndOrganizationsPage.goToUsers();
+
+	await (
+		await usersAndOrganizationsPage.usersTableRowLink('demo.unprivileged')
+	).click();
+
+	await editUserPage.selectUserMembershipSite('Minium');
+
+	await performLogout(page);
+
+	await performLogin(page, user.alternateName);
+
+	await page.goto(`/web/${site.name}`);
+
+	await commerceMiniCartPage.quickAddToCart(product.items[0].skuFormatted);
+
+	await expect(
+		await commerceMiniCartPage.priceField(
+			'$ 24.00',
+			commerceMiniCartPage.miniCartItemsContainer
+		)
+	).toBeVisible();
+
+	await apiHelpers.headlessCommerceAdminCatalog.deleteProductAccountGroup(
+		productAccountGroups.items[0].id
+	);
+
+	await commerceMiniCartPage.viewDetailsButton.click();
+
+	await expect(
+		page.getByText('One or more products are no longer available.')
+	).toBeVisible();
+
+	await pendingOrdersPage.errorMessageCloseButton.click();
+	await pendingOrdersPage.skuLink(product.items[0].skuFormatted).click();
+
+	await expect(commerceThemeMiniumPage.goToMiniumLink).toBeVisible();
 });

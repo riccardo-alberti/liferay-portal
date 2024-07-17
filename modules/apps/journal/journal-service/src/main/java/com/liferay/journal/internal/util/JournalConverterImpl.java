@@ -82,6 +82,10 @@ public class JournalConverterImpl implements JournalConverter {
 		throws PortalException {
 
 		try {
+			if (Validator.isNull(content)) {
+				return new Fields();
+			}
+
 			Document document = SAXReaderUtil.read(content);
 
 			Fields ddmFields = new Fields();
@@ -202,6 +206,25 @@ public class JournalConverterImpl implements JournalConverter {
 			_addNestedDDMFields(
 				availableLanguageIds, defaultLanguageId, ddmFields,
 				ddmFormField, ddmStructure, dynamicElementElement);
+		}
+	}
+
+	private void _addMissingFieldValues(
+		Field ddmField, String defaultLanguageId,
+		Set<String> missingLanguageIds) {
+
+		if (missingLanguageIds.isEmpty()) {
+			return;
+		}
+
+		Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
+
+		Serializable fieldValue = ddmField.getValue(defaultLocale);
+
+		for (String missingLanguageId : missingLanguageIds) {
+			Locale missingLocale = LocaleUtil.fromLanguageId(missingLanguageId);
+
+			ddmField.setValue(missingLocale, fieldValue);
 		}
 	}
 
@@ -410,6 +433,8 @@ public class JournalConverterImpl implements JournalConverter {
 
 			ddmField.addValue(locale, serializable);
 		}
+
+		_addMissingFieldValues(ddmField, defaultLanguageId, missingLanguageIds);
 
 		return ddmField;
 	}

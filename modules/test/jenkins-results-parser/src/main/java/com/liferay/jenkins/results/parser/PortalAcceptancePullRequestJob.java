@@ -5,6 +5,9 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.test.batch.TestBatch;
+import com.liferay.jenkins.results.parser.test.suite.RelevantTestSuite;
+
 import java.io.File;
 
 import java.nio.file.FileSystem;
@@ -102,6 +105,17 @@ public class PortalAcceptancePullRequestJob
 		}
 
 		return batchNames;
+	}
+
+	@Override
+	protected List<TestBatch> getTestBatches() {
+		if (!_isRelevantTestSuite()) {
+			return super.getTestBatches();
+		}
+
+		RelevantTestSuite relevantTestSuite = new RelevantTestSuite(this);
+
+		return relevantTestSuite.getTestBatches();
 	}
 
 	private boolean _hasMatchingFiles(List<PathMatcher> pathMatchers) {

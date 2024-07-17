@@ -9,18 +9,17 @@ import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {KeyedMutator} from 'swr';
 
-import {DashboardTable} from '../../../../components/DashboardTable/DashboardTable';
 import Modal from '../../../../components/Modal';
 import OrderStatus from '../../../../components/OrderStatus';
 import Table from '../../../../components/Table/Table';
 import TableKebabButton from '../../../../components/Table/TableButtons/TableKebabButton';
+import {
+	PRODUCT_WORKFLOW_STATUS_CODE,
+	PRODUCT_WORKFLOW_STATUS_LABEL,
+} from '../../../../enums/Product';
 import i18n from '../../../../i18n';
 import {Liferay} from '../../../../liferay/liferay';
 import HeadlessCommerceAdminCatalogImpl from '../../../../services/rest/HeadlessCommerceAdminCatalog';
-import {
-	getThumbnailByProductAttachment,
-	showAppImage,
-} from '../../../../utils/util';
 import {formatDate} from '../../PublisherDashboardPageUtil';
 
 type PublishedSolutionsTableProps = {
@@ -37,22 +36,6 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 
 	const modal = useModal();
 	const navigate = useNavigate();
-
-	if (!items.length) {
-		return (
-			<DashboardTable
-				emptyStateMessage={{
-					className: 'd-flex justify-content-center',
-					description1:
-						'Create and submit new Solutions and they will show up here.',
-					description2: 'Click on “Add Solution Template” to start.',
-
-					title: 'No Solutions Yet',
-				}}
-				icon="grid"
-			/>
-		);
-	}
 
 	const handleDeleteSolution = async (product: Product) => {
 		setLoading(true);
@@ -90,6 +73,9 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 					<TableKebabButton
 						items={[
 							{
+								disabled:
+									row.workflowStatusInfo.code ===
+									PRODUCT_WORKFLOW_STATUS_CODE.PENDING,
 								label: i18n.translate('edit'),
 								onClick: () =>
 									navigate(
@@ -97,6 +83,9 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 									),
 							},
 							{
+								disabled:
+									row.workflowStatusInfo.code ===
+									PRODUCT_WORKFLOW_STATUS_CODE.PENDING,
 								label: i18n.translate('delete'),
 								onClick: () => {
 									setSelectedApp(row);
@@ -110,14 +99,12 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 				columns={[
 					{
 						key: 'name',
-						render: (name, {images}) => (
+						render: (name, {thumbnail}) => (
 							<div style={{width: 200}}>
 								<img
 									alt="App Image"
 									className="app-details-page-table-icon"
-									src={showAppImage(
-										getThumbnailByProductAttachment(images)
-									)}
+									src={thumbnail}
 								/>
 
 								<span className="font-weight-semi-bold ml-2">
@@ -125,7 +112,7 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 								</span>
 							</div>
 						),
-						title: 'Name',
+						title: i18n.translate('name'),
 					},
 					{
 						key: 'solutionType',
@@ -143,14 +130,18 @@ const PublishedSolutionsTable: React.FC<PublishedSolutionsTableProps> = ({
 						key: 'workflowStatusInfo',
 						render: (workflowStatusInfo) => (
 							<OrderStatus orderStatus={workflowStatusInfo.label}>
-								{workflowStatusInfo.label}
+								{
+									PRODUCT_WORKFLOW_STATUS_LABEL[
+										workflowStatusInfo.code as keyof typeof PRODUCT_WORKFLOW_STATUS_LABEL
+									]
+								}
 							</OrderStatus>
 						),
-						title: 'Status',
+						title: i18n.translate('status'),
 					},
 				]}
 				hasKebabButton
-				onClickRow={({id}) => navigate(`${id}`)}
+				onClickRow={({productId}) => navigate(`${productId}`)}
 				rows={items}
 			/>
 

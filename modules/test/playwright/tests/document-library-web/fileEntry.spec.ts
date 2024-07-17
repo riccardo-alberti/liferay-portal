@@ -5,19 +5,29 @@
 
 import {expect, mergeTests} from '@playwright/test';
 import moment from 'moment';
+import path from 'path';
 
 import {documentLibraryPagesTest} from '../../fixtures/documentLibraryPages.fixtures';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
+import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
 import getRandomString from '../../utils/getRandomString';
 
+const baseTest = mergeTests(
+	documentLibraryPagesTest,
+	isolatedSiteTest,
+	loginTest()
+);
+
 export const testFeatureFlagsEnabled = mergeTests(
-	loginTest(),
+	baseTest,
 	featureFlagsTest({
 		'LPD-10701': true,
-	}),
-	documentLibraryPagesTest
+	})
 );
+
+export const testUploadMultipleFieldsWithCustomDocumentType =
+	mergeTests(baseTest);
 
 testFeatureFlagsEnabled(
 	'LPD-16658 Show a success message after scheduling a new file',
@@ -43,7 +53,132 @@ testFeatureFlagsEnabled(
 				moment(new Date(scheduleDate)).format('M/D/YY h:mm A') +
 				'.'
 		);
+		await documentLibraryPage.deleteFileEntry(title);
+	}
+);
 
-		await documentLibraryPage.deleteAllFileEntries();
+testFeatureFlagsEnabled(
+	'LPD-16313 Identify at a glance if a Document is visible for guests',
+	async ({documentLibraryEditFilePage, documentLibraryPage}) => {
+		const title = getRandomString();
+
+		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
+			title
+		);
+
+		await documentLibraryPage.changeView('cards');
+
+		await documentLibraryPage.assertPrivateFileIcon();
+
+		await documentLibraryPage.changeView('table');
+
+		await documentLibraryPage.assertPrivateFileIcon();
+
+		await documentLibraryPage.changeView('list');
+
+		await documentLibraryPage.assertPrivateFileIcon();
+
+		await documentLibraryPage.deleteFileEntry(title);
+	}
+);
+
+testFeatureFlagsEnabled(
+	'LPD-16313 Show icon in the content admin and content editor',
+	async ({documentLibraryEditFilePage, documentLibraryPage, page}) => {
+		const title = getRandomString();
+
+		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
+			title
+		);
+
+		await documentLibraryPage.changeView('cards');
+
+		await documentLibraryPage.editFileEntry(title);
+
+		await documentLibraryPage.assertPrivateFileIcon();
+
+		await documentLibraryEditFilePage.goBack();
+
+		await page.getByRole('link', {name: title}).click();
+
+		await documentLibraryPage.assertPrivateFileIcon();
+
+		await documentLibraryPage.deleteFileEntry(title);
+	}
+);
+
+testFeatureFlagsEnabled(
+	'LPD-16313 Show icon in the DL item selector',
+	async ({
+		documentLibraryEditDocumentTypesPage,
+		documentLibraryEditFilePage,
+		documentLibraryPage,
+	}) => {
+		const dTypeTitle = getRandomString();
+		const title = getRandomString();
+
+		await documentLibraryEditDocumentTypesPage.createNewDLTypeWithUploadField(
+			dTypeTitle
+		);
+
+		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
+			title
+		);
+
+		await documentLibraryEditFilePage.goToNewFileDifferentType(dTypeTitle);
+
+		await documentLibraryEditFilePage.selectForUpdateButton.click();
+
+		await documentLibraryEditFilePage.assertPrivateFileIconInSelectPopUp(
+			'Document'
+		);
+
+		await documentLibraryEditFilePage.changeViewInItemSelctor(
+			'Document',
+			'List'
+		);
+
+		await documentLibraryEditFilePage.assertPrivateFileIconInSelectPopUp(
+			'Document'
+		);
+
+		await documentLibraryEditFilePage.changeViewInItemSelctor(
+			'Document',
+			'Table'
+		);
+
+		await documentLibraryEditFilePage.assertPrivateFileIconInSelectPopUp(
+			'Document'
+		);
+
+		await documentLibraryPage.deleteFileEntry(title);
+
+		await documentLibraryPage.deleteDocumentType(dTypeTitle);
+	}
+);
+
+testUploadMultipleFieldsWithCustomDocumentType(
+	'LPD-29609 Error uploading multiples files with custom document type',
+	async ({
+		documentLibraryEditDocumentTypesPage,
+		documentLibraryEditFilePage,
+		page,
+	}) => {
+		const dTypeTitle = getRandomString();
+
+		await documentLibraryEditDocumentTypesPage.createNewDLTypeWithNumericField(
+			dTypeTitle
+		);
+		await documentLibraryEditFilePage.goToNewFileDifferentType(
+			'Multiple Files Upload'
+		);
+
+		await documentLibraryEditFilePage.publishMultipleFiles(dTypeTitle, [
+			path.join(__dirname, '/dependencies/image1.jpeg'),
+		]);
+
+		await expect(
+			page.getByRole('link', {exact: true, name: 'image1'})
+		).toBeVisible();
 	}
 );

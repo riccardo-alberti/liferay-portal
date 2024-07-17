@@ -25,12 +25,8 @@ export function appReducer(state: InitialStateProps, action: TAction) {
 			return state;
 		}
 		case TYPES.SUBMIT_APP_PROFILE: {
-			const {
-				appERC,
-				appId,
-				appProductId,
-				appWorkflowStatusInfo,
-			} = action.payload.value;
+			const {appERC, appId, appProductId, appWorkflowStatusInfo} =
+				action.payload.value;
 
 			return {
 				...state,
@@ -253,6 +249,18 @@ export function appReducer(state: InitialStateProps, action: TAction) {
 			const appStorefrontImages = action.payload.files;
 
 			return {...state, appStorefrontImages};
+		}
+
+		case TYPES.UPDATE_APP_SUPPORT_EMAIL: {
+			const {id, value} = action.payload;
+
+			return {
+				...state,
+				supportEmail: {
+					id,
+					value,
+				},
+			};
 		}
 
 		case TYPES.UPDATE_APP_SUPPORT_URL: {

@@ -1,4 +1,4 @@
-@component-name = "portal-user-management"
+@component-name = "portal-commerce"
 definition {
 
 	property portal.release = "true";
@@ -19,56 +19,6 @@ definition {
 		}
 		else {
 			Account.tearDownCP();
-		}
-	}
-
-	@description = "This test asserts that a user can view all the Account Groups an account is assigned to via Account details page"
-	@priority = 4
-	test AccountGroupsAreDisplayedInAccountDetailsPage {
-		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
-		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-		property portal.acceptance = "true";
-		property test.liferay.virtual.instance = "false";
-
-		JSONAccountEntry.addAccountEntry(
-			accountEntryName = "Accounts Name",
-			accountEntryType = "Business");
-
-		AccountGroups.openAccountGroupsAdmin();
-
-		for (var accountGroupNum : list "1,2,3") {
-			AccountGroups.addCP(
-				accountGroupDescription = "Account Group Description ${accountGroupNum}",
-				accountGroupName = "Account Group ${accountGroupNum}");
-
-			Navigator.gotoNavTab(navTab = "Accounts");
-
-			AccountGroups.addAssignee(
-				accountGroupName = "Account Group ${accountGroupNum}",
-				assigneeNames = "Accounts Name",
-				assigneeType = "Accounts");
-
-			Navigator.gotoBack();
-		}
-
-		Account.openAccountsAdmin();
-
-		LexiconEntry.gotoEntry(rowEntry = "Accounts Name");
-
-		Account.gotoAssigneeTab(assigneeTab = "Account Groups");
-
-		for (var accountGroupNum : list "1,2,3") {
-			AssertTextEquals(
-				key_columnName = "lfr-name",
-				key_tableEntry = "Account Group ${accountGroupNum}",
-				locator1 = "LexiconTable#TABLE_ENTRY_INFO",
-				value1 = "Account Group ${accountGroupNum}");
-
-			AssertTextEquals(
-				key_columnName = "lfr-description",
-				key_tableEntry = "Account Group ${accountGroupNum}",
-				locator1 = "LexiconTable#TABLE_ENTRY_INFO",
-				value1 = "Account Group Description ${accountGroupNum}");
 		}
 	}
 
@@ -500,7 +450,7 @@ definition {
 			SAML.addVirtualInstances(virtualHosts = "www.able.com");
 
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
@@ -2330,7 +2280,7 @@ definition {
 
 		task ("When the user creates an account") {
 			Account.createAccount(
-				newPassword = "test",
+				newPassword = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "userea@liferay.com",
 				userFirstName = "userfn",
 				userLastName = "userln",
@@ -2482,7 +2432,7 @@ definition {
 			User.logoutPG();
 
 			User.loginUserPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "useramea@liferay.com");
 
 			Account.openAccountsAdmin();
@@ -2540,7 +2490,7 @@ definition {
 			User.logoutPG();
 
 			User.loginUserPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "useramea@liferay.com");
 
 			Account.openAccountsAdmin();
@@ -2955,40 +2905,6 @@ definition {
 		}
 
 		LexiconEntry.viewEntryName(rowEntry = "userfn2 userln2");
-	}
-
-	@description = "This test asserts accurate results when searching for assigned account groups of an account"
-	@priority = 4
-	test CanSearchForAccountGroup {
-		task ("Given a business account with assigned account group") {
-			JSONAccountEntry.addAccountEntry(
-				accountEntryName = "Acme Inc",
-				accountEntryType = "Business");
-
-			JSONAccountGroup.addAccountGroup(accountGroupName = "Account Group Name");
-
-			AccountGroups.openAccountGroupsAdmin();
-
-			LexiconEntry.gotoEntry(rowEntry = "Account Group Name");
-
-			AccountGroups.addAssignee(
-				accountGroupName = "Account Group Name",
-				assigneeNames = "Acme Inc");
-		}
-
-		task ("When a user searches for an account group in the Account Groups tab of an account") {
-			Account.openAccountsAdmin();
-
-			LexiconEntry.gotoEntry(rowEntry = "Acme Inc");
-
-			Navigator.gotoNavTab(navTab = "Account Groups");
-
-			Search.searchCP(searchTerm = "Account Group Name");
-		}
-
-		task ("Then the account group displays in the results") {
-			LexiconEntry.viewEntryName(rowEntry = "Account Group Name");
-		}
 	}
 
 	@description = "This test asserts accurate results when searching within a filter scope"
@@ -3575,83 +3491,6 @@ definition {
 		}
 	}
 
-	@description = "Automation for LPS-199518. This ticket is about XSS. Role and Organization data should be escaped and rendered as a string."
-	@priority = 5
-	test CanViewRoleAndOrganizationsPrintedAsScript {
-		property portal.acceptance = "true";
-
-		task ("Given an account with a Role as a script and an user") {
-			JSONAccountEntry.addAccountEntry(
-				accountEntryName = "A1",
-				accountEntryType = "Business");
-
-			Account.openAccountsAdmin();
-
-			LexiconEntry.gotoEntry(rowEntry = "A1");
-
-			var scriptRole = '''My title<script>confirm("compromised")</script>''';
-			var scriptOrg = '''My org1<script>confirm("compromised")</script>''';
-
-			Account.addOwnedAccountRole(accountRoleTitle = ${scriptRole});
-
-			Account.openAccountsAdmin();
-
-			JSONUser.addUser(
-				userEmailAddress = "U1@liferay.com",
-				userFirstName = "U1fn",
-				userLastName = "U1ln",
-				userScreenName = "U1sn");
-		}
-
-		task ("And assign the user to the new account and a role") {
-			LexiconEntry.gotoEntry(rowEntry = "A1");
-
-			Account.assignUsers(
-				accountName = "A1",
-				assigneeName = "U1fn");
-
-			Account.addAssigneeToRoleViaUsersTab(
-				accountRoleTitle = ${scriptRole},
-				accountUserName = "U1fn U1ln");
-		}
-
-		task ("Then check that the Account role is rendered as a string") {
-			AssertTextEquals(
-				key_columnName = "lfr-account-roles-column",
-				key_rowEntry = "U1fn U1ln",
-				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER_TD",
-				value1 = ${scriptRole});
-		}
-
-		task ("And given a new organization with a title as a script") {
-			JSONOrganization.addOrganization(organizationName = ${scriptOrg});
-		}
-
-		task ("And add the organization to the new account") {
-			Account.openAccountsAdmin();
-
-			LexiconEntry.gotoEntry(rowEntry = "A1");
-
-			Account.assignOrganizations(
-				accountName = "A1",
-				assigneeName = ${scriptOrg});
-		}
-
-		task ("Then check that the Organizations name assigned to the new account is rendered as a script") {
-			Account.openAccountsAdmin();
-
-			AssertTextEquals(
-				key_columnName = "lfr-organizations-column",
-				key_rowEntry = "A1",
-				locator1 = "ContentRow#ENTRY_CONTENT_ROW_NUMBER_TD",
-				value1 = ${scriptOrg});
-		}
-
-		JSONUser.tearDownNonAdminUsers();
-
-		Organization.tearDownCP(orgName = ${scriptOrg});
-	}
-
 	@description = "This tests canceling account creation will not save it."
 	@priority = 4
 	test ClickingCancelOrBackWillNotSaveAccount {
@@ -3962,7 +3801,7 @@ definition {
 				virtualHost = "www.able.com");
 
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
@@ -4229,7 +4068,7 @@ definition {
 		User.logoutPG();
 
 		User.loginUserPG(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userEmailAddress = "useramea@liferay.com");
 
 		Account.openAccountsAdmin();

@@ -24,22 +24,20 @@ import com.liferay.portal.search.elasticsearch7.internal.index.util.IndexFactory
 import com.liferay.portal.search.elasticsearch7.internal.settings.SettingsBuilder;
 import com.liferay.portal.search.elasticsearch7.internal.util.ResourceUtil;
 import com.liferay.portal.search.index.IndexNameBuilder;
-import com.liferay.portal.search.spi.model.index.contributor.IndexContributor;
-import com.liferay.portal.search.spi.settings.IndexSettingsContributor;
+import com.liferay.portal.search.spi.index.configuration.contributor.IndexConfigurationContributor;
+import com.liferay.portal.search.spi.index.listener.CompanyIndexListener;
 
 import java.io.IOException;
 
-import java.util.List;
-
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.xcontent.XContentType;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -59,12 +57,12 @@ public class CompanyIndexFactoryHelper {
 			indexName);
 
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory =
-			new LiferayDocumentTypeFactory(indicesClient, _jsonFactory);
+			new LiferayDocumentTypeFactory(
+				indexName, indicesClient, _jsonFactory);
 
 		_setSettings(createIndexRequest, liferayDocumentTypeFactory);
 
-		_addLiferayDocumentTypeMappings(
-			createIndexRequest, liferayDocumentTypeFactory);
+		_setMappings(createIndexRequest, liferayDocumentTypeFactory);
 
 		try {
 			ActionResponse actionResponse = indicesClient.create(
@@ -76,14 +74,16 @@ public class CompanyIndexFactoryHelper {
 			throw new RuntimeException(ioException);
 		}
 
-		_updateLiferayDocumentType(indexName, liferayDocumentTypeFactory);
+		_updateLiferayDocumentType(liferayDocumentTypeFactory);
 
-		_executeIndexContributorsAfterCreate(indexName);
+		_executeCompanyIndexListenersAfterCreate(indexName);
 	}
 
 	public void deleteIndex(
 		String indexName, IndicesClient indicesClient, long companyId,
 		boolean resetBothIndexNames) {
+
+		_executeCompanyIndexListenersBeforeDelete(indexName);
 
 		DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(
 			indexName);
@@ -109,10 +109,6 @@ public class CompanyIndexFactoryHelper {
 		}
 	}
 
-	public List<IndexContributor> getIndexContributors() {
-		return _indexContributorServiceTrackerList.toList();
-	}
-
 	public String getIndexName(long companyId) {
 		return _indexNameBuilder.getIndexName(companyId);
 	}
@@ -131,40 +127,45 @@ public class CompanyIndexFactoryHelper {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_indexContributorServiceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, IndexContributor.class);
-
-		_indexSettingsContributorServiceTrackerList =
+		_companyIndexListenerServiceTrackerList =
 			ServiceTrackerListFactory.open(
-				bundleContext, IndexSettingsContributor.class, null,
+				bundleContext, CompanyIndexListener.class);
+
+		_indexConfigurationContributorServiceTrackerList =
+			ServiceTrackerListFactory.open(
+				bundleContext, IndexConfigurationContributor.class, null,
 				new EagerServiceTrackerCustomizer
-					<IndexSettingsContributor, IndexSettingsContributor>() {
+					<IndexConfigurationContributor,
+					 IndexConfigurationContributor>() {
 
 					@Override
-					public IndexSettingsContributor addingService(
-						ServiceReference<IndexSettingsContributor>
+					public IndexConfigurationContributor addingService(
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference) {
 
-						IndexSettingsContributor indexSettingsContributor =
-							bundleContext.getService(serviceReference);
+						IndexConfigurationContributor
+							indexConfigurationContributor =
+								bundleContext.getService(serviceReference);
 
-						_processContributions(indexSettingsContributor);
+						_processContributions(indexConfigurationContributor);
 
-						return indexSettingsContributor;
+						return indexConfigurationContributor;
 					}
 
 					@Override
 					public void modifiedService(
-						ServiceReference<IndexSettingsContributor>
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference,
-						IndexSettingsContributor indexSettingsContributor) {
+						IndexConfigurationContributor
+							indexConfigurationContributor) {
 					}
 
 					@Override
 					public void removedService(
-						ServiceReference<IndexSettingsContributor>
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference,
-						IndexSettingsContributor indexSettingsContributor) {
+						IndexConfigurationContributor
+							indexConfigurationContributor) {
 
 						bundleContext.ungetService(serviceReference);
 					}
@@ -174,67 +175,60 @@ public class CompanyIndexFactoryHelper {
 
 	@Deactivate
 	protected void deactivate() {
-		if (_indexContributorServiceTrackerList != null) {
-			_indexContributorServiceTrackerList.close();
+		if (_companyIndexListenerServiceTrackerList != null) {
+			_companyIndexListenerServiceTrackerList.close();
 		}
 
-		if (_indexSettingsContributorServiceTrackerList != null) {
-			_indexSettingsContributorServiceTrackerList.close();
-		}
-	}
-
-	protected void loadAdditionalTypeMappings(
-		String indexName,
-		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
-
-		if (Validator.isNull(
-				_elasticsearchConfigurationWrapper.additionalTypeMappings())) {
-
-			return;
-		}
-
-		liferayDocumentTypeFactory.addTypeMappings(
-			indexName,
-			_elasticsearchConfigurationWrapper.additionalTypeMappings());
-	}
-
-	private void _addLiferayDocumentTypeMappings(
-		CreateIndexRequest createIndexRequest,
-		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
-
-		if (Validator.isNotNull(
-				_elasticsearchConfigurationWrapper.overrideTypeMappings())) {
-
-			liferayDocumentTypeFactory.createLiferayDocumentTypeMappings(
-				createIndexRequest,
-				_elasticsearchConfigurationWrapper.overrideTypeMappings());
-		}
-		else {
-			liferayDocumentTypeFactory.createRequiredDefaultTypeMappings(
-				createIndexRequest);
+		if (_indexConfigurationContributorServiceTrackerList != null) {
+			_indexConfigurationContributorServiceTrackerList.close();
 		}
 	}
 
-	private void _executeIndexContributorAfterCreate(
-		IndexContributor indexContributor, String indexName) {
+	private void _executeCompanyIndexListenerAfterCreate(
+		CompanyIndexListener companyIndexListener, String indexName) {
 
 		try {
-			indexContributor.onAfterCreate(indexName);
+			companyIndexListener.onAfterCreate(indexName);
 		}
 		catch (Throwable throwable) {
 			_log.error(
 				StringBundler.concat(
-					"Unable to apply contributor ", indexContributor,
-					"to index ", indexName),
+					"Unable to apply listener ", companyIndexListener,
+					" after creating index ", indexName),
 				throwable);
 		}
 	}
 
-	private void _executeIndexContributorsAfterCreate(String indexName) {
-		for (IndexContributor indexContributor :
-				_indexContributorServiceTrackerList) {
+	private void _executeCompanyIndexListenerBeforeDelete(
+		CompanyIndexListener companyIndexListener, String indexName) {
 
-			_executeIndexContributorAfterCreate(indexContributor, indexName);
+		try {
+			companyIndexListener.onBeforeDelete(indexName);
+		}
+		catch (Throwable throwable) {
+			_log.error(
+				StringBundler.concat(
+					"Unable to apply listener ", companyIndexListener,
+					" before deleting index ", indexName),
+				throwable);
+		}
+	}
+
+	private void _executeCompanyIndexListenersAfterCreate(String indexName) {
+		for (CompanyIndexListener companyIndexListener :
+				_companyIndexListenerServiceTrackerList) {
+
+			_executeCompanyIndexListenerAfterCreate(
+				companyIndexListener, indexName);
+		}
+	}
+
+	private void _executeCompanyIndexListenersBeforeDelete(String indexName) {
+		for (CompanyIndexListener companyIndexListener :
+				_companyIndexListenerServiceTrackerList) {
+
+			_executeCompanyIndexListenerBeforeDelete(
+				companyIndexListener, indexName);
 		}
 	}
 
@@ -245,13 +239,27 @@ public class CompanyIndexFactoryHelper {
 			_elasticsearchConfigurationWrapper.additionalIndexConfigurations());
 	}
 
-	private void _loadDefaultIndexSettings(SettingsBuilder settingsBuilder) {
-		Settings.Builder builder = settingsBuilder.getBuilder();
+	private void _loadDefaultIndexSettings(
+		LiferayDocumentTypeFactory liferayDocumentTypeFactory,
+		SettingsBuilder settingsBuilder) {
+
+		liferayDocumentTypeFactory.loadDefaultAnalyzers(settingsBuilder);
 
 		String defaultIndexSettings = ResourceUtil.getResourceAsString(
 			getClass(), "/META-INF/settings/index-settings-defaults.json");
 
-		builder.loadFromSource(defaultIndexSettings, XContentType.JSON);
+		settingsBuilder.loadFromSource(defaultIndexSettings);
+	}
+
+	private void _loadIndexConfigurationContributors(
+		SettingsBuilder settingsBuilder) {
+
+		for (IndexConfigurationContributor indexConfigurationContributor :
+				_indexConfigurationContributorServiceTrackerList) {
+
+			indexConfigurationContributor.contributeSettings(
+				settingsBuilder::put);
+		}
 	}
 
 	private void _loadIndexConfigurations(SettingsBuilder settingsBuilder) {
@@ -267,14 +275,6 @@ public class CompanyIndexFactoryHelper {
 				_elasticsearchConfigurationWrapper.indexMaxResultWindow()));
 	}
 
-	private void _loadIndexSettingsContributors(Settings.Builder builder) {
-		for (IndexSettingsContributor indexSettingsContributor :
-				_indexSettingsContributorServiceTrackerList) {
-
-			indexSettingsContributor.populate(builder::put);
-		}
-	}
-
 	private void _loadTestModeIndexSettings(SettingsBuilder settingsBuilder) {
 		if (!PortalRunMode.isTestMode()) {
 			return;
@@ -286,23 +286,25 @@ public class CompanyIndexFactoryHelper {
 		settingsBuilder.put("index.translog.sync_interval", "100ms");
 	}
 
-	private void _loadTypeMappingsContributors(
-		String indexName,
-		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
-
-		for (IndexSettingsContributor indexSettingsContributor :
-				_indexSettingsContributorServiceTrackerList) {
-
-			indexSettingsContributor.contribute(
-				indexName, liferayDocumentTypeFactory);
-		}
-	}
-
 	private void _processContributions(
-		IndexSettingsContributor indexSettingsContributor) {
+		IndexConfigurationContributor indexConfigurationContributor) {
 
-		if (Validator.isNotNull(
-				_elasticsearchConfigurationWrapper.overrideTypeMappings())) {
+		boolean contributeMappings = Validator.isNull(
+			_elasticsearchConfigurationWrapper.overrideTypeMappings());
+
+		SettingsBuilder settingsBuilder = new SettingsBuilder(
+			Settings.builder());
+
+		indexConfigurationContributor.contributeSettings(settingsBuilder::put);
+
+		Settings settings = settingsBuilder.build();
+
+		if (!contributeMappings && settings.isEmpty()) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No mappings or settings to contribute from " +
+						indexConfigurationContributor);
+			}
 
 			return;
 		}
@@ -316,36 +318,87 @@ public class CompanyIndexFactoryHelper {
 		catch (ElasticsearchConnectionNotInitializedException
 					elasticsearchConnectionNotInitializedException) {
 
-			if (_log.isInfoEnabled()) {
-				_log.info("Skipping index settings contributor");
-			}
+			_log.error(elasticsearchConnectionNotInitializedException);
 
 			return;
 		}
 
-		LiferayDocumentTypeFactory liferayDocumentTypeFactory =
-			new LiferayDocumentTypeFactory(
-				restHighLevelClient.indices(), _jsonFactory);
+		IndicesClient indicesClient = restHighLevelClient.indices();
 
-		for (Long companyId :
-				IndexFactoryCompanyIdRegistryUtil.getCompanyIds()) {
+		_companyLocalService.forEachCompanyId(
+			companyId -> {
+				String indexName = getIndexName(companyId);
 
-			indexSettingsContributor.contribute(
-				getIndexName(companyId), liferayDocumentTypeFactory);
+				if (!settings.isEmpty()) {
+					UpdateSettingsRequest updateSettingsRequest =
+						new UpdateSettingsRequest(indexName);
+
+					updateSettingsRequest.settings(settings);
+
+					try {
+						indicesClient.putSettings(
+							updateSettingsRequest, RequestOptions.DEFAULT);
+					}
+					catch (Exception exception) {
+						_log.error(
+							StringBundler.concat(
+								"Unable to put settings for index ", indexName,
+								" with contributor ",
+								indexConfigurationContributor),
+							exception);
+					}
+				}
+
+				if (contributeMappings) {
+					indexConfigurationContributor.contributeMappings(
+						new LiferayDocumentTypeFactory(
+							indexName, indicesClient, _jsonFactory));
+				}
+			},
+			IndexFactoryCompanyIdRegistryUtil.getCompanyIds());
+	}
+
+	private void _putAdditionalTypeMappings(
+		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
+
+		if (Validator.isNull(
+				_elasticsearchConfigurationWrapper.additionalTypeMappings())) {
+
+			return;
 		}
+
+		liferayDocumentTypeFactory.putTypeMappings(
+			_elasticsearchConfigurationWrapper.additionalTypeMappings());
+	}
+
+	private void _putContributedTypeMappings(
+		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
+
+		for (IndexConfigurationContributor indexConfigurationContributor :
+				_indexConfigurationContributorServiceTrackerList) {
+
+			indexConfigurationContributor.contributeMappings(
+				liferayDocumentTypeFactory);
+		}
+	}
+
+	private void _setMappings(
+		CreateIndexRequest createIndexRequest,
+		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
+
+		liferayDocumentTypeFactory.setMappings(
+			createIndexRequest,
+			_elasticsearchConfigurationWrapper.overrideTypeMappings());
 	}
 
 	private void _setSettings(
 		CreateIndexRequest createIndexRequest,
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
 
-		Settings.Builder builder = Settings.builder();
+		SettingsBuilder settingsBuilder = new SettingsBuilder(
+			Settings.builder());
 
-		liferayDocumentTypeFactory.createRequiredDefaultAnalyzers(builder);
-
-		SettingsBuilder settingsBuilder = new SettingsBuilder(builder);
-
-		_loadDefaultIndexSettings(settingsBuilder);
+		_loadDefaultIndexSettings(liferayDocumentTypeFactory, settingsBuilder);
 
 		_loadTestModeIndexSettings(settingsBuilder);
 
@@ -353,17 +406,18 @@ public class CompanyIndexFactoryHelper {
 
 		_loadAdditionalIndexConfigurations(settingsBuilder);
 
-		_loadIndexSettingsContributors(builder);
+		_loadIndexConfigurationContributors(settingsBuilder);
 
-		if (Validator.isNotNull(builder.get("index.number_of_replicas"))) {
-			builder.put("index.auto_expand_replicas", false);
+		if (Validator.isNotNull(
+				settingsBuilder.get("index.number_of_replicas"))) {
+
+			settingsBuilder.put("index.auto_expand_replicas", false);
 		}
 
-		createIndexRequest.settings(builder);
+		createIndexRequest.settings(settingsBuilder.getBuilder());
 	}
 
 	private void _updateLiferayDocumentType(
-		String indexName,
 		LiferayDocumentTypeFactory liferayDocumentTypeFactory) {
 
 		if (Validator.isNotNull(
@@ -372,15 +426,18 @@ public class CompanyIndexFactoryHelper {
 			return;
 		}
 
-		loadAdditionalTypeMappings(indexName, liferayDocumentTypeFactory);
+		_putAdditionalTypeMappings(liferayDocumentTypeFactory);
 
-		_loadTypeMappingsContributors(indexName, liferayDocumentTypeFactory);
+		_putContributedTypeMappings(liferayDocumentTypeFactory);
 
-		liferayDocumentTypeFactory.createOptionalDefaultTypeMappings(indexName);
+		liferayDocumentTypeFactory.putDefaultTypeMappingTemplate();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CompanyIndexFactoryHelper.class);
+
+	private ServiceTrackerList<CompanyIndexListener>
+		_companyIndexListenerServiceTrackerList;
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
@@ -392,14 +449,11 @@ public class CompanyIndexFactoryHelper {
 	@Reference
 	private ElasticsearchConnectionManager _elasticsearchConnectionManager;
 
-	private ServiceTrackerList<IndexContributor>
-		_indexContributorServiceTrackerList;
+	private ServiceTrackerList<IndexConfigurationContributor>
+		_indexConfigurationContributorServiceTrackerList;
 
 	@Reference
 	private IndexNameBuilder _indexNameBuilder;
-
-	private ServiceTrackerList<IndexSettingsContributor>
-		_indexSettingsContributorServiceTrackerList;
 
 	@Reference
 	private JSONFactory _jsonFactory;

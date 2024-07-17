@@ -13,6 +13,7 @@ create index IX_66A8EEB3 on ObjectDefinition (companyId, rootObjectDefinitionId)
 create index IX_7D686D13 on ObjectDefinition (companyId, status, active_);
 create index IX_12BECBE8 on ObjectDefinition (companyId, system_, modifiable);
 create index IX_F8B95773 on ObjectDefinition (companyId, system_, status, active_);
+create index IX_86E0480A on ObjectDefinition (companyId, userId);
 create index IX_8D232754 on ObjectDefinition (objectFolderId);
 create index IX_55C39BCE on ObjectDefinition (system_, status);
 create index IX_7B61F95C on ObjectDefinition (uuid_[$COLUMN_LENGTH:75$]);
@@ -25,9 +26,10 @@ create index IX_A388E5A0 on ObjectEntry (objectDefinitionId, status);
 create index IX_68B7FB2 on ObjectEntry (objectDefinitionId, userId, createDate);
 create index IX_BD205C3B on ObjectEntry (uuid_[$COLUMN_LENGTH:75$]);
 
+create index IX_EAECE0E1 on ObjectField (companyId, userId);
 create index IX_6DCE835D on ObjectField (listTypeDefinitionId, state_);
+create unique index IX_B0716ED7 on ObjectField (objectDefinitionId, companyId, externalReferenceCode[$COLUMN_LENGTH:75$]);
 create index IX_5DDCF209 on ObjectField (objectDefinitionId, dbTableName[$COLUMN_LENGTH:75$]);
-create unique index IX_9882118D on ObjectField (objectDefinitionId, externalReferenceCode[$COLUMN_LENGTH:75$], companyId);
 create index IX_52AAA62B on ObjectField (objectDefinitionId, indexed, dbType[$COLUMN_LENGTH:75$]);
 create index IX_2D0537E9 on ObjectField (objectDefinitionId, localized);
 create index IX_A59C5981 on ObjectField (objectDefinitionId, name[$COLUMN_LENGTH:75$]);

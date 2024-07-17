@@ -507,8 +507,11 @@ test('can import CSV file with an unexisting field', async ({
 	).toBeVisible();
 
 	expect(
-		(await apiHelpers.object.getObjectDefinitionObjectEntries('c/tests'))
-			.items
+		(
+			await apiHelpers.objectEntry.getObjectDefinitionObjectEntries(
+				'c/tests'
+			)
+		).items
 	).toEqual([
 		{
 			actions: expect.any(Object),
@@ -525,7 +528,7 @@ test('can import CSV file with an unexisting field', async ({
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-1-suffix',
 			testBooleanField: false,
-			testDateField: '2024-01-05T00:00:00Z',
+			testDateField: '2024-01-05T00:00:00.000Z',
 			testDateTimeField: '2024-01-05T15:00:00.000Z',
 			testDecimalField: 10.2,
 			testFormulaField: 1,
@@ -548,9 +551,8 @@ test('can import CSV file with custom columns order', async ({
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const objectDefinition = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -570,7 +572,7 @@ test('can import CSV file with custom columns order', async ({
 
 	expect(
 		(
-			await apiHelpers.object.getObjectDefinitionObjectEntriesByScope(
+			await apiHelpers.objectEntry.getObjectDefinitionObjectEntriesByScope(
 				'c/tests',
 				'Guest'
 			)
@@ -592,7 +594,7 @@ test('can import CSV file with custom columns order', async ({
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-1-suffix',
 			testBooleanField: true,
-			testDateField: '2024-01-05T00:00:00Z',
+			testDateField: '2024-01-05T00:00:00.000Z',
 			testDateTimeField: '2024-01-05T15:00:00.000Z',
 			testDecimalField: 10.2,
 			testFormulaField: 1,
@@ -617,9 +619,8 @@ test('can import CSV file with multiple site scoped object entries', async ({
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const response = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const response =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -637,7 +638,7 @@ test('can import CSV file with multiple site scoped object entries', async ({
 
 	expect(
 		(
-			await apiHelpers.object.getObjectDefinitionObjectEntriesByScope(
+			await apiHelpers.objectEntry.getObjectDefinitionObjectEntriesByScope(
 				'c/tests',
 				'Guest'
 			)
@@ -659,7 +660,7 @@ test('can import CSV file with multiple site scoped object entries', async ({
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-1-suffix',
 			testBooleanField: true,
-			testDateField: '2024-01-05T00:00:00Z',
+			testDateField: '2024-01-05T00:00:00.000Z',
 			testDateTimeField: '2024-01-05T15:00:00.000Z',
 			testDecimalField: 10.2,
 			testFormulaField: 1,
@@ -691,7 +692,7 @@ test('can import CSV file with multiple site scoped object entries', async ({
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-2-suffix',
 			testBooleanField: false,
-			testDateField: '2024-01-06T00:00:00Z',
+			testDateField: '2024-01-06T00:00:00.000Z',
 			testDateTimeField: '2024-01-06T15:00:00.000Z',
 			testDecimalField: 11.2,
 			testFormulaField: 1,
@@ -717,9 +718,8 @@ test('can import CSV file with new and existing site scoped object entries', asy
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const response = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const response =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -749,7 +749,7 @@ test('can import CSV file with new and existing site scoped object entries', asy
 
 	expect(
 		(
-			await apiHelpers.object.getObjectDefinitionObjectEntriesByScope(
+			await apiHelpers.objectEntry.getObjectDefinitionObjectEntriesByScope(
 				'c/tests',
 				'Guest'
 			)
@@ -771,7 +771,7 @@ test('can import CSV file with new and existing site scoped object entries', asy
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-1-suffix',
 			testBooleanField: false,
-			testDateField: '2024-01-05T00:00:00Z',
+			testDateField: '2024-01-05T00:00:00.000Z',
 			testDateTimeField: '2024-01-05T15:00:00.000Z',
 			testDecimalField: 10.2,
 			testFormulaField: 1,
@@ -803,7 +803,7 @@ test('can import CSV file with new and existing site scoped object entries', asy
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-2-suffix',
 			testBooleanField: true,
-			testDateField: '2024-01-06T00:00:00Z',
+			testDateField: '2024-01-06T00:00:00.000Z',
 			testDateTimeField: '2024-01-06T15:00:00.000Z',
 			testDecimalField: 11.2,
 			testFormulaField: 1,
@@ -860,8 +860,11 @@ test('can import CSV file with new and modified existing company scoped object e
 	).toBeVisible();
 
 	expect(
-		(await apiHelpers.object.getObjectDefinitionObjectEntries('c/tests'))
-			.items
+		(
+			await apiHelpers.objectEntry.getObjectDefinitionObjectEntries(
+				'c/tests'
+			)
+		).items
 	).toEqual([
 		{
 			actions: expect.any(Object),
@@ -878,7 +881,7 @@ test('can import CSV file with new and modified existing company scoped object e
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-1-suffix',
 			testBooleanField: true,
-			testDateField: '2024-01-05T00:00:00Z',
+			testDateField: '2024-01-05T00:00:00.000Z',
 			testDateTimeField: '2024-01-05T15:00:00.000Z',
 			testDecimalField: 10.2,
 			testFormulaField: 1,
@@ -909,7 +912,7 @@ test('can import CSV file with new and modified existing company scoped object e
 			testAggregationField: '0',
 			testAutoIncrementField: 'prefix-2-suffix',
 			testBooleanField: false,
-			testDateField: '2024-01-06T00:00:00Z',
+			testDateField: '2024-01-06T00:00:00.000Z',
 			testDateTimeField: '2024-01-06T15:00:00.000Z',
 			testDecimalField: 11.2,
 			testFormulaField: 1,
@@ -935,9 +938,8 @@ test('can map all imported fields', async ({
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const response = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const response =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -966,9 +968,8 @@ test('can preview CSV file', async ({
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const response = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const response =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -1139,9 +1140,8 @@ test('cannot import CSV file with empty headers row', async ({
 	dataMigrationCenterPage,
 	page,
 }) => {
-	const response = await apiHelpers.objectAdmin.postObjectDefinition(
-		siteObjectDefinition
-	);
+	const response =
+		await apiHelpers.objectAdmin.postObjectDefinition(siteObjectDefinition);
 
 	await dataMigrationCenterPage.goto();
 	await dataMigrationCenterPage.goToImportFile();
@@ -1221,4 +1221,59 @@ test('cannot import empty CSV file', async ({
 	await expect(page.getByText('Error:Please upload a file.')).toBeVisible();
 
 	await apiHelpers.objectAdmin.deleteObjectDefinition(response.id);
+});
+
+test('can see correct custom object name in dropdown', async ({
+	apiHelpers,
+	dataMigrationCenterPage,
+}) => {
+	const objectDefinition = await apiHelpers.objectAdmin.postObjectDefinition({
+		active: true,
+		externalReferenceCode: 'stockERC',
+		label: {
+			en_US: 'stock',
+		},
+		name: 'Stock',
+		objectFields: [
+			{
+				DBType: 'String',
+				businessType: 'Text',
+				externalReferenceCode: 'nameERC',
+				indexed: true,
+				indexedAsKeyword: true,
+				label: {
+					en_US: 'name',
+				},
+				name: 'name',
+				required: true,
+			},
+		],
+		pluralLabel: {
+			en_US: 'stocks',
+		},
+		portlet: true,
+		scope: 'company',
+		status: {
+			code: 0,
+		},
+	});
+
+	await apiHelpers.objectEntry.postObjectEntry(
+		{
+			externalReferenceCode: 'nameERC',
+			name: 'Stock Entry',
+		},
+		'c/stocks'
+	);
+
+	await dataMigrationCenterPage.goto();
+	await dataMigrationCenterPage.goToImportFile();
+
+	expect(
+		await dataMigrationCenterPage.page
+			.getByLabel('Entity Type')
+			.textContent()
+	).toContain('Stock (v1.0 - Liferay Object REST)');
+
+	await apiHelpers.objectAdmin.deleteObjectDefinition(objectDefinition.id);
 });

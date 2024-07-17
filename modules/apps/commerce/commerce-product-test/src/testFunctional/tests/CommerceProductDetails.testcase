@@ -514,7 +514,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -594,7 +594,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -659,7 +659,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -755,7 +755,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -865,7 +865,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -974,7 +974,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 		}
@@ -1163,7 +1163,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 		}
@@ -1386,7 +1386,7 @@ definition {
 			User.logoutPG();
 
 			User.loginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "administrator@liferay.com");
 		}
 
@@ -1445,7 +1445,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -1519,7 +1519,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.speedwellLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/speedwell",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -1623,7 +1623,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 		}
@@ -1731,7 +1731,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -1819,7 +1819,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -1994,7 +1994,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -2006,9 +2006,7 @@ definition {
 		}
 
 		task ("When a special character in the Product URL Separator under the Catalog of Instance Settings is set") {
-			User.logoutAndLoginPG(
-				userLoginEmailAddress = "test@liferay.com",
-				userLoginFullName = "Test Test");
+			User.logoutAndLoginPG();
 
 			PortalSettings.gotoConfiguration(
 				configurationCategory = "Catalog",
@@ -2035,7 +2033,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -2119,7 +2117,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -2184,6 +2182,101 @@ definition {
 				key_incomingDate = ${incomingDate2},
 				key_incomingQuantity = 2,
 				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL_INCOMING_DATE_QUANTITY");
+		}
+	}
+
+	@description = "COMMERCE-10066. User can only view the allowed quantities that match the minimum, max and multiple quantities of a product"
+	@priority = 5
+	test CanViewOnlyCorrectAllowedQuantitiesAreSelectableInProductDetails {
+		property portal.acceptance = "true";
+
+		task ("Given a Minium site is created") {
+			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
+		}
+
+		task ("And allowed quantities, maximum quantity, minimum quantity and multiple quantity are configured for three products") {
+			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
+				allowedOrderQuantities = "1,2,6,8",
+				minOrderQuantity = 2,
+				productName = "U-Joint");
+
+			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
+				allowedOrderQuantities = "1,2,6,8",
+				maxOrderQuantity = 7,
+				productName = "Transmission Cooler Line Assembly");
+
+			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
+				allowedOrderQuantities = "1,3,6,9",
+				multipleOrderQuantity = 3,
+				productName = "Torque Converters");
+		}
+
+		task ("Add a account with a buyer user is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("When the buyer user does the log in") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = PropsUtil.get("default.admin.password"),
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("Then only the quantities that meet the configuration are displayed on the product details page") {
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/u-joint");
+
+			for (var number : list "2,6,8") {
+				AssertElementPresent(
+					key_optionValue = ${number},
+					key_productName = "U-Joint",
+					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
+			}
+
+			AssertElementNotPresent(
+				key_optionValue = 1,
+				key_productName = "U-Joint",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/transmission-cooler-line-assembly");
+
+			for (var number : list "1,2,6") {
+				AssertElementPresent(
+					key_optionValue = ${number},
+					key_productName = "Transmission Cooler Line Assembly",
+					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
+			}
+
+			AssertElementNotPresent(
+				key_optionValue = 8,
+				key_productName = "Transmission Cooler Line Assembly",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
+
+			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/torque-converters");
+
+			for (var number : list "3,6,9") {
+				AssertElementPresent(
+					key_optionValue = ${number},
+					key_productName = "Torque Converters",
+					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
+			}
+
+			AssertElementNotPresent(
+				key_optionValue = 1,
+				key_productName = "Torque Converters",
+				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
 		}
 	}
 
@@ -2311,7 +2404,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -2392,7 +2485,7 @@ definition {
 			User.logoutPG();
 
 			CommerceLogin.miniumLogin(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				urlAppend = "web/minium",
 				userEmailAddress = "buyer@liferay.com");
 
@@ -2410,249 +2503,6 @@ definition {
 				key_incomingDate = ${nearestIncomingDate},
 				key_incomingQuantity = 1,
 				locator1 = "CommerceFrontStore#FS_PRODUCT_DETAIL_INCOMING_DATE_QUANTITY");
-		}
-	}
-
-	@description = "COMMERCE-9677 | As a buyer, I want to be able to view a virtual product Detail page"
-	@priority = 5
-	test CanViewSingleSkuVirtualProductDetailPage {
-		property portal.acceptance = "true";
-
-		var sampleFileName = "Commerce_White.jpg";
-
-		task ("Given a Minium site with a buyer user") {
-			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-
-			CommerceEntry.addAccountEntryUser(
-				accountName = "Commerce Account",
-				accountType = "Business",
-				agreeToTermsAndAnswerReminderQuery = "true",
-				createNewAccount = "true",
-				requireReset = "false",
-				userEmailAddress = "buyer@liferay.com",
-				userFirstName = "Buyer",
-				userLastName = "User",
-				userRole = "Buyer",
-				userScreenName = "buyeruser",
-				userSiteMembership = "Minium");
-		}
-
-		task ("And a new Virtual product is created with all the data needed") {
-			CommerceJSONProductsAPI._addCommerceProduct(
-				catalogName = "Minium",
-				gtin = "GTIN1",
-				manufacturerPartNumber = "MPN1",
-				productDescription = "Full Description",
-				productName = "Virtual Product",
-				productType = "Virtual",
-				shortDescription = "Short Description",
-				sku = "VIRTUALSKU",
-				specifications = "Warranty:6 Months");
-
-			CommerceJSONWarehousesAndInventoriesAPI._addWarehouseItem(
-				warehouseItemQuantity = 60,
-				warehouseItemSku = "VIRTUALSKU",
-				warehouseName = "Italy");
-
-			CommerceProducts.openProductsAdmin();
-
-			CommerceNavigator.searchEntry(entryName = "Virtual");
-
-			CommerceNavigator.gotoEntry(entryName = "Virtual Product");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Virtual");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Options");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Virtual");
-
-			Button.clickSave();
-
-			CommerceProducts.updateProductVirtualConfiguration(
-				enableSample = "true",
-				sampleFileName = ${sampleFileName},
-				virtualProductFile = "Commerce_Blue.jpg");
-
-			CommerceEntry.gotoMenuTab(menuTab = "SKUs");
-
-			CommerceNavigator.gotoEntry(entryName = "VIRTUALSKU");
-
-			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Price");
-
-			CommerceNavigator.gotoEntry(entryName = "Minium Base Price List");
-
-			CommerceSKUs.editSkuPricing(basePrice = "55.00");
-
-			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
-
-			CommerceNavigator.gotoEntry(entryName = "Minium Base Promotion");
-
-			CommerceSKUs.editSkuPricing(promoPrice = "50.00");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Media");
-
-			CommerceProductImages.addProductImages(imageTitles = "Black,Blue");
-
-			CommerceEntry.gotoMenuTab(menuTab = "Subscription");
-
-			for (var subscriptionName : list "Payment,Delivery") {
-				CommerceProducts.configureSubscription(
-					subscriptionExactDay = 15,
-					subscriptionLength = 10,
-					subscriptionMode = "Exact Day of Month",
-					subscriptionName = "${subscriptionName} Subscription",
-					subscriptionType = "Month");
-			}
-
-			CommerceEntry.gotoMenuTab(menuTab = "Configuration");
-
-			CommerceProducts.updateProductInventoryConfiguration(
-				displayAvailability = "true",
-				displayStockQuantity = "true",
-				minOrderQuantity = 4,
-				publish = "true");
-
-			CommerceJSONDiscountsAPI._addDiscount(
-				active = "true",
-				level = "L1",
-				percentageLevel1 = 20,
-				target = "products",
-				title = "Virtual Products Discount",
-				usePercentage = "true");
-
-			CommerceJSONDiscountsAPI._addDiscountProduct(
-				discountTitle = "Virtual Products Discount",
-				productName = "Virtual Product");
-		}
-
-		task ("When the buyer navigates to the product detail page") {
-			User.logoutPG();
-
-			CommerceLogin.miniumLogin(
-				password = "test",
-				urlAppend = "web/minium",
-				userEmailAddress = "buyer@liferay.com");
-
-			CommerceNavigator.gotoProductDetails(productName = "Virtual Product");
-		}
-
-		task ("Then the buyer can see all the Virtual Products fields") {
-			FrontStore.assertProductDetails(
-				deliverySubscriptionPeriod = "Every 10 Months",
-				discountPercentage = 20,
-				minQuantity = 4,
-				paymentSubscriptionPeriod = "Every 10 Months",
-				productAvailability = "Available",
-				productFullDescription = "Full Description",
-				productGTIN = "GTIN1",
-				productImages = "Black,Blue",
-				productListPriceInactive = "55.00",
-				productMPN = "MPN1",
-				productName = "Virtual Product",
-				productNetPrice = "160.00",
-				productSalePriceInactive = "50.00",
-				productShortDescription = "Short Description",
-				productSKU = "VIRTUALSKU",
-				productSpecifications = "Warranty:6 Months",
-				productStockQuantity = 60,
-				sampleFileName = ${sampleFileName});
-		}
-	}
-
-	@description = "COMMERCE-10066. User can only view the allowed quantities that match the minimum, max and multiple quantities of a product"
-	@priority = 5
-	test CanViweOnlyCorrectAllowedQuantitiesAreSelectableInProductDetails {
-		property portal.acceptance = "true";
-
-		task ("Given a Minium site is created") {
-			CommerceAccelerators.initializeNewSiteViaAccelerator(siteName = "Minium");
-		}
-
-		task ("And allowed quantities, maximum quantity, minimum quantity and multiple quantity are configured for three products") {
-			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
-				allowedOrderQuantities = "1,2,6,8",
-				minOrderQuantity = 2,
-				productName = "U-Joint");
-
-			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
-				allowedOrderQuantities = "1,2,6,8",
-				maxOrderQuantity = 7,
-				productName = "Transmission Cooler Line Assembly");
-
-			CommerceJSONProductsAPI._patchCommerceProductConfiguration(
-				allowedOrderQuantities = "1,3,6,9",
-				multipleOrderQuantity = 3,
-				productName = "Torque Converters");
-		}
-
-		task ("Add a account with a buyer user is created") {
-			CommerceEntry.addAccountEntryUser(
-				accountName = "Commerce Account",
-				accountType = "Business",
-				agreeToTermsAndAnswerReminderQuery = "true",
-				createNewAccount = "true",
-				requireReset = "false",
-				userEmailAddress = "buyer@liferay.com",
-				userFirstName = "Buyer",
-				userLastName = "User",
-				userRole = "Buyer",
-				userScreenName = "buyeruser",
-				userSiteMembership = "Minium");
-		}
-
-		task ("When the buyer user does the log in") {
-			User.logoutPG();
-
-			CommerceLogin.miniumLogin(
-				password = "test",
-				urlAppend = "web/minium",
-				userEmailAddress = "buyer@liferay.com");
-		}
-
-		task ("Then only the quantities that meet the configuration are displayed on the product details page") {
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/u-joint");
-
-			for (var number : list "2,6,8") {
-				AssertElementPresent(
-					key_optionValue = ${number},
-					key_productName = "U-Joint",
-					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
-			}
-
-			AssertElementNotPresent(
-				key_optionValue = 1,
-				key_productName = "U-Joint",
-				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
-
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/transmission-cooler-line-assembly");
-
-			for (var number : list "1,2,6") {
-				AssertElementPresent(
-					key_optionValue = ${number},
-					key_productName = "Transmission Cooler Line Assembly",
-					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
-			}
-
-			AssertElementNotPresent(
-				key_optionValue = 8,
-				key_productName = "Transmission Cooler Line Assembly",
-				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
-
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/minium/p/torque-converters");
-
-			for (var number : list "3,6,9") {
-				AssertElementPresent(
-					key_optionValue = ${number},
-					key_productName = "Torque Converters",
-					locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
-			}
-
-			AssertElementNotPresent(
-				key_optionValue = 1,
-				key_productName = "Torque Converters",
-				locator1 = "CommerceFrontStore#PRODUCT_DETAILS_QUANTITY_OPTION");
 		}
 	}
 

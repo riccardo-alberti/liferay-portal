@@ -9,12 +9,12 @@ import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import getRandomString from '../../utils/getRandomString';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
@@ -36,10 +36,10 @@ test('View Undo interaction state is cleared after refreshing the page', async (
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragment]),
@@ -49,7 +49,7 @@ test('View Undo interaction state is cleared after refreshing the page', async (
 
 	// Go to edit mode of page
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Assert undo button is disabled
 
@@ -89,10 +89,10 @@ test('Undo and Redo buttons work as expected', async ({
 
 	const tabsId = getRandomString();
 
-	const fragmentDefinition = getFragmentDefinition(
-		tabsId,
-		'BASIC_COMPONENT-tabs'
-	);
+	const fragmentDefinition = getFragmentDefinition({
+		id: tabsId,
+		key: 'BASIC_COMPONENT-tabs',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([fragmentDefinition]),
@@ -104,16 +104,16 @@ test('Undo and Redo buttons work as expected', async ({
 
 	// Go to edit mode of page
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Change number of tabs to 5
 
-	await pageEditorPage.changeFragmentConfiguration(
-		tabsId,
-		'General',
-		'Number of Tabs',
-		'5'
-	);
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Number of Tabs',
+		fragmentId: tabsId,
+		tab: 'General',
+		value: '5',
+	});
 
 	await expect(tabsFragment.getByText('Tab 5')).toBeVisible();
 
@@ -164,10 +164,10 @@ test('Undo history works as expected', async ({
 
 	const headingId = getRandomString();
 
-	const fragmentDefinition = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const fragmentDefinition = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([fragmentDefinition]),
@@ -177,7 +177,7 @@ test('Undo history works as expected', async ({
 
 	// Go to edit mode of page
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Assert History button is visible
 
@@ -185,32 +185,32 @@ test('Undo history works as expected', async ({
 
 	// Go to General Panel and change the Heading level 3 times
 
-	await pageEditorPage.changeFragmentConfiguration(
-		headingId,
-		'General',
-		'Heading Level',
-		'h2'
-	);
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Heading Level',
+		fragmentId: headingId,
+		tab: 'General',
+		value: 'h2',
+	});
 
 	const headingFragment = pageEditorPage.getFragment(headingId);
 
 	await expect(headingFragment.locator('h2')).toBeAttached();
 
-	await pageEditorPage.changeFragmentConfiguration(
-		headingId,
-		'General',
-		'Heading Level',
-		'h3'
-	);
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Heading Level',
+		fragmentId: headingId,
+		tab: 'General',
+		value: 'h3',
+	});
 
 	await expect(headingFragment.locator('h3')).toBeAttached();
 
-	await pageEditorPage.changeFragmentConfiguration(
-		headingId,
-		'General',
-		'Heading Level',
-		'h4'
-	);
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Heading Level',
+		fragmentId: headingId,
+		tab: 'General',
+		value: 'h4',
+	});
 
 	await expect(headingFragment.locator('h4')).toBeAttached();
 

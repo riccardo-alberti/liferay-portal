@@ -345,7 +345,7 @@
 													"displayStyle": "ddmTemplate_CATEGORY-FACET-VOCABULARY-FTL",
 													"displayStyleGroupId": "[$GROUP_ID$]",
 													"frequenciesVisible": "false",
-													"frequencyThreshold": "0",
+													"frequencyThreshold": "1",
 													"maxTerms": "10",
 													"order": "key:asc",
 													"parameterName": "Product Capabilities",
@@ -417,6 +417,37 @@
 							}
 						],
 						"type": "Row"
+					}
+				],
+				"type": "Section"
+			},
+			{
+				"definition": {
+					"fragmentStyle": {
+						"textAlign": "center"
+					},
+					"indexed": true,
+					"layout": {
+						"align": "End",
+						"contentDisplay": "FlexColumn",
+						"flexWrap": "Wrap",
+						"justify": "End"
+					}
+				},
+				"pageElements": [
+					{
+						"definition": {
+							"fragment": {
+								"key": "release-notes-sidetab",
+								"siteKey": "[$GROUP_KEY$]"
+							},
+							"fragmentConfig": {
+							},
+							"fragmentFields": [
+							],
+							"indexed": true
+						},
+						"type": "Fragment"
 					}
 				],
 				"type": "Section"

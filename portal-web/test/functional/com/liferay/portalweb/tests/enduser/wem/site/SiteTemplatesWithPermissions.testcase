@@ -1,4 +1,4 @@
-@component-name = "portal-staging"
+@component-name = "portal-headless"
 definition {
 
 	property ci.retries.disabled = "true";
@@ -156,7 +156,7 @@ definition {
 		task ("Remove guest view permissions of Message Boards") {
 			SignIn.signIn(
 				userEmailAddress = "test@liferay.com",
-				userPassword = "test");
+				userPassword = PropsUtil.get("default.admin.password"));
 
 			ContentPagesNavigator.openEditContentPage(
 				pageName = "Home",

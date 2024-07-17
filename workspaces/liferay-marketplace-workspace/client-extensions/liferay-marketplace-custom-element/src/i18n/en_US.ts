@@ -20,6 +20,10 @@ export default {
 	'additional-apps-requested': 'Additional Apps Requested',
 	'address': 'Address',
 	'all-orders': 'All Orders',
+	'all-progress-and-information-related-to-the-creation-of-the-solution-will-be-lost-do-you-still-want-to-exit':
+		'All progress and information related to the creation of the solution will be lost, Do you still want to exit?',
+	'all-progress-and-information-related-to-the-creation-of-the-solution-will-be-lost-unless-you-save-the-solution-as-a-draft-do-you-still-want-to-exit':
+		'All progress and information related to the creation of the solution will be lost unless you save the solution as a draft, Do you still want to exit?',
 	'all-published-apps': 'All Published Apps',
 	'amount': 'Amount',
 	'an-administrator-of-the-marketplace-will-review-your-request-shortly-if-you-have-questions-regarding-your-submission-please-email':
@@ -33,12 +37,14 @@ export default {
 	'app-type': 'App Type',
 	'apply-to-your-use-of-this-service-the-name-on-your-liferay-account-will-be-used-in-this-liferay-marketplace-publisher-profile-it-may-appear-where-you-contribute-and-be-changed-at-any-time':
 		'apply to your use of this service. The name on your Liferay account will be used in this Liferay Marketplace Publisher Profile. It may appear where you contribute and be changed at any time',
+	'approve': 'Approve',
+	'approved': 'Approved',
 	'apps': 'Apps',
-	'aprove': 'Aprove',
 	'available': 'Available',
 	'back': 'Back',
 	'back-to-apps': 'Back to Apps',
 	'back-to-my-apps': 'Back to My Apps',
+	'back-to-my-solutions': 'Back to My Solutions',
 	'back-to-solutions': 'Back to Solutions',
 	'becoming-a-liferay-marketplace-customer':
 		'Becoming a Liferay Marketplace Customer',
@@ -83,6 +89,7 @@ export default {
 		'Create new licenses and they will show up here.',
 	'create-template': 'Create template',
 	'created-at': 'Created At',
+	'created-by': 'Created By',
 	'customer-account': 'Customer Account',
 	'customer-dashboard': 'Customer Dashboard',
 	'customer-roject': 'Customer Project',
@@ -109,6 +116,7 @@ export default {
 		'Design the storefront for your solution. This will set the information displayed on the solution’s page. This section is dedicated to creating the solution’s header.',
 	'details': 'Details',
 	'discover-and-customize': 'Discover and customize',
+	'download': 'Download',
 	'download-app': 'Download App',
 	'download-key': 'Download Key',
 	'draft': 'Draft',
@@ -153,6 +161,7 @@ export default {
 	'go-to-dxp': 'Go to DXP',
 	'go-to-marketplace': 'Go to Marketplace',
 	'go-to-trial': 'Go to Trial',
+	'header': 'Header',
 	'host-name': 'Host Name',
 	'i-certify-that-the-instances-activated-with-the-selected-activation-keys-have-been-shut-down-and-that-there-is-no-liferay-software-installed-deployed-used-or-executed-that-is-activated-with-the-selected-activation-key':
 		'I certify that the instances activated with the selected activation keys have been shut down and that there is no Liferay software installed, deployed, used or executed that is activated with the selected activation key.',
@@ -162,6 +171,8 @@ export default {
 		'If the app is compatible with different updates of 7.4, please upload multiple packages for each update or update compatibility range.',
 	'if-you-are-requesting-the-account-on-behalf-of-a-business-,-please-note-the-business-name':
 		'If you are requesting the account on behalf of a business, please note the business name.',
+	'important-images-will-be-displayed-following-the-numerical-order-above':
+		'Important: Images will be displayed following the numerical order above',
 	'in-the-future-you-will-be-able-to-submit-your-app-directly-from-liferay-experience-cloud-projects':
 		'In the future, you will be able to submit your app directly from Liferay SaaS projects.',
 	'in-the-future-you-will-be-able-to-submit-your-app-source-code-for-additional-support-and-partnership-opportunities-with-liferay':
@@ -191,6 +202,7 @@ export default {
 	'licenses': 'Licenses',
 	'liferay-learn': 'Liferay Learn',
 	'liferay-s': 'Liferay’s',
+	'limit-reached': 'Limit Reached',
 	'list-with-latest-published-apps': 'List with latest published apps',
 	'lorem-ipsum-dolor-sit-amet-consectetur':
 		'Lorem ipsum dolor sit amet consectetur.',
@@ -203,6 +215,10 @@ export default {
 	'maximum-number-of-upload-reached': 'Maximum Number of Upload Reached',
 	'monetize-your-apps-and-solutions': 'Monetize your apps and solutions',
 	'more-info': 'More Info',
+	'move-down': 'Move Down',
+	'move-to-bottom': 'Move to Bottom',
+	'move-to-top': 'Move to Top',
+	'move-up': 'Move Up',
 	'name': 'Name',
 	'no': 'No',
 	'no-apps-yet': 'No Apps Yet',
@@ -237,14 +253,19 @@ export default {
 	'provide-app-build': 'Provide app build',
 	'provide-company-profile-details': 'Provide company profile details',
 	'provide-contact-us-details': 'Provide contact us details',
+	'provisioning': 'Provisioning',
 	'publish-apps-and-they-will-show-up-here':
 		'Publish apps and they will show up here',
 	'publish-apps-to-the-liferay-marketplace':
 		'Publish apps to the Liferay Marketplace',
 	'published-apps': 'Published Apps',
+	'published-at': 'Published At',
 	'publisher-account-request': 'Publisher Account Request.',
 	'publisher-dashboard': 'Publisher Dashboard',
+	'publisher-name': 'Publisher Name',
 	'publisher-requests': 'Publisher Requests',
+	'publisher-type': 'Publisher Type',
+	'publisher-website-url': 'Publisher website URL',
 	'purchase-and-install-new-apps-and-they-will-show-up-here':
 		'Purchase and install new apps and they will show up here.',
 	'purchase-order-number': 'Purchase Order Number',
@@ -254,6 +275,7 @@ export default {
 	'ram-in-gbs': 'RAM in GBs',
 	'recent-published-apps': 'Recent Published Apps',
 	'recent-trials': 'Recent Trials',
+	'remove': 'Remove',
 	'remove-a-version': 'Remove a Version',
 	'request-a-marketplace-publisher-account':
 		'Request a Marketplace Publisher Account',
@@ -270,6 +292,8 @@ export default {
 	'review-and-submit-solution': 'Review and submit solution',
 	'review-the-new-publisher-info-and-the-liferay-marketplace-terms-before-proceeding':
 		'Review the new publisher info and the Liferay Marketplace terms before proceeding',
+	'save-as-a-draft-exit': 'Save as a draft & exit',
+	'save-as-draft': 'Save as Draft',
 	'search': 'Search',
 	'select-a-file': 'Select a file',
 	'select-a-local-file-to-upload': 'Select a local file to upload',
@@ -284,6 +308,9 @@ export default {
 	'sign-in-with-a-different-account': 'Sign in with a different Account',
 	'solution-details': 'Solution Details',
 	'solution-header': 'Solution Header',
+	'solution-submission': 'Solution Submission',
+	'solution-summary': 'Solution Summary',
+	'solution-x-submitted': 'Solution <b>{0}</b> submitted',
 	'solutions': 'Solutions',
 	'solutions-info': 'Solutions Info',
 	'sorry-there-are-no-results-found': 'Sorry, there are no results found',
@@ -291,15 +318,20 @@ export default {
 	'start-trial': 'Start Trial',
 	'status': 'Status',
 	'submit': 'Submit',
+	'submit-solution': 'Submit Solution',
 	'subtotal': 'Subtotal',
 	'subtotal-discount': 'Subtotal Discount',
 	'success': 'success',
 	'summary': 'Summary',
+	'supported-version': 'Supported Version',
 	'tags': 'Tags',
 	'tags-help-to-describe-your-solution-in-the-marketplace-select-the-tags-most-relevant-to-your-solution-they-can-be-changed-if-needed':
 		'Tags help to describe your solution in the Marketplace. Select the tags most relevant to your solution. They can be changed if needed.',
 	'tax-vat': 'Tax/VAT',
 	'terms-of-service': 'Terms of Service',
+	'text-block': 'Text Block',
+	'text-images-block': 'Text Images Block',
+	'text-video-block': 'Text Video Block',
 	'thank-you-for-your': 'Thank you for your',
 	'the-app-submission-is-compatible-with-liferay-experience-cloud-and':
 		'The app submission is compatible with Liferay SaaS and ',
@@ -330,15 +362,22 @@ export default {
 		'This key is expired and cannot be downloaded.',
 	'this-order-must-be-completed-before-downloading-this-app.':
 		'This order must be completed before downloading this app.',
+	'this-submission-is-currently-under-review-by-liferay-once-the-process-is-complete-the-solution-will-be-published-automatically-to-the-marketplace-meanwhile-any-information-or-data-from-this-solution-submission-cannot-be-updated':
+		'This submission is currently under review by Liferay. Once the process is complete the solution will be published automatically to the Marketplace. Meanwhile, any information or data from this solution submission cannot be updated.',
 	'title': 'Title',
 	'total': 'Total',
 	'trial': 'Trial',
+	'trial-details': 'Trial Details',
+	'trial-end-date': 'Trial End Date',
 	'trial-resources': 'Trial Resources',
+	'trial-start-date': 'Trial Start Date',
 	'trial-status': 'Trial Status',
+	'trial-url': 'Trial URL',
 	'trials': 'Trials',
 	'type': 'Type',
 	'unable-to-download-your-license-file-please-try-again-and-or-contact-support-via-the-manage-menu-on-the-dashboard':
 		'Unable to download your license file.  Please try again and/or contact support via the manage menu on the dashboard.',
+	'under-review': 'Under Review',
 	'upload-at-least-one-image-or-add-a-video-url':
 		'Upload at least one image, or add a video url',
 	'upload-image': 'Upload image',

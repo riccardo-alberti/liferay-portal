@@ -10,7 +10,7 @@ import ClayLayout from '@clayui/layout';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
-import {SelectLayoutTree} from './SelectLayoutTree';
+import SelectLayoutTree from './SelectLayoutTree';
 
 /**
  * SelectLayout
@@ -76,10 +76,10 @@ const SelectLayout = ({
 									{selectedItemsCount > 1
 										? `${selectedItemsCount} ${Liferay.Language.get(
 												'items-selected'
-										  )}`
+											)}`
 										: `${selectedItemsCount} ${Liferay.Language.get(
 												'item-selected'
-										  )}`}
+											)}`}
 								</p>
 							</div>
 						</ClayLayout.Container>

@@ -22,7 +22,9 @@ import com.liferay.headless.admin.user.client.pagination.Page;
 import com.liferay.headless.admin.user.client.problem.Problem;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.service.AddressLocalService;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -36,6 +38,7 @@ import com.liferay.portal.test.rule.Inject;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -175,6 +178,7 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 		super.testPatchAccount();
 
 		_testPatchAccountWithContactInformation();
+		_testPatchAccountWithPostalAddressPhoneNumber();
 	}
 
 	@Override
@@ -284,6 +288,7 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 
 		_testPostAccountDuplicateExternalReferenceCode();
 		_testPostAccountWithContactInformation();
+		_testPostAccountWithPostalAddressPhoneNumber();
 	}
 
 	@Override
@@ -352,6 +357,7 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 		super.testPutAccount();
 
 		_testPutAccountWithContactInformation();
+		_testPutAccountWithPostalAddressPhoneNumber();
 	}
 
 	@Override
@@ -538,6 +544,13 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 				Arrays.toString(emailAddresses2),
 			emailAddresses1.length, emailAddresses2.length);
 
+		Arrays.sort(
+			emailAddresses1,
+			Comparator.comparing(EmailAddress::getEmailAddress));
+		Arrays.sort(
+			emailAddresses2,
+			Comparator.comparing(EmailAddress::getEmailAddress));
+
 		for (int i = 0; i < emailAddresses1.length; i++) {
 			Assert.assertTrue(
 				emailAddresses1[i] + " does not equal " + emailAddresses2[i],
@@ -550,6 +563,9 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 			Arrays.toString(phones1) + " does not equal " +
 				Arrays.toString(phones2),
 			phones1.length, phones2.length);
+
+		Arrays.sort(phones1, Comparator.comparing(Phone::getPhoneNumber));
+		Arrays.sort(phones2, Comparator.comparing(Phone::getPhoneNumber));
 
 		for (int i = 0; i < phones1.length; i++) {
 			Assert.assertTrue(
@@ -566,6 +582,13 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 				Arrays.toString(postalAddresses2),
 			postalAddresses1.length, postalAddresses2.length);
 
+		Arrays.sort(
+			postalAddresses1,
+			Comparator.comparing(PostalAddress::getAddressLocality));
+		Arrays.sort(
+			postalAddresses2,
+			Comparator.comparing(PostalAddress::getAddressLocality));
+
 		for (int i = 0; i < postalAddresses1.length; i++) {
 			Assert.assertTrue(
 				postalAddresses1[i] + " does not equal " + postalAddresses2[i],
@@ -578,6 +601,9 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 			Arrays.toString(webUrls1) + " does not equal " +
 				Arrays.toString(webUrls2),
 			webUrls1.length, webUrls2.length);
+
+		Arrays.sort(webUrls1, Comparator.comparing(WebUrl::getUrl));
+		Arrays.sort(webUrls2, Comparator.comparing(WebUrl::getUrl));
 
 		for (int i = 0; i < webUrls1.length; i++) {
 			Assert.assertTrue(
@@ -788,6 +814,33 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 			patchAccount.getAccountContactInformation());
 	}
 
+	private void _testPatchAccountWithPostalAddressPhoneNumber()
+		throws Exception {
+
+		Account postAccount = testPatchAccount_addAccount();
+
+		Account randomPatchAccount = randomPatchAccount();
+
+		PostalAddress postalAddress = _randomPostalAddress();
+
+		postalAddress.setPhoneNumber(RandomTestUtil.randomString());
+
+		randomPatchAccount.setPostalAddresses(
+			new PostalAddress[] {postalAddress});
+
+		Account patchAccount = accountResource.patchAccount(
+			postAccount.getId(), randomPatchAccount);
+
+		List<Address> addresses = _addressLocalService.getAddresses(
+			TestPropsValues.getCompanyId(), AccountEntry.class.getName(),
+			patchAccount.getId());
+
+		Address address = addresses.get(0);
+
+		Assert.assertEquals(
+			postalAddress.getPhoneNumber(), address.getPhoneNumber());
+	}
+
 	private void _testPostAccountDuplicateExternalReferenceCode()
 		throws Exception {
 
@@ -834,6 +887,29 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 			postAccount.getAccountContactInformation());
 	}
 
+	private void _testPostAccountWithPostalAddressPhoneNumber()
+		throws Exception {
+
+		Account account = randomAccount();
+
+		PostalAddress postalAddress = _randomPostalAddress();
+
+		postalAddress.setPhoneNumber(RandomTestUtil.randomString());
+
+		account.setPostalAddresses(new PostalAddress[] {postalAddress});
+
+		Account postAccount = accountResource.postAccount(account);
+
+		List<Address> addresses = _addressLocalService.getAddresses(
+			TestPropsValues.getCompanyId(), AccountEntry.class.getName(),
+			postAccount.getId());
+
+		Address address = addresses.get(0);
+
+		Assert.assertEquals(
+			postalAddress.getPhoneNumber(), address.getPhoneNumber());
+	}
+
 	private void _testPutAccountByExternalReferenceCodeWithContactInformation()
 		throws Exception {
 
@@ -873,11 +949,40 @@ public class AccountResourceTest extends BaseAccountResourceTestCase {
 			putAccount.getAccountContactInformation());
 	}
 
+	private void _testPutAccountWithPostalAddressPhoneNumber()
+		throws Exception {
+
+		Account postAccount = testPutAccount_addAccount();
+
+		Account randomAccount = randomAccount();
+
+		PostalAddress postalAddress = _randomPostalAddress();
+
+		postalAddress.setPhoneNumber(RandomTestUtil.randomString());
+
+		randomAccount.setPostalAddresses(new PostalAddress[] {postalAddress});
+
+		Account putAccount = accountResource.putAccount(
+			postAccount.getId(), randomAccount);
+
+		List<Address> addresses = _addressLocalService.getAddresses(
+			TestPropsValues.getCompanyId(), AccountEntry.class.getName(),
+			putAccount.getId());
+
+		Address address = addresses.get(0);
+
+		Assert.assertEquals(
+			postalAddress.getPhoneNumber(), address.getPhoneNumber());
+	}
+
 	@Inject
 	private AccountEntryLocalService _accountEntryLocalService;
 
 	@Inject
 	private AccountEntryOrganizationRelLocalService
 		_accountEntryOrganizationRelLocalService;
+
+	@Inject
+	private AddressLocalService _addressLocalService;
 
 }

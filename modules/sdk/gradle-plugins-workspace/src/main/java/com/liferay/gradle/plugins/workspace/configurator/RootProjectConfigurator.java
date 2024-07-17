@@ -30,7 +30,6 @@ import com.liferay.gradle.plugins.workspace.WorkspacePlugin;
 import com.liferay.gradle.plugins.workspace.docker.DockerPruneImage;
 import com.liferay.gradle.plugins.workspace.internal.configurator.TargetPlatformRootProjectConfigurator;
 import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.workspace.internal.util.ReleaseUtil;
 import com.liferay.gradle.plugins.workspace.internal.util.StringUtil;
 import com.liferay.gradle.plugins.workspace.task.CreateTokenTask;
 import com.liferay.gradle.plugins.workspace.task.InitBundleTask;
@@ -39,6 +38,8 @@ import com.liferay.gradle.plugins.workspace.task.VerifyProductTask;
 import com.liferay.gradle.util.ArrayUtil;
 import com.liferay.gradle.util.OSDetector;
 import com.liferay.gradle.util.Validator;
+import com.liferay.release.util.ReleaseEntry;
+import com.liferay.release.util.ReleaseUtil;
 
 import de.undercouch.gradle.tasks.download.Download;
 
@@ -297,8 +298,7 @@ public class RootProjectConfigurator implements Plugin<Project> {
 			project, workspaceExtension, providedModulesConfiguration);
 
 		Dockerfile dockerfile = _addTaskCreateDockerfile(
-			project, CREATE_DOCKERFILE_TASK_NAME, workspaceExtension,
-			dockerDeploy, verifyProductTask);
+			project, workspaceExtension, dockerDeploy, verifyProductTask);
 
 		DockerBuildImage dockerBuildImage = _addTaskBuildDockerImage(
 			dockerfile, workspaceExtension, verifyProductTask);
@@ -547,12 +547,11 @@ public class RootProjectConfigurator implements Plugin<Project> {
 	}
 
 	private Dockerfile _addTaskCreateDockerfile(
-		Project project, String taskName,
-		final WorkspaceExtension workspaceExtension, Copy dockerDeploy,
-		VerifyProductTask verifyProductTask) {
+		Project project, final WorkspaceExtension workspaceExtension,
+		Copy dockerDeploy, VerifyProductTask verifyProductTask) {
 
 		Dockerfile dockerfile = GradleUtil.addTask(
-			project, taskName, Dockerfile.class);
+			project, CREATE_DOCKERFILE_TASK_NAME, Dockerfile.class);
 
 		dockerfile.dependsOn(verifyProductTask, dockerDeploy);
 		dockerfile.mustRunAfter(verifyProductTask);
@@ -708,7 +707,9 @@ public class RootProjectConfigurator implements Plugin<Project> {
 
 			});
 		initBundleTask.setDestinationDir(
-			new File(project.getBuildDir(), "dist"));
+			new File(
+				project.getBuildDir(),
+				"dist" + StringUtil.capitalize(environment)));
 		initBundleTask.setGroup("hidden");
 
 		initBundleTask.doFirst(
@@ -1490,9 +1491,9 @@ public class RootProjectConfigurator implements Plugin<Project> {
 				public boolean isSatisfiedBy(Task task) {
 					if (!Objects.equals(
 							workspaceExtension.getBundleUrl(),
-							ReleaseUtil.getFromReleaseProperties(
+							ReleaseUtil.getFromReleaseEntry(
 								workspaceExtension.getProduct(),
-								ReleaseUtil.ReleaseProperties::getBundleUrl))) {
+								ReleaseEntry::getBundleURL))) {
 
 						if (Objects.nonNull(_bundleCheckSumSHA512)) {
 							return true;

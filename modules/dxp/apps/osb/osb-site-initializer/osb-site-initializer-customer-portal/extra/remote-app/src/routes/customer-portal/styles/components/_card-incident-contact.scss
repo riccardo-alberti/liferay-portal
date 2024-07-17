@@ -10,6 +10,8 @@
 	order: 1;
 	padding: 1.5rem;
 
+	.h4,
+	.h5,
 	p,
 	h1,
 	h3,
@@ -28,6 +30,7 @@
 		line-height: 1.75rem;
 	}
 
+	.h5,
 	p,
 	h5 {
 		font-size: 0.813rem;
@@ -47,6 +50,7 @@
 		line-height: 1.25rem;
 	}
 
+	.h4,
 	h4 {
 		color: var(--color-neutral-9);
 		font-size: 0.813rem;
@@ -55,6 +59,7 @@
 		margin-bottom: 0;
 	}
 
+	.h5,
 	h5 {
 		color: var(--color-neutral-5);
 		margin-bottom: 0;

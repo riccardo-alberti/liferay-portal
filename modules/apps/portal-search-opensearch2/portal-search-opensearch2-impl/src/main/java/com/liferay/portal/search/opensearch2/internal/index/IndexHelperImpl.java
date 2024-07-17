@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalRunMode;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.index.UpdateIndexSettingsIndexRequest;
 import com.liferay.portal.search.index.IndexNameBuilder;
 import com.liferay.portal.search.opensearch2.internal.configuration.OpenSearchConfigurationWrapper;
@@ -28,8 +27,8 @@ import com.liferay.portal.search.opensearch2.internal.connection.OpenSearchConne
 import com.liferay.portal.search.opensearch2.internal.index.util.IndexFactoryCompanyIdRegistryUtil;
 import com.liferay.portal.search.opensearch2.internal.util.IndexUtil;
 import com.liferay.portal.search.opensearch2.internal.util.JsonpUtil;
-import com.liferay.portal.search.spi.model.index.contributor.IndexContributor;
-import com.liferay.portal.search.spi.settings.IndexSettingsContributor;
+import com.liferay.portal.search.spi.index.configuration.contributor.IndexConfigurationContributor;
+import com.liferay.portal.search.spi.index.listener.CompanyIndexListener;
 
 import jakarta.json.spi.JsonProvider;
 
@@ -70,42 +69,12 @@ import org.osgi.service.component.annotations.Reference;
 public class IndexHelperImpl implements IndexHelper {
 
 	@Override
-	public void createIndex(
-		String indexName, OpenSearchIndicesClient openSearchIndicesClient) {
-
-		MappingsFactory mappingsFactory = new MappingsFactory(
-			_jsonFactory, openSearchIndicesClient,
-			_openSearchConfigurationWrapper);
-
-		SettingsFactory settingsFactory = new SettingsFactory(
-			_jsonFactory, _openSearchConfigurationWrapper);
-
-		_createIndex(
-			indexName, mappingsFactory, openSearchIndicesClient,
-			settingsFactory);
-
-		if (Validator.isNull(
-				_openSearchConfigurationWrapper.overrideTypeMappings())) {
-
-			_executeMappingsContributors(indexName, mappingsFactory);
-
-			mappingsFactory.addOptionalDefaultMappings(indexName);
-		}
-
-		_executeIndexContributorsAfterCreate(indexName);
-
-		if (PortalRunMode.isTestMode()) {
-			_setTestModeIndexSettings(
-				settingsFactory.getTestModeIndexSettings(),
-				openSearchIndicesClient);
-		}
-	}
-
-	@Override
 	public void deleteIndex(
 		long companyId, String indexName,
 		OpenSearchIndicesClient openSearchIndicesClient,
 		boolean resetBothIndexNames) {
+
+		_executeCompanyIndexListenersBeforeDelete(indexName);
 
 		try {
 			JsonpUtil.logInfoResponse(
@@ -131,8 +100,8 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	@Override
-	public List<IndexContributor> getIndexContributors() {
-		return _indexContributorServiceTrackerList.toList();
+	public List<CompanyIndexListener> getCompanyIndexListeners() {
+		return _companyIndexListenerServiceTrackerList.toList();
 	}
 
 	@Override
@@ -157,6 +126,38 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	@Override
+	public void initializeIndex(
+		String indexName, OpenSearchIndicesClient openSearchIndicesClient) {
+
+		MappingsFactory mappingsFactory = new MappingsFactory(
+			indexName, _jsonFactory, openSearchIndicesClient,
+			_openSearchConfigurationWrapper);
+
+		SettingsFactory settingsFactory = new SettingsFactory(
+			_jsonFactory, _openSearchConfigurationWrapper);
+
+		_createIndex(
+			indexName, mappingsFactory, openSearchIndicesClient,
+			settingsFactory);
+
+		if (Validator.isNull(
+				_openSearchConfigurationWrapper.overrideTypeMappings())) {
+
+			_executeMappingsContributors(mappingsFactory);
+
+			mappingsFactory.addOptionalDefaultMappings();
+		}
+
+		_executeCompanyIndexListenersAfterCreate(indexName);
+
+		if (PortalRunMode.isTestMode()) {
+			_setTestModeIndexSettings(
+				settingsFactory.getTestModeIndexSettings(),
+				openSearchIndicesClient);
+		}
+	}
+
+	@Override
 	public void updateMaxResultWindow() {
 		int maxResultWindow =
 			_openSearchConfigurationWrapper.indexMaxResultWindow();
@@ -168,40 +169,45 @@ public class IndexHelperImpl implements IndexHelper {
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_indexContributorServiceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, IndexContributor.class);
-
-		_indexSettingsContributorServiceTrackerList =
+		_companyIndexListenerServiceTrackerList =
 			ServiceTrackerListFactory.open(
-				bundleContext, IndexSettingsContributor.class, null,
+				bundleContext, CompanyIndexListener.class);
+
+		_indexConfigurationContributorServiceTrackerList =
+			ServiceTrackerListFactory.open(
+				bundleContext, IndexConfigurationContributor.class, null,
 				new EagerServiceTrackerCustomizer
-					<IndexSettingsContributor, IndexSettingsContributor>() {
+					<IndexConfigurationContributor,
+					 IndexConfigurationContributor>() {
 
 					@Override
-					public IndexSettingsContributor addingService(
-						ServiceReference<IndexSettingsContributor>
+					public IndexConfigurationContributor addingService(
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference) {
 
-						IndexSettingsContributor indexSettingsContributor =
-							bundleContext.getService(serviceReference);
+						IndexConfigurationContributor
+							indexConfigurationContributor =
+								bundleContext.getService(serviceReference);
 
-						_processContributions(indexSettingsContributor);
+						_processContributions(indexConfigurationContributor);
 
-						return indexSettingsContributor;
+						return indexConfigurationContributor;
 					}
 
 					@Override
 					public void modifiedService(
-						ServiceReference<IndexSettingsContributor>
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference,
-						IndexSettingsContributor indexSettingsContributor) {
+						IndexConfigurationContributor
+							indexConfigurationContributor) {
 					}
 
 					@Override
 					public void removedService(
-						ServiceReference<IndexSettingsContributor>
+						ServiceReference<IndexConfigurationContributor>
 							serviceReference,
-						IndexSettingsContributor indexSettingsContributor) {
+						IndexConfigurationContributor
+							indexConfigurationContributor) {
 
 						bundleContext.ungetService(serviceReference);
 					}
@@ -211,13 +217,41 @@ public class IndexHelperImpl implements IndexHelper {
 
 	@Deactivate
 	protected void deactivate() {
-		if (_indexContributorServiceTrackerList != null) {
-			_indexContributorServiceTrackerList.close();
+		if (_companyIndexListenerServiceTrackerList != null) {
+			_companyIndexListenerServiceTrackerList.close();
 		}
 
-		if (_indexSettingsContributorServiceTrackerList != null) {
-			_indexSettingsContributorServiceTrackerList.close();
+		if (_indexConfigurationContributorServiceTrackerList != null) {
+			_indexConfigurationContributorServiceTrackerList.close();
 		}
+	}
+
+	private PutIndicesSettingsRequest _buildPutIndicesSettingsRequest(
+		String indexName, String settings) {
+
+		UpdateIndexSettingsIndexRequest updateIndexSettingsIndexRequest =
+			new UpdateIndexSettingsIndexRequest(indexName);
+
+		PutIndicesSettingsRequest.Builder builder =
+			new PutIndicesSettingsRequest.Builder();
+
+		JsonpMapper jsonpMapper = _openSearchConnectionManager.getJsonpMapper(
+			updateIndexSettingsIndexRequest.getConnectionId());
+
+		JsonProvider jsonProvider = jsonpMapper.jsonProvider();
+
+		try (InputStream inputStream = new ByteArrayInputStream(
+				settings.getBytes(StandardCharsets.UTF_8))) {
+
+			builder.settings(
+				IndexSettings._DESERIALIZER.deserialize(
+					jsonProvider.createParser(inputStream), jsonpMapper));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		return builder.build();
 	}
 
 	private CreateIndexRequest.Builder _createCreateIndexRequestBuilder(
@@ -284,7 +318,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 		JSONObject settingsJSONObject = settingsFactory.getSettingsJSONObject();
 
-		_executeIndexSettingsContributors(settingsJSONObject);
+		_executeIndexConfigurationContributors(settingsJSONObject);
 
 		JSONObject indexJSONObject = settingsJSONObject.getJSONObject("index");
 
@@ -323,38 +357,64 @@ public class IndexHelperImpl implements IndexHelper {
 		return settingsJSONObject;
 	}
 
-	private void _executeIndexContributorAfterCreate(
-		IndexContributor indexContributor, String indexName) {
+	private void _executeCompanyIndexListenerAfterCreate(
+		CompanyIndexListener companyIndexListener, String indexName) {
 
 		try {
-			indexContributor.onAfterCreate(indexName);
+			companyIndexListener.onAfterCreate(indexName);
 		}
 		catch (Throwable throwable) {
 			_log.error(
 				StringBundler.concat(
-					"Unable to apply contributor ", indexContributor,
-					"to index ", indexName),
+					"Unable to apply contributor ", companyIndexListener,
+					" after creating index ", indexName),
 				throwable);
 		}
 	}
 
-	private void _executeIndexContributorsAfterCreate(String indexName) {
-		for (IndexContributor indexContributor :
-				_indexContributorServiceTrackerList) {
+	private void _executeCompanyIndexListenerBeforeDelete(
+		CompanyIndexListener companyIndexListener, String indexName) {
 
-			_executeIndexContributorAfterCreate(indexContributor, indexName);
+		try {
+			companyIndexListener.onBeforeDelete(indexName);
+		}
+		catch (Throwable throwable) {
+			_log.error(
+				StringBundler.concat(
+					"Unable to apply contributor ", companyIndexListener,
+					" before deleting index ", indexName),
+				throwable);
 		}
 	}
 
-	private void _executeIndexSettingsContributors(
+	private void _executeCompanyIndexListenersAfterCreate(String indexName) {
+		for (CompanyIndexListener companyIndexListener :
+				_companyIndexListenerServiceTrackerList) {
+
+			_executeCompanyIndexListenerAfterCreate(
+				companyIndexListener, indexName);
+		}
+	}
+
+	private void _executeCompanyIndexListenersBeforeDelete(String indexName) {
+		for (CompanyIndexListener companyIndexListener :
+				getCompanyIndexListeners()) {
+
+			_executeCompanyIndexListenerBeforeDelete(
+				companyIndexListener, indexName);
+		}
+	}
+
+	private void _executeIndexConfigurationContributors(
 		JSONObject indexSettingsJSONObject) {
 
 		Map<String, String> contributedSettings = new HashMap<>();
 
-		for (IndexSettingsContributor indexSettingsContributor :
-				_indexSettingsContributorServiceTrackerList) {
+		for (IndexConfigurationContributor indexConfigurationContributor :
+				_indexConfigurationContributorServiceTrackerList) {
 
-			indexSettingsContributor.populate(contributedSettings::put);
+			indexConfigurationContributor.contributeSettings(
+				contributedSettings::put);
 		}
 
 		if (MapUtil.isEmpty(contributedSettings)) {
@@ -366,13 +426,11 @@ public class IndexHelperImpl implements IndexHelper {
 			_dotNotationSettingsToJSONObject(contributedSettings));
 	}
 
-	private void _executeMappingsContributors(
-		String indexName, MappingsFactory mappingsFactory) {
+	private void _executeMappingsContributors(MappingsFactory mappingsFactory) {
+		for (IndexConfigurationContributor indexConfigurationContributor :
+				_indexConfigurationContributorServiceTrackerList) {
 
-		for (IndexSettingsContributor indexSettingsContributor :
-				_indexSettingsContributorServiceTrackerList) {
-
-			indexSettingsContributor.contribute(indexName, mappingsFactory);
+			indexConfigurationContributor.contributeMappings(mappingsFactory);
 		}
 	}
 
@@ -389,32 +447,76 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	private void _processContributions(
-		IndexSettingsContributor indexSettingsContributor) {
+		IndexConfigurationContributor indexConfigurationContributor) {
 
-		if (Validator.isNotNull(
-				_openSearchConfigurationWrapper.overrideTypeMappings())) {
+		JSONObject settingsJSONObject = _jsonFactory.createJSONObject();
+
+		indexConfigurationContributor.contributeSettings(
+			settingsJSONObject::put);
+
+		boolean contributeMappings = Validator.isNull(
+			_openSearchConfigurationWrapper.overrideTypeMappings());
+
+		if (!contributeMappings &&
+			settingsJSONObject.keySet(
+			).isEmpty()) {
+
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No mappings or settings to contribute from " +
+						indexConfigurationContributor);
+			}
 
 			return;
 		}
 
+		OpenSearchClient openSearchClient = null;
+
 		try {
-			OpenSearchClient openSearchClient =
+			openSearchClient =
 				_openSearchConnectionManager.getOpenSearchClient();
-
-			MappingsFactory mappingsFactory = new MappingsFactory(
-				_jsonFactory, openSearchClient.indices(),
-				_openSearchConfigurationWrapper);
-
-			_companyLocalService.forEachCompanyId(
-				companyId -> indexSettingsContributor.contribute(
-					getIndexName(companyId), mappingsFactory),
-				IndexFactoryCompanyIdRegistryUtil.getCompanyIds());
 		}
 		catch (OpenSearchConnectionNotInitializedException
 					openSearchConnectionNotInitializedException) {
 
 			_log.error(openSearchConnectionNotInitializedException);
+
+			return;
 		}
+
+		OpenSearchIndicesClient openSearchIndicesClient =
+			openSearchClient.indices();
+
+		_companyLocalService.forEachCompanyId(
+			companyId -> {
+				String indexName = getIndexName(companyId);
+
+				if (!settingsJSONObject.keySet(
+					).isEmpty()) {
+
+					try {
+						openSearchIndicesClient.putSettings(
+							_buildPutIndicesSettingsRequest(
+								indexName, settingsJSONObject.toString()));
+					}
+					catch (Exception exception) {
+						_log.error(
+							StringBundler.concat(
+								"Unable to put settings for index ", indexName,
+								" with contributor ",
+								indexConfigurationContributor),
+							exception);
+					}
+				}
+
+				if (contributeMappings) {
+					indexConfigurationContributor.contributeMappings(
+						new MappingsFactory(
+							indexName, _jsonFactory, openSearchIndicesClient,
+							_openSearchConfigurationWrapper));
+				}
+			},
+			IndexFactoryCompanyIdRegistryUtil.getCompanyIds());
 	}
 
 	private void _setTestModeIndexSettings(
@@ -435,15 +537,28 @@ public class IndexHelperImpl implements IndexHelper {
 	private void _updateMaxResultWindow(long companyId, int maxResultWindow) {
 		String indexName = _indexNameBuilder.getIndexName(companyId);
 
-		UpdateIndexSettingsIndexRequest updateIndexSettingsIndexRequest =
-			new UpdateIndexSettingsIndexRequest(indexName);
+		try {
+			OpenSearchClient openSearchClient =
+				_openSearchConnectionManager.getOpenSearchClient();
 
-		updateIndexSettingsIndexRequest.setSettings(
-			JSONUtil.put(
-				"index", JSONUtil.put("max_result_window", maxResultWindow)
-			).toString());
+			OpenSearchIndicesClient openSearchIndicesClient =
+				openSearchClient.indices();
 
-		_searchEngineAdapter.execute(updateIndexSettingsIndexRequest);
+			openSearchIndicesClient.putSettings(
+				_buildPutIndicesSettingsRequest(
+					indexName,
+					JSONUtil.put(
+						"index",
+						JSONUtil.put("max_result_window", maxResultWindow)
+					).toString()));
+		}
+		catch (Exception exception) {
+			_log.error(
+				StringBundler.concat(
+					"Failed to update index.max_result_window to ",
+					maxResultWindow, " for index ", indexName),
+				exception);
+		}
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -456,17 +571,17 @@ public class IndexHelperImpl implements IndexHelper {
 	private static final Log _log = LogFactoryUtil.getLog(
 		IndexHelperImpl.class);
 
+	private ServiceTrackerList<CompanyIndexListener>
+		_companyIndexListenerServiceTrackerList;
+
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
-	private ServiceTrackerList<IndexContributor>
-		_indexContributorServiceTrackerList;
+	private ServiceTrackerList<IndexConfigurationContributor>
+		_indexConfigurationContributorServiceTrackerList;
 
 	@Reference
 	private IndexNameBuilder _indexNameBuilder;
-
-	private ServiceTrackerList<IndexSettingsContributor>
-		_indexSettingsContributorServiceTrackerList;
 
 	@Reference
 	private JSONFactory _jsonFactory;
@@ -476,8 +591,5 @@ public class IndexHelperImpl implements IndexHelper {
 
 	@Reference
 	private OpenSearchConnectionManager _openSearchConnectionManager;
-
-	@Reference
-	private SearchEngineAdapter _searchEngineAdapter;
 
 }

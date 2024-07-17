@@ -20,15 +20,12 @@ import {
 	patchSKUById,
 	updateProductSpecification,
 } from '../../../../../../utils/api';
-import {
-	createSkuName,
-	getSkuPrice,
-	getTemporaryProductIdForSpefication,
-} from '../../../../../../utils/util';
+import {createSkuName, getSkuPrice} from '../../../../../../utils/util';
 import {useAppContext} from '../AppContext/AppManageState';
 import {TYPES} from '../AppContext/actionTypes';
 
 import './InformLicensingTermsPage.scss';
+import useFeaturePreview from '../../../../../../hooks/useFeaturePreview';
 import {Liferay} from '../../../../../../liferay/liferay';
 
 type InformLicensingTermsPageProps = {
@@ -58,9 +55,11 @@ export function InformLicensingTermsPage({
 		dispatch,
 	] = useAppContext();
 
+	const {getTemporaryProductIdForSpefication} = useFeaturePreview();
+
 	const _tempProductId = getTemporaryProductIdForSpefication({
 		appId,
-		appProductId,
+		productId: appProductId,
 	});
 
 	const [isProcessing, setProcessing] = useState(false);
@@ -101,9 +100,8 @@ export function InformLicensingTermsPage({
 	};
 
 	const submitLicenseTermsPage = async () => {
-		const {
-			items: skus,
-		} = await HeadlessCommerceAdminCatalogImpl.getProductSkus(appProductId);
+		const {items: skus} =
+			await HeadlessCommerceAdminCatalogImpl.getProductSkus(appProductId);
 
 		for (const sku of skus) {
 			const freeOrPerpertual =

@@ -24,6 +24,7 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.petra.function.UnsafeBiFunction;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.Column;
+import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.spi.expression.DefaultPredicate;
 import com.liferay.petra.sql.dsl.spi.expression.Operand;
@@ -363,7 +364,11 @@ public class PredicateExpressionVisitorImpl
 	}
 
 	private Predicate _contains(Column<?, ?> column, Object value) {
-		return column.like(StringPool.PERCENT + value + StringPool.PERCENT);
+		return DSLFunctionFactoryUtil.castText(
+			column
+		).like(
+			StringPool.PERCENT + value + StringPool.PERCENT
+		);
 	}
 
 	private Predicate _contains(
@@ -641,19 +646,11 @@ public class PredicateExpressionVisitorImpl
 			 Objects.equals(entityType, EntityField.Type.DATE_TIME)) &&
 			(Objects.equals(DBManagerUtil.getDBType(), DBType.DB2) ||
 			 Objects.equals(DBManagerUtil.getDBType(), DBType.HYPERSONIC) ||
-			 Objects.equals(DBManagerUtil.getDBType(), DBType.ORACLE)) &&
+			 Objects.equals(DBManagerUtil.getDBType(), DBType.ORACLE) ||
+			 Objects.equals(DBManagerUtil.getDBType(), DBType.POSTGRESQL)) &&
 			Validator.isNotNull(right)) {
 
-			String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-
-			if (Objects.equals(DBManagerUtil.getDBType(), DBType.ORACLE)) {
-				pattern = "dd-MMM-yyyy hh:mm:ss.SSS a";
-			}
-
 			try {
-				Format format = FastDateFormatFactoryUtil.getSimpleDateFormat(
-					pattern);
-
 				String value = right.toString();
 
 				DateFormat dateFormat =
@@ -662,7 +659,25 @@ public class PredicateExpressionVisitorImpl
 
 				Date date = dateFormat.parse(value);
 
-				right = format.format(date);
+				if (Objects.equals(
+						DBManagerUtil.getDBType(), DBType.POSTGRESQL)) {
+
+					right = date;
+				}
+				else {
+					String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+
+					if (Objects.equals(
+							DBManagerUtil.getDBType(), DBType.ORACLE)) {
+
+						pattern = "dd-MMM-yyyy hh:mm:ss.SSS a";
+					}
+
+					Format format =
+						FastDateFormatFactoryUtil.getSimpleDateFormat(pattern);
+
+					right = format.format(date);
+				}
 			}
 			catch (ParseException parseException) {
 				throw new RuntimeException(parseException);
@@ -702,6 +717,12 @@ public class PredicateExpressionVisitorImpl
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(portalException);
+			}
+
+			if (Objects.equals(entityType, EntityField.Type.ID) &&
+				Validator.isNumber(String.valueOf(right))) {
+
+				return GetterUtil.getLong(right);
 			}
 
 			return right;
@@ -749,7 +770,11 @@ public class PredicateExpressionVisitorImpl
 	}
 
 	private Predicate _startsWith(Column<?, ?> column, Object value) {
-		return column.like(value + StringPool.PERCENT);
+		return DSLFunctionFactoryUtil.castText(
+			column
+		).like(
+			value + StringPool.PERCENT
+		);
 	}
 
 	private Predicate _startsWith(

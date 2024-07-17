@@ -58,9 +58,8 @@ function EditItem() {
 	const [options, setOptions] = useState([]);
 	const [quantity, setQuantity] = useState(1);
 	const [quantitySelectorErrors, setQuantitySelectorErrors] = useState(false);
-	const [skuOptionsAtomState, setSkuOptionsAtomState] = useLiferayState(
-		skuOptionsAtom
-	);
+	const [skuOptionsAtomState, setSkuOptionsAtomState] =
+		useLiferayState(skuOptionsAtom);
 	const [skuUnitOfMeasure, setSkuUnitOfMeasure] = useState(null);
 
 	const {miniCartErrors} = skuOptionsAtomState;
@@ -213,7 +212,7 @@ function EditItem() {
 				? {
 						...cartItem,
 						...formattedCartItem,
-				  }
+					}
 				: cartItem
 		);
 
@@ -569,11 +568,7 @@ const PriceRows = ({price}) => {
 						priceName={Liferay.Language.get('price-as-configured')}
 					>
 						<span className="text-7">
-							{hasDiscountPercentage
-								? price.finalPriceFormatted
-								: hasPromoPrice
-								? price.promoPriceFormatted
-								: price.priceFormatted}
+							{price.finalPriceFormatted}
 						</span>
 					</PriceRow>
 				</div>

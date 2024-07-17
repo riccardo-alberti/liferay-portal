@@ -284,7 +284,8 @@ public class JournalArticleStagedModelDataHandlerTest
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-				stagingGroup.getCreatorUserId(), stagingGroup.getGroupId(), 0,
+				null, stagingGroup.getCreatorUserId(),
+				stagingGroup.getGroupId(), 0,
 				_portal.getClassNameId(JournalArticle.class.getName()),
 				ddmStructure.getStructureId(), RandomTestUtil.randomString(),
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,
@@ -314,7 +315,7 @@ public class JournalArticleStagedModelDataHandlerTest
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				layoutPageTemplateStructure.getUserId(),
+				null, layoutPageTemplateStructure.getUserId(),
 				stagingGroup.getGroupId(), 0, 0, defaultSegmentsExperienceId,
 				layoutPageTemplateStructure.getPlid(), StringPool.BLANK,
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
@@ -520,7 +521,8 @@ public class JournalArticleStagedModelDataHandlerTest
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-				stagingGroup.getCreatorUserId(), stagingGroup.getGroupId(), 0,
+				null, stagingGroup.getCreatorUserId(),
+				stagingGroup.getGroupId(), 0,
 				_portal.getClassNameId(JournalArticle.class.getName()),
 				ddmStructure.getStructureId(), RandomTestUtil.randomString(),
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,

@@ -11,9 +11,11 @@ import {ViewObjectDefinitionsPage} from './ViewObjectDefinitionsPage';
 export class ModelBuilderPage {
 	readonly addObjectFieldButton: Locator;
 	readonly createNewObjectDefinitionButton: Locator;
+	readonly deleteButton: Locator;
 	readonly deleteObjectDefinitionOption: Locator;
 	readonly deleteObjectRelationshipButton: Locator;
 	readonly deleteTrashButton: Locator;
+	readonly editInPageViewOption: Locator;
 	readonly editObjectFolderDetailsButton: Locator;
 	readonly fitViewButton: Locator;
 	readonly goToFolderButton: Locator;
@@ -33,6 +35,7 @@ export class ModelBuilderPage {
 	readonly newObjectRelationshipSaveButton: Locator;
 	readonly objectDefinitionNodes: Locator;
 	readonly objectRelationshipEdges: Locator;
+	readonly openPageViewButton: Locator;
 	readonly otherObjectFolders: Locator;
 	readonly page: Page;
 	readonly rightSidebar: Locator;
@@ -47,6 +50,7 @@ export class ModelBuilderPage {
 		});
 		this.createNewObjectDefinitionButton =
 			page.getByText('Create New Object');
+		this.deleteButton = page.getByTitle('Delete');
 		this.deleteObjectDefinitionOption = page.getByRole('menuitem', {
 			name: 'Delete Object',
 		});
@@ -56,6 +60,9 @@ export class ModelBuilderPage {
 		this.deleteTrashButton = page
 			.getByRole('tabpanel')
 			.getByTitle('Delete');
+		this.editInPageViewOption = page.getByRole('menuitem', {
+			name: 'Edit in page view',
+		});
 		this.editObjectFolderDetailsButton = page.locator(
 			'button[name=editObjectFolderButton]'
 		);
@@ -115,6 +122,9 @@ export class ModelBuilderPage {
 		this.viewObjectDefinitionsPage = new ViewObjectDefinitionsPage(page);
 		this.objectDefinitionNodes = page.locator('.react-flow__node');
 		this.objectRelationshipEdges = page.locator('.react-flow__edge');
+		this.openPageViewButton = page.getByRole('button', {
+			name: 'Open Page View',
+		});
 		this.otherObjectFolders = page
 			.getByRole('region')
 			.filter({has: page.getByTitle('Go to Folder')});
@@ -130,20 +140,11 @@ export class ModelBuilderPage {
 		this.toggleSidebarsButton = page.getByLabel('Toggle Sidebars');
 	}
 
-	async clickDeleteObjectDefinition() {
-		this.deleteObjectDefinitionOption.click();
-	}
-
-	async clickDeleteObjectRelationshipButton() {
-		this.deleteObjectRelationshipButton.click();
-	}
-
-	async clickFitViewButton() {
-		this.fitViewButton.click({force: true});
-	}
-
-	async clickGoToFolderButton() {
-		this.goToFolderButton.click();
+	async clickHideFieldsButton(objectDefinitionName: string) {
+		await this.objectDefinitionNodes
+			.filter({hasText: objectDefinitionName})
+			.getByRole('button', {name: 'Hide Fields'})
+			.click();
 	}
 
 	async clickLeftSideBarItem(objectDefinitionLabel: string) {
@@ -169,22 +170,31 @@ export class ModelBuilderPage {
 	}
 
 	async clickObjectRelationshipEdge(objectRelationshipLabel: string) {
-		this.objectRelationshipEdges
+		await this.objectRelationshipEdges
 			.filter({hasText: objectRelationshipLabel})
 			.click();
 	}
 
-	async clickObjectDefinitionShowAllFieldsButton(
-		objectDefinitionLabel: string
-	) {
+	async clickShowAllFieldsButton(objectDefinitionName: string) {
 		await this.objectDefinitionNodes
-			.filter({hasText: objectDefinitionLabel})
+			.filter({hasText: objectDefinitionName})
 			.getByRole('button', {name: 'Show All Fields'})
 			.click();
 	}
 
-	async clickToggleSidebarsButton() {
-		this.toggleSidebarsButton.click();
+	async connectObjectDefinitionsNodeHandles(
+		objectDefinitionId1: number,
+		objectDefinitionId2: number
+	) {
+		await this.getObjectDefinitionNodeRelationshipHandle(
+			objectDefinitionId1,
+			'right'
+		).dragTo(
+			this.getObjectDefinitionNodeRelationshipHandle(
+				objectDefinitionId2,
+				'left'
+			)
+		);
 	}
 
 	async createObjectField({
@@ -219,35 +229,10 @@ export class ModelBuilderPage {
 		await this.newObjectFieldSaveButton.click();
 	}
 
-	async fillNewObjectFieldLabel(objectFieldLabel: string) {
-		await this.newObjectFieldLabel.fill(objectFieldLabel);
-	}
-
-	async selectNewObjectFieldBusinessTypeOption(
-		objectFieldBusinessType: string
-	) {
-		await this.newObjectFieldSelectBusinessType.click();
-		await this.page
-			.getByRole('option', {exact: true, name: objectFieldBusinessType})
-			.click();
-	}
-
 	async createObjectRelationship(
-		objectDefinitionId1: number,
-		objectDefinitionId2: number,
 		objectRelationshipLabel: string,
 		type: string
 	) {
-		await this.getObjectDefinitionNodeRelationshipHandle(
-			objectDefinitionId1,
-			'right'
-		).dragTo(
-			this.getObjectDefinitionNodeRelationshipHandle(
-				objectDefinitionId2,
-				'left'
-			)
-		);
-
 		await expect(this.newObjectRelationshipTitle).toBeVisible();
 
 		await this.newObjectRelationshipLabel.fill(objectRelationshipLabel);
@@ -280,6 +265,32 @@ export class ModelBuilderPage {
 		await this.modalDeleteObjectRelationshipConfirmationButton.click();
 	}
 
+	async fillNewObjectFieldLabel(objectFieldLabel: string) {
+		await this.newObjectFieldLabel.fill(objectFieldLabel);
+	}
+
+	async openNewFieldModal(objectDefinitionName: string) {
+		await this.leftSidebarItems
+			.filter({hasText: objectDefinitionName})
+			.click();
+
+		await this.objectDefinitionNodes
+			.filter({hasText: objectDefinitionName})
+			.getByRole('button', {name: 'Add Field or Relationship'})
+			.click();
+
+		await this.addObjectFieldButton.click();
+	}
+
+	async selectNewObjectFieldBusinessTypeOption(
+		objectFieldBusinessType: string
+	) {
+		await this.newObjectFieldSelectBusinessType.click();
+		await this.page
+			.getByRole('option', {exact: true, name: objectFieldBusinessType})
+			.click();
+	}
+
 	getLinkedObjectDefinitionIconLocator = (objectDefinitionLabel: string) => {
 		return this.objectDefinitionNodes
 			.filter({
@@ -305,19 +316,6 @@ export class ModelBuilderPage {
 
 	getObjectFolderERCHeaderLocator(objectFolderERC: string) {
 		return this.page.getByTitle(`ERC: ${objectFolderERC}`);
-	}
-
-	async openNewFieldModal(objectDefinitionName: string) {
-		await this.leftSidebarItems
-			.filter({hasText: objectDefinitionName})
-			.click();
-
-		await this.objectDefinitionNodes
-			.filter({hasText: objectDefinitionName})
-			.getByRole('button', {name: 'Add Field or Relationship'})
-			.click();
-
-		await this.addObjectFieldButton.click();
 	}
 
 	getObjectFolderLabelHeaderLocator = (objectFolderLabel: string) => {

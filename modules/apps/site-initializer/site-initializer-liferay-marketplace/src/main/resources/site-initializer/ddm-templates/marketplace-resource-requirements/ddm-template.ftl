@@ -33,11 +33,19 @@
 		<#assign
 			specificationCPUs = specifications?filter(item -> stringUtil.equals(item.specificationKey, "cpu"))
 			specificationRAMs = specifications?filter(item -> stringUtil.equals(item.specificationKey, "ram"))
-			 cpuQuantity = ""
-				  memoryQuantity = ""
+			cpuQuantity = ""
+			memoryQuantity = ""
 		/>
 
 		<#if specificationCPUs?has_content>
+			<script>
+				var resourceRequirements = document.querySelector(".resource-requirements")
+
+				if (resourceRequirements) {
+					resourceRequirements.classList.remove("d-none")
+				}
+			</script>
+
 		 	<#list specificationCPUs as cpu>
 				<#assign cpuQuantity = cpu.value />
 

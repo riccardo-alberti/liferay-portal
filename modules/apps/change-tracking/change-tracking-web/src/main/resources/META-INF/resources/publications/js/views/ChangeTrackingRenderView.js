@@ -20,6 +20,7 @@ import {
 	fetch,
 	navigate as navigateUtil,
 	openConfirmModal,
+	openSimpleInputModal,
 	openToast,
 } from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
@@ -113,10 +114,10 @@ const LocalizationDropdown = ({
 													defaultLocale.label
 														? Liferay.Language.get(
 																'default'
-														  )
+															)
 														: Liferay.Language.get(
 																'translated'
-														  )}
+															)}
 												</ClayLabel>
 											</ClayLayout.ContentSection>
 										</ClayLayout.ContentCol>
@@ -164,14 +165,10 @@ export default function ChangeTrackingRenderView({
 	const [loading, setLoading] = useState(false);
 	const [refresh, setRefresh] = useState({});
 	const [selectedLocale, setSelectedLocale] = useState(defaultLocale);
-	const [
-		selectedSegmentsExperienceId,
-		setSelectedSegmentsExperienceId,
-	] = useState(null);
-	const [
-		showWorkflowSuccessMessage,
-		setShowWorkflowSuccessMessage,
-	] = useState(false);
+	const [selectedSegmentsExperienceId, setSelectedSegmentsExperienceId] =
+		useState(null);
+	const [showWorkflowSuccessMessage, setShowWorkflowSuccessMessage] =
+		useState(false);
 	const [state, setState] = useState({
 		contentType: CONTENT_TYPE_PREVIEW,
 		renderData: null,
@@ -236,6 +233,7 @@ export default function ChangeTrackingRenderView({
 
 				if (
 					newState.view === VIEW_UNIFIED &&
+					newState.contentType !== CONTENT_TYPE_WORKFLOW &&
 					((newState.contentType === CONTENT_TYPE_RENDER &&
 						!Object.prototype.hasOwnProperty.call(
 							json,
@@ -371,10 +369,9 @@ export default function ChangeTrackingRenderView({
 				return (
 					<div
 						dangerouslySetInnerHTML={{
-							__html:
-								state.renderData.leftLocalizedRender[
-									currentLocale.label
-								],
+							__html: state.renderData.leftLocalizedRender[
+								currentLocale.label
+							],
 						}}
 					/>
 				);
@@ -420,10 +417,9 @@ export default function ChangeTrackingRenderView({
 				return (
 					<div
 						dangerouslySetInnerHTML={{
-							__html:
-								state.renderData.leftLocalizedPreview[
-									currentLocale.label
-								],
+							__html: state.renderData.leftLocalizedPreview[
+								currentLocale.label
+							],
 						}}
 					/>
 				);
@@ -492,10 +488,9 @@ export default function ChangeTrackingRenderView({
 				return (
 					<div
 						dangerouslySetInnerHTML={{
-							__html:
-								state.renderData.rightLocalizedRender[
-									currentLocale.label
-								],
+							__html: state.renderData.rightLocalizedRender[
+								currentLocale.label
+							],
 						}}
 					/>
 				);
@@ -541,10 +536,9 @@ export default function ChangeTrackingRenderView({
 				return (
 					<div
 						dangerouslySetInnerHTML={{
-							__html:
-								state.renderData.rightLocalizedPreview[
-									currentLocale.label
-								],
+							__html: state.renderData.rightLocalizedPreview[
+								currentLocale.label
+							],
 						}}
 					/>
 				);
@@ -599,10 +593,9 @@ export default function ChangeTrackingRenderView({
 					<div className="taglib-diff-html">
 						<div
 							dangerouslySetInnerHTML={{
-								__html:
-									state.renderData.unifiedLocalizedRender[
-										currentLocale.label
-									],
+								__html: state.renderData.unifiedLocalizedRender[
+									currentLocale.label
+								],
 							}}
 						/>
 					</div>
@@ -652,10 +645,10 @@ export default function ChangeTrackingRenderView({
 					<div className="taglib-diff-html">
 						<div
 							dangerouslySetInnerHTML={{
-								__html:
-									state.renderData.unifiedLocalizedPreview[
-										currentLocale.label
-									],
+								__html: state.renderData
+									.unifiedLocalizedPreview[
+									currentLocale.label
+								],
 							}}
 						/>
 					</div>
@@ -681,6 +674,31 @@ export default function ChangeTrackingRenderView({
 		);
 	};
 
+	const openWorkflowAssignModal = (href, label, modalHeight) => {
+		Liferay.Util.openModal({
+			center: true,
+			customEvents: [
+				{
+					name: `${namespace}workflowTaskUpdated`,
+					onEvent() {
+						const iframe = document.querySelector(
+							'.liferay-modal iframe'
+						);
+
+						iframe.contentWindow.location.reload();
+
+						setShowWorkflowSuccessMessage(true);
+					},
+				},
+			],
+			height: modalHeight,
+			onOpen: () => setShowWorkflowSuccessMessage(false),
+			size: 'lg',
+			title: label,
+			url: href,
+		});
+	};
+
 	const renderWorkflowView = () => {
 		if (
 			state.contentType === CONTENT_TYPE_WORKFLOW &&
@@ -691,6 +709,7 @@ export default function ChangeTrackingRenderView({
 		) {
 			return (
 				<ChangeTrackingWorkflowView
+					openWorkflowAssignModal={openWorkflowAssignModal}
 					workflowData={state.renderData.workflowData}
 				/>
 			);
@@ -816,34 +835,66 @@ export default function ChangeTrackingRenderView({
 
 		const workflowActionsDropdownItems = [];
 
-		state.renderData.workflowActions?.forEach((workflowAction) => {
-			workflowActionsDropdownItems.push({
-				label: workflowAction.label,
-				onClick: () =>
-					Liferay.Util.openModal({
-						center: true,
-						customEvents: [
-							{
-								name: `${namespace}workflowTaskUpdated`,
-								onEvent() {
-									const iframe = document.querySelector(
-										'.liferay-modal iframe'
-									);
+		state.renderData.workflowActions?.forEach((workflowAction, i) => {
+			if (workflowAction.modalHeight) {
+				workflowActionsDropdownItems.push({
+					label: workflowAction.label,
+					onClick: () =>
+						Liferay.Util.openModal({
+							center: true,
+							customEvents: [
+								{
+									name: `${namespace}workflowTaskUpdated`,
+									onEvent() {
+										const iframe = document.querySelector(
+											'.liferay-modal iframe'
+										);
 
-									iframe.contentWindow.location.reload();
+										iframe.contentWindow.location.reload();
 
-									setShowWorkflowSuccessMessage(true);
+										setShowWorkflowSuccessMessage(true);
+									},
 								},
-							},
-						],
-						height: workflowAction.modalHeight,
-						onOpen: () => setShowWorkflowSuccessMessage(false),
-						size: 'lg',
-						title: workflowAction.label,
-						url: workflowAction.href,
-					}),
-				symbolLeft: 'workflow',
-			});
+							],
+							height: workflowAction.modalHeight,
+							onOpen: () => setShowWorkflowSuccessMessage(false),
+							size: 'lg',
+							title: workflowAction.label,
+							url: workflowAction.href,
+						}),
+					symbolLeft: 'workflow',
+				});
+			}
+			else {
+				workflowActionsDropdownItems.push({
+					id: `${namespace}${i}taskChangeStatusLink`,
+					label: workflowAction.label,
+					onClick: () => {
+						setShowWorkflowSuccessMessage(false);
+
+						openSimpleInputModal({
+							buttonSubmitLabel: Liferay.Language.get('done'),
+							center: true,
+							dialogTitle: workflowAction.label,
+							formSubmitURL: workflowAction.href,
+							mainFieldComponent: 'textarea',
+							mainFieldLabel: Liferay.Language.get('comment'),
+							mainFieldName: 'comment',
+							mainFieldPlaceholder:
+								Liferay.Language.get('comment'),
+							namespace,
+							onFormSuccess: () =>
+								setTimeout(
+									() => setShowWorkflowSuccessMessage(true),
+									250
+								),
+							required: false,
+							size: 'lg',
+						});
+					},
+					symbolLeft: 'workflow',
+				});
+			}
 		});
 
 		if (workflowActionsDropdownItems.length) {
@@ -1114,7 +1165,7 @@ export default function ChangeTrackingRenderView({
 				currentTypeName = node.typeName;
 
 				rows.push(
-					<ClayTable.Row divider>
+					<ClayTable.Row divider key={node.typeName}>
 						<ClayTable.Cell>{node.typeName}</ClayTable.Cell>
 					</ClayTable.Row>
 				);
@@ -1123,6 +1174,7 @@ export default function ChangeTrackingRenderView({
 			rows.push(
 				<ClayTable.Row
 					className="cursor-pointer"
+					key={node.nodeId}
 					onClick={() => handleNavigation(node.nodeId)}
 				>
 					<ClayTable.Cell>
@@ -1175,6 +1227,7 @@ export default function ChangeTrackingRenderView({
 
 		return (
 			<ClayTable
+				borderless
 				className={classNames('publications-render-view', {
 					'publications-table':
 						state.contentType === CONTENT_TYPE_PARENTS ||
@@ -1184,6 +1237,7 @@ export default function ChangeTrackingRenderView({
 					state.contentType === CONTENT_TYPE_PARENTS ||
 					state.contentType === CONTENT_TYPE_CHILDREN
 				}
+				striped={state.contentType !== CONTENT_TYPE_WORKFLOW}
 			>
 				<ClayTable.Head>{renderToolbar()}</ClayTable.Head>
 
@@ -1236,9 +1290,11 @@ export default function ChangeTrackingRenderView({
 						getTableRows(state.children)}
 
 					{state.contentType === CONTENT_TYPE_WORKFLOW && (
-						<td className="publications-render-view-content">
-							{renderWorkflowView()}
-						</td>
+						<tr>
+							<td className="publications-render-view-content">
+								{renderWorkflowView()}
+							</td>
+						</tr>
 					)}
 				</ClayTable.Body>
 			</ClayTable>
@@ -1330,7 +1386,7 @@ export default function ChangeTrackingRenderView({
 						)
 							? Liferay.Language.get(
 									'item-does-not-have-a-content-display'
-							  )
+								)
 							: ''
 					}
 				>
@@ -1378,7 +1434,7 @@ export default function ChangeTrackingRenderView({
 								? ''
 								: Liferay.Language.get(
 										'item-does-not-have-any-parents'
-								  )
+									)
 						}
 					>
 						{Liferay.Language.get('parents')}
@@ -1404,7 +1460,7 @@ export default function ChangeTrackingRenderView({
 								? ''
 								: Liferay.Language.get(
 										'item-does-not-have-any-children'
-								  )
+									)
 						}
 					>
 						{Liferay.Language.get('children')}
@@ -1424,7 +1480,6 @@ export default function ChangeTrackingRenderView({
 							setState((prevState) => ({
 								...prevState,
 								contentType: CONTENT_TYPE_WORKFLOW,
-								view: VIEW_UNIFIED,
 							}))
 						}
 					>
@@ -1525,7 +1580,12 @@ export default function ChangeTrackingRenderView({
 							{Liferay.FeatureFlags['LPD-10703'] ? (
 								<>
 									<WorkflowStatusLabel
-										workflowStatus={workflowStatus}
+										workflowStatus={
+											state.renderData.workflowData
+												? state.renderData.workflowData
+														.status
+												: workflowStatus
+										}
 									/>
 								</>
 							) : null}

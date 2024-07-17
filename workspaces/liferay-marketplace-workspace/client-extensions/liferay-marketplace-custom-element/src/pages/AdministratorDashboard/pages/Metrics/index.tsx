@@ -8,6 +8,8 @@ import {useMemo} from 'react';
 import useSWR from 'swr';
 
 import ErrorBoundary from '../../../../components/ErrorBoundary';
+import SearchBuilder from '../../../../core/SearchBuilder';
+import {ORDER_TYPES} from '../../../../enums/Order';
 import i18n from '../../../../i18n';
 import HeadlessCommerceAdminOrderImpl from '../../../../services/rest/HeadlessCommerceAdminOrder';
 import InfoCard from '../../components/InfoCard';
@@ -42,8 +44,12 @@ const Metrics = () => {
 		() =>
 			HeadlessCommerceAdminOrderImpl.getOrders(
 				new URLSearchParams({
+					filter: SearchBuilder.in('orderTypeExternalReferenceCode', [
+						ORDER_TYPES.CLOUDAPP,
+						ORDER_TYPES.DXPAPP,
+					]),
 					nestedFields: 'account,orderItems',
-					pageSize: '15',
+					pageSize: '30',
 					sort: 'createDate:desc',
 				})
 			)
@@ -52,11 +58,11 @@ const Metrics = () => {
 	const infoCard = useMemo(
 		() => [
 			{
-				growth: accounts?.growth,
-				growthContext: `+${accounts?.lastPeriod} this week `,
+				growth: accounts?.growth ?? 0,
+				growthContext: `+${accounts?.lastPeriod ?? 0} this week `,
 				symbol: 'users',
 				title: i18n.translate('accounts'),
-				value: accounts?.totalCount,
+				value: accounts?.totalCount ?? 0,
 			},
 			{
 				symbol: 'dollar-symbol',
@@ -69,16 +75,16 @@ const Metrics = () => {
 				value: getTotalAmountCurrency(orderMetrics?.paidAmount),
 			},
 			{
-				growth: orderMetrics?.growth,
-				growthContext: `+${orderMetrics?.lastPeriod} this week `,
+				growth: orderMetrics?.growth ?? 0,
+				growthContext: `+${orderMetrics?.lastPeriod ?? 0} this week `,
 				symbol: 'shopping-cart',
 				title: i18n.translate('orders'),
-				value: orderMetrics?.totalCount,
+				value: orderMetrics?.totalCount ?? 0,
 			},
 			{
 				symbol: 'analytics',
 				title: 'Site Visitors',
-				value: visitorsMetric,
+				value: visitorsMetric ?? 0,
 			},
 		],
 		[

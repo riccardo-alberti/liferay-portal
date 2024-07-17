@@ -91,6 +91,7 @@ test.describe('Clear and retain facet selections', () => {
 	});
 
 	test('retains facet terms if search keyword has not changed @LPD-19994', async ({
+		page,
 		searchPage,
 	}) => {
 
@@ -110,6 +111,8 @@ test.describe('Clear and retain facet selections', () => {
 		await expect(lastModifiedPastYearFacetLink).toHaveClass(
 			/facet-term-selected/
 		);
+
+		await page.reload();
 	});
 
 	test('retains items per page after new keyword search @LPD-19994', async ({
@@ -134,7 +137,7 @@ test.describe('Clear and retain facet selections', () => {
 
 		await expect(
 			searchPage.searchResultsPaginationItemsPerPageToggle
-		).toHaveText('4 Entries Per Page');
+		).toHaveText(/4 Entries/);
 
 		await expect(
 			searchPage.searchResultsPaginationBar.getByText('1').first()

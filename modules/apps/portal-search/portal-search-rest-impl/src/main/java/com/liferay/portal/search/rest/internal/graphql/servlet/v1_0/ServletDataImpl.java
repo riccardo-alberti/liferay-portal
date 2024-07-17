@@ -40,6 +40,9 @@ public class ServletDataImpl implements ServletData {
 			_searchResultResourceComponentServiceObjects);
 		Mutation.setSuggestionResourceComponentServiceObjects(
 			_suggestionResourceComponentServiceObjects);
+
+		Query.setSearchResultResourceComponentServiceObjects(
+			_searchResultResourceComponentServiceObjects);
 	}
 
 	public String getApplicationName() {
@@ -53,7 +56,7 @@ public class ServletDataImpl implements ServletData {
 
 	@Override
 	public String getPath() {
-		return "/portal-search-rest-graphql/v1_0";
+		return "/search-graphql/v1_0";
 	}
 
 	@Override
@@ -85,6 +88,11 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							SuggestionResourceImpl.class,
 							"postSuggestionsPage"));
+
+					put(
+						"query#search",
+						new ObjectValuePair<>(
+							SearchResultResourceImpl.class, "getSearchPage"));
 				}
 			};
 

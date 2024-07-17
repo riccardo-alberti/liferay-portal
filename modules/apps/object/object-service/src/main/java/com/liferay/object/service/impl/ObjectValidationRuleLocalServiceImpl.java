@@ -11,6 +11,7 @@ import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectValidationRuleConstants;
 import com.liferay.object.constants.ObjectValidationRuleSettingConstants;
 import com.liferay.object.definition.util.ObjectDefinitionUtil;
+import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.exception.DuplicateObjectValidationRuleExternalReferenceCodeException;
 import com.liferay.object.exception.ObjectValidationRuleEngineException;
 import com.liferay.object.exception.ObjectValidationRuleNameException;
@@ -42,9 +43,9 @@ import com.liferay.object.validation.rule.ObjectValidationRuleEngineRegistry;
 import com.liferay.object.validation.rule.ObjectValidationRuleResult;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.Column;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
@@ -366,7 +367,10 @@ public class ObjectValidationRuleLocalServiceImpl
 			JSONObject payloadJSONObject, long userId)
 		throws PortalException {
 
-		if (baseModel == null) {
+		if ((baseModel == null) ||
+			ObjectEntryThreadLocal.isValidatedObjectEntry(
+				(long)baseModel.getPrimaryKeyObj())) {
+
 			return;
 		}
 
@@ -491,6 +495,9 @@ public class ObjectValidationRuleLocalServiceImpl
 					new ObjectValidationRuleResult(errorMessage));
 			}
 		}
+
+		ObjectEntryThreadLocal.addValidatedObjectEntryId(
+			(long)baseModel.getPrimaryKeyObj());
 
 		if (ListUtil.isNotEmpty(objectValidationRuleResults)) {
 			throw new ObjectValidationRuleEngineException(
@@ -638,6 +645,19 @@ public class ObjectValidationRuleLocalServiceImpl
 				"Invalid output type " + outputType);
 		}
 
+		if (!_objectValidationRuleEngineRegistry.hasObjectValidationRuleEngine(
+				companyId, engine)) {
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					StringBundler.concat(
+						"No object validation rule engine is registered with ",
+						"key ", engine));
+			}
+
+			return;
+		}
+
 		ObjectValidationRuleEngine objectValidationRuleEngine =
 			_objectValidationRuleEngineRegistry.getObjectValidationRuleEngine(
 				companyId, engine);
@@ -698,13 +718,9 @@ public class ObjectValidationRuleLocalServiceImpl
 		}
 
 		Set<String> allowedObjectValidationRuleSettingNames = SetUtil.fromArray(
-			ObjectValidationRuleSettingConstants.NAME_OUTPUT_OBJECT_FIELD_ID);
-
-		if (FeatureFlagManagerUtil.isEnabled("LPS-187854")) {
-			allowedObjectValidationRuleSettingNames.add(
-				ObjectValidationRuleSettingConstants.
-					NAME_COMPOSITE_KEY_OBJECT_FIELD_ID);
-		}
+			ObjectValidationRuleSettingConstants.NAME_OUTPUT_OBJECT_FIELD_ID,
+			ObjectValidationRuleSettingConstants.
+				NAME_COMPOSITE_KEY_OBJECT_FIELD_ID);
 
 		int count = 0;
 

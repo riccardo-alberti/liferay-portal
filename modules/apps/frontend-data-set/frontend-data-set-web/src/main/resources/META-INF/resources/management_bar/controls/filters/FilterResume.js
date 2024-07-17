@@ -56,6 +56,7 @@ function FilterResume(props) {
 			</ClayDropDown>
 
 			<ClayButton
+				aria-label={Liferay.Language.get('remove-filter')}
 				className="filter-resume-close"
 				disabled={props.disabled}
 				displayType="secondary"
@@ -70,7 +71,7 @@ function FilterResume(props) {
 										active: false,
 										odataFilterString: undefined,
 										selectedData: undefined,
-								  }
+									}
 								: {}),
 						})),
 					})

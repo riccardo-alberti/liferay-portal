@@ -573,7 +573,7 @@
 			<finder-column comparator="&lt;" name="size" />
 		</finder>
 	</entity>
-	<entity change-tracking-enabled="true" local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
+	<entity change-tracking-enabled="true" external-reference-code="group" local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1548,7 +1548,7 @@
 			<finder-column name="ownerType" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="PortalPreferenceValue" remote-service="false">
+	<entity cache-enabled="false" local-service="true" name="PortalPreferenceValue" remote-service="false">
 
 		<!-- PK fields -->
 
@@ -1972,6 +1972,29 @@
 
 		<finder name="ServletContextName" return-type="Release" unique="true">
 			<finder-column case-sensitive="false" name="servletContextName" />
+		</finder>
+	</entity>
+	<entity local-service="true" name="RememberMeToken" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="rememberMeTokenId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="expirationDate" type="Date" />
+		<column name="value" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
 		</finder>
 	</entity>
 	<entity change-tracking-enabled="true" local-service="true" name="Repository" remote-service="true" uad-dir-path="../modules/apps/portal/portal-uad/src/main/java" uad-package-path="com.liferay.portal" uuid="true">

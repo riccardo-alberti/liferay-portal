@@ -271,6 +271,11 @@ public class DLAppHelperLocalServiceImpl
 	}
 
 	@Override
+	public List<DLFileShortcut> getGroupFileShortcuts(long groupId) {
+		return _dlFileShortcutPersistence.findByGroupId(groupId);
+	}
+
+	@Override
 	public List<FileEntry> getNoAssetFileEntries() {
 		return null;
 	}
@@ -468,8 +473,13 @@ public class DLAppHelperLocalServiceImpl
 			if (dlFileVersion.isApproved()) {
 				visible = true;
 			}
-			else {
-				addDraftAssetEntry = _isAddDraftAssetEntry(dlFileVersion);
+
+			if (!dlFileVersion.isApproved() && !dlFileVersion.isScheduled()) {
+				String version = dlFileVersion.getVersion();
+
+				if (!version.equals(DLFileEntryConstants.VERSION_DEFAULT)) {
+					addDraftAssetEntry = true;
+				}
 			}
 		}
 		else {
@@ -896,36 +906,6 @@ public class DLAppHelperLocalServiceImpl
 		_ratingsStatsLocalService.deleteStats(
 			DLFileEntryConstants.getClassName(), fileEntryId);
 	}
-
-	private boolean _isAddDraftAssetEntry(DLFileVersion dlFileVersion) {
-		String version = dlFileVersion.getVersion();
-
-		if (version.equals(DLFileEntryConstants.VERSION_DEFAULT)) {
-			return false;
-		}
-
-		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
-			DLFileEntryConstants.getClassName(),
-			dlFileVersion.getFileEntryId());
-
-		if (assetEntry == null) {
-			return false;
-		}
-
-		int approvedFileVersions = _dlFileVersionPersistence.countByF_S(
-			dlFileVersion.getFileEntryId(), _ASSET_ENTRY_CREATION_STATUSES);
-
-		if (approvedFileVersions == 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private static final int[] _ASSET_ENTRY_CREATION_STATUSES = {
-		WorkflowConstants.STATUS_APPROVED, WorkflowConstants.STATUS_EXPIRED,
-		WorkflowConstants.STATUS_SCHEDULED
-	};
 
 	@BeanReference(type = AssetCategoryLocalService.class)
 	private AssetCategoryLocalService _assetCategoryLocalService;

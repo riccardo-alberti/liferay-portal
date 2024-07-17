@@ -13,24 +13,30 @@ import {JournalPage} from './JournalPage';
 export class JournalEditArticlePage {
 	readonly page: Page;
 
+	readonly changesSavedIndicator: Locator;
 	readonly journalPage: JournalPage;
 	readonly propertiesTab: Locator;
 	readonly publishButton: Locator;
+	readonly redoButton: Locator;
 	readonly submitForWorkflowButton: Locator;
-	readonly titlePlaceholder: Locator;
+	readonly titleInput: Locator;
+	readonly undoButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 
+		this.changesSavedIndicator = page.locator(
+			'#_com_liferay_journal_web_portlet_JournalPortlet_changesSavedIndicator'
+		);
 		this.journalPage = new JournalPage(page);
 		this.propertiesTab = page.getByRole('tab', {name: 'Properties'});
 		this.publishButton = page.getByRole('button', {name: 'Publish'});
+		this.redoButton = page.getByTitle('Redo', {exact: true});
 		this.submitForWorkflowButton = page.getByRole('button', {
 			name: 'Submit for Workflow',
 		});
-		this.titlePlaceholder = page.getByPlaceholder(
-			'Untitled Basic Web Content'
-		);
+		this.titleInput = page.getByPlaceholder('Untitled ');
+		this.undoButton = page.getByTitle('Undo', {exact: true});
 	}
 
 	async goto({
@@ -75,6 +81,43 @@ export class JournalEditArticlePage {
 			.click();
 	}
 
+	async createArticleForStructure({
+		structureName,
+		title,
+	}: {
+		structureName?: string;
+		title?: string;
+	} = {}) {
+		await fillAndClickOutside(
+			this.page,
+			this.page.getByPlaceholder('Untitled ' + structureName),
+			title
+		);
+
+		await this.publishArticle();
+
+		await waitForSuccessAlert(
+			this.page,
+			`Success:${title} was created successfully.`
+		);
+	}
+
+	async publishArticle() {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				name: 'Publish With Permissions',
+			}),
+			trigger: this.page.getByRole('button', {
+				name: 'Select and Confirm Publish Settings',
+			}),
+		});
+
+		await this.page
+			.getByRole('button', {exact: true, name: 'Publish'})
+			.click();
+	}
+
 	async editArticle(title: string) {
 		await this.journalPage.goToJournalArticleAction('Edit', title);
 
@@ -83,8 +126,13 @@ export class JournalEditArticlePage {
 		await this.page.locator('body').click();
 	}
 
+	async fillContent(content: string) {
+		await this.journalPage.articleContentTextBox.fill(content);
+		await this.journalPage.articleContentTextBox.press('Backspace');
+	}
+
 	async fillTitle(title: string) {
-		await fillAndClickOutside(this.page, this.titlePlaceholder, title);
+		await fillAndClickOutside(this.page, this.titleInput, title);
 	}
 
 	async editAndPublishExistingBasicArticle(title: string) {
@@ -130,10 +178,28 @@ export class JournalEditArticlePage {
 
 	async scheduleArticle(
 		title: string,
-		date: string,
-		{workflow} = {workflow: false}
+		publishDate: string,
+		{workflow} = {workflow: false},
+		expirationDate?: string,
+		reviewDate?: string
 	) {
 		await this.fillTitle(title);
+
+		if (!(await this.page.getByText('Never Expire').isVisible())) {
+			await this.page.getByRole('link', {name: 'Schedule'}).click();
+		}
+
+		if (expirationDate) {
+			await this.page.getByText('Never Expire').click();
+
+			await this.page.getByText('Expiration Date').fill(expirationDate);
+		}
+
+		if (reviewDate) {
+			await this.page.getByText('Never Review').click();
+
+			await this.page.getByText('Review Date').fill(reviewDate);
+		}
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
@@ -153,7 +219,7 @@ export class JournalEditArticlePage {
 			),
 		});
 
-		await this.page.getByPlaceholder('YYYY-MM-DD HH:mm').fill(date);
+		await this.page.getByPlaceholder('YYYY-MM-DD HH:mm').fill(publishDate);
 
 		await this.page
 			.locator('.modal-footer')
@@ -198,10 +264,12 @@ export class JournalEditArticlePage {
 		await row.locator('span.label').filter({hasText: 'Pending'}).waitFor();
 	}
 
-	async assertScheduleDate(
+	async assertScheduledArticleDates(
 		title: string,
-		date: string,
-		{workflow} = {workflow: false}
+		publishDate: string,
+		{workflow} = {workflow: false},
+		expirationDate?: string,
+		reviewDate?: string
 	) {
 		await this.editArticle(title);
 
@@ -223,8 +291,20 @@ export class JournalEditArticlePage {
 			),
 		});
 
+		if (expirationDate) {
+			await expect(this.page.getByText('Expiration Date')).toHaveValue(
+				expirationDate
+			);
+		}
+
 		await expect(
 			this.page.getByPlaceholder('YYYY-MM-DD HH:mm')
-		).toHaveValue(date);
+		).toHaveValue(publishDate);
+
+		if (reviewDate) {
+			await expect(this.page.getByText('Review Date')).toHaveValue(
+				reviewDate
+			);
+		}
 	}
 }

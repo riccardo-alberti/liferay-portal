@@ -7,11 +7,14 @@ import {Page, expect, mergeTests} from '@playwright/test';
 
 import {isolatedLayoutTest} from '../../fixtures/isolatedLayoutTest';
 import {loginTest} from '../../fixtures/loginTest';
-import {PageEditorPage} from './pages/PageEditorPage';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
+import {clientExtensionsPageTest} from './fixtures/clientExtensionsPageTest';
 import {ViewClientExtensionPage} from './pages/ViewClientExtensionPage';
 
 export const test = mergeTests(
+	clientExtensionsPageTest,
 	isolatedLayoutTest({publish: false}),
+	pageEditorPagesTest,
 	loginTest()
 );
 
@@ -22,13 +25,6 @@ const SAMPLES = [
 		name: 'Liferay Sample Custom Element 1',
 		renderTestLocator: (page: Page) =>
 			page.getByText('Portlet internal route'),
-	},
-	{
-		erc: 'LXC:liferay-sample-custom-element-2',
-		htmlElementName: 'liferay-sample-custom-element-2',
-		name: 'Liferay Sample Custom Element 2',
-		renderTestLocator: (page: Page) =>
-			page.getByRole('heading', {name: 'Hello Test'}),
 	},
 	{
 		erc: 'LXC:liferay-sample-custom-element-3',
@@ -59,32 +55,52 @@ const SAMPLES = [
 ];
 
 for (const sample of SAMPLES) {
-	test(`${sample.name} is registered`, async ({page}) => {
-		const viewClientExtensionPage = new ViewClientExtensionPage(
-			page,
-			sample.erc
-		);
-
-		await viewClientExtensionPage.goto();
-
-		expect(viewClientExtensionPage.nameLocator).toHaveValue(sample.name);
-		expect(
-			viewClientExtensionPage.fieldLocator('HTML Element Name')
-		).toHaveValue(sample.htmlElementName);
-	});
-
-	test(`${sample.name} can be added to a page and is rendered`, async ({
+	test(`${sample.name} is registered and can be used`, async ({
+		clientExtensionsPage,
 		layout,
 		page,
+		pageEditorPage,
 	}) => {
-		const pageEditorPage = new PageEditorPage(page, layout);
+		await test.step(`${sample.name} is visible and configured from Workspace`, async () => {
+			await clientExtensionsPage.goto();
 
-		await pageEditorPage.goto();
-		await pageEditorPage.edit();
-		await pageEditorPage.addWidget('Client Extensions', sample.name);
-		await pageEditorPage.publish();
+			await clientExtensionsPage.assertName(sample.name);
 
-		expect(page.locator(sample.htmlElementName)).toBeVisible();
-		expect(sample.renderTestLocator(page)).toBeVisible();
+			await clientExtensionsPage.assertIsConfiguredFrom(
+				sample.name,
+				'Workspace'
+			);
+		});
+
+		await test.step(`${sample.name} can be viewed and information is read-only`, async () => {
+			await clientExtensionsPage.viewClientExtension(sample.name);
+
+			const viewClientExtensionPage = new ViewClientExtensionPage(
+				page,
+				sample.erc
+			);
+
+			await viewClientExtensionPage.assertReadOnlyLocator(
+				viewClientExtensionPage.nameLocator,
+				sample.name
+			);
+
+			await viewClientExtensionPage.assertReadOnlyField(
+				'HTML Element Name',
+				sample.htmlElementName
+			);
+		});
+
+		await test.step(`${sample.name} can be added to a page and is rendered`, async () => {
+			await page.goto(`/web/guest${layout.friendlyURL}?p_l_mode=edit`);
+
+			await pageEditorPage.addWidget('Client Extensions', sample.name);
+			await pageEditorPage.publishPage();
+
+			await page.goto(`/web/guest${layout.friendlyURL}`);
+
+			await expect(page.locator(sample.htmlElementName)).toBeVisible();
+			await expect(sample.renderTestLocator(page)).toBeVisible();
+		});
 	});
 }

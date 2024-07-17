@@ -121,7 +121,7 @@ definition {
 
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
@@ -164,7 +164,7 @@ definition {
 
 		task ("Login with new user") {
 			User.logoutAndLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userLoginEmailAddress = "userea@liferay.com",
 				userLoginFullName = "userfn userln");
 		}
@@ -350,6 +350,8 @@ definition {
 			ABTest.selectGoal(key_goal = "Click");
 
 			Click(locator1 = "Modal#SAVE_BUTTON");
+
+			WaitForElementNotPresent(locator1 = "Modal#MODAL_CONTENT");
 		}
 
 		task ("Assert the changes have been applied") {
@@ -828,7 +830,7 @@ definition {
 			if (IsElementPresent(locator1 = "AnalyticsCloudConnection#ANALYTICS_CLOUD_USER_LOGIN_FIELD")) {
 				AnalyticsCloud.loginAnalyticsCloud(
 					emailAddress = "test@liferay.com",
-					password = "test");
+					password = PropsUtil.get("default.admin.password"));
 			}
 
 			AssertElementPresent(

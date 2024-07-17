@@ -11,12 +11,14 @@ import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.notification.model.NotificationQueueEntry;
-import com.liferay.notification.model.NotificationRecipientSetting;
+import com.liferay.notification.model.NotificationTemplate;
 import com.liferay.notification.service.NotificationQueueEntryLocalService;
 import com.liferay.notification.service.NotificationRecipientLocalService;
 import com.liferay.notification.service.NotificationRecipientSettingLocalService;
 import com.liferay.notification.service.NotificationTemplateLocalService;
+import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.constants.ObjectActionKeys;
+import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
@@ -31,11 +33,13 @@ import com.liferay.object.field.builder.MultiselectPicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.PicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
+import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.relationship.util.ObjectRelationshipUtil;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
+import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -71,6 +75,7 @@ import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -87,7 +92,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -176,6 +180,45 @@ public class BaseNotificationTypeTest {
 			TestPropsValues.getCompanyId());
 
 		parentObjectEntryValues = LinkedHashMapBuilder.<String, Object>put(
+			"dateObjectField",
+			() -> {
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+					"yyyy-MM-dd");
+
+				return simpleDateFormat.format(RandomTestUtil.nextDate());
+			}
+		).put(
+			"dateTimeObjectField",
+			() -> {
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+					"yyyy-MM-dd 00:00:00.0");
+
+				return simpleDateFormat.format(RandomTestUtil.nextDate());
+			}
+		).put(
+			"multiselectPicklistObjectField",
+			Arrays.asList(
+				new ListEntry() {
+					{
+						key = listTypeEntry1.getKey();
+						name = listTypeEntry1.getName(LocaleUtil.US);
+					}
+				},
+				new ListEntry() {
+					{
+						key = listTypeEntry2.getKey();
+						name = listTypeEntry2.getName(LocaleUtil.US);
+					}
+				})
+		).put(
+			"picklistObjectField",
+			new ListEntry() {
+				{
+					key = listTypeEntry1.getKey();
+					name = listTypeEntry1.getName(LocaleUtil.US);
+				}
+			}
+		).put(
 			"systemObjectField", RandomTestUtil.randomString()
 		).put(
 			"textObjectField", RandomTestUtil.randomString()
@@ -340,6 +383,47 @@ public class BaseNotificationTypeTest {
 				false, ObjectDefinitionConstants.SCOPE_COMPANY,
 				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 				Arrays.asList(
+					new DateObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"dateObjectField"
+					).build(),
+					new DateTimeObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"dateTimeObjectField"
+					).objectFieldSettings(
+						Collections.singletonList(
+							new ObjectFieldSettingBuilder(
+							).name(
+								ObjectFieldSettingConstants.NAME_TIME_STORAGE
+							).value(
+								ObjectFieldSettingConstants.
+									VALUE_USE_INPUT_AS_ENTERED
+							).build())
+					).build(),
+					new MultiselectPicklistObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"multiselectPicklistObjectField"
+					).listTypeDefinitionId(
+						_listTypeDefinition.getListTypeDefinitionId()
+					).build(),
+					new PicklistObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"picklistObjectField"
+					).listTypeDefinitionId(
+						_listTypeDefinition.getListTypeDefinitionId()
+					).build(),
 					new TextObjectFieldBuilder(
 					).labelMap(
 						LocalizedMapUtil.getLocalizedMap(
@@ -479,24 +563,52 @@ public class BaseNotificationTypeTest {
 		}
 	}
 
-	protected NotificationRecipientSetting createNotificationRecipientSetting(
-		String name, Object value) {
+	protected void executeNotificationObjectAction(
+			long fileEntryId, NotificationTemplate notificationTemplate)
+		throws Exception {
 
-		NotificationRecipientSetting notificationRecipientSetting =
-			_notificationRecipientSettingLocalService.
-				createNotificationRecipientSetting(0L);
+		ObjectAction objectAction = objectActionLocalService.addObjectAction(
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			childObjectDefinition.getObjectDefinitionId(), true,
+			StringPool.BLANK, RandomTestUtil.randomString(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			RandomTestUtil.randomString(),
+			ObjectActionExecutorConstants.KEY_NOTIFICATION,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"notificationTemplateId",
+				notificationTemplate.getNotificationTemplateId()
+			).build(),
+			false);
 
-		notificationRecipientSetting.setName(name);
+		ObjectEntry objectEntry = objectEntryManager.addObjectEntry(
+			dtoConverterContext, parentObjectDefinition,
+			new ObjectEntry() {
+				{
+					properties = new LinkedHashMap<>(parentObjectEntryValues);
+				}
+			},
+			ObjectDefinitionConstants.SCOPE_COMPANY);
 
-		if (value instanceof String) {
-			notificationRecipientSetting.setValue(String.valueOf(value));
-		}
-		else {
-			notificationRecipientSetting.setValueMap(
-				(Map<Locale, String>)value);
-		}
+		objectEntryManager.addObjectEntry(
+			dtoConverterContext, childObjectDefinition,
+			new ObjectEntry() {
+				{
+					properties = HashMapBuilder.putAll(
+						childObjectEntryValues
+					).put(
+						getObjectRelationshipObjectField2Name(),
+						objectEntry.getId()
+					).put(
+						"attachmentObjectField", fileEntryId
+					).build();
+				}
+			},
+			group.getGroupKey());
 
-		return notificationRecipientSetting;
+		objectActionLocalService.deleteObjectAction(
+			objectAction.getObjectActionId());
 	}
 
 	protected String getObjectRelationshipObjectField2Name()
@@ -540,6 +652,10 @@ public class BaseNotificationTypeTest {
 				getTermName("multiselectPicklistObjectField"),
 				getTermName("picklistObjectField"),
 				getTermName("textObjectField"),
+				getTermName(true, "dateObjectField"),
+				getTermName(true, "dateTimeObjectField"),
+				getTermName(true, "multiselectPicklistObjectField"),
+				getTermName(true, "picklistObjectField"),
 				getTermName(true, "systemObjectField"),
 				getTermName(true, "textObjectField")));
 	}

@@ -155,6 +155,8 @@ definition {
 		}
 
 		task ("Check if the page name is displayed correctly") {
+			ACUtils.waitForLoading();
+
 			MouseOver(
 				key_pageName = "Snúið Vinsælar",
 				locator1 = "ACPagePath#PATH_PAGE_NAME_SANKEY");
@@ -414,6 +416,8 @@ definition {
 	@description = "Feature ID: LRAC-14836 | Automation ID: LRAC-15061 | Test Summary: The filter shows all segments"
 	@priority = 5
 	test ViewSegmentDropdownList {
+		property test.run.type = "single";
+
 		task ("Create a site and a blog and add to a page") {
 			ACUtils.addSiteAndPage();
 

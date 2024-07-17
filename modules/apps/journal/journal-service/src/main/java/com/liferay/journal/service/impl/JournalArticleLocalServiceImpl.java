@@ -222,6 +222,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -816,8 +817,13 @@ public class JournalArticleLocalServiceImpl
 
 		// Dynamic data mapping
 
-		updateDDMFields(
-			article, _formatContent(article, content, groupId, user));
+		DDMFormValues ddmFormValues = _formatContent(
+			article, content, groupId, user);
+
+		updateDDMFields(article, ddmFormValues);
+
+		_updateDDMStructurePredefinedValues(
+			userId, article.getDDMStructureId(), ddmFormValues, serviceContext);
 
 		return journalArticlePersistence.findByPrimaryKey(article.getId());
 	}
@@ -5363,8 +5369,13 @@ public class JournalArticleLocalServiceImpl
 
 		// Dynamic data mapping
 
-		updateDDMFields(
-			article, _formatContent(article, content, groupId, user));
+		DDMFormValues ddmFormValues = _formatContent(
+			article, content, groupId, user);
+
+		updateDDMFields(article, ddmFormValues);
+
+		_updateDDMStructurePredefinedValues(
+			userId, article.getDDMStructureId(), ddmFormValues, serviceContext);
 
 		// Small image
 
@@ -6067,49 +6078,34 @@ public class JournalArticleLocalServiceImpl
 		indexableActionableDynamicQuery.setCompanyId(companyId);
 		indexableActionableDynamicQuery.setPerformActionMethod(
 			(JournalArticle article) -> {
-				if (_log.isDebugEnabled()) {
-					_log.debug("Expiring article " + article.getId());
-				}
+				try {
+					if (_log.isDebugEnabled()) {
+						_log.debug("Expiring article " + article.getId());
+					}
 
-				if (isExpireAllArticleVersions(companyId)) {
-					List<JournalArticle> currentArticles =
-						journalArticleLocalService.getArticles(
-							article.getGroupId(), article.getArticleId(),
-							QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-							new ArticleVersionComparator(true));
+					ServiceContext serviceContext = new ServiceContext();
 
-					for (JournalArticle currentArticle : currentArticles) {
-						if (currentArticle.getVersion() >=
-								article.getVersion()) {
+					serviceContext.setCommand(Constants.UPDATE);
+					serviceContext.setScopeGroupId(article.getGroupId());
 
-							continue;
-						}
+					journalArticleLocalService.expireArticle(
+						_portal.getValidUserId(
+							article.getCompanyId(),
+							article.getStatusByUserId()),
+						article.getGroupId(), article.getArticleId(), null,
+						serviceContext);
 
-						currentArticle.setExpirationDate(
-							article.getExpirationDate());
-						currentArticle.setStatus(
-							WorkflowConstants.STATUS_EXPIRED);
-
-						currentArticle = journalArticlePersistence.update(
-							currentArticle);
-
-						notifySubscribers(
-							0, currentArticle, "expired", new ServiceContext());
+					if (indexer != null) {
+						indexableActionableDynamicQuery.addDocuments(
+							indexer.getDocument(article));
 					}
 				}
-
-				article.setStatus(WorkflowConstants.STATUS_EXPIRED);
-
-				article = journalArticleLocalService.updateJournalArticle(
-					article);
-
-				notifySubscribers(0, article, "expired", new ServiceContext());
-
-				updatePreviousApprovedArticle(article);
-
-				if (indexer != null) {
-					indexableActionableDynamicQuery.addDocuments(
-						indexer.getDocument(article));
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(
+							"Unable to expire article " + article.getId(),
+							portalException);
+					}
 				}
 			});
 		indexableActionableDynamicQuery.setTransactionConfig(
@@ -6156,21 +6152,31 @@ public class JournalArticleLocalServiceImpl
 			});
 		actionableDynamicQuery.setPerformActionMethod(
 			(JournalArticle article) -> {
-				if (_log.isDebugEnabled()) {
-					_log.debug("Publishing article " + article.getId());
+				try {
+					if (_log.isDebugEnabled()) {
+						_log.debug("Publishing article " + article.getId());
+					}
+
+					long userId = _portal.getValidUserId(
+						article.getCompanyId(), article.getStatusByUserId());
+
+					ServiceContext serviceContext = new ServiceContext();
+
+					serviceContext.setCommand(Constants.UPDATE);
+					serviceContext.setScopeGroupId(article.getGroupId());
+
+					journalArticleLocalService.updateStatus(
+						userId, article.getId(),
+						WorkflowConstants.STATUS_APPROVED, new HashMap<>(),
+						serviceContext);
 				}
-
-				long userId = _portal.getValidUserId(
-					article.getCompanyId(), article.getStatusByUserId());
-
-				ServiceContext serviceContext = new ServiceContext();
-
-				serviceContext.setCommand(Constants.UPDATE);
-				serviceContext.setScopeGroupId(article.getGroupId());
-
-				journalArticleLocalService.updateStatus(
-					userId, article.getId(), WorkflowConstants.STATUS_APPROVED,
-					new HashMap<>(), serviceContext);
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(
+							"Unable to publish article " + article.getId(),
+							portalException);
+					}
+				}
 			});
 		actionableDynamicQuery.setTransactionConfig(
 			DefaultActionableDynamicQuery.REQUIRES_NEW_TRANSACTION_CONFIG);
@@ -6747,7 +6753,6 @@ public class JournalArticleLocalServiceImpl
 
 		subscriptionSender.setClassName(article.getModelClassName());
 		subscriptionSender.setClassPK(article.getId());
-		subscriptionSender.setCompanyId(article.getCompanyId());
 
 		JournalFolder folder = _journalFolderPersistence.fetchByPrimaryKey(
 			article.getFolderId());
@@ -7595,6 +7600,23 @@ public class JournalArticleLocalServiceImpl
 		}
 	}
 
+	private boolean _equals(
+		LocalizedValue localizedValue1, LocalizedValue localizedValue2,
+		String fieldType) {
+
+		Predicate<String> emptyValuePredicate = _getEmptyValuePredicate(
+			fieldType);
+
+		if ((_isEmpty(localizedValue1, emptyValuePredicate) &&
+			 _isEmpty(localizedValue2, emptyValuePredicate)) ||
+			Objects.equals(localizedValue1, localizedValue2)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private DDMFormValues _formatContent(
 			JournalArticle article, String content, long groupId, User user)
 		throws PortalException {
@@ -7647,6 +7669,34 @@ public class JournalArticleLocalServiceImpl
 		}
 
 		return StringPool.BLANK;
+	}
+
+	private Predicate<String> _getEmptyValuePredicate(String fieldType) {
+		if (fieldType.equals("checkbox_multiple")) {
+			return string -> string.equals("[]") || string.isEmpty();
+		}
+
+		if (fieldType.equals("document_library") ||
+			fieldType.equals("journal_article") ||
+			fieldType.equals("link_to_layout")) {
+
+			return string -> string.equals("{}") || string.isEmpty();
+		}
+
+		if (fieldType.equals("image")) {
+			return string ->
+				string.equals("{}") || string.equals("{\"alt\":\"\"}");
+		}
+
+		if (fieldType.equals("radio")) {
+			return string -> string.equals("[]");
+		}
+
+		if (fieldType.equals("select")) {
+			return string -> string.equals("[]") || string.equals("[\"\"]");
+		}
+
+		return String::isEmpty;
 	}
 
 	private FileEntry _getFileEntry(JSONObject valueJSONObject) {
@@ -7942,6 +7992,14 @@ public class JournalArticleLocalServiceImpl
 
 			String languageId = _language.getLanguageId(entry.getKey());
 
+			if (friendlyURL.startsWith(StringPool.SLASH)) {
+				friendlyURL = friendlyURL.replaceAll("^/+", StringPool.BLANK);
+			}
+
+			if (friendlyURL.contains(StringPool.SLASH)) {
+				friendlyURL = friendlyURL.replaceAll("/+", StringPool.SLASH);
+			}
+
 			String urlTitle = friendlyURLEntryLocalService.getUniqueUrlTitle(
 				groupId,
 				_classNameLocalService.getClassNameId(JournalArticle.class),
@@ -7971,6 +8029,24 @@ public class JournalArticleLocalServiceImpl
 		return urlTitleMap;
 	}
 
+	private boolean _isEmpty(
+		LocalizedValue localizedValue, Predicate<String> emptyValuePredicate) {
+
+		if (localizedValue == null) {
+			return true;
+		}
+
+		Map<Locale, String> values = localizedValue.getValues();
+
+		for (String string : values.values()) {
+			if ((string != null) && !emptyValuePredicate.test(string)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private void _populateSubscriptionSender(
 		JournalArticle article, String articleURL, String emailType,
 		String fromAddress, String fromName,
@@ -7978,7 +8054,6 @@ public class JournalArticleLocalServiceImpl
 		ServiceContext serviceContext, SubscriptionSender subscriptionSender) {
 
 		subscriptionSender.setClassName(article.getModelClassName());
-		subscriptionSender.setCompanyId(article.getCompanyId());
 		subscriptionSender.setContextAttribute(
 			"[$ARTICLE_DIFFS$]", _getArticleDiffs(article, serviceContext),
 			false);
@@ -8145,6 +8220,55 @@ public class JournalArticleLocalServiceImpl
 
 		return _journalArticleLocalizationPersistence.update(
 			journalArticleLocalization);
+	}
+
+	private void _updateDDMStructurePredefinedValues(
+			long userId, long ddmStructureId, DDMFormValues ddmFormValues,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		boolean update = false;
+
+		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
+			ddmStructureId);
+
+		DDMForm ddmForm = ddmStructure.getDDMForm();
+
+		Map<String, DDMFormField> ddmFormFieldsMap =
+			ddmForm.getDDMFormFieldsMap(true);
+
+		Map<String, List<DDMFormFieldValue>> ddmFormFieldValuesMap =
+			ddmFormValues.getDDMFormFieldValuesMap(true);
+
+		for (Map.Entry<String, List<DDMFormFieldValue>> entry :
+				ddmFormFieldValuesMap.entrySet()) {
+
+			DDMFormField ddmFormField = ddmFormFieldsMap.get(entry.getKey());
+
+			if (ddmFormField != null) {
+				List<DDMFormFieldValue> ddmFormFieldValues = entry.getValue();
+
+				DDMFormFieldValue ddmFormFieldValue = ddmFormFieldValues.get(0);
+
+				LocalizedValue localizedValue =
+					(LocalizedValue)ddmFormFieldValue.getValue();
+
+				if (!_equals(
+						ddmFormField.getPredefinedValue(), localizedValue,
+						ddmFormField.getType())) {
+
+					ddmFormField.setPredefinedValue(localizedValue);
+
+					update = true;
+				}
+			}
+		}
+
+		if (update) {
+			_ddmStructureLocalService.updateStructure(
+				userId, ddmStructureId, ddmForm,
+				ddmStructure.getDDMFormLayout(), serviceContext);
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

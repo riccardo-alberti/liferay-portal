@@ -3,46 +3,39 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {expect} from '@playwright/test';
+import {Page, expect} from '@playwright/test';
 
+import {ApiHelpers} from '../../../helpers/ApiHelpers';
 import {liferayConfig} from '../../../liferay.config';
+import {createChannel} from '../../osb-faro-web/utils/channel';
+import {createDataSource} from '../../osb-faro-web/utils/dataSource';
+import {acceptsCookiesBanner} from '../../osb-faro-web/utils/portal';
 
-export async function acceptsCookiesBanner(page) {
-	const cookiesBannerButton = page.getByRole('button', {name: 'Accept All'});
-
-	if (await cookiesBannerButton.isVisible()) {
-		await cookiesBannerButton.click();
-	}
-}
-
-export async function connectToAnalyticsCloud(page) {
-	await page.getByTestId('input-token', {name: 'input-token'}).click();
+export async function connectToAnalyticsCloud(page: Page) {
+	await page.getByPlaceholder('Paste token here.').click();
 
 	await page.keyboard.press('Control+V');
 
 	await page.getByRole('button', {name: 'Connect'}).click();
 }
 
-export async function disconnectFromAnalyticsCloud(page) {
+export async function disconnectFromAnalyticsCloud(page: Page) {
 	const disconnectButton = page.getByRole('button', {name: 'Disconnect'});
 
 	if (await disconnectButton.isVisible()) {
 		await disconnectButton.click();
 
-		const diconnectConfirmationModal = page.getByLabel(
-			'Disconnecting Data Source'
-		);
+		const confirmationModal = page.getByLabel('Disconnecting Data Source');
 
-		const diconnectConfirmationButton =
-			diconnectConfirmationModal.getByRole('button', {
-				name: 'Disconnect',
-			});
+		const confirmationButton = confirmationModal.getByRole('button', {
+			name: 'Disconnect',
+		});
 
-		await diconnectConfirmationButton.click();
+		await confirmationButton.click();
 	}
 }
 
-export async function goToAnalyticsCloudInstanceSettings(page) {
+export async function goToAnalyticsCloudInstanceSettings(page: Page) {
 	await page.goto(liferayConfig.environment.baseUrl);
 
 	await page.getByLabel('Open Applications MenuCtrl+Alt+A').click();
@@ -58,15 +51,15 @@ export async function goToAnalyticsCloudInstanceSettings(page) {
 	});
 }
 
-export async function syncAllContacts(page) {
-	const wizard = page.getByTestId('VIEW_WIZARD_MODE');
+export async function syncAllContacts(page: Page) {
+	const wizard = page.locator('[data-testid="VIEW_WIZARD_MODE"]');
 
 	await expect(wizard.getByText('Sync People')).toBeVisible({
 		timeout: 100 * 1000,
 	});
 
-	const syncContactsButton = page.getByTestId(
-		'sync-all-contacts-and-accounts__false'
+	const syncContactsButton = page.locator(
+		'[data-testid="sync-all-contacts-and-accounts__false"]'
 	);
 
 	if (await syncContactsButton.isVisible()) {
@@ -76,16 +69,74 @@ export async function syncAllContacts(page) {
 	await page.getByRole('button', {exact: true, name: 'Next'}).click();
 }
 
-export async function syncSite(page) {
+export async function syncAnalyticsCloud({
+	apiHelpers,
+	channelName,
+	page,
+	siteName,
+}: {
+	apiHelpers: ApiHelpers;
+	channelName: string;
+	page: Page;
+	siteName?: string;
+}) {
+	const {channel, project} = await createChannel({
+		apiHelpers,
+		channelName,
+	});
+
+	await createDataSource(page);
+
+	await goToAnalyticsCloudInstanceSettings(page);
+
+	await acceptsCookiesBanner(page);
+
+	await disconnectFromAnalyticsCloud(page);
+
+	await connectToAnalyticsCloud(page);
+
+	await syncSite({
+		channelName,
+		page,
+		siteName,
+	});
+
+	await syncAllContacts(page);
+
+	await page.getByRole('button', {name: 'Finish'}).click();
+
+	return {
+		channel,
+		project,
+	};
+}
+
+export async function syncSite({
+	channelName,
+	page,
+	siteName = 'Liferay DXP',
+}: {
+	channelName: string;
+	page: Page;
+	siteName?: string;
+}) {
 	await expect(
 		page.getByRole('heading', {name: 'Property Assignment'})
 	).toBeVisible({
 		timeout: 100 * 1000,
 	});
 
-	const wizard = page.getByTestId('VIEW_WIZARD_MODE');
+	const wizard = page.locator('[data-testid="VIEW_WIZARD_MODE"]');
 
 	await expect(wizard.getByText('Available Properties')).toBeVisible({
+		timeout: 100 * 1000,
+	});
+
+	await page.getByPlaceholder('Search').fill(channelName);
+
+	await page.getByRole('button', {name: 'Search'}).click();
+
+	await expect(page.getByRole('cell', {name: channelName})).toBeVisible({
 		timeout: 100 * 1000,
 	});
 
@@ -97,7 +148,13 @@ export async function syncSite(page) {
 
 	await page.getByRole('tab', {name: 'Sites'}).click();
 
-	await page.waitForTimeout(3000);
+	await page.waitForSelector('div[aria-modal="true"] tbody');
+
+	await page.locator('.active').getByPlaceholder('Search').fill(siteName);
+
+	await page.locator('.active').getByRole('button', {name: 'Search'}).click();
+
+	await expect(page.locator('span[data-testid="loading"]')).toBeHidden();
 
 	const checkbox = await page.$(
 		'.modal table.table tbody tr:first-child input[type="checkbox"]'

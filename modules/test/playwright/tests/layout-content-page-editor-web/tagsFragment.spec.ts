@@ -7,9 +7,14 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
-import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
-import {TAGS_OBJECT_ERC} from '../../setup/wem-site/constants';
+import {objectPagesTest} from '../../fixtures/objectPagesTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
+import {wemSiteTest} from '../../fixtures/wemSiteTest';
+import {
+	LEMON_BASKET_OBJECT_ERC,
+	LEMON_OBJECT_ERC,
+} from '../../setup/wem-site/constants';
 import getGlobalSiteId from '../../utils/getGlobalSiteId';
 import getRandomString from '../../utils/getRandomString';
 import {PORTLET_URLS} from '../../utils/portletUrls';
@@ -17,60 +22,59 @@ import getFormContainerDefinition from './utils/getFormContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 
-const OBJECT_DEFINITION_PATH = 'object-admin/v1.0/object-definitions';
-
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
-	isolatedSiteTest,
 	featureFlagsTest({
 		'LPS-178052': true,
 	}),
-	loginTest()
+	loginTest(),
+	wemSiteTest,
+	objectPagesTest,
+	pageEditorPagesTest
 );
 
 test('uses Tags fragment for Forms in a Content Page', async ({
 	apiHelpers,
 	page,
-	site,
+	wemSite,
 }) => {
 
-	// Get the id of the tags object from the site initializer
+	// Get the id of Lemon object from the site initializer
 
 	const {id: objectId} =
-		await apiHelpers.object.getObjectEntryByExternalReferenceCode(
-			OBJECT_DEFINITION_PATH,
-			TAGS_OBJECT_ERC
+		await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
+			LEMON_OBJECT_ERC
 		);
 
 	// Create a Form Container with a Tags fragment and Submit fragment
 
-	const firstTagsFragmentDefinition = getFragmentDefinition(
-		getRandomString(),
-		'com.liferay.fragment.renderer.categorization.inputs.internal.TagsInputFragmentRenderer'
-	);
+	const firstTagsFragmentDefinition = getFragmentDefinition({
+		id: getRandomString(),
+		key: 'com.liferay.fragment.renderer.categorization.inputs.internal.TagsInputFragmentRenderer',
+	});
 
-	const secondTagsFragmentDefinition = getFragmentDefinition(
-		getRandomString(),
-		'com.liferay.fragment.renderer.categorization.inputs.internal.TagsInputFragmentRenderer'
-	);
+	const secondTagsFragmentDefinition = getFragmentDefinition({
+		id: getRandomString(),
+		key: 'com.liferay.fragment.renderer.categorization.inputs.internal.TagsInputFragmentRenderer',
+	});
 
-	const submitFragmentDefinition = getFragmentDefinition(
-		getRandomString(),
-		'INPUTS-submit-button',
-		{
+	const submitFragmentDefinition = getFragmentDefinition({
+		fragmentConfig: {
 			buttonSize: 'nm',
 			buttonType: 'primary',
 			submittedEntryStatus: 'approved',
 		},
-		[
+		fragmentFields: [
 			{
 				id: 'submit-button-text',
 				value: {
 					fragmentLink: {},
 				},
 			},
-		]
-	);
+		],
+		id: getRandomString(),
+		key: 'INPUTS-submit-button',
+	});
 
 	const formDefinition = getFormContainerDefinition({
 		id: getRandomString(),
@@ -84,16 +88,16 @@ test('uses Tags fragment for Forms in a Content Page', async ({
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([formDefinition]),
-		siteId: site.id,
+		siteId: wemSite.id,
 		title: getRandomString(),
 	});
 
 	// Create two tags in Wem Site
 
 	for (const tagName of ['Dogs', 'Cats']) {
-		await apiHelpers.headlessAdminTaxonomy.createTag({
+		await apiHelpers.headlessAdminTaxonomy.postSiteKeyword({
 			name: tagName,
-			siteId: site.id,
+			siteId: wemSite.id,
 		});
 	}
 
@@ -101,14 +105,14 @@ test('uses Tags fragment for Forms in a Content Page', async ({
 
 	const globalSiteId = await getGlobalSiteId(apiHelpers);
 
-	const globalTag = await apiHelpers.headlessAdminTaxonomy.createTag({
+	const globalTag = await apiHelpers.headlessAdminTaxonomy.postSiteKeyword({
 		name: 'Rabbits',
 		siteId: globalSiteId,
 	});
 
 	// Go to view mode of the created page, select a tag for each fragment and submit the form
 
-	await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`);
+	await page.goto(`/web${wemSite.friendlyUrlPath}${layout.friendlyUrlPath}`);
 
 	await page.getByRole('combobox').first().click();
 	await page.getByRole('option', {exact: true, name: 'Dogs'}).click();
@@ -128,7 +132,7 @@ test('uses Tags fragment for Forms in a Content Page', async ({
 	// Go to the object definition page and check the Tags fragment
 
 	await page.goto(
-		`/group${site.friendlyUrlPath}${PORTLET_URLS.objects}_${objectId}`
+		`/group${wemSite.friendlyUrlPath}${PORTLET_URLS.objects}_${objectId}`
 	);
 
 	await page.locator('.table-list-title').getByRole('link').first().click();
@@ -141,7 +145,70 @@ test('uses Tags fragment for Forms in a Content Page', async ({
 
 	// Remove the tag created on Global
 
-	await apiHelpers.headlessAdminTaxonomy.deleteTag({
+	await apiHelpers.headlessAdminTaxonomy.deleteKeyword({
 		id: globalTag.id,
+	});
+});
+
+test('checks that an info message appears when categorization is disabled', async ({
+	apiHelpers,
+	objectDetailsPage,
+	page,
+	pageEditorPage,
+	wemSite,
+}) => {
+
+	// Get Lemon Basket object id from the site initializer
+
+	const {id: objectId} =
+		await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
+			LEMON_BASKET_OBJECT_ERC
+		);
+
+	// Set the "Enable Categorization of Object entries" configuration to false
+
+	await objectDetailsPage.goto('Lemon Basket');
+
+	await objectDetailsPage.updateConfiguration({
+		fieldLabel: 'Enable Categorization of Object entries',
+		value: false,
+	});
+
+	// Create a Form Container with a Tags fragment
+
+	const formDefinition = getFormContainerDefinition({
+		id: getRandomString(),
+		objectId,
+		pageElements: [
+			getFragmentDefinition({
+				id: getRandomString(),
+				key: 'com.liferay.fragment.renderer.categorization.inputs.internal.TagsInputFragmentRenderer',
+			}),
+		],
+	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([formDefinition]),
+		siteId: wemSite.id,
+		title: getRandomString(),
+	});
+
+	// Go to edit mode and check the info message
+
+	await pageEditorPage.goto(layout, wemSite.friendlyUrlPath);
+
+	await expect(
+		page.getByText(
+			'Categorization is disabled for the selected content. To show categories in this fragment, categorization must be enabled.'
+		)
+	).toBeVisible();
+
+	// Reset initial configuration
+
+	await objectDetailsPage.goto('Lemon Basket');
+
+	await objectDetailsPage.updateConfiguration({
+		fieldLabel: 'Enable Categorization of Object entries',
+		value: true,
 	});
 });

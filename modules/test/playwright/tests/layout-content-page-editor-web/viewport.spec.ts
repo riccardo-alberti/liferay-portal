@@ -9,11 +9,12 @@ import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import getRandomString from '../../utils/getRandomString';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import getFragmentDefinition from './utils/getFragmentDefinition';
+import getPageDefinition from './utils/getPageDefinition';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
@@ -73,16 +74,18 @@ test('shows correct sections on each configuration panel when viewport is not De
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: headingFragment,
-		site,
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([headingFragment]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Switch to Tablet viewport and select the fragment
 
@@ -115,16 +118,18 @@ test('shows only Image Source field when the viewport is Desktop', async ({
 }) => {
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: headingFragment,
-		site,
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([headingFragment]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -152,16 +157,18 @@ test('Background Image field is disabled for non-desktop viewports', async ({
 }) => {
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: headingFragment,
-		site,
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([headingFragment]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -191,16 +198,18 @@ test('checks that the layout can be resized', async ({
 }) => {
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: headingFragment,
-		site,
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([headingFragment]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -221,7 +230,7 @@ test('checks that the layout can be resized', async ({
 
 	// Check the original size of the resizer element
 
-	await expect(originalSizeResizer.width).toBe(360);
+	expect(originalSizeResizer.width).toBe(360);
 
 	// Simulate mouse movement to resize the element
 
@@ -240,7 +249,7 @@ test('checks that the layout can be resized', async ({
 
 	const newSizeResizer = await resizer.boundingBox();
 
-	await expect(newSizeResizer.width).toBe(460);
+	expect(newSizeResizer.width).toBe(460);
 });
 
 test('checks that the value of a field is propagated to smaller viewports', async ({
@@ -251,16 +260,18 @@ test('checks that the value of a field is propagated to smaller viewports', asyn
 }) => {
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: headingFragment,
-		site,
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([headingFragment]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -287,4 +298,65 @@ test('checks that the value of a field is propagated to smaller viewports', asyn
 
 		await expect(hideFragmentInput).not.toBeChecked();
 	}
+});
+
+test('correct viewport configuration is set when adding a Grid', async ({
+	apiHelpers,
+	page,
+	pageEditorPage,
+	site,
+}) => {
+
+	// Create page and go to edit mode
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition(),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+	// Add a grid and change number of columns to 6
+
+	await pageEditorPage.addFragment('Layout Elements', 'Grid');
+
+	const gridId = await pageEditorPage.getFragmentId('Grid');
+
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Number of Modules',
+		fragmentId: gridId,
+		tab: 'General',
+		value: '6',
+	});
+
+	// Check columns have size 2 in desktop
+
+	await expect(page.locator('.page-editor__col.col-2')).toHaveCount(6);
+
+	// Change to Landscape Phone and check columns have size 12
+
+	await pageEditorPage.switchViewport('Landscape Phone');
+
+	const globalFrame = await page.frameLocator(
+		'.page-editor__global-context-iframe'
+	);
+
+	await pageEditorPage.selectFragment(gridId, false);
+
+	await expect(globalFrame.locator('.page-editor__col.col-12')).toHaveCount(
+		6
+	);
+
+	// Change to 2 modules per row and check size is 6
+
+	await pageEditorPage.changeFragmentConfiguration({
+		fieldLabel: 'Layout',
+		fragmentId: gridId,
+		isDesktop: false,
+		tab: 'General',
+		value: '2 Modules per Row',
+	});
+
+	await expect(globalFrame.locator('.page-editor__col.col-6')).toHaveCount(6);
 });

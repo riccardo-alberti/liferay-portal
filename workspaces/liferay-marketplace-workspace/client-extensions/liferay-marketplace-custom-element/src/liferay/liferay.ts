@@ -44,6 +44,7 @@ type ILiferay = {
 		getPathThemeImages: () => string;
 		getPortalURL: () => string;
 		getScopeGroupId: () => number;
+		getURLHome: () => string;
 		getUserEmailAddress: () => string;
 		getUserId: () => string;
 		getUserName: () => string;
@@ -52,6 +53,7 @@ type ILiferay = {
 	Util: {
 		LocalStorage: LiferayStorage;
 		SessionStorage: LiferayStorage;
+		fetch: typeof fetch;
 		navigate: (path: string) => void;
 		openModal: (options?: {}) => void;
 		openToast: (options?: {
@@ -88,6 +90,7 @@ export const Liferay = window.Liferay || {
 		getPathContext: () => '',
 		getPathThemeImages: () => '',
 		getPortalURL: () => '',
+		getURLHome: () => '',
 		getUserId: () => '',
 		isSignedIn: () => {
 			return false;

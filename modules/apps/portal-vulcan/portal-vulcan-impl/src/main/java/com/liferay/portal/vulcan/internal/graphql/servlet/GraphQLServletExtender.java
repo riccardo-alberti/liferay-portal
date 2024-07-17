@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CamelCaseUtil;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
@@ -2369,14 +2370,7 @@ public class GraphQLServletExtender {
 					continue;
 				}
 
-				String message = graphQLError.getMessage();
-
-				if (message.contains("SecurityException")) {
-					processedErrors.add(
-						_getExtendedGraphQLError(
-							graphQLError, Response.Status.UNAUTHORIZED));
-				}
-				else if (_isForbiddenException(graphQLError)) {
+				if (_isForbiddenException(graphQLError)) {
 					processedErrors.add(
 						_getExtendedGraphQLError(
 							graphQLError, Response.Status.FORBIDDEN));
@@ -2386,16 +2380,18 @@ public class GraphQLServletExtender {
 						_getExtendedGraphQLError(
 							graphQLError, Response.Status.NOT_FOUND));
 				}
-				else if (!_isClientErrorException(graphQLError)) {
+				else if (_isClientErrorException(graphQLError) ||
+						 _isStatusException(graphQLError)) {
+
 					processedErrors.add(
 						_getExtendedGraphQLError(
-							graphQLError,
-							Response.Status.INTERNAL_SERVER_ERROR));
+							graphQLError, Response.Status.BAD_REQUEST));
 				}
 				else {
 					processedErrors.add(
 						_getExtendedGraphQLError(
-							graphQLError, Response.Status.BAD_REQUEST));
+							graphQLError,
+							Response.Status.INTERNAL_SERVER_ERROR));
 				}
 			}
 
@@ -2420,6 +2416,18 @@ public class GraphQLServletExtender {
 					).build()
 				).build()
 			).build();
+		}
+
+		private Throwable _getThrowable(
+			ExceptionWhileDataFetching exceptionWhileDataFetching) {
+
+			Throwable throwable = exceptionWhileDataFetching.getException();
+
+			if (throwable instanceof InvocationTargetException) {
+				return throwable.getCause();
+			}
+
+			return throwable;
 		}
 
 		private boolean _isClientErrorException(GraphQLError graphQLError) {
@@ -2451,13 +2459,11 @@ public class GraphQLServletExtender {
 				return false;
 			}
 
-			ExceptionWhileDataFetching exceptionWhileDataFetching =
-				(ExceptionWhileDataFetching)graphQLError;
+			Throwable throwable = _getThrowable(
+				(ExceptionWhileDataFetching)graphQLError);
 
-			Throwable throwable = exceptionWhileDataFetching.getException();
-
-			if ((throwable != null) &&
-				(throwable.getCause() instanceof ForbiddenException)) {
+			if (throwable instanceof ForbiddenException ||
+				throwable instanceof SecurityException) {
 
 				return true;
 			}
@@ -2470,16 +2476,12 @@ public class GraphQLServletExtender {
 				return false;
 			}
 
-			ExceptionWhileDataFetching exceptionWhileDataFetching =
-				(ExceptionWhileDataFetching)graphQLError;
+			Throwable throwable = _getThrowable(
+				(ExceptionWhileDataFetching)graphQLError);
 
-			Throwable throwable = exceptionWhileDataFetching.getException();
-
-			if ((throwable != null) &&
-				(throwable.getCause() instanceof NotFoundException ||
-				 throwable.getCause() instanceof NoSuchModelException ||
-				 throwable.getCause() instanceof
-					 PrincipalException.MustHavePermission)) {
+			if (throwable instanceof NoSuchModelException ||
+				throwable instanceof NotFoundException ||
+				throwable instanceof PrincipalException.MustHavePermission) {
 
 				return true;
 			}
@@ -2504,6 +2506,23 @@ public class GraphQLServletExtender {
 
 			return StringUtil.containsIgnoreCase(
 				(String)path.get(path.size() - 1), "parent");
+		}
+
+		private boolean _isStatusException(GraphQLError graphQLError) {
+			if (!(graphQLError instanceof ExceptionWhileDataFetching)) {
+				return false;
+			}
+
+			if (StringUtil.endsWith(
+					ClassUtil.getClassName(
+						_getThrowable(
+							(ExceptionWhileDataFetching)graphQLError)),
+					"StatusException")) {
+
+				return true;
+			}
+
+			return false;
 		}
 
 		private final Set<String> _graphQLNamespaces;

@@ -8,24 +8,6 @@ import {expect} from '@playwright/test';
 import {liferayConfig} from '../../liferay.config';
 import {ApiHelpers} from '../ApiHelpers';
 
-export type Layout = {
-	companyId: string;
-	friendlyURL: string;
-	groupId: string;
-	hidden: boolean;
-	layoutId: string;
-	nameCurrentValue: string;
-	parentPlid: string;
-	plid: string;
-	privateLayout: boolean;
-	status: number;
-	system: boolean;
-	themeId: string;
-	titleCurrentValue: string;
-	type: string;
-	uuid: string;
-};
-
 export class JSONWebServicesLayoutApiHelper {
 	readonly apiHelpers: ApiHelpers;
 	readonly basePath: string;
@@ -49,11 +31,17 @@ export class JSONWebServicesLayoutApiHelper {
 	 * @param options.type
 	 * The layout type (eg: 'portlet' or 'content')
 	 */
-	async addLayout(
-		groupId: string,
-		title: string,
-		options: {publish?: boolean; type: string} = {type: 'portlet'}
-	): Promise<Layout> {
+	async addLayout({
+		externalReferenceCode = '',
+		groupId,
+		options = {type: 'portlet'},
+		title,
+	}: {
+		externalReferenceCode?: string;
+		groupId: string;
+		options?: {publish?: boolean; type: string};
+		title: string;
+	}): Promise<Layout> {
 		if (options.publish && options.type !== 'content') {
 			throw new TypeError(
 				`Publish parameter can only be 'undefined' for non content layouts`
@@ -64,6 +52,7 @@ export class JSONWebServicesLayoutApiHelper {
 
 		const urlSearchParams = new URLSearchParams();
 
+		urlSearchParams.append('externalReferenceCode', externalReferenceCode);
 		urlSearchParams.append('groupId', groupId);
 		urlSearchParams.append('privateLayout', 'false');
 		urlSearchParams.append('parentLayoutId', '0');

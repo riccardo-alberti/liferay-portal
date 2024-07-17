@@ -35,18 +35,24 @@ const Goals = ({
 		values,
 		...formikHelpers
 	} = useFormikContext<MDFRequest>();
-	const {companiesEntries, fieldEntries} = useDynamicFieldEntries(
-		disableCompany
-	);
+	const {companiesEntries, fieldEntries} =
+		useDynamicFieldEntries(disableCompany);
 
 	const errors = formikHelpers.errors;
 
 	const {companyOptions, onCompanySelected} = useCompanyOptions(
 		useCallback(
-			(partnerCountry, company, currency, claimPercent) => {
+			(
+				partnerCountry,
+				company,
+				currency,
+				currencyExchangeRate,
+				claimPercent
+			) => {
 				setFieldValue('company', company);
 				setFieldValue('partnerCountry', partnerCountry);
 				setFieldValue('currency', currency);
+				setFieldValue('currencyExchangeRate', currencyExchangeRate);
 				setFieldValue('claimPercent', claimPercent);
 			},
 			[setFieldValue]
@@ -54,6 +60,7 @@ const Goals = ({
 		companiesEntries,
 		fieldEntries[LiferayPicklistName.CURRENCIES],
 		!isObjectEmpty(values.currency) ? values.currency : undefined,
+		values.submitted ? values.currencyExchangeRate : undefined,
 		fieldEntries[LiferayPicklistName.COUNTRIES],
 		!isObjectEmpty(values.partnerCountry)
 			? values.partnerCountry
@@ -61,13 +68,11 @@ const Goals = ({
 		!isObjectEmpty(values.company) ? values.company : undefined
 	);
 
-	const {
-		onSelected: onAdditionalOptionSelected,
-		options: additionalOptions,
-	} = getPicklistOptions(
-		fieldEntries[LiferayPicklistName.ADDITIONAL_OPTIONS],
-		(selected) => setFieldValue('additionalOption', selected)
-	);
+	const {onSelected: onAdditionalOptionSelected, options: additionalOptions} =
+		getPicklistOptions(
+			fieldEntries[LiferayPicklistName.ADDITIONAL_OPTIONS],
+			(selected) => setFieldValue('additionalOption', selected)
+		);
 
 	const goalsErrors = useMemo(() => {
 		delete errors.activities;
@@ -83,6 +88,7 @@ const Goals = ({
 		) {
 			setFieldValue(`liferayBusinessSalesGoalsOther`, '');
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [values.liferayBusinessSalesGoals]);
 

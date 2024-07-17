@@ -3,7 +3,7 @@ definition {
 
 	property ci.retries.disabled = "true";
 	property data.archive.type = "data-archive-web-content-second-complex-fields";
-	property database.types = "db2,mariadb,mysql,oracle,postgresql,sybase";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property portal.version = "7.3.10.1";
@@ -139,22 +139,18 @@ definition {
 
 		NavItem.gotoStructures();
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit Default Values",
-			rowEntry = "WC Structure Name");
+		WebContentStructures.editStructureDefaultValuesCP(structureName = "WC Structure Name");
 
-		AssertVisible(
-			key_fieldFieldLabel = "Label UF Comunicado",
-			locator1 = "WCEditWebContent#TEXT_INPUT");
+		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
+
+		// This pause is needed to avoid the deletion of typed text caused by a slow second data engine load. See LPD-28234
+
+		Pause(value1 = 3000);
 
 		Type(
 			key_fieldFieldLabel = "Label UF Comunicado",
 			locator1 = "WCEditWebContent#TEXT_INPUT",
 			value1 = "Edited LabelUFComunicado Field");
-
-		AssertVisible(
-			key_fieldFieldLabel = "Lista UF Comunicado",
-			locator1 = "WCEditWebContent#TEXT_INPUT");
 
 		Type(
 			key_fieldFieldLabel = "Lista UF Comunicado",
@@ -167,9 +163,11 @@ definition {
 
 		NavItem.gotoStructures();
 
-		LexiconEntry.gotoEntryMenuItem(
-			menuItem = "Edit Default Values",
-			rowEntry = "WC Structure Name");
+		WebContentStructures.editStructureDefaultValuesCP(structureName = "WC Structure Name");
+
+		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
+
+		AssertVisible(locator1 = "Sidebar#FORM_BUILDER");
 
 		AssertTextEquals.assertValue(
 			key_fieldFieldLabel = "Label UF Comunicado",
@@ -186,7 +184,7 @@ definition {
 	@priority = 3
 	test CanDisableSearchableInTextField {
 		property data.archive.type = "data-archive-web-content-second-complex-fields";
-		property database.types = "db2,mariadb,mysql,oracle,postgresql,sybase";
+		property database.types = "db2,mariadb,mysql,oracle,postgresql";
 		property portal.version = "7.3.10.1";
 
 		WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");

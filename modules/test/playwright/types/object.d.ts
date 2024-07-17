@@ -12,9 +12,10 @@ interface Actions {
 }
 
 interface CreateObjectField {
+	attachmentSource?: string;
 	listTypeDefinitionName?: string;
-	mandatory: boolean;
-	objectDefinitionName: string;
+	mandatory?: boolean;
+	objectDefinitionName?: string;
 	objectFieldBusinessType: string;
 	objectFieldLabel: string;
 }
@@ -37,6 +38,35 @@ interface HTTPMethod {
 type IncludesFilterOperator = {
 	in: string[] | number[];
 };
+
+interface LabelNameObject {
+	label: string;
+	name: string;
+}
+
+interface ListTypeDefinition {
+	actions: Actions;
+	externalReferenceCode: string;
+	id: number;
+	key: string;
+	listTypeEntries: ListTypeEntry[];
+	name: string;
+	name_i18n: LocalizedValue<string>;
+	system: boolean;
+}
+
+interface ListTypeDefinitions {
+	actions: Actions;
+	items: ListTypeDefinition[];
+}
+
+interface ListTypeEntry {
+	externalReferenceCode: string;
+	id: number;
+	key: string;
+	name: string;
+	name_i18n: LocalizedValue<string>;
+}
 
 type LocalizedValue<T> = Liferay.Language.LocalizedValue<T>;
 
@@ -73,6 +103,7 @@ interface ObjectActionParameters {
 	script?: string;
 	secret?: string;
 	system?: boolean;
+	type?: string;
 	url?: string;
 }
 
@@ -144,34 +175,51 @@ interface ObjectDefinitionNodeData
 	showAllObjectFields: boolean;
 }
 
+interface ObjectEntry {
+	dateCreated: string;
+	dateModified: string;
+	externalReferenceCode: string;
+	id: number;
+	keywords: [];
+	status: {
+		code: number;
+		label: string;
+		label_i18n: string;
+	};
+	textField: string;
+	[key: string]: any;
+}
+
 interface ObjectField {
 	DBType: string;
 	businessType: ObjectFieldBusinessTypeName;
 	defaultValue?: string;
 	externalReferenceCode: string;
-	id: number;
+	id?: number;
 	indexed: boolean;
 	indexedAsKeyword: boolean;
-	indexedLanguageId: Liferay.Language.Locale | string;
+	indexedLanguageId?: Liferay.Language.Locale | string;
 	label: LocalizedValue<string>;
-	listTypeDefinitionExternalReferenceCode: string;
+	listTypeDefinitionExternalReferenceCode?: string;
 	listTypeDefinitionId?: number;
 	localized: boolean;
 	name: string;
 	objectFieldSettings?: ObjectFieldSetting[];
 	readOnly: ReadOnlyFieldValue;
-	readOnlyConditionExpression: string;
+	readOnlyConditionExpression?: string;
 	relationshipId?: number;
 	relationshipType?: unknown;
 	required: boolean;
 	state: boolean;
 	system?: boolean;
+	type?: string;
 }
 
 type ObjectFieldBusinessTypeName =
 	| 'Aggregation'
 	| 'Attachment'
 	| 'AutoIncrement'
+	| 'Boolean'
 	| 'Date'
 	| 'DateTime'
 	| 'Decimal'
@@ -214,7 +262,7 @@ interface ObjectFieldNodeRow extends Partial<ObjectField> {
 	selected: boolean;
 }
 
-type ObjectFieldPicklistSetting = {
+type ObjectFieldListTypeDefinitionSetting = {
 	id: number;
 	objectStates: ObjectState[];
 };
@@ -254,7 +302,7 @@ type ObjectFieldSettingValue =
 	| LocalizedValue<string>
 	| NameValueObject[]
 	| ObjectFieldFilterSetting[]
-	| ObjectFieldPicklistSetting
+	| ObjectFieldListTypeDefinitionSetting
 	| boolean
 	| number
 	| string;
@@ -329,24 +377,6 @@ interface ObjectValidationRuleSetting {
 		| 'compositeKeyObjectFieldExternalReferenceCode'
 		| 'outputObjectFieldExternalReferenceCode';
 	value: string;
-}
-
-interface PickListItem {
-	externalReferenceCode: string;
-	id: number;
-	key: string;
-	name: string;
-	name_i18n: LocalizedValue<string>;
-}
-
-interface PickList {
-	actions: Actions;
-	externalReferenceCode: string;
-	id: number;
-	key: string;
-	listTypeEntries: PickListItem[];
-	name: string;
-	name_i18n: LocalizedValue<string>;
 }
 
 type ReadOnlyFieldValue = '' | 'conditional' | 'false' | 'true';

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.login.AuthLoginGroupSettingsUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypeController;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.servlet.TransferHeadersHelperUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -69,6 +71,10 @@ public class DisplayPageLayoutTypeController
 		}
 
 		String friendlyURL = _portal.getCurrentURL(httpServletRequest);
+
+		if (friendlyURL.startsWith(Portal.PATH_MAIN)) {
+			return null;
+		}
 
 		if (friendlyURL.contains(StringPool.QUESTION)) {
 			friendlyURL = friendlyURL.substring(
@@ -182,7 +188,20 @@ public class DisplayPageLayoutTypeController
 				httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
 			}
 			else if (!hasViewPermission) {
-				throw new NoSuchLayoutException();
+				if (themeDisplay.isSignedIn()) {
+					httpServletResponse.setStatus(
+						HttpServletResponse.SC_FORBIDDEN);
+				}
+				else if (AuthLoginGroupSettingsUtil.isPromptEnabled(
+							layout.getGroupId())) {
+
+					redirect = HttpComponentsUtil.setParameter(
+						themeDisplay.getURLSignIn(), "redirect",
+						themeDisplay.getURLCurrent());
+				}
+				else {
+					throw new NoSuchLayoutException();
+				}
 			}
 
 			if (Validator.isNotNull(redirect)) {

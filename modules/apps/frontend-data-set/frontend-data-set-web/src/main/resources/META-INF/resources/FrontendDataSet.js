@@ -119,9 +119,8 @@ const FrontendDataSet = ({
 		let initialVisibleFieldNames = {};
 
 		if (activeViewSettings) {
-			const {name: activeViewName, visibleFieldNames} = JSON.parse(
-				activeViewSettings
-			);
+			const {name: activeViewName, visibleFieldNames} =
+				JSON.parse(activeViewSettings);
 
 			if (activeViewName) {
 				const activeView = views.find(
@@ -154,16 +153,14 @@ const FrontendDataSet = ({
 						const filterImplementation =
 							FILTER_IMPLEMENTATIONS[filter.type];
 
-						filter.odataFilterString = filterImplementation.getOdataString(
-							filter
-						);
-						filter.selectedItemsLabel = filterImplementation.getSelectedItemsLabel(
-							filter
-						);
+						filter.odataFilterString =
+							filterImplementation.getOdataString(filter);
+						filter.selectedItemsLabel =
+							filterImplementation.getSelectedItemsLabel(filter);
 					}
 
 					return filter;
-			  })
+				})
 			: [];
 
 		const paginationDelta =
@@ -212,6 +209,11 @@ const FrontendDataSet = ({
 			[]
 		);
 
+		const activeSorts =
+			Liferay.FeatureFlags['LPD-19465'] && sorts.length > 1
+				? sorts.filter((sort) => sort.active)
+				: sorts;
+
 		return loadData(
 			apiURL,
 			currentURL,
@@ -219,7 +221,7 @@ const FrontendDataSet = ({
 			searchParam,
 			paginationDelta,
 			pageNumber,
-			sorts
+			activeSorts
 		);
 	}, [
 		apiURL,
@@ -236,6 +238,10 @@ const FrontendDataSet = ({
 	function updateDataSetItems(dataSetData) {
 		setItems(dataSetData.items);
 		setTotal(dataSetData.totalCount);
+
+		if (!dataSetData.items.length && dataSetData.totalCount > 0) {
+			setPageNumber(() => dataSetData.lastPage);
+		}
 	}
 
 	useEffect(() => {
@@ -493,13 +499,12 @@ const FrontendDataSet = ({
 
 						const filteredCreationMenu = {};
 
-						filteredCreationMenu.primaryItems = filterCreationActions(
-							{
+						filteredCreationMenu.primaryItems =
+							filterCreationActions({
 								customActions:
 									currentCreationMenu?.primaryItems,
 								globalCollectionActions: data?.actions,
-							}
-						);
+							});
 
 						return filteredCreationMenu;
 					});
@@ -737,7 +742,7 @@ const FrontendDataSet = ({
 				: {
 						...itemsChanges,
 						[itemKey]: {},
-				  };
+					};
 		});
 	}
 

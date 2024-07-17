@@ -16,7 +16,7 @@ import {useTotalTestCases} from '../../../../hooks/data/useCaseResultGroupBy';
 import useIssuesFound from '../../../../hooks/data/useIssuesFound';
 import i18n from '../../../../i18n';
 import {TestrayBuild, TestrayTask} from '../../../../services/rest';
-import dayjs from '../../../../util/date';
+import {formatUTCDate} from '../../../../util/date';
 import {getDonutLegend} from '../../../../util/graph';
 import BuildAlertBar from './BuildAlertBar';
 
@@ -41,7 +41,6 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 
 	useEffect(() => {
 		setColumnChartLoad(false);
-
 		setTimeout(() => {
 			setColumnChartLoad(true);
 		}, 100);
@@ -60,7 +59,14 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 						},
 						{
 							title: i18n.translate('description'),
-							value: testrayBuild.description,
+
+							value: (
+								<div
+									dangerouslySetInnerHTML={{
+										__html: testrayBuild?.description,
+									}}
+								/>
+							),
 						},
 						{
 							title: i18n.translate('git-hash'),
@@ -70,8 +76,8 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 									: testrayBuild?.gitHash,
 						},
 						{
-							title: i18n.translate('create-date'),
-							value: dayjs(testrayBuild.dueDate).format('lll'),
+							title: i18n.translate('execution-date'),
+							value: formatUTCDate(testrayBuild.dueDate),
 						},
 						{
 							title: i18n.translate('created-by'),
@@ -178,6 +184,31 @@ const BuildOverview: React.FC<BuildOverviewProps> = ({testrayBuild}) => {
 							{columnChartLoad && !loading && (
 								<ClayChart
 									axis={{
+										x: {
+											categories:
+												!!chart.testrayRunNumber
+													.length &&
+												chart.testrayRunNumber,
+											label: {
+												position: 'outer-center',
+												text: i18n
+													.translate(`${entity}`)
+													.toUpperCase(),
+											},
+											tick: {
+												show: chart.testrayRunNumber
+													.length
+													? true
+													: false,
+												text: {
+													show: chart.testrayRunNumber
+														.length
+														? true
+														: false,
+												},
+											},
+											type: 'category',
+										},
 										y: {
 											label: {
 												position: 'outer-middle',

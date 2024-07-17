@@ -35,11 +35,8 @@ const CaseResultOutlet = () => {
 	const {actions} = useCaseResultActions();
 	const {pathname} = useLocation();
 	const {buildId, caseResultId, projectId, routineId} = useParams();
-	const {
-		testrayBuild,
-		testrayProject,
-		testrayRoutine,
-	}: OutletContext = useOutletContext();
+	const {testrayBuild, testrayProject, testrayRoutine}: OutletContext =
+		useOutletContext();
 
 	const isEditCase = pathname.includes('edit');
 
@@ -60,7 +57,7 @@ const CaseResultOutlet = () => {
 		testrayCaseResult?.mbMessageId
 			? liferayMessageBoardImpl.getMessagesIdURL(
 					testrayCaseResult.mbMessageId
-			  )
+				)
 			: null
 	);
 
@@ -122,12 +119,17 @@ const CaseResultOutlet = () => {
 						},
 						{
 							active: pathname !== basePath,
-							path: `${basePath}/history`,
+							path: `${basePath}/history?${new URLSearchParams({
+								filter: JSON.stringify({
+									testrayRoutineIds: [testrayRoutine.id],
+								}),
+								filterSchema: 'buildResultsHistory',
+							})}`,
 							title: i18n.translate('history'),
 						},
-				  ]
+					]
 		);
-	}, [basePath, isEditCase, pathname, setTabs]);
+	}, [basePath, isEditCase, pathname, setTabs, testrayRoutine.id]);
 
 	return (
 		<PageRenderer error={error} loading={loading}>

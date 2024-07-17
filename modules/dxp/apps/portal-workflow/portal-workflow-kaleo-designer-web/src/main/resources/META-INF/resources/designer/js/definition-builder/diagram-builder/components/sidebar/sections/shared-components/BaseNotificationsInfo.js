@@ -13,7 +13,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {DefinitionBuilderContext} from '../../../../../DefinitionBuilderContext';
 import {contextUrl} from '../../../../../constants';
 import {
-	headers,
+	HEADERS,
 	retrieveAccountRoles,
 	userBaseURL,
 } from '../../../../../util/fetchUtil';
@@ -87,21 +87,15 @@ const BaseNotificationsInfo = ({
 	userRecipientUpdateSelectedItem,
 	...restProps
 }) => {
-	const {
-		allowScriptContentToBeExecutedOrIncluded,
-		hadGroovyScriptBefore,
-	} = useContext(DefinitionBuilderContext);
+	const {allowScriptContentToBeExecutedOrIncluded, hadGroovyScriptBefore} =
+		useContext(DefinitionBuilderContext);
 	const [networkStatus, setNetworkStatus] = useState(4);
 	const {resource} = useResource({
 		fetchOptions: {
-			headers: {
-				...headers,
-				'accept': `application/json`,
-				'x-csrf-token': Liferay.authToken,
-			},
+			headers: HEADERS,
 		},
 		fetchPolicy: 'cache-first',
-		link: `${window.location.origin}${contextUrl}${userBaseURL}/roles`,
+		link: `${window.location.origin}${contextUrl}${userBaseURL}/roles?restrictFields=rolePermissions`,
 		onNetworkStatusChange: setNetworkStatus,
 		variables: {
 			pageSize: -1,
@@ -152,7 +146,6 @@ const BaseNotificationsInfo = ({
 
 	const getRecipientTypeOptions = () => {
 		if (
-			Liferay.FeatureFlags['LPD-11179'] &&
 			!allowScriptContentToBeExecutedOrIncluded &&
 			!hadGroovyScriptBefore
 		) {
@@ -202,6 +195,7 @@ const BaseNotificationsInfo = ({
 
 				setAccountRoles(accountRoleItems);
 			});
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [accountEntryId]);
 

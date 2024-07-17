@@ -69,11 +69,26 @@ type PublisherRequestInfo = {
 		flag: string;
 	};
 	phoneNumber?: string;
+	publisherType: string[];
 	requestDescription?: string;
 	requestStatus?: {
 		key: string;
 		name: string;
 	};
+};
+
+type ListTypeDefinition = {
+	externalReferenceCode: string;
+	id: number;
+	listTypeEntries: {
+		externalReferenceCode: string;
+		key: string;
+		name: string;
+		name_i18n: {
+			[key: string]: string;
+		};
+	}[];
+	name: string;
 };
 
 type Account = {
@@ -112,11 +127,11 @@ type ActionMap<M extends {[index: string]: any}> = {
 	[Key in keyof M]: M[Key] extends undefined
 		? {
 				type: Key;
-		  }
+			}
 		: {
 				payload: M[Key];
 				type: Key;
-		  };
+			};
 };
 
 type AccountBrief = {
@@ -175,6 +190,7 @@ type AccountRole = {
 type Availability = {
 	active: boolean;
 	available: number;
+	fallback: boolean;
 	max: number;
 };
 
@@ -281,8 +297,11 @@ type DefaultProperties = {
 	cloudBaseURL: string;
 	contactSupportUrl: string;
 	eulaBaseURL: string;
-	featureFlags?: string[];
+	featureFlags: string[];
+	featurePreviews: ['use-product-id-for-specification'];
 	marketoFormId: string;
+	trialAccountCheck: 'false' | 'true';
+	trialEulaURL: string;
 	trialProductId: string;
 };
 
@@ -331,7 +350,7 @@ type Order = {
 			quantity?: number;
 			skuId: number;
 			unitPriceWithTaxAmount?: number;
-		}
+		},
 	];
 	orderStatus: number;
 	orderStatusInfo?: {
@@ -384,6 +403,13 @@ interface PlacedOrderItems {
 	thumbnail: string;
 	version: string;
 	virtualItemURLs: string;
+	virtualItems: VirtualItem[];
+}
+
+interface VirtualItem {
+	url: string;
+	usages: number;
+	version: string;
 }
 
 interface PostalAddressResponse {
@@ -502,6 +528,7 @@ interface DeliveryProduct {
 	attachments: DeliveryProductAttachment[];
 	catalogName?: string;
 	categories: ProductCategories[];
+	createDate: string;
 	customFields?: CustomField[];
 	description: string;
 	externalReferenceCode: string;
@@ -512,6 +539,7 @@ interface DeliveryProduct {
 	productId: number;
 	productSpecifications: DeliveryProductSpecification[];
 	productType: string;
+	shortDescription: string;
 	skus: DeliverySKU[];
 	urlImage: string;
 }
@@ -519,6 +547,7 @@ interface DeliveryProduct {
 interface ProductAttachment {
 	customFields?: CustomField[];
 	externalReferenceCode: string;
+	fileEntryId: number;
 	galleryEnabled: boolean;
 	id: number;
 	priority: number;
@@ -615,6 +644,9 @@ type UserAccount = {
 	password: string;
 	roleBriefs: {id: number; name: string}[];
 	type: string;
+	userAccountContactInformation?: {
+		telephones?: UserAccoutTelephone[];
+	};
 };
 
 type RequestBody = {
@@ -661,6 +693,14 @@ type Industries = {
 	name_i18n: {
 		'en-US': string;
 	};
+};
+
+type UserAccoutTelephone = {
+	extension?: string;
+	id?: number;
+	phoneNumber?: string;
+	phoneType?: string;
+	primary?: boolean;
 };
 
 type UserForm = {

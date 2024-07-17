@@ -9,13 +9,13 @@ import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import getRandomString from '../../utils/getRandomString';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
@@ -69,10 +69,10 @@ test('allows changing and resetting spacing', async ({
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragment]),
@@ -80,7 +80,7 @@ test('allows changing and resetting spacing', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	// Check Saved icon is not visible at the beggining
 
@@ -94,24 +94,36 @@ test('allows changing and resetting spacing', async ({
 		'5',
 		'px'
 	);
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'5px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('5px');
 
 	// Change Margin Top with token value and check change is applied
 
 	await pageEditorPage.changeFragmentSpacing(headingId, 'Margin Top', '2');
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'8px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('8px');
 
 	// Reset to initial value and check change is applied
 
 	await pageEditorPage.resetSpacing(headingId, 'Margin Top');
 
-	expect(await pageEditorPage.getFragmentStyle(headingId, 'marginTop')).toBe(
-		'0px'
-	);
+	expect(
+		await pageEditorPage.getFragmentStyle({
+			fragmentId: headingId,
+			isTopperStyle: true,
+			style: 'marginTop',
+		})
+	).toBe('0px');
 });
 
 test('renders all selectors with correct default values', async ({
@@ -126,10 +138,10 @@ test('renders all selectors with correct default values', async ({
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragment]),
@@ -137,7 +149,7 @@ test('renders all selectors with correct default values', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -188,10 +200,10 @@ test('renders correct sections in color picker', async ({
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragment]),
@@ -199,7 +211,7 @@ test('renders correct sections in color picker', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -234,10 +246,10 @@ test('changes the value in the Color Picker when the reset button is clicked', a
 
 	const headingId = getRandomString();
 
-	const headingFragment = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragment = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	const layout = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragment]),
@@ -245,7 +257,7 @@ test('changes the value in the Color Picker when the reset button is clicked', a
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 

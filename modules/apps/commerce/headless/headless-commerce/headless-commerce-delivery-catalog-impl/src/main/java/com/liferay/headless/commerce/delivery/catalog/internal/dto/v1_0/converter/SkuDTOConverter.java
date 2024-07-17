@@ -65,6 +65,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.settings.SystemSettingsLocator;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -110,10 +111,20 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 			_cpInstanceUnitOfMeasureLocalService.
 				getActiveCPInstanceUnitOfMeasures(cpInstance.getCPInstanceId());
 
-		JSONArray jsonArray = CPJSONUtil.toJSONArray(
-			_cpDefinitionOptionRelLocalService.
-				getCPDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys(
-					cpInstance.getCPInstanceId()));
+		JSONArray jsonArray = null;
+
+		JSONArray skuOptionsJSONArray =
+			skuDTOConverterContext.getSkuOptionsJSONArray();
+
+		if (JSONUtil.isEmpty(skuOptionsJSONArray)) {
+			jsonArray = CPJSONUtil.toJSONArray(
+				_cpDefinitionOptionRelLocalService.
+					getCPDefinitionOptionRelKeysCPDefinitionOptionValueRelKeys(
+						cpInstance.getCPInstanceId()));
+		}
+		else {
+			jsonArray = skuOptionsJSONArray;
+		}
 
 		SkuOption[] skuOptionsArray = _getSkuOptions(
 			_cpInstanceHelper.getCPDefinitionOptionValueRelsMap(
@@ -267,9 +278,7 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 								getCommerceTierPriceEntries(
 									commercePriceEntry.
 										getCommercePriceEntryId(),
-									QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-									new CommerceTierPriceEntryMinQuantityComparator(
-										true)),
+									WorkflowConstants.STATUS_APPROVED),
 							commerceTierPriceEntry -> _toTierPrice(
 								commerceCurrency, commerceTierPriceEntry, null,
 								skuDTOConverterContext.getLocale()),
@@ -427,16 +436,22 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 			CommerceMoney discountAmountCommerceMoney =
 				discountValue.getDiscountAmount();
 
-			CommerceMoney finalPriceCommerceMoney =
-				commerceProductPrice.getFinalPrice();
-
 			price.setDiscount(() -> discountAmountCommerceMoney.format(locale));
+
 			price.setDiscountPercentage(
 				() -> _commercePriceFormatter.format(
 					discountValue.getDiscountPercentage(), locale));
 			price.setDiscountPercentages(
 				() -> _getFormattedDiscountPercentages(
 					discountValue.getPercentages(), locale));
+		}
+
+		CommerceMoney finalPriceCommerceMoney =
+			commerceProductPrice.getFinalPrice();
+
+		BigDecimal finalPrice = finalPriceCommerceMoney.getPrice();
+
+		if (finalPrice != null) {
 			price.setFinalPrice(() -> finalPriceCommerceMoney.format(locale));
 		}
 
@@ -651,8 +666,8 @@ public class SkuDTOConverter implements DTOConverter<CPInstance, Sku> {
 									commercePriceEntry.
 										getCommercePriceEntryId(),
 									QueryUtil.ALL_POS, QueryUtil.ALL_POS,
-									new CommerceTierPriceEntryMinQuantityComparator(
-										true)),
+									CommerceTierPriceEntryMinQuantityComparator.
+										getInstance(true)),
 							commerceTierPriceEntry -> _toTierPrice(
 								commerceCurrency, commerceTierPriceEntry,
 								cpInstanceUnitOfMeasure, locale),

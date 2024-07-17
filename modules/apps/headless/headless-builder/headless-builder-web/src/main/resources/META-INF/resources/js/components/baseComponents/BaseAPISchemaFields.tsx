@@ -10,7 +10,7 @@ import {sub} from 'frontend-js-web';
 import React, {Dispatch, SetStateAction, useEffect, useState} from 'react';
 
 import {Select} from '../fieldComponents/Select';
-import {UNMODIFIABLE_OBJECTS_WHITELIST} from '../utils/constants';
+import {ALLOWED_UNMODIFIABLE_OBJECTS} from '../utils/constants';
 import {getAllItems} from '../utils/fetchUtil';
 
 interface BaseAPIApplicationFieldsProps {
@@ -29,9 +29,8 @@ export default function BaseAPISchemaFields({
 	const [objectDefinitionsOptions, setObjectDefinitionsOptions] = useState<
 		SelectOption[]
 	>([]);
-	const [selectedObjectDefinition, setSelectedObjectDefinition] = useState<
-		SelectOption
-	>();
+	const [selectedObjectDefinition, setSelectedObjectDefinition] =
+		useState<SelectOption>();
 
 	useEffect(() => {
 		getAllItems<ObjectDefinition>({
@@ -41,7 +40,7 @@ export default function BaseAPISchemaFields({
 			const filteredResult = result.filter(
 				(option) =>
 					option.modifiable ||
-					UNMODIFIABLE_OBJECTS_WHITELIST.includes(
+					ALLOWED_UNMODIFIABLE_OBJECTS.includes(
 						option.externalReferenceCode
 					)
 			);
@@ -50,13 +49,14 @@ export default function BaseAPISchemaFields({
 				? filteredResult.map((objectDefinition) => ({
 						label: objectDefinition.name,
 						value: objectDefinition.externalReferenceCode,
-				  }))
+					}))
 				: [];
 
 			if (options.length) {
 				setObjectDefinitionsOptions(options);
 			}
 		});
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -200,13 +200,13 @@ export default function BaseAPISchemaFields({
 									Liferay.Language.get(
 										'select-an-object-definition'
 									)
-							  )
+								)
 							: sub(
 									Liferay.Language.get(
 										'object-definition-x-is-selected'
 									),
 									selectedObjectDefinition.label
-							  )
+								)
 					}
 				/>
 

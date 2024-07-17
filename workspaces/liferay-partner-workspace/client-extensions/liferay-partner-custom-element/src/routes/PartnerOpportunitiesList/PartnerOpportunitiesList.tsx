@@ -4,10 +4,11 @@
  */
 
 import ClayAlert from '@clayui/alert';
+import ClayButton from '@clayui/button';
+import ClayIcon from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {useModal} from '@clayui/modal';
 import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
-import ClayTabs from '@clayui/tabs';
 import {useState} from 'react';
 import {CSVLink} from 'react-csv';
 
@@ -15,18 +16,27 @@ import './index.css';
 import Modal from '../../common/components/Modal';
 import Table from '../../common/components/Table';
 import TableHeader from '../../common/components/TableHeader';
+import CheckboxFilter from '../../common/components/TableHeader/Filter/components/CheckboxFilter';
+import DropDownWithDrillDown from '../../common/components/TableHeader/Filter/components/DropDownWithDrillDown';
+import DateFilter from '../../common/components/TableHeader/Filter/components/filters/DateFilter';
 import Search from '../../common/components/TableHeader/Search';
 import {PartnerOpportunitiesColumnKey} from '../../common/enums/partnerOpportunitiesColumnKey';
 import {SortableTable} from '../../common/enums/sortableTable';
 import useDebounce from '../../common/hooks/useDebounce';
 import usePagination from '../../common/hooks/usePagination';
 import useQueryParams from '../../common/hooks/useQueryParams';
+import {
+	Filters,
+	currentFiscalYearStart,
+} from '../../common/utils/constants/filters';
+import {maxPagination} from '../../common/utils/constants/maxPagination';
 import getDoubleParagraph from '../../common/utils/getDoubleParagraph';
-import setURLParams from '../../common/utils/setURLParams';
+import getDropDownFilterMenus from '../../common/utils/getDropDownFilterMenus';
 import ModalContent from './components/ModalContent';
 import useFilters from './hooks/useFilters';
 import useGetListItemsFromPartnerOpportunities from './hooks/useGetListItemsFromPartnerOpportunities';
 import PartnerOpportunitiesItem from './interfaces/partnerOpportunitiesItem';
+import {INITIAL_FILTER} from './utils/constants/initialFilter';
 
 interface IProps {
 	isRenewalListing?: boolean;
@@ -34,22 +44,25 @@ interface IProps {
 }
 
 const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
-	const [openOpportunitiesFilter, setOpenOpportunitiesFilter] = useState(
-		JSON.parse(sessionStorage.getItem('openOpportunitiesFilter')!) === null
-			? true
-			: (JSON.parse(
-					sessionStorage.getItem('openOpportunitiesFilter')!
-			  ) as boolean)
+	const [opportunitiesTableSort, setOpportunitiesTableSort] =
+		useState<string>('partnerAccountName:asc');
+
+	const debouncedDealRegistrationTableSort = useDebounce(
+		opportunitiesTableSort,
+		1000
 	);
 
-	const {filters, filtersTerm, onFilter} = useFilters(
-		openOpportunitiesFilter,
+	const urlParams = useQueryParams();
+
+	const {filters, onFilter, setFilters} = useFilters(
+		debouncedDealRegistrationTableSort,
+		urlParams,
 		isRenewalListing
 	);
+
 	const [isVisibleModal, setIsVisibleModal] = useState(false);
-	const [modalContent, setModalContent] = useState<
-		PartnerOpportunitiesItem
-	>();
+	const [modalContent, setModalContent] =
+		useState<PartnerOpportunitiesItem>();
 	const {observer, onClose} = useModal({
 		onClose: () => {
 			setIsVisibleModal(false);
@@ -59,31 +72,16 @@ const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
 
 	const pagination = usePagination();
 
-	const urlParams = useQueryParams();
-
-	const [opportunitiesTableSort, setOpportunitiesTableSort] = useState<
-		string
-	>('partnerAccountName:asc');
-
-	const debouncedDealRegistrationTableSort = useDebounce(
-		opportunitiesTableSort,
-		1000
-	);
-
 	const {data, isValidating} = useGetListItemsFromPartnerOpportunities(
 		pagination.activePage,
 		pagination.activeDelta,
-		setURLParams({
-			filter: filtersTerm,
-			sort: debouncedDealRegistrationTableSort,
-			urlParams,
-		})
+		urlParams
 	);
 
 	const {data: dataCSV} = useGetListItemsFromPartnerOpportunities(
 		pagination.activePage,
-		pagination.maxItemsSF,
-		setURLParams({filter: filtersTerm, urlParams})
+		maxPagination.MAX_ITEMS_SF.size,
+		urlParams
 	);
 
 	const {totalCount: totalPagination} = data;
@@ -128,6 +126,62 @@ const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
 			label: 'Liferay Rep',
 		},
 	];
+
+	const rangeDataPicker = {
+		end: '',
+		start: currentFiscalYearStart,
+	};
+
+	const getFilters = () => {
+		const filterFields = [
+			{
+				component: (
+					<CheckboxFilter
+						availableItems={
+							isRenewalListing
+								? Filters.RENEWAL_LISTING.stages
+								: Filters.OPPORTUNITY_LISTING.stages
+						}
+						clearCheckboxes={!filters.stage.value?.length}
+						initialCheckedItems={filters.stage.value}
+						updateFilters={(checkedItems) =>
+							setFilters((previousFilters) => ({
+								...previousFilters,
+								stage: {
+									...previousFilters.stage,
+									value: checkedItems,
+								},
+							}))
+						}
+					/>
+				),
+				name: 'Stage',
+			},
+			{
+				component: (
+					<DateFilter
+						clearInputs={filters?.closeDate}
+						dateFilters={(dates: {
+							endDate: string;
+							startDate: string;
+						}) => {
+							onFilter({
+								closeDate: {
+									dates,
+								},
+							});
+						}}
+						filterDescription="Close Date "
+						initialDates={filters.closeDate?.dates}
+						years={rangeDataPicker}
+					/>
+				),
+				name: 'Close Date',
+			},
+		];
+
+		return filterFields;
+	};
 
 	const handleCustomClickOnRow = async (row: PartnerOpportunitiesItem) => {
 		setIsVisibleModal(true);
@@ -191,22 +245,6 @@ const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
 		<div className="border-0 my-4">
 			<div className="align-items-center d-md-flex justify-content-between mb-3 mr-4">
 				<h1>{name}</h1>
-				<ClayTabs className="h-100 nav nav-segment nav-tabs">
-					<ClayTabs.Item
-						active={openOpportunitiesFilter}
-						className="nav-item"
-						onClick={() => setOpenOpportunitiesFilter(true)}
-					>
-						Open
-					</ClayTabs.Item>
-					<ClayTabs.Item
-						active={!openOpportunitiesFilter}
-						className="nav-item"
-						onClick={() => setOpenOpportunitiesFilter(false)}
-					>
-						Closed
-					</ClayTabs.Item>
-				</ClayTabs>
 			</div>
 
 			<TableHeader>
@@ -219,6 +257,7 @@ const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
 									searchTerm,
 								})
 							}
+							urlParams={urlParams}
 						/>
 
 						<div className="bd-highlight flex-shrink-2 mt-1">
@@ -233,8 +272,41 @@ const PartnerOpportunitiesList = ({isRenewalListing, name}: IProps) => {
 										</p>
 									</div>
 								)}
+							{filters.hasValue && (
+								<ClayButton
+									borderless
+									className="link"
+									onClick={() => {
+										onFilter({
+											...INITIAL_FILTER,
+											searchTerm: filters.searchTerm,
+										});
+									}}
+									small
+								>
+									<ClayIcon
+										className="ml-n2 mr-1"
+										symbol="times-circle"
+									/>
+									Clear All Filters
+								</ClayButton>
+							)}
 						</div>
 					</div>
+
+					<DropDownWithDrillDown
+						className=""
+						initialActiveMenu="x0a0"
+						menus={getDropDownFilterMenus(getFilters())}
+						trigger={
+							<ClayButton borderless className="btn-secondary">
+								<span className="inline-item inline-item-before">
+									<ClayIcon symbol="filter" />
+								</span>
+								Filter
+							</ClayButton>
+						}
+					/>
 				</div>
 
 				<div>

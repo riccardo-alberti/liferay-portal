@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {useAtom} from 'jotai';
 import {Dispatch, useState} from 'react';
 import {useNavigate, useOutletContext, useParams} from 'react-router-dom';
 import {KeyedMutator} from 'swr';
 import JiraLink from '~/components/JiraLink';
+import {taskSidebarRefresh} from '~/hooks/useSidebarTask';
 import {getTruncateText} from '~/util/getTruncateText';
 
 import FloatingBox from '../../../components/FloatingBox';
@@ -34,6 +36,8 @@ type SubtasksCaseResultsProps = {
 
 type OutletContext = {
 	data: {
+		buildId: string;
+		projectId: string;
 		testraySubtask: TestraySubtask;
 	};
 	mutate: {
@@ -48,9 +52,10 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 	const {subtaskId, taskId} = useParams();
 	const {updateItemFromList} = useMutate();
 	const [isLoading, setIsLoading] = useState(false);
+	const [, setTaskSidebarRefresh] = useAtom(taskSidebarRefresh);
 
 	const {
-		data: {testraySubtask},
+		data: {buildId, projectId, testraySubtask},
 		mutate: {mutateSubtask},
 	} = useOutletContext<OutletContext>();
 
@@ -128,6 +133,8 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 			}
 		);
 
+		setTaskSidebarRefresh(new Date().getTime());
+
 		dispatch({
 			payload: [],
 			type: ListViewTypes.SET_CLEAR_CHECKED_ROW,
@@ -145,7 +152,7 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 				const {target} = event;
 
 				if (target?.id === 'testray-link') {
-					navigate(`../../subtasks/${newSubtask.id}`);
+					navigate(`../subtasks/${newSubtask.id}`);
 				}
 			},
 		});
@@ -156,12 +163,17 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 			forceRefetch={forceRefetch}
 			managementToolbarProps={{
 				applyFilters: true,
-				visible: false,
+				customFilterFields: {
+					buildId,
+					projectId,
+				},
+				filterSchema: 'subtaskCaseResults',
 			}}
 			resource={testraySubtaskCaseResultImpl.resource}
 			tableProps={{
 				columns: [
 					{
+						clickable: true,
 						key: 'run',
 						render: (_, caseResult: TestrayCaseResult) =>
 							caseResult.run?.number?.toString().padStart(2, '0'),
@@ -182,16 +194,17 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 						value: i18n.translate('team'),
 					},
 					{
+						clickable: true,
 						key: 'component',
 						render: (_, {case: testrayCase}: TestrayCaseResult) =>
 							testrayCase?.component?.name,
 						value: i18n.translate('component'),
 					},
 					{
-						clickable: true,
 						key: 'name',
 						render: (_, {case: testrayCase}: TestrayCaseResult) =>
 							testrayCase?.name,
+						selectable: true,
 						size: 'xl',
 						value: i18n.translate('case'),
 					},
@@ -206,6 +219,7 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 						value: i18n.translate('issues'),
 					},
 					{
+						clickable: true,
 						key: 'dueStatus',
 						render: (dueStatus: PickList) => (
 							<StatusBadge
@@ -217,6 +231,7 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 						value: i18n.translate('status'),
 					},
 					{
+						clickable: true,
 						key: 'comment',
 						render: (value) => getTruncateText(value),
 						size: 'lg',
@@ -238,9 +253,10 @@ const SubtasksCaseResults: React.FC<SubtasksCaseResultsProps> = ({
 			{({items}, {dispatch, listViewContext: {selectedRows}, mutate}) => {
 				const alerts = getFloatingBoxAlerts(items, selectedRows);
 
-				const selectedCaseResults: TestraySubtaskCaseResult[] = selectedRows.map(
-					(rowId) => items.find(({id}) => rowId === id)
-				);
+				const selectedCaseResults: TestraySubtaskCaseResult[] =
+					selectedRows.map((rowId) =>
+						items.find(({id}) => rowId === id)
+					);
 
 				return (
 					<FloatingBox

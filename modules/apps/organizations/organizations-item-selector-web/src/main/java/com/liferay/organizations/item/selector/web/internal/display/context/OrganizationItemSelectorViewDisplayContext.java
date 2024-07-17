@@ -14,11 +14,14 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
-import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 
 import java.util.LinkedHashMap;
@@ -80,12 +83,23 @@ public class OrganizationItemSelectorViewDisplayContext {
 		OrganizationSearchTerms organizationSearchTerms =
 			(OrganizationSearchTerms)_searchContainer.getSearchTerms();
 
-		LinkedHashMap<String, Object> params =
-			LinkedHashMapBuilder.<String, Object>put(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
+
+		if (!permissionChecker.hasPermission(
+				null, Organization.class.getName(),
+				Organization.class.getName(), ActionKeys.VIEW)) {
+
+			params.put(
 				"organizationsTree",
 				_organizationLocalService.getUserOrganizations(
-					_portal.getUserId(_renderRequest), true)
-			).build();
+					_portal.getUserId(_renderRequest), true));
+		}
 
 		_searchContainer.setResultsAndTotal(
 			() -> _organizationLocalService.search(

@@ -5,13 +5,15 @@
 
 import {Cookie, Page, expect} from '@playwright/test';
 
+import {liferayConfig} from '../liferay.config';
+
 export type LoginScreenName =
 	| 'demo.company.admin'
 	| 'demo.organization.owner'
 	| 'demo.unprivileged'
 	| 'test';
 
-const userData = {
+export const userData = {
 	'demo.company.admin': {
 		name: 'Demo',
 		password: 'demo',
@@ -29,14 +31,14 @@ const userData = {
 	},
 	'test': {
 		name: 'Test',
-		password: 'test',
+		password: liferayConfig.environment.password,
 		surname: 'Test',
 	},
 };
 
 async function performLogin(
 	page: Page,
-	screenName: LoginScreenName
+	screenName: LoginScreenName | string
 ): Promise<Cookie[]> {
 	const {name, password, surname} = userData[screenName];
 
@@ -60,6 +62,14 @@ async function performLogin(
 	});
 
 	return await page.context().cookies();
+}
+
+export async function performLogout(page: Page) {
+	await page.goto('/');
+
+	await page.getByTitle('User Profile Menu').click();
+
+	await page.getByRole('menuitem', {name: 'Sign Out'}).click();
 }
 
 export default performLogin;

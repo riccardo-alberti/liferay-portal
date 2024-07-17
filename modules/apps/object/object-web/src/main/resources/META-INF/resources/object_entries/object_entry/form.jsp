@@ -167,7 +167,8 @@ portletDisplay.setURLBack(backURL);
 						const categoriesContent = document.getElementById(
 							'<portlet:namespace />categorization'
 						);
-						const externalReferenceCode = <portlet:namespace />getExternalReferenceCode();
+						const externalReferenceCode =
+							<portlet:namespace />getExternalReferenceCode();
 						const path = <portlet:namespace />getPath(
 							externalReferenceCode
 						);
@@ -182,10 +183,11 @@ portletDisplay.setURLBack(backURL);
 									),
 								},
 								{
-									['taxonomyCategoryIds']: <portlet:namespace />getInputValues(
-										categoriesContent,
-										'input[name^="<portlet:namespace />assetCategoryIds"]'
-									),
+									['taxonomyCategoryIds']:
+										<portlet:namespace />getInputValues(
+											categoriesContent,
+											'input[name^="<portlet:namespace />assetCategoryIds"]'
+										),
 								}
 							);
 						}
@@ -221,18 +223,21 @@ portletDisplay.setURLBack(backURL);
 								else if (response.ok) {
 									Liferay.Util.openToast({
 										message:
-											'<%= HtmlUtil.escapeJS(LanguageUtil.get(request, "your-request-completed-successfully")) %>',
+											'<%=
+												HtmlUtil.escapeJS(LanguageUtil.get(
+													LocaleUtil.fromLanguageId(LanguageUtil.getBCP47LanguageId(request)), "your-request-completed-successfully")) %>',
 										type: 'success',
 									});
 
 									response.json().then((payload) => {
-										const portletURL = Liferay.Util.PortletURL.createPortletURL(
-											'<%= currentURLObj %>',
-											{
-												externalReferenceCode:
-													payload.externalReferenceCode,
-											}
-										);
+										const portletURL =
+											Liferay.Util.PortletURL.createPortletURL(
+												'<%= currentURLObj %>',
+												{
+													externalReferenceCode:
+														payload.externalReferenceCode,
+												}
+											);
 
 										Liferay.Util.navigate(portletURL.toString());
 									});
@@ -248,21 +253,18 @@ portletDisplay.setURLBack(backURL);
 									);
 
 									for (const error of errorMessageArray) {
-										const portletBody = document.querySelector(
-											'.portlet-body'
-										);
+										const portletBody =
+											document.querySelector('.portlet-body');
 
-										const existingAlert = portletBody.querySelector(
-											'.alert'
-										);
+										const existingAlert =
+											portletBody.querySelector('.alert');
 
 										if (existingAlert) {
 											existingAlert.remove();
 										}
 
-										const alertElement = document.createElement(
-											'div'
-										);
+										const alertElement =
+											document.createElement('div');
 
 										alertElement.className = 'alert alert-danger';
 										alertElement.setAttribute('role', 'alert');
@@ -280,9 +282,8 @@ portletDisplay.setURLBack(backURL);
 											error.errorMessage
 										);
 
-										const closeButton = document.createElement(
-											'button'
-										);
+										const closeButton =
+											document.createElement('button');
 										closeButton.classList.add('close');
 										closeButton.setAttribute('aria-label', 'Close');
 										closeButton.setAttribute('type', 'button');

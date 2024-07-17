@@ -41,12 +41,16 @@ class HeadlessCommerceAdminCatalog {
 		description,
 		name,
 		productChannels,
+		productStatus,
+		workflowStatusInfo,
 	}: {
 		catalogId: number;
 		categories: Partial<Categories>[];
 		description: string;
 		name: string;
 		productChannels?: Partial<Channel>[];
+		productStatus?: number;
+		workflowStatusInfo?: number;
 	}) {
 		return fetcher.post(
 			`/o/headless-commerce-admin-catalog/v1.0/products`,
@@ -61,10 +65,17 @@ class HeadlessCommerceAdminCatalog {
 					allowBackOrder: true,
 					maxOrderQuantity: 1,
 				},
-				productStatus: 2,
+				productStatus,
 				productType: 'virtual',
 				productVirtualSettings: {},
+				workflowStatusInfo,
 			}
+		);
+	}
+
+	deleteAttachmentByExternalReferenceCode(externalReferenceCode: string) {
+		return fetcher.delete(
+			`/o/headless-commerce-admin-catalog/v1.0/attachment/by-externalReferenceCode/${externalReferenceCode}`
 		);
 	}
 

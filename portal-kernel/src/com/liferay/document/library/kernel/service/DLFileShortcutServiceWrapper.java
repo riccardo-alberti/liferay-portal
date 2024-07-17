@@ -52,6 +52,24 @@ public class DLFileShortcutServiceWrapper
 		return _dlFileShortcutService.getFileShortcut(fileShortcutId);
 	}
 
+	@Override
+	public java.util.List<DLFileShortcut> getGroupFileShortcuts(long groupId) {
+		return _dlFileShortcutService.getGroupFileShortcuts(groupId);
+	}
+
+	@Override
+	public java.util.List<DLFileShortcut> getGroupFileShortcuts(
+		long groupId, int start, int end) {
+
+		return _dlFileShortcutService.getGroupFileShortcuts(
+			groupId, start, end);
+	}
+
+	@Override
+	public long getGroupFileShortcutsCount(long groupId) {
+		return _dlFileShortcutService.getGroupFileShortcutsCount(groupId);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *

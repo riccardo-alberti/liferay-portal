@@ -42,6 +42,12 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testUpgradeBNDDeclarativeServicesCheck() throws Exception {
+		test("upgrade/upgrade-declarative-services-check/bnd.testbnd");
+		test("upgrade/upgrade-declarative-services-replace-check/bnd.testbnd");
+	}
+
+	@Test
 	public void testUpgradeBNDIncludeResourceCheck() throws Exception {
 		test("upgrade/upgrade-include-resource-check/bnd.testbnd");
 	}
@@ -117,6 +123,13 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testUpgradeJavaFinderImplCheck() throws Exception {
+		test(
+			"upgrade/src/service/persistence/impl/UpgradeJavaFinderImplCheck." +
+				"testjava");
+	}
+
+	@Test
 	public void testUpgradeJavaGetFDSTableSchemaParameterCheck()
 		throws Exception {
 
@@ -146,6 +159,13 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 		throws Exception {
 
 		test("upgrade/UpgradeJavaGetLayoutDisplayPageProviderCheck.testjava");
+	}
+
+	@Test
+	public void testUpgradeJavaLocalServiceImplCheck() throws Exception {
+		test(
+			"upgrade/src/service/impl" +
+				"/UpgradeJavaLocalServiceImplCheck.testjava");
 	}
 
 	@Test
@@ -183,6 +203,11 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testUpgradeJavaScreenContributorClassCheck() throws Exception {
 		test("upgrade/UpgradeJavaScreenContributorClassCheck.testjava");
+	}
+
+	@Test
+	public void testUpgradeJavaServiceImplCheck() throws Exception {
+		test("upgrade/src/service/impl/UpgradeJavaServiceImplCheck.testjava");
 	}
 
 	@Test
@@ -254,6 +279,16 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 		test("upgrade/XMLUpgradeDTDVersionCheck.testxml");
 	}
 
+	@Test
+	public void testXMLUpgradeServiceDeclarativeServicesCheck()
+		throws Exception {
+
+		test("upgrade/upgrade-declarative-services-check/service.testxml");
+		test(
+			"upgrade/upgrade-declarative-services-replace-check" +
+				"/service.testxml");
+	}
+
 	@Override
 	protected SourceFormatterArgs getSourceFormatterArgs() {
 		List<String> checkCategoryNames = new ArrayList<>();
@@ -263,7 +298,9 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 		List<String> sourceFormatterProperties = new ArrayList<>();
 
 		sourceFormatterProperties.add(
-			"upgrade.to.version=" + _UPGRADE_TO_VERSION);
+			"upgrade.to.liferay.version=" + _UPGRADE_TO_LIFERAY_VERSION);
+		sourceFormatterProperties.add(
+			"upgrade.to.release.version=" + _UPGRADE_TO_RELEASE_VERSION);
 
 		SourceFormatterArgs sourceFormatterArgs =
 			super.getSourceFormatterArgs();
@@ -287,6 +324,8 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 		}
 	}
 
-	private static final String _UPGRADE_TO_VERSION = "7.4.13.u27";
+	private static final String _UPGRADE_TO_LIFERAY_VERSION = "7.4.13.u27";
+
+	private static final String _UPGRADE_TO_RELEASE_VERSION = "2024.q1.1";
 
 }

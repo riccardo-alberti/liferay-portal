@@ -62,14 +62,12 @@ const FrontendTokenDefinitionFilePicker = ({
 	const [feedback, setFeedback] = useState(EMPTY_FEEDBACK);
 	const [alertRole, setAlertRole] = useState<'alert' | null>(null);
 	const [isValidatingJSON, setIsValidatingJSON] = useState(false);
-	const [
-		frontendTokenDefinitionJSON,
-		setFrontendTokenDefinitionJSON,
-	] = useState<string | undefined>(
-		initialFrontendTokenDefinitionJSON !== ''
-			? initialFrontendTokenDefinitionJSON
-			: undefined
-	);
+	const [frontendTokenDefinitionJSON, setFrontendTokenDefinitionJSON] =
+		useState<string | undefined>(
+			initialFrontendTokenDefinitionJSON !== ''
+				? initialFrontendTokenDefinitionJSON
+				: undefined
+		);
 
 	const fileInputRef = useRef<HTMLInputElement>();
 	const selectFileButtonRef = useRef<HTMLButtonElement>();
@@ -119,7 +117,7 @@ const FrontendTokenDefinitionFilePicker = ({
 							? error
 							: Liferay.Language.get(
 									'your-upload-failed-to-complete'
-							  ),
+								),
 				});
 			});
 	};
@@ -236,6 +234,9 @@ const FrontendTokenDefinitionFilePicker = ({
 					id={fileInputId}
 					name={fileInputId}
 					onChange={handleFileInputChange}
+
+					// @ts-ignore
+
 					ref={fileInputRef}
 					type="file"
 				/>
@@ -252,6 +253,9 @@ const FrontendTokenDefinitionFilePicker = ({
 						disabled={isValidatingJSON || disabled}
 						displayType="secondary"
 						onClick={() => fileInputRef.current?.click()}
+
+						// @ts-ignore
+
 						ref={selectFileButtonRef}
 					>
 						{!frontendTokenDefinitionJSON
@@ -271,6 +275,9 @@ const FrontendTokenDefinitionFilePicker = ({
 						)}
 
 						{frontendTokenDefinitionJSON && (
+
+							// @ts-ignore
+
 							<ClayButtonWithIcon
 								borderless
 								className="ml-2"

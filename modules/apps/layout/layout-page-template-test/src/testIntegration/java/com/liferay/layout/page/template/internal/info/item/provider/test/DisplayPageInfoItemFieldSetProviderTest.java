@@ -101,8 +101,8 @@ public class DisplayPageInfoItemFieldSetProviderTest {
 
 		_layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-				_group.getCreatorUserId(), _group.getGroupId(), 0, _classNameId,
-				_journalArticle.getDDMStructureId(),
+				null, _group.getCreatorUserId(), _group.getGroupId(), 0,
+				_classNameId, _journalArticle.getDDMStructureId(),
 				RandomTestUtil.randomString(),
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,
 				0, 0, 0, serviceContext);
@@ -160,6 +160,14 @@ public class DisplayPageInfoItemFieldSetProviderTest {
 		}
 	}
 
+	@Test
+	public void testGetInfoFieldValuesWithDoAsUserId() throws Exception {
+		_themeDisplay.setDoAsUserId(RandomTestUtil.randomString());
+
+		_assertInfoFieldValues(
+			FriendlyURLResolverConstants.URL_SEPARATOR_X_CUSTOM_ASSET);
+	}
+
 	private void _assertInfoFieldValue(
 			InfoFieldValue<Object> infoFieldValue, String name, String uniqueId,
 			UnsafeConsumer<Object, Exception> unsafeConsumer)
@@ -209,14 +217,16 @@ public class DisplayPageInfoItemFieldSetProviderTest {
 				WebURL layoutPageTemplateEntryWebURL = (WebURL)object;
 
 				Assert.assertEquals(
-					StringBundler.concat(
-						_portal.getGroupFriendlyURL(
-							_group.getPublicLayoutSet(), _themeDisplay, false,
-							false),
-						customAssetURLSeparator,
-						_layout.getFriendlyURL(LocaleUtil.getSiteDefault()),
-						StringPool.SLASH, _classNameId, StringPool.SLASH,
-						_journalArticle.getResourcePrimKey()),
+					_portal.addPreservedParameters(
+						_themeDisplay,
+						StringBundler.concat(
+							_portal.getGroupFriendlyURL(
+								_group.getPublicLayoutSet(), _themeDisplay,
+								false, false),
+							customAssetURLSeparator,
+							_layout.getFriendlyURL(LocaleUtil.getSiteDefault()),
+							StringPool.SLASH, _classNameId, StringPool.SLASH,
+							_journalArticle.getResourcePrimKey())),
 					layoutPageTemplateEntryWebURL.getURL());
 			});
 		_assertInfoFieldValue(
@@ -230,14 +240,16 @@ public class DisplayPageInfoItemFieldSetProviderTest {
 				WebURL layoutPageTemplateEntryWebURL = (WebURL)object;
 
 				Assert.assertEquals(
-					StringBundler.concat(
-						_portal.getGroupFriendlyURL(
-							_group.getPublicLayoutSet(), _themeDisplay, false,
-							false),
-						customAssetURLSeparator,
-						_layout.getFriendlyURL(LocaleUtil.getSiteDefault()),
-						StringPool.SLASH, _classNameId, StringPool.SLASH,
-						_journalArticle.getResourcePrimKey()),
+					_portal.addPreservedParameters(
+						_themeDisplay,
+						StringBundler.concat(
+							_portal.getGroupFriendlyURL(
+								_group.getPublicLayoutSet(), _themeDisplay,
+								false, false),
+							customAssetURLSeparator,
+							_layout.getFriendlyURL(LocaleUtil.getSiteDefault()),
+							StringPool.SLASH, _classNameId, StringPool.SLASH,
+							_journalArticle.getResourcePrimKey())),
 					layoutPageTemplateEntryWebURL.getURL());
 			});
 	}

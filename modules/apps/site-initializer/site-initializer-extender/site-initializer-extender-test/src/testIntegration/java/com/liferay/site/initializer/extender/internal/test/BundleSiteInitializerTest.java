@@ -13,8 +13,13 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.asset.link.model.AssetLink;
+import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.asset.list.model.AssetListEntry;
+import com.liferay.asset.list.model.AssetListEntrySegmentsEntryRel;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.asset.list.service.AssetListEntrySegmentsEntryRelLocalService;
+import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.client.extension.model.ClientExtensionEntry;
 import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
 import com.liferay.client.extension.type.CustomElementCET;
@@ -44,9 +49,15 @@ import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
+import com.liferay.depot.model.DepotAppCustomization;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotAppCustomizationLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
+import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
@@ -60,11 +71,14 @@ import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition;
 import com.liferay.headless.admin.list.type.dto.v1_0.ListTypeEntry;
 import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionResource;
+import com.liferay.headless.admin.taxonomy.dto.v1_0.Keyword;
+import com.liferay.headless.admin.taxonomy.resource.v1_0.KeywordResource;
 import com.liferay.headless.admin.user.dto.v1_0.Account;
 import com.liferay.headless.admin.user.dto.v1_0.AccountBrief;
 import com.liferay.headless.admin.user.dto.v1_0.Organization;
 import com.liferay.headless.admin.user.dto.v1_0.OrganizationBrief;
 import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
+import com.liferay.headless.admin.user.dto.v1_0.UserGroupBrief;
 import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
 import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
@@ -75,7 +89,9 @@ import com.liferay.headless.commerce.admin.account.resource.v1_0.AdminAccountGro
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.ProductSpecificationResource;
 import com.liferay.headless.commerce.admin.order.dto.v1_0.OrderType;
 import com.liferay.headless.commerce.admin.order.resource.v1_0.OrderTypeResource;
+import com.liferay.headless.delivery.dto.v1_0.BlogPosting;
 import com.liferay.headless.delivery.dto.v1_0.SitePage;
+import com.liferay.headless.delivery.resource.v1_0.BlogPostingResource;
 import com.liferay.headless.delivery.resource.v1_0.SitePageResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
@@ -87,6 +103,7 @@ import com.liferay.knowledge.base.model.KBFolder;
 import com.liferay.knowledge.base.service.KBArticleLocalService;
 import com.liferay.knowledge.base.service.KBFolderLocalService;
 import com.liferay.knowledge.base.util.comparator.KBArticlePriorityComparator;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
@@ -106,10 +123,12 @@ import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -613,6 +632,17 @@ public class BundleSiteInitializerTest {
 			testAssetCategory4.getExternalReferenceCode());
 	}
 
+	private void _assertAssetLinkEntries(
+		long blogPostingId, long assetLinkEntriesCount) {
+
+		List<AssetLink> links = _assetLinkLocalService.getLinks(
+			_portal.getClassNameId(BlogsEntry.class), blogPostingId);
+
+		Assert.assertNotNull(links);
+		Assert.assertEquals(
+			links.toString(), assetLinkEntriesCount, links.size());
+	}
+
 	private void _assertAssetListEntries() {
 		List<AssetListEntry> assetListEntries =
 			_assetListEntryLocalService.getAssetListEntries(
@@ -628,6 +658,16 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			"com.liferay.journal.model.JournalArticle",
 			assetListEntry.getAssetEntryType());
+
+		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel =
+			_assetListEntrySegmentsEntryRelLocalService.
+				fetchAssetListEntrySegmentsEntryRel(
+					assetListEntry.getAssetListEntryId(), 0);
+
+		Assert.assertTrue(
+			StringUtil.contains(
+				assetListEntrySegmentsEntryRel.getTypeSettings(),
+				"queryValues0=Test Keyword", StringPool.BLANK));
 
 		assetListEntry = assetListEntries.get(1);
 
@@ -678,6 +718,72 @@ public class BundleSiteInitializerTest {
 			testAssetVocabulary2.getExternalReferenceCode());
 
 		_assertAssetCategories();
+	}
+
+	private void _assertBlogPostings1() throws Exception {
+		BlogPostingResource.Builder blogPostingResourceBuilder =
+			_blogPostingResourceFactory.create();
+
+		BlogPostingResource blogPostingResource =
+			blogPostingResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		BlogPosting blogPosting =
+			blogPostingResource.getSiteBlogPostingByExternalReferenceCode(
+				_group.getGroupId(), "TESTBLOGPOSTING1");
+
+		Assert.assertEquals("Test Headline 1", blogPosting.getHeadline());
+		Assert.assertTrue(blogPosting.getImage() != null);
+
+		_assertAssetLinkEntries(blogPosting.getId(), 2);
+
+		blogPosting =
+			blogPostingResource.getSiteBlogPostingByExternalReferenceCode(
+				_group.getGroupId(), "TESTBLOGPOSTING2");
+
+		Assert.assertEquals("Test Headline 2", blogPosting.getHeadline());
+		Assert.assertTrue(blogPosting.getImage() == null);
+
+		_assertAssetLinkEntries(blogPosting.getId(), 2);
+	}
+
+	private void _assertBlogPostings2() throws Exception {
+		BlogPostingResource.Builder blogPostingResourceBuilder =
+			_blogPostingResourceFactory.create();
+
+		BlogPostingResource blogPostingResource =
+			blogPostingResourceBuilder.user(
+				_serviceContext.fetchUser()
+			).build();
+
+		BlogPosting blogPosting =
+			blogPostingResource.getSiteBlogPostingByExternalReferenceCode(
+				_group.getGroupId(), "TESTBLOGPOSTING1");
+
+		Assert.assertEquals("Test Headline 1", blogPosting.getHeadline());
+		Assert.assertTrue(blogPosting.getImage() != null);
+
+		_assertAssetLinkEntries(blogPosting.getId(), 2);
+
+		blogPosting =
+			blogPostingResource.getSiteBlogPostingByExternalReferenceCode(
+				_group.getGroupId(), "TESTBLOGPOSTING2");
+
+		Assert.assertEquals(
+			"Test Headline 2 Update", blogPosting.getHeadline());
+		Assert.assertTrue(blogPosting.getImage() != null);
+
+		_assertAssetLinkEntries(blogPosting.getId(), 4);
+
+		blogPosting =
+			blogPostingResource.getSiteBlogPostingByExternalReferenceCode(
+				_group.getGroupId(), "TESTBLOGPOSTING3");
+
+		Assert.assertEquals("Test Headline 3", blogPosting.getHeadline());
+		Assert.assertTrue(blogPosting.getImage() == null);
+
+		_assertAssetLinkEntries(blogPosting.getId(), 2);
 	}
 
 	private void _assertClientExtension() throws Exception {
@@ -1356,7 +1462,78 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(productLayoutUuid, publicLayout.getUuid());
 	}
 
-	private void _assertDLFileEntry() throws Exception {
+	private void _assertDepotEntries1() throws Exception {
+		List<DepotEntry> depotEntries =
+			_depotEntryLocalService.getGroupConnectedDepotEntries(
+				_group.getGroupId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		Assert.assertEquals(depotEntries.toString(), 2, depotEntries.size());
+
+		List<DepotAppCustomization> depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntries.get(
+					0
+				).getDepotEntryId());
+
+		Assert.assertTrue(
+			depotAppCustomizations.get(
+				0
+			).getEnabled());
+
+		depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntries.get(
+					1
+				).getDepotEntryId());
+
+		Assert.assertFalse(
+			depotAppCustomizations.get(
+				0
+			).getEnabled());
+	}
+
+	private void _assertDepotEntries2() throws Exception {
+		List<DepotEntry> depotEntries =
+			_depotEntryLocalService.getGroupConnectedDepotEntries(
+				_group.getGroupId(), -1, -1);
+
+		Assert.assertEquals(depotEntries.toString(), 3, depotEntries.size());
+
+		List<DepotAppCustomization> depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntries.get(
+					0
+				).getDepotEntryId());
+
+		Assert.assertFalse(
+			depotAppCustomizations.get(
+				0
+			).getEnabled());
+
+		depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntries.get(
+					1
+				).getDepotEntryId());
+
+		Assert.assertFalse(
+			depotAppCustomizations.get(
+				0
+			).getEnabled());
+
+		depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntries.get(
+					2
+				).getDepotEntryId());
+
+		Assert.assertTrue(
+			depotAppCustomizations.get(
+				0
+			).getEnabled());
+	}
+
+	private void _assertDLFileEntry1() throws Exception {
 		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
 			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			"Table of Contents.markdown");
@@ -1370,6 +1547,42 @@ public class BundleSiteInitializerTest {
 		Assert.assertTrue(string.contains("1. Genesis"));
 		Assert.assertTrue(string.contains("## New Testament"));
 		Assert.assertTrue(string.contains("1. Revelation"));
+	}
+
+	private void _assertDLFileEntry2() throws Exception {
+		DLFileEntry dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"Table of Contents.markdown");
+
+		String string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertTrue(string.contains("## Old Testament"));
+		Assert.assertTrue(string.contains("1. Genesis"));
+		Assert.assertTrue(string.contains("## New Testament"));
+		Assert.assertTrue(string.contains("1. Revelation"));
+		Assert.assertTrue(string.contains("## Content Update"));
+		Assert.assertTrue(string.contains("1. Test Update"));
+
+		DLFolder dlFolder = _dlFolderLocalService.fetchFolder(
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			"Old Testament");
+
+		Assert.assertNotNull(dlFolder);
+
+		dlFileEntry = _dlFileEntryLocalService.getFileEntry(
+			_group.getGroupId(), dlFolder.getFolderId(), "Genesis.txt");
+
+		Assert.assertNotNull(dlFileEntry);
+
+		string = new String(
+			StreamUtil.toByteArray(
+				_dlFileEntryLocalService.getFileAsStream(
+					dlFileEntry.getFileEntryId(), dlFileEntry.getVersion())));
+
+		Assert.assertTrue(string.isEmpty());
 	}
 
 	private void _assertExpandoColumns1() {
@@ -1708,13 +1921,82 @@ public class BundleSiteInitializerTest {
 			"This is the body for Test KB Article 3.", kbArticle3.getContent());
 	}
 
+	private void _assertKeywords1() throws Exception {
+		KeywordResource.Builder keywordResourceBuilder =
+			_keywordResourceFactory.create();
+
+		KeywordResource keywordResource = keywordResourceBuilder.user(
+			_serviceContext.fetchUser()
+		).build();
+
+		Page<Keyword> keywordsPage = keywordResource.getSiteKeywordsPage(
+			_group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 2, keywordsPage.getTotalCount());
+
+		Group group = _groupLocalService.fetchGroup(
+			_serviceContext.getCompanyId(), "Test Depot Entry 1");
+
+		keywordsPage = keywordResource.getAssetLibraryKeywordsPage(
+			group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 2, keywordsPage.getTotalCount());
+
+		group = _groupLocalService.fetchGroup(
+			_serviceContext.getCompanyId(), "Test Depot Entry 2");
+
+		keywordsPage = keywordResource.getAssetLibraryKeywordsPage(
+			group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 1, keywordsPage.getTotalCount());
+	}
+
+	private void _assertKeywords2() throws Exception {
+		KeywordResource.Builder keywordResourceBuilder =
+			_keywordResourceFactory.create();
+
+		KeywordResource keywordResource = keywordResourceBuilder.user(
+			_serviceContext.fetchUser()
+		).build();
+
+		Page<Keyword> keywordsPage = keywordResource.getSiteKeywordsPage(
+			_group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 3, keywordsPage.getTotalCount());
+
+		Group group = _groupLocalService.fetchGroup(
+			_serviceContext.getCompanyId(), "Test Depot Entry 1");
+
+		keywordsPage = keywordResource.getAssetLibraryKeywordsPage(
+			group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 2, keywordsPage.getTotalCount());
+
+		group = _groupLocalService.fetchGroup(
+			_serviceContext.getCompanyId(), "Test Depot Entry 2");
+
+		keywordsPage = keywordResource.getAssetLibraryKeywordsPage(
+			group.getGroupId(), null, null, null, null, null);
+
+		Assert.assertEquals(
+			keywordsPage.toString(), 2, keywordsPage.getTotalCount());
+	}
+
 	private void _assertLayoutPageTemplateEntries() throws Exception {
 
 		// Test Display Page Template
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				_group.getGroupId(), "Test Display Page Template",
+				_group.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				"Test Display Page Template",
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE);
 
 		Assert.assertNotNull(layoutPageTemplateEntry);
@@ -1763,7 +2045,10 @@ public class BundleSiteInitializerTest {
 
 		layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				_group.getGroupId(), "Test Master Page",
+				_group.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				"Test Master Page",
 				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT);
 
 		Assert.assertNotNull(layoutPageTemplateEntry);
@@ -2331,6 +2616,42 @@ public class BundleSiteInitializerTest {
 			objectFieldsCount,
 			_objectFieldLocalService.getObjectFieldsCount(
 				objectDefinition.getObjectDefinitionId()));
+	}
+
+	private void _assertObjectFolders1() throws Exception {
+		ObjectFolder objectFolder =
+			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
+				"TESTOBJECTFOLDER1", _group.getCompanyId());
+
+		Assert.assertEquals(
+			"Test Object Folder 1",
+			objectFolder.getLabel(LocaleUtil.getSiteDefault()));
+
+		objectFolder =
+			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
+				"TESTOBJECTFOLDER2", _group.getCompanyId());
+
+		Assert.assertEquals(
+			"Test Object Folder 2",
+			objectFolder.getLabel(LocaleUtil.getSiteDefault()));
+	}
+
+	private void _assertObjectFolders2() throws Exception {
+		ObjectFolder objectFolder =
+			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
+				"TESTOBJECTFOLDER1", _group.getCompanyId());
+
+		Assert.assertEquals(
+			"Test Object Folder 1 Update",
+			objectFolder.getLabel(LocaleUtil.getSiteDefault()));
+
+		objectFolder =
+			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
+				"TESTOBJECTFOLDER2", _group.getCompanyId());
+
+		Assert.assertEquals(
+			"Test Object Folder 2 Update",
+			objectFolder.getLabel(LocaleUtil.getSiteDefault()));
 	}
 
 	private void _assertObjectRelationships1(
@@ -3035,7 +3356,10 @@ public class BundleSiteInitializerTest {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				_group.getGroupId(), "Test Display Page Template",
+				_group.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				"Test Display Page Template",
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE);
 
 		role = _roleLocalService.fetchRole(
@@ -3108,7 +3432,10 @@ public class BundleSiteInitializerTest {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				_group.getGroupId(), "Test Display Page Template",
+				_group.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				"Test Display Page Template",
 				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE);
 
 		String className =
@@ -3128,7 +3455,10 @@ public class BundleSiteInitializerTest {
 
 		layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				_group.getGroupId(), "Test Master Page",
+				_group.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				"Test Master Page",
 				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT);
 
 		resourcePermission =
@@ -3591,6 +3921,13 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			Arrays.toString(organizationBriefs), 1, organizationBriefs.length);
 
+		UserGroupBrief[] userGroupBriefs = userAccount.getUserGroupBriefs();
+
+		Assert.assertEquals(
+			Arrays.toString(userGroupBriefs), 2, userGroupBriefs.length);
+
+		Assert.assertTrue(userAccount.getImageId() > 0);
+
 		_assertUserSiteGroups(userAccount.getId());
 
 		userAccount = userAccountResource.getUserAccountByEmailAddress(
@@ -3612,6 +3949,13 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertEquals(
 			Arrays.toString(organizationBriefs), 1, organizationBriefs.length);
+
+		userGroupBriefs = userAccount.getUserGroupBriefs();
+
+		Assert.assertEquals(
+			Arrays.toString(userGroupBriefs), 1, userGroupBriefs.length);
+
+		Assert.assertTrue(userAccount.getImageId() == 0);
 
 		_assertUserSiteGroups(userAccount.getId());
 	}
@@ -3647,10 +3991,17 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			Arrays.toString(organizationBriefs), 1, organizationBriefs.length);
 
+		UserGroupBrief[] userGroupBriefs = userAccount.getUserGroupBriefs();
+
+		Assert.assertEquals(
+			Arrays.toString(userGroupBriefs), 2, userGroupBriefs.length);
+
+		Assert.assertTrue(userAccount.getImageId() > 0);
+
 		_assertUserSiteGroups(userAccount.getId());
 
 		userAccount = userAccountResource.getUserAccountByEmailAddress(
-			"test.user2.update@liferay.com");
+			"test.user2@liferay.com");
 
 		Assert.assertNotNull(userAccount);
 
@@ -3660,7 +4011,7 @@ public class BundleSiteInitializerTest {
 			Arrays.toString(accountBriefs), 2, accountBriefs.length);
 
 		Assert.assertEquals(
-			"testalternatename2update", userAccount.getAlternateName());
+			"testalternatename2", userAccount.getAlternateName());
 		Assert.assertEquals(
 			UserAccount.Status.INACTIVE, userAccount.getStatus());
 
@@ -3668,6 +4019,13 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertEquals(
 			Arrays.toString(organizationBriefs), 2, organizationBriefs.length);
+
+		userGroupBriefs = userAccount.getUserGroupBriefs();
+
+		Assert.assertEquals(
+			Arrays.toString(userGroupBriefs), 2, userGroupBriefs.length);
+
+		Assert.assertTrue(userAccount.getImageId() >= 0);
 
 		_assertUserSiteGroups(userAccount.getId());
 
@@ -3690,6 +4048,13 @@ public class BundleSiteInitializerTest {
 
 		Assert.assertEquals(
 			Arrays.toString(organizationBriefs), 0, organizationBriefs.length);
+
+		userGroupBriefs = userAccount.getUserGroupBriefs();
+
+		Assert.assertEquals(
+			Arrays.toString(userGroupBriefs), 0, userGroupBriefs.length);
+
+		Assert.assertTrue(userAccount.getImageId() == 0);
 
 		_assertUserSiteGroups(userAccount.getId());
 	}
@@ -3885,6 +4250,7 @@ public class BundleSiteInitializerTest {
 		_assertAccounts1();
 		_assertAssetListEntries();
 		_assertAssetVocabularies();
+		_assertBlogPostings1();
 		_assertClientExtension();
 		_assertCommerceCatalogs1();
 		_assertCommerceChannel1();
@@ -3897,12 +4263,14 @@ public class BundleSiteInitializerTest {
 		_assertDataDefinition1();
 		_assertDDMStructure();
 		_assertDDMTemplate1();
-		_assertDLFileEntry();
+		_assertDepotEntries1();
+		_assertDLFileEntry1();
 		_assertExpandoColumns1();
 		_assertExpandoValues1();
 		_assertFragmentEntries();
 		_assertJournalArticles1();
 		_assertKBArticles();
+		_assertKeywords1();
 		_assertLayoutPageTemplateEntries();
 		_assertLayoutSets();
 		_assertLayouts1();
@@ -3910,6 +4278,7 @@ public class BundleSiteInitializerTest {
 		_assertListTypeDefinitions1();
 		_assertNotificationTemplate1();
 		_assertObjectDefinitions1();
+		_assertObjectFolders1();
 		_assertOrganizations1();
 		_assertPermissions();
 		_assertPLOEntries1();
@@ -3932,19 +4301,24 @@ public class BundleSiteInitializerTest {
 
 		_assertAccountGroups2();
 		_assertAccounts2();
+		_assertBlogPostings2();
 		_assertCommerceCatalogs2();
 		_assertCommerceChannel2();
 		_assertCommerceOrderType2();
 		_assertCommerceSpecificationProducts2();
 		_assertDataDefinition2();
 		_assertDDMTemplate2();
+		_assertDepotEntries2();
+		_assertDLFileEntry2();
 		_assertExpandoColumns2();
 		_assertExpandoValues2();
 		_assertJournalArticles2();
+		_assertKeywords2();
 		_assertLayouts2();
 		_assertListTypeDefinitions2();
 		_assertNotificationTemplate2();
 		_assertObjectDefinitions2();
+		_assertObjectFolders2();
 		_assertOrganizations2();
 		_assertPLOEntries2();
 		_assertResourcePermission2();
@@ -3979,10 +4353,20 @@ public class BundleSiteInitializerTest {
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Inject
+	private AssetLinkLocalService _assetLinkLocalService;
+
+	@Inject
 	private AssetListEntryLocalService _assetListEntryLocalService;
 
 	@Inject
+	private AssetListEntrySegmentsEntryRelLocalService
+		_assetListEntrySegmentsEntryRelLocalService;
+
+	@Inject
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@Inject
+	private BlogPostingResource.Factory _blogPostingResourceFactory;
 
 	@Inject
 	private CETFactory _cetFactory;
@@ -4034,7 +4418,17 @@ public class BundleSiteInitializerTest {
 	private DDMTemplateLocalService _ddmTemplateLocalService;
 
 	@Inject
+	private DepotAppCustomizationLocalService
+		_depotAppCustomizationLocalService;
+
+	@Inject
+	private DepotEntryLocalService _depotEntryLocalService;
+
+	@Inject
 	private DLFileEntryLocalService _dlFileEntryLocalService;
+
+	@Inject
+	private DLFolderLocalService _dlFolderLocalService;
 
 	@Inject
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
@@ -4058,6 +4452,9 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private KBFolderLocalService _kbFolderLocalService;
+
+	@Inject
+	private KeywordResource.Factory _keywordResourceFactory;
 
 	@Inject
 	private LayoutLocalService _layoutLocalService;
@@ -4096,6 +4493,9 @@ public class BundleSiteInitializerTest {
 
 	@Inject
 	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Inject
+	private ObjectFolderLocalService _objectFolderLocalService;
 
 	@Inject
 	private ObjectRelationshipResource.Factory

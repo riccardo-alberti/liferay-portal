@@ -25,6 +25,7 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.rest.test.util.ObjectEntryTestUtil;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
+import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -32,22 +33,27 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchEngine;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.search.highlight.HighlightUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.odata.entity.EntityField;
+import com.liferay.portal.search.rest.client.pagination.Page;
 import com.liferay.portal.search.rest.dto.v1_0.FacetConfiguration;
 import com.liferay.portal.search.rest.dto.v1_0.SearchRequestBody;
 import com.liferay.portal.search.rest.dto.v1_0.SearchResult;
@@ -117,19 +123,233 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 
 	@Override
 	@Test
+	public void testGetSearchPage() throws Exception {
+		String scope = String.valueOf(testGroup.getGroupId());
+
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult> page =
+			searchResultResource.getSearchPage(
+				null, true, null, scope, null, null,
+				com.liferay.portal.search.rest.client.pagination.Pagination.of(
+					1, 10),
+				null);
+
+		long totalCount = page.getTotalCount();
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult1 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult2 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		page = searchResultResource.getSearchPage(
+			null, true, null, scope, null, null,
+			com.liferay.portal.search.rest.client.pagination.Pagination.of(
+				1, 10),
+			null);
+
+		Assert.assertEquals(totalCount + 2, page.getTotalCount());
+
+		assertContains(
+			searchResult1,
+			(List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>)
+				page.getItems());
+		assertContains(
+			searchResult2,
+			(List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>)
+				page.getItems());
+		assertValid(page, testGetSearchPage_getExpectedActions());
+	}
+
+	@Override
+	@Test
+	public void testGetSearchPageWithFilterDateTimeEquals() throws Exception {
+		List<EntityField> entityFields = getEntityFields(
+			EntityField.Type.DATE_TIME);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult1 = randomSearchResult();
+
+		searchResult1 = testGetSearchPage_addSearchResult(searchResult1);
+
+		for (EntityField entityField : entityFields) {
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page = searchResultResource.getSearchPage(
+					null, null, null, String.valueOf(testGroup.getGroupId()),
+					searchResult1.getTitle(),
+					getFilterString(entityField, "between", searchResult1),
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, 2),
+					null);
+
+			assertEquals(
+				Collections.singletonList(searchResult1),
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page.getItems());
+		}
+	}
+
+	@Override
+	@Test
+	public void testGetSearchPageWithPagination() throws Exception {
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+			searchResultPage = searchResultResource.getSearchPage(
+				null, true, null, null, null, null, null, null);
+
+		int totalCount = GetterUtil.getInteger(
+			searchResultPage.getTotalCount());
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult1 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult2 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult3 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		int pageSizeLimit = 500;
+
+		if (totalCount >= (pageSizeLimit - 2)) {
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page1 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(
+							(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
+							pageSizeLimit),
+					null);
+
+			Assert.assertEquals(totalCount + 3, page1.getTotalCount());
+
+			assertContains(
+				searchResult1,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page1.getItems());
+
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page2 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(
+							(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
+							pageSizeLimit),
+					null);
+
+			assertContains(
+				searchResult2,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page2.getItems());
+
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page3 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(
+							(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
+							pageSizeLimit),
+					null);
+
+			assertContains(
+				searchResult3,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page3.getItems());
+		}
+		else {
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page1 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, totalCount + 2),
+					null);
+
+			List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				searchResults1 =
+					(List
+						<com.liferay.portal.search.rest.client.dto.v1_0.
+							SearchResult>)page1.getItems();
+
+			Assert.assertEquals(
+				searchResults1.toString(), totalCount + 2,
+				searchResults1.size());
+
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page2 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(2, totalCount + 2),
+					null);
+
+			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
+
+			List<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				searchResults2 =
+					(List
+						<com.liferay.portal.search.rest.client.dto.v1_0.
+							SearchResult>)page2.getItems();
+
+			Assert.assertEquals(
+				searchResults2.toString(), 1, searchResults2.size());
+
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page3 = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, (int)totalCount + 3),
+					null);
+
+			assertContains(
+				searchResult1,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page3.getItems());
+			assertContains(
+				searchResult2,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page3.getItems());
+			assertContains(
+				searchResult3,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page3.getItems());
+		}
+	}
+
+	@Test
+	public void testGetSearchPageWithSortInteger() throws Exception {
+	}
+
+	@Override
+	@Test
 	public void testPostSearchPage() throws Exception {
-		SearchPage<SearchResult> searchPage = _postSearchPage(
-			_journalArticle.getArticleId());
-
-		Assert.assertEquals(1L, searchPage.getPage());
-		Assert.assertEquals(1L, searchPage.getTotalCount());
-
+		_testPostSearchPageAggregationNameAsFacetName();
 		_testPostSearchPageWithCategoryTreeFacetConfiguration();
 		_testPostSearchPageWithCustomFacetConfiguration();
 		_testPostSearchPageWithDateRangeFacetConfiguration();
 		_testPostSearchPageWithEmbeddedNestedFields();
+		_testPostSearchPageWithEmptyScope();
+		_testPostSearchPageWithFaultyScope();
+		_testPostSearchPageWithFilter();
 		_testPostSearchPageWithFolderFacetConfiguration();
+		_testPostSearchPageWithGroupERCAndGroupIdScope();
+		_testPostSearchPageWithGroupERCScope();
+		_testPostSearchPageWithGroupIdScope();
 		_testPostSearchPageWithHighlightConfiguration();
+		_testPostSearchPageWithKeywords();
+		_testPostSearchPageWithMultipleGroupIdsScope();
 		_testPostSearchPageWithNestedFacetConfiguration();
 		_testPostSearchPageWithSiteFacetConfiguration();
 		_testPostSearchPageWithTagFacetConfiguration();
@@ -137,6 +357,131 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		_testPostSearchPageWithUserFacetConfiguration();
 		_testPostSearchPageWithoutHighlightConfiguration();
 		_testPostSearchPageZeroResults();
+	}
+
+	@Test
+	public void testSearchEndpointRedirect() throws Exception {
+		_baseURI = "portal-search-rest";
+
+		_testPostSearchPageWithKeywords();
+	}
+
+	@Override
+	protected com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			testGetSearchPage_addSearchResult(
+				com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+					searchResult)
+		throws Exception {
+
+		JournalTestUtil.addArticle(
+			testGroup.getGroupId(), searchResult.getTitle(),
+			searchResult.getDescription());
+
+		return searchResult;
+	}
+
+	@Override
+	protected void testGetSearchPageWithFilter(
+			String operator, EntityField.Type type)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult1 = testGetSearchPage_addSearchResult(
+				randomSearchResult());
+
+		for (EntityField entityField : entityFields) {
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				page = searchResultResource.getSearchPage(
+					null, true, null, null, null,
+					getFilterString(entityField, operator, searchResult1),
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, 2),
+					null);
+
+			assertEquals(
+				Collections.singletonList(searchResult1),
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)page.getItems());
+		}
+	}
+
+	@Override
+	protected void testGetSearchPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField,
+				 com.liferay.portal.search.rest.client.dto.v1_0.SearchResult,
+				 com.liferay.portal.search.rest.client.dto.v1_0.SearchResult,
+				 Exception> unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
+
+		if (entityFields.isEmpty()) {
+			return;
+		}
+
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult1 = randomSearchResult();
+		com.liferay.portal.search.rest.client.dto.v1_0.SearchResult
+			searchResult2 = randomSearchResult();
+
+		for (EntityField entityField : entityFields) {
+			unsafeTriConsumer.accept(entityField, searchResult1, searchResult2);
+		}
+
+		searchResult1 = testGetSearchPage_addSearchResult(searchResult1);
+
+		searchResult2 = testGetSearchPage_addSearchResult(searchResult2);
+
+		Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult> page =
+			searchResultResource.getSearchPage(
+				null, true, null, null, null, null, null, null);
+
+		for (EntityField entityField : entityFields) {
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				ascPage = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, (int)page.getTotalCount() + 1),
+					entityField.getName() + ":asc");
+
+			assertContains(
+				searchResult1,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)ascPage.getItems());
+			assertContains(
+				searchResult2,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)ascPage.getItems());
+
+			Page<com.liferay.portal.search.rest.client.dto.v1_0.SearchResult>
+				descPage = searchResultResource.getSearchPage(
+					null, true, null, null, null, null,
+					com.liferay.portal.search.rest.client.pagination.Pagination.
+						of(1, (int)page.getTotalCount() + 1),
+					entityField.getName() + ":desc");
+
+			assertContains(
+				searchResult2,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)descPage.getItems());
+			assertContains(
+				searchResult1,
+				(List
+					<com.liferay.portal.search.rest.client.dto.v1_0.
+						SearchResult>)descPage.getItems());
+		}
 	}
 
 	private AssetCategory _addAssetCategory(
@@ -301,6 +646,26 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		return searchPage;
 	}
 
+	private void _assertSearchResultTitles(
+		SearchPage<SearchResult> searchPage, String... expectedValues) {
+
+		List<SearchResult> searchResults = ListUtil.fromCollection(
+			searchPage.getItems());
+
+		List<String> titles = new ArrayList<>();
+
+		for (SearchResult searchResult : searchResults) {
+			titles.add(searchResult.getTitle());
+		}
+
+		Arrays.sort(expectedValues);
+
+		Collections.sort(titles);
+
+		Assert.assertEquals(
+			Arrays.toString(expectedValues), String.valueOf(titles));
+	}
+
 	private JSONObject _createSXPBlueprintHighlightConfigurationJSON() {
 		return JSONUtil.put(
 			"fields",
@@ -330,10 +695,10 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 
 	private String _getEndpoint(
 			String entryClassNames, String filterString, String keywords,
-			String nestedFields)
+			String nestedFields, String scope)
 		throws Exception {
 
-		String endpoint = "portal-search-rest/v1.0/search?";
+		String endpoint = _baseURI + "/v1.0/search?";
 
 		if (!Validator.isBlank(entryClassNames)) {
 			endpoint +=
@@ -350,6 +715,10 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			endpoint +=
 				"&nestedFields=" +
 					URLEncoder.encode(nestedFields, StringPool.UTF8);
+		}
+
+		if (!Validator.isBlank(scope)) {
+			endpoint += "&scope=" + URLEncoder.encode(scope, StringPool.UTF8);
 		}
 
 		if (!Validator.isBlank(keywords)) {
@@ -393,20 +762,30 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		throws Exception {
 
 		return _postSearchPage(
-			null, "groupIds/any(g:g eq " + testGroup.getGroupId() + ")",
-			keywords, null, new SearchRequestBody());
+			null, null, keywords, null, String.valueOf(testGroup.getGroupId()),
+			new SearchRequestBody());
+	}
+
+	private SearchPage<SearchResult> _postSearchPage(
+			String keywords, String scope)
+		throws Exception {
+
+		return _postSearchPage(
+			null, null, keywords, null, scope, new SearchRequestBody());
 	}
 
 	private SearchPage<SearchResult> _postSearchPage(
 			String entryClassNames, String filterString, String keywords,
-			String nestedFields, SearchRequestBody searchRequestBody)
+			String nestedFields, String scope,
+			SearchRequestBody searchRequestBody)
 		throws Exception {
 
 		return _toSearchPage(
 			HTTPTestUtil.invokeToJSONObject(
 				searchRequestBody.toString(),
 				_getEndpoint(
-					entryClassNames, filterString, keywords, nestedFields),
+					entryClassNames, filterString, keywords, nestedFields,
+					scope),
 				Http.Method.POST));
 	}
 
@@ -427,9 +806,8 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		};
 
 		return _postSearchPage(
-			entryClassNames,
-			"groupIds/any(g:g eq " + testGroup.getGroupId() + ")", null, null,
-			searchRequestBody);
+			entryClassNames, null, null, null,
+			String.valueOf(testGroup.getGroupId()), searchRequestBody);
 	}
 
 	private SearchPage<SearchResult>
@@ -448,7 +826,42 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		};
 
 		return _postSearchPage(
-			entryClassNames, null, keywords, null, searchRequestBody);
+			entryClassNames, null, keywords, null, null, searchRequestBody);
+	}
+
+	private void _testPostSearchPageAggregationNameAsFacetName()
+		throws Exception {
+
+		String facetAggregationName = StringUtil.randomString();
+
+		SearchPage<SearchResult> searchPage1 =
+			_postSearchPageWithFacetConfiguration(
+				null,
+				new FacetConfiguration() {
+					{
+						aggregationName = facetAggregationName;
+						name = "tag";
+					}
+				});
+
+		Map<String, Object> map1 =
+			(Map<String, Object>)searchPage1.getSearchFacets();
+
+		Assert.assertTrue(map1.containsKey(facetAggregationName));
+
+		SearchPage<SearchResult> searchPage2 =
+			_postSearchPageWithFacetConfiguration(
+				null,
+				new FacetConfiguration() {
+					{
+						name = "tag";
+					}
+				});
+
+		Map<String, Object> map2 =
+			(Map<String, Object>)searchPage2.getSearchFacets();
+
+		Assert.assertTrue(map2.containsKey("tag"));
 	}
 
 	private void _testPostSearchPageWithCategoryTreeFacetConfiguration()
@@ -544,7 +957,7 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 
 		SearchPage<SearchResult> searchPage = _postSearchPage(
 			objectDefinition.getClassName(), null,
-			objectDefinition.getUserName(), "embedded",
+			objectDefinition.getUserName(), "embedded", null,
 			new SearchRequestBody());
 
 		Collection<SearchResult> searchResults = searchPage.getItems();
@@ -556,12 +969,91 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 		}
 	}
 
+	private void _testPostSearchPageWithEmptyScope() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			group.getGroupId(), StringUtil.randomString(),
+			StringUtil.randomString());
+
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			StringBundler.concat(
+				_journalArticle.getTitle(_locale), StringPool.SPACE,
+				journalArticle.getTitle(_locale)),
+			null);
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale),
+			journalArticle.getTitle(_locale));
+
+		GroupTestUtil.deleteGroup(group);
+	}
+
+	private void _testPostSearchPageWithFaultyScope() throws Exception {
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			_journalArticle.getArticleId(), "notexistingscope");
+
+		_assertSearchResultTitles(searchPage, new String[0]);
+	}
+
+	private void _testPostSearchPageWithFilter() throws Exception {
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			null, "groupIds/any(g:g eq " + testGroup.getGroupId() + ")",
+			_journalArticle.getArticleId(), null, null,
+			new SearchRequestBody());
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale));
+	}
+
 	private void _testPostSearchPageWithFolderFacetConfiguration()
 		throws Exception {
 
 		_assertFacetConfiguration(
 			false, null, null, "folder", _journalArticle.getFolderId(),
 			String.valueOf(_journalArticle.getFolderId()));
+	}
+
+	private void _testPostSearchPageWithGroupERCAndGroupIdScope()
+		throws Exception {
+
+		Group group = GroupTestUtil.addGroup();
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			group.getGroupId(), StringUtil.randomString(),
+			StringUtil.randomString());
+
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			StringBundler.concat(
+				_journalArticle.getTitle(_locale), StringPool.SPACE,
+				journalArticle.getTitle(_locale)),
+			StringBundler.concat(
+				testGroup.getGroupId(), StringPool.COMMA,
+				group.getExternalReferenceCode()));
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale),
+			journalArticle.getTitle(_locale));
+
+		GroupTestUtil.deleteGroup(group);
+	}
+
+	private void _testPostSearchPageWithGroupERCScope() throws Exception {
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			_journalArticle.getArticleId(),
+			String.valueOf(testGroup.getExternalReferenceCode()));
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale));
+	}
+
+	private void _testPostSearchPageWithGroupIdScope() throws Exception {
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			_journalArticle.getArticleId(),
+			String.valueOf(testGroup.getGroupId()));
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale));
 	}
 
 	private void _testPostSearchPageWithHighlightConfiguration()
@@ -576,12 +1068,44 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			searchPage.getItems());
 
 		Assert.assertFalse(searchResults.isEmpty());
-		Assert.assertTrue(
-			ListUtil.count(
-				searchResults,
-				searchResult -> Objects.equals(
-					searchResult.getTitle(), _getUserHighlightedFullName())) >=
-						1);
+
+		int count = ListUtil.count(
+			searchResults,
+			searchResult -> Objects.equals(
+				searchResult.getTitle(), _getUserHighlightedFullName()));
+
+		Assert.assertTrue(count >= 1);
+	}
+
+	private void _testPostSearchPageWithKeywords() throws Exception {
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			_journalArticle.getArticleId());
+
+		Assert.assertEquals(1L, searchPage.getPage());
+		Assert.assertEquals(1L, searchPage.getTotalCount());
+	}
+
+	private void _testPostSearchPageWithMultipleGroupIdsScope()
+		throws Exception {
+
+		Group group = GroupTestUtil.addGroup();
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			group.getGroupId(), StringUtil.randomString(),
+			StringUtil.randomString());
+
+		SearchPage<SearchResult> searchPage = _postSearchPage(
+			StringBundler.concat(
+				_journalArticle.getTitle(_locale), StringPool.SPACE,
+				journalArticle.getTitle(_locale)),
+			StringBundler.concat(
+				testGroup.getGroupId(), StringPool.COMMA, group.getGroupId()));
+
+		_assertSearchResultTitles(
+			searchPage, _journalArticle.getTitle(_locale),
+			journalArticle.getTitle(_locale));
+
+		GroupTestUtil.deleteGroup(group);
 	}
 
 	private void _testPostSearchPageWithNestedFacetConfiguration()
@@ -624,11 +1148,14 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 			searchPage.getItems());
 
 		Assert.assertFalse(searchResults.isEmpty());
-		Assert.assertTrue(
-			ListUtil.count(
-				searchResults,
-				searchResult -> Objects.equals(
-					searchResult.getTitle(), _user.getFullName())) >= 1);
+
+		int count = ListUtil.count(
+			searchResults,
+			searchResult -> Objects.equals(
+				searchResult.getTitle(), _user.getFullName()));
+
+		Assert.assertTrue(count >= 1);
+
 		Assert.assertEquals(
 			0,
 			ListUtil.count(
@@ -707,6 +1234,7 @@ public class SearchResultResourceTest extends BaseSearchResultResourceTestCase {
 	@Inject
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
+	private String _baseURI = "search";
 	private DDMStructure _ddmStructure;
 	private JournalArticle _journalArticle;
 

@@ -14,7 +14,7 @@ import {
 
 import './ChoosePricingModelPage.scss';
 import {NewAppPageFooterButtons} from '../../../../../../components/NewAppPageFooterButtons/NewAppPageFooterButtons';
-import {getTemporaryProductIdForSpefication} from '../../../../../../utils/util';
+import useFeaturePreview from '../../../../../../hooks/useFeaturePreview';
 import {useAppContext} from '../AppContext/AppManageState';
 import {TYPES} from '../AppContext/actionTypes';
 
@@ -27,14 +27,14 @@ export function ChoosePricingModelPage({
 	onClickBack,
 	onClickContinue,
 }: ChoosePricingModelPageProps) {
-	const [
-		{appId, appLicense, appProductId, priceModel},
-		dispatch,
-	] = useAppContext();
+	const [{appId, appLicense, appProductId, priceModel}, dispatch] =
+		useAppContext();
+
+	const {getTemporaryProductIdForSpefication} = useFeaturePreview();
 
 	const _tempProductId = getTemporaryProductIdForSpefication({
 		appId,
-		appProductId,
+		productId: appProductId,
 	});
 
 	return (
@@ -117,9 +117,8 @@ export function ChoosePricingModelPage({
 							}
 						}
 						else {
-							const dataSpecification = await getSpecification(
-								'price-model'
-							);
+							const dataSpecification =
+								await getSpecification('price-model');
 
 							const {id} = await createProductSpecification({
 								body: {

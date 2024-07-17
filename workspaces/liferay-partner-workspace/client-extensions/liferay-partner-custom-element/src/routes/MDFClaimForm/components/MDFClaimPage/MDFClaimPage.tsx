@@ -52,12 +52,22 @@ const MDFClaimPage = ({
 	useActivitiesAmount(
 		values.activities,
 		useCallback(
-			(amountValue) =>
+			(amountValue) => {
 				setFieldValue(
 					'totalClaimAmount',
 					amountValue * mdfRequest.claimPercent
-				),
-			[mdfRequest.claimPercent, setFieldValue]
+				);
+				setFieldValue(
+					'convertedTotalClaimAmount',
+					(amountValue * mdfRequest.claimPercent) /
+						mdfRequest.currencyExchangeRate
+				);
+			},
+			[
+				mdfRequest.claimPercent,
+				mdfRequest.currencyExchangeRate,
+				setFieldValue,
+			]
 		)
 	);
 
@@ -84,7 +94,6 @@ const MDFClaimPage = ({
 
 	const isDisplayableMDFActivityClaim = (activity: MDFClaimActivity) => {
 		const claimableActivityByStatus =
-			activity.activityStatus?.key !== Status.CANCELED.key &&
 			activity.activityStatus?.key !== Status.EXPIRED.key &&
 			!activity.claimed;
 
@@ -220,7 +229,7 @@ const MDFClaimPage = ({
 								values.reimbursementInvoices
 									? values.reimbursementInvoices.concat(
 											liferayFiles as LiferayFile[]
-									  )
+										)
 									: liferayFiles
 							)
 						}
@@ -242,9 +251,13 @@ const MDFClaimPage = ({
 						description="The amount to be claimed for the Total of  selected expenses"
 						label="Total Claim Amount"
 						name="totalClaimAmount"
-						onAccept={(value: number) =>
-							setFieldValue('totalClaimAmount', value)
-						}
+						onAccept={(value: number) => {
+							setFieldValue('totalClaimAmount', value);
+							setFieldValue(
+								'convertedTotalClaimAmount',
+								value / mdfRequest.currencyExchangeRate
+							);
+						}}
 						required
 					/>
 				</PRMForm.Section>

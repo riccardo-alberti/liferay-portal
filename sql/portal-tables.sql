@@ -632,6 +632,7 @@ create table Layout (
 	mvccVersion LONG default 0 not null,
 	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
+	externalReferenceCode VARCHAR(75) null,
 	plid LONG not null,
 	groupId LONG,
 	companyId LONG,
@@ -940,7 +941,7 @@ create table PasswordTracker (
 	companyId LONG,
 	userId LONG,
 	createDate DATE null,
-	password_ VARCHAR(75) null
+	password_ VARCHAR(255) null
 );
 
 create table Phone (
@@ -1147,6 +1148,16 @@ create table Release_ (
 	verified BOOLEAN,
 	state_ INTEGER,
 	testString VARCHAR(1024) null
+);
+
+create table RememberMeToken (
+	mvccVersion LONG default 0 not null,
+	rememberMeTokenId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	createDate DATE null,
+	expirationDate DATE null,
+	value VARCHAR(255) null
 );
 
 create table Repository (
@@ -1414,7 +1425,7 @@ create table Ticket (
 	createDate DATE null,
 	classNameId LONG,
 	classPK LONG,
-	key_ VARCHAR(75) null,
+	key_ VARCHAR(255) null,
 	type_ INTEGER,
 	extraInfo TEXT null,
 	expirationDate DATE null
@@ -1442,7 +1453,7 @@ create table User_ (
 	createDate DATE null,
 	modifiedDate DATE null,
 	contactId LONG,
-	password_ VARCHAR(75) null,
+	password_ VARCHAR(255) null,
 	passwordEncrypted BOOLEAN,
 	passwordReset BOOLEAN,
 	passwordModifiedDate DATE null,

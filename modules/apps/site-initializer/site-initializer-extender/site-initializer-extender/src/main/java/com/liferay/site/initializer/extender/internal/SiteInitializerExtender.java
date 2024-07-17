@@ -11,10 +11,14 @@ import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.account.service.AccountGroupRelService;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
@@ -24,6 +28,7 @@ import com.liferay.expando.kernel.service.ExpandoValueLocalService;
 import com.liferay.fragment.importer.FragmentsImporter;
 import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionResource;
 import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeEntryResource;
+import com.liferay.headless.admin.taxonomy.resource.v1_0.KeywordResource;
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyCategoryResource;
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyVocabularyResource;
 import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
@@ -31,13 +36,13 @@ import com.liferay.headless.admin.user.resource.v1_0.AccountRoleResource;
 import com.liferay.headless.admin.user.resource.v1_0.OrganizationResource;
 import com.liferay.headless.admin.user.resource.v1_0.UserAccountResource;
 import com.liferay.headless.admin.workflow.resource.v1_0.WorkflowDefinitionResource;
+import com.liferay.headless.delivery.resource.v1_0.BlogPostingResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentFolderResource;
 import com.liferay.headless.delivery.resource.v1_0.DocumentResource;
 import com.liferay.headless.delivery.resource.v1_0.KnowledgeBaseArticleResource;
 import com.liferay.headless.delivery.resource.v1_0.KnowledgeBaseFolderResource;
 import com.liferay.headless.delivery.resource.v1_0.StructuredContentFolderResource;
 import com.liferay.journal.service.JournalArticleLocalService;
-import com.liferay.layout.helper.LayoutCopyHelper;
 import com.liferay.layout.importer.LayoutsImporter;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
@@ -47,6 +52,7 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.notification.rest.resource.v1_0.NotificationTemplateResource;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectDefinitionResource;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectFieldResource;
+import com.liferay.object.admin.rest.resource.v1_0.ObjectFolderResource;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectRelationshipResource;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectActionLocalService;
@@ -137,17 +143,20 @@ public class SiteInitializerExtender
 				_accountGroupLocalService, _accountGroupRelService,
 				_accountResourceFactory, _accountRoleLocalService,
 				_accountRoleResourceFactory, _assetCategoryLocalService,
-				_assetListEntryLocalService, bundle, _cetManager,
-				_clientExtensionEntryLocalService, _configurationProvider,
-				_dataDefinitionResourceFactory, _ddmStructureLocalService,
-				_ddmTemplateLocalService, _defaultDDMStructureHelper,
-				_dependencyManager, _dlFileEntryTypeLocalService, _dlURLHelper,
+				_assetEntryLocalService, _assetLinkLocalService,
+				_assetListEntryLocalService, _blogPostingResourceFactory,
+				bundle, _cetManager, _clientExtensionEntryLocalService,
+				_configurationProvider, _dataDefinitionResourceFactory,
+				_ddmStructureLocalService, _ddmTemplateLocalService,
+				_defaultDDMStructureHelper, _dependencyManager,
+				_depotEntryGroupRelLocalService, _depotEntryLocalService,
+				_dlFileEntryTypeLocalService, _dlURLHelper,
 				_documentFolderResourceFactory, _documentResourceFactory,
 				_expandoValueLocalService, _fragmentsImporter,
 				_groupLocalService, _journalArticleLocalService, _jsonFactory,
-				_knowledgeBaseArticleResourceFactory,
-				_knowledgeBaseFolderResourceFactory, _layoutCopyHelper,
-				_layoutLocalService, _layoutPageTemplateEntryLocalService,
+				_keywordResourceFactory, _knowledgeBaseArticleResourceFactory,
+				_knowledgeBaseFolderResourceFactory, _layoutLocalService,
+				_layoutPageTemplateEntryLocalService,
 				_layoutPageTemplateStructureLocalService,
 				_layoutPageTemplateStructureRelLocalService,
 				_layoutSetLocalService, _layoutsImporter,
@@ -159,7 +168,7 @@ public class SiteInitializerExtender
 				_objectDefinitionLocalService, _objectDefinitionResourceFactory,
 				_objectEntryLocalService, _objectEntryManager,
 				_objectFieldLocalService, _objectFieldResourceFactory,
-				_objectRelationshipLocalService,
+				_objectFolderResourceFactory, _objectRelationshipLocalService,
 				_objectRelationshipResourceFactory, _organizationLocalService,
 				_organizationResourceFactory, _ploEntryLocalService, _portal,
 				_portletPreferencesLocalService, _resourceActionLocalService,
@@ -254,7 +263,8 @@ public class SiteInitializerExtender
 				_accountGroupLocalService, _accountGroupRelService,
 				_accountResourceFactory, _accountRoleLocalService,
 				_accountRoleResourceFactory, _assetCategoryLocalService,
-				_assetListEntryLocalService,
+				_assetEntryLocalService, _assetLinkLocalService,
+				_assetListEntryLocalService, _blogPostingResourceFactory,
 				ProxyUtil.newDelegateProxyInstance(
 					Bundle.class.getClassLoader(), Bundle.class,
 					new FileBackedBundleDelegate(
@@ -264,13 +274,14 @@ public class SiteInitializerExtender
 				_configurationProvider, _dataDefinitionResourceFactory,
 				_ddmStructureLocalService, _ddmTemplateLocalService,
 				_defaultDDMStructureHelper, _dependencyManager,
+				_depotEntryGroupRelLocalService, _depotEntryLocalService,
 				_dlFileEntryTypeLocalService, _dlURLHelper,
 				_documentFolderResourceFactory, _documentResourceFactory,
 				_expandoValueLocalService, _fragmentsImporter,
 				_groupLocalService, _journalArticleLocalService, _jsonFactory,
-				_knowledgeBaseArticleResourceFactory,
-				_knowledgeBaseFolderResourceFactory, _layoutCopyHelper,
-				_layoutLocalService, _layoutPageTemplateEntryLocalService,
+				_keywordResourceFactory, _knowledgeBaseArticleResourceFactory,
+				_knowledgeBaseFolderResourceFactory, _layoutLocalService,
+				_layoutPageTemplateEntryLocalService,
 				_layoutPageTemplateStructureLocalService,
 				_layoutPageTemplateStructureRelLocalService,
 				_layoutSetLocalService, _layoutsImporter,
@@ -282,7 +293,7 @@ public class SiteInitializerExtender
 				_objectDefinitionLocalService, _objectDefinitionResourceFactory,
 				_objectEntryLocalService, _objectEntryManager,
 				_objectFieldLocalService, _objectFieldResourceFactory,
-				_objectRelationshipLocalService,
+				_objectFolderResourceFactory, _objectRelationshipLocalService,
 				_objectRelationshipResourceFactory, _organizationLocalService,
 				_organizationResourceFactory, _ploEntryLocalService, _portal,
 				_portletPreferencesLocalService, _resourceActionLocalService,
@@ -339,7 +350,16 @@ public class SiteInitializerExtender
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
+
+	@Reference
+	private AssetLinkLocalService _assetLinkLocalService;
+
+	@Reference
 	private AssetListEntryLocalService _assetListEntryLocalService;
+
+	@Reference
+	private BlogPostingResource.Factory _blogPostingResourceFactory;
 
 	private BundleContext _bundleContext;
 	private BundleTracker<?> _bundleTracker;
@@ -366,6 +386,12 @@ public class SiteInitializerExtender
 	private DefaultDDMStructureHelper _defaultDDMStructureHelper;
 
 	private DependencyManager _dependencyManager;
+
+	@Reference
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Reference
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
@@ -399,15 +425,15 @@ public class SiteInitializerExtender
 	private JSONFactory _jsonFactory;
 
 	@Reference
+	private KeywordResource.Factory _keywordResourceFactory;
+
+	@Reference
 	private KnowledgeBaseArticleResource.Factory
 		_knowledgeBaseArticleResourceFactory;
 
 	@Reference
 	private KnowledgeBaseFolderResource.Factory
 		_knowledgeBaseFolderResourceFactory;
-
-	@Reference
-	private LayoutCopyHelper _layoutCopyHelper;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
@@ -474,6 +500,9 @@ public class SiteInitializerExtender
 
 	@Reference
 	private ObjectFieldResource.Factory _objectFieldResourceFactory;
+
+	@Reference
+	private ObjectFolderResource.Factory _objectFolderResourceFactory;
 
 	@Reference
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;

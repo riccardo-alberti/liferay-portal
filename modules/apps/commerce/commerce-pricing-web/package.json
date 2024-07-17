@@ -1,7 +1,7 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.113.0",
-		"@clayui/form": "3.113.0",
+		"@clayui/button": "3.116.0",
+		"@clayui/form": "3.116.0",
 		"@clayui/icon": "3.111.0",
 		"@clayui/layout": "3.111.0",
 		"commerce-frontend-js": "*",
@@ -12,9 +12,9 @@
 	"main": "js/index.js",
 	"name": "@liferay/commerce-pricing-web",
 	"scripts": {
-		"build": "liferay-npm-scripts build",
-		"checkFormat": "liferay-npm-scripts check",
-		"format": "liferay-npm-scripts fix"
+		"build": "node-scripts build",
+		"checkFormat": "node-scripts format --check",
+		"format": "node-scripts format"
 	},
-	"version": "4.0.100"
+	"version": "4.0.104"
 }

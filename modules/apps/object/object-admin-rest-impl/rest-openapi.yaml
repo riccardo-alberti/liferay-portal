@@ -201,10 +201,14 @@ components:
                     type: boolean
                 name:
                     type: string
+                objectDefinitionExternalReferenceCode1:
+                    type: string
                 objectFieldSettings:
                     items:
                         $ref: "#/components/schemas/ObjectFieldSetting"
                     type: array
+                objectRelationshipExternalReferenceCode:
+                    type: string
                 readOnly:
                     enum: [conditional, false, true]
                     type: string
@@ -639,7 +643,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.object.admin.rest.client', and version '1.0.67'."
+        'com.liferay.object.admin.rest.client', and version '1.0.70'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"

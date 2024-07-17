@@ -73,6 +73,7 @@ import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.io.File;
@@ -111,7 +112,7 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 	@BeforeClass
 	public static void setUpClass() {
 		_dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
-			"yyyy-MM-dd'T'00:00:00'Z'");
+			"yyyy-MM-dd'T'00:00:00.000'Z'");
 		_dateTimeFormat = DateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	}
@@ -123,7 +124,7 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 
 		_documentResource = DocumentResource.builder(
 		).authentication(
-			"test@liferay.com", "test"
+			"test@liferay.com", PropsValues.DEFAULT_ADMIN_PASSWORD
 		).locale(
 			LocaleUtil.getDefault()
 		).build();
@@ -249,7 +250,7 @@ public class HeadlessBuilderResourceTest extends BaseTestCase {
 		).withBaseURL(
 			"http://www.able.com:8080"
 		).withCredentials(
-			"test@able.com", "test"
+			"test@able.com", PropsValues.DEFAULT_ADMIN_PASSWORD
 		).apply(
 			() -> {
 				try (LogCapture logCapture =

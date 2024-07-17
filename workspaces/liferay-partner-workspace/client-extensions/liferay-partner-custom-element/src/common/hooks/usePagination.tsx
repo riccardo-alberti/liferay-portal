@@ -5,14 +5,10 @@
 
 import {useState} from 'react';
 
-export default function usePagination(urlParams?: URLSearchParams) {
-	const [pageSize, setPageSize] = useState<number>(
-		urlParams?.get('pagesize') ? Number(urlParams.get('pagesize')) : 20
-	);
+export default function usePagination() {
+	const [pageSize, setPageSize] = useState<number>(20);
 
-	const [page, setPage] = useState<number>(
-		urlParams?.get('page') ? Number(urlParams.get('page')) : 1
-	);
+	const [page, setPage] = useState<number>(1);
 
 	const deltas = [
 		{
@@ -33,8 +29,6 @@ export default function usePagination(urlParams?: URLSearchParams) {
 		activeDelta: pageSize,
 		activePage: page,
 		deltas,
-		maxItems: -1,
-		maxItemsSF: 200,
 		onDeltaChange: setPageSize,
 		onPageChange: setPage,
 	};

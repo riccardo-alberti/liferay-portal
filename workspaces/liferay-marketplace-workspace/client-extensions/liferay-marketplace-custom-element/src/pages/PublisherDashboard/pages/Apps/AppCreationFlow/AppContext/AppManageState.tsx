@@ -54,6 +54,7 @@ export type InitialStateProps = {
 	};
 	skuTrialId: number;
 	skuVersionId: number;
+	supportEmail: Specification;
 	supportURL: Specification;
 	versionName?: string;
 };
@@ -62,7 +63,7 @@ export type Sku = {id: number; sku: string};
 
 export type PriceEntry = {priceEntryId: number; sku: {name: string}};
 
-const initialState = ({
+const initialState = {
 	appBuild: 'upload',
 	appCategories: [],
 	appDescription: '',
@@ -74,17 +75,20 @@ const initialState = ({
 	appName: '',
 	appTags: [],
 	appType: {value: ''},
+	appUsageTermsURL: {value: ''},
 	appVersion: '1.0',
 	buildAppPackages: {},
 	dayTrial: 'no',
 	optionValuesId: {},
 	priceModel: {value: 'Free'},
+	publisherWebsiteURL: {value: ''},
 	resourceRequirements: {
 		cpu: '',
 		ram: '',
 	},
-	supportURL: '',
-} as unknown) as InitialStateProps;
+	supportEmail: {value: ''},
+	supportURL: {value: ''},
+} as unknown as InitialStateProps;
 
 interface AppContextProps extends Array<InitialStateProps | Function> {
 	0: typeof initialState;

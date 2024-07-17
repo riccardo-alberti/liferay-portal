@@ -44,7 +44,6 @@ import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.internal.dao.db.ObjectDBManagerUtil;
 import com.liferay.object.internal.deployer.InactiveObjectDefinitionDeployerImpl;
 import com.liferay.object.internal.deployer.ObjectDefinitionDeployerImpl;
-import com.liferay.object.internal.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
 import com.liferay.object.internal.security.permission.resource.util.ObjectDefinitionResourcePermissionUtil;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
@@ -56,7 +55,9 @@ import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.impl.ObjectDefinitionImpl;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTable;
+import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
+import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTableFactory;
 import com.liferay.object.related.models.ObjectRelatedModelsProviderRegistrarHelper;
 import com.liferay.object.scope.ObjectScopeProviderRegistry;
 import com.liferay.object.service.ObjectActionLocalService;
@@ -1300,6 +1301,19 @@ public class ObjectDefinitionLocalServiceImpl
 		return objectDefinitionPersistence.update(objectDefinition);
 	}
 
+	@Override
+	public void updateUserId(long companyId, long oldUserId, long newUserId)
+		throws PortalException {
+
+		for (ObjectDefinition objectDefinition :
+				objectDefinitionPersistence.findByC_U(companyId, oldUserId)) {
+
+			objectDefinition.setUserId(newUserId);
+
+			objectDefinitionPersistence.update(objectDefinition);
+		}
+	}
+
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
@@ -1312,6 +1326,24 @@ public class ObjectDefinitionLocalServiceImpl
 
 		if (_objectDefinitionDeployerServiceTracker != null) {
 			_objectDefinitionDeployerServiceTracker.close();
+		}
+	}
+
+	@Override
+	protected void runSQL(String sql) {
+		if (_log.isDebugEnabled()) {
+			_log.debug("SQL: " + sql);
+		}
+
+		DataSource dataSource = objectDefinitionPersistence.getDataSource();
+
+		DB db = DBManagerUtil.getDB();
+
+		try (Connection connection = ConnectionUtil.getConnection(dataSource)) {
+			db.runSQL(connection, new String[] {sql});
+		}
+		catch (Exception exception) {
+			throw new SystemException(exception);
 		}
 	}
 
@@ -1489,7 +1521,8 @@ public class ObjectDefinitionLocalServiceImpl
 
 		if (objectDefinition.isUnmodifiableSystemObject()) {
 			_createTable(
-				objectDefinition.getExtensionDBTableName(), objectDefinition);
+				DynamicObjectDefinitionTableFactory.createExtension(
+					objectDefinition, _objectFieldLocalService));
 		}
 
 		return objectDefinition;
@@ -1588,11 +1621,9 @@ public class ObjectDefinitionLocalServiceImpl
 			null);
 	}
 
-	private void _createLocalizationTable(ObjectDefinition objectDefinition) {
+	private void _createLocalizationTable(
 		DynamicObjectDefinitionLocalizationTable
-			dynamicObjectDefinitionLocalizedTable =
-				DynamicObjectDefinitionLocalizationTableFactory.create(
-					objectDefinition, _objectFieldLocalService);
+			dynamicObjectDefinitionLocalizedTable) {
 
 		if (dynamicObjectDefinitionLocalizedTable == null) {
 			return;
@@ -1602,20 +1633,14 @@ public class ObjectDefinitionLocalServiceImpl
 	}
 
 	private void _createTable(
-			String dbTableName, ObjectDefinition objectDefinition)
+			DynamicObjectDefinitionTable dynamicObjectDefinitionTable)
 		throws PortalException {
-
-		List<ObjectField> objectFields =
-			_objectFieldLocalService.getObjectFields(
-				objectDefinition.getObjectDefinitionId(), dbTableName);
-
-		DynamicObjectDefinitionTable dynamicObjectDefinitionTable =
-			new DynamicObjectDefinitionTable(
-				objectDefinition, objectFields, dbTableName);
 
 		runSQL(dynamicObjectDefinitionTable.getCreateTableSQL());
 
-		for (ObjectField objectField : objectFields) {
+		for (ObjectField objectField :
+				dynamicObjectDefinitionTable.getObjectFields()) {
+
 			if (!StringUtil.equals(
 					objectField.getBusinessType(),
 					ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP)) {
@@ -1626,27 +1651,13 @@ public class ObjectDefinitionLocalServiceImpl
 			ObjectDBManagerUtil.createIndexMetadata(
 				_currentConnection.getConnection(
 					objectDefinitionPersistence.getDataSource()),
-				dbTableName, false, objectField.getDBColumnName());
+				dynamicObjectDefinitionTable.getTableName(), false,
+				objectField.getDBColumnName());
 		}
 	}
 
 	private void _dropTable(String dbTableName) {
-		String sql = "DROP_TABLE_IF_EXISTS(" + dbTableName + ")";
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("SQL: " + sql);
-		}
-
-		DataSource dataSource = objectDefinitionPersistence.getDataSource();
-
-		DB db = DBManagerUtil.getDB();
-
-		try (Connection connection = ConnectionUtil.getConnection(dataSource)) {
-			db.runSQL(connection, new String[] {sql});
-		}
-		catch (Exception exception) {
-			throw new SystemException(exception);
-		}
+		runSQL("DROP_TABLE_IF_EXISTS(" + dbTableName + ")");
 	}
 
 	private String _getClassName(
@@ -1829,10 +1840,15 @@ public class ObjectDefinitionLocalServiceImpl
 
 		objectDefinition = objectDefinitionPersistence.update(objectDefinition);
 
-		_createLocalizationTable(objectDefinition);
-		_createTable(objectDefinition.getDBTableName(), objectDefinition);
+		_createLocalizationTable(
+			DynamicObjectDefinitionLocalizationTableFactory.create(
+				objectDefinition, _objectFieldLocalService));
 		_createTable(
-			objectDefinition.getExtensionDBTableName(), objectDefinition);
+			DynamicObjectDefinitionTableFactory.create(
+				objectDefinition, _objectFieldLocalService));
+		_createTable(
+			DynamicObjectDefinitionTableFactory.createExtension(
+				objectDefinition, _objectFieldLocalService));
 
 		for (ObjectRelationship objectRelationship :
 				_objectRelationshipLocalService.getObjectRelationships(

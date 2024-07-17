@@ -18,7 +18,6 @@ import com.liferay.portal.search.elasticsearch7.internal.index.util.IndexFactory
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
 import com.liferay.portal.search.engine.adapter.index.UpdateIndexSettingsIndexRequest;
 import com.liferay.portal.search.index.IndexNameBuilder;
-import com.liferay.portal.search.spi.model.index.contributor.IndexContributor;
 
 import org.elasticsearch.client.IndicesClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -45,20 +44,7 @@ public class CompanyIndexFactory
 	}
 
 	@Override
-	public boolean createIndices(IndicesClient indicesClient, long companyId) {
-		String indexName = _companyIndexFactoryHelper.getIndexName(companyId);
-
-		if (_companyIndexFactoryHelper.hasIndex(indicesClient, indexName)) {
-			return false;
-		}
-
-		_companyIndexFactoryHelper.createIndex(indexName, indicesClient);
-
-		return true;
-	}
-
-	@Override
-	public boolean deleteIndices(IndicesClient indicesClient, long companyId) {
+	public boolean deleteIndex(IndicesClient indicesClient, long companyId) {
 		String indexName = _companyIndexFactoryHelper.getIndexName(companyId);
 
 		Company company = _companyLocalService.fetchCompany(companyId);
@@ -73,8 +59,6 @@ public class CompanyIndexFactory
 			return false;
 		}
 
-		_executeIndexContributorsBeforeRemove(indexName);
-
 		_companyIndexFactoryHelper.deleteIndex(
 			indexName, indicesClient, companyId, true);
 
@@ -87,8 +71,23 @@ public class CompanyIndexFactory
 	}
 
 	@Override
+	public boolean initializeIndex(
+		IndicesClient indicesClient, long companyId) {
+
+		String indexName = _companyIndexFactoryHelper.getIndexName(companyId);
+
+		if (_companyIndexFactoryHelper.hasIndex(indicesClient, indexName)) {
+			return false;
+		}
+
+		_companyIndexFactoryHelper.createIndex(indexName, indicesClient);
+
+		return true;
+	}
+
+	@Override
 	public void onElasticsearchConfigurationUpdate() {
-		_createCompanyIndexes();
+		_initializeCompanyIndexes();
 
 		_updateMaxResultWindow();
 	}
@@ -107,7 +106,7 @@ public class CompanyIndexFactory
 	protected void activate(BundleContext bundleContext) {
 		_elasticsearchConfigurationWrapper.register(this);
 
-		_createCompanyIndexes();
+		_initializeCompanyIndexes();
 	}
 
 	@Deactivate
@@ -115,7 +114,7 @@ public class CompanyIndexFactory
 		_elasticsearchConfigurationWrapper.unregister(this);
 	}
 
-	private synchronized void _createCompanyIndexes() {
+	private synchronized void _initializeCompanyIndexes() {
 		for (Long companyId :
 				IndexFactoryCompanyIdRegistryUtil.getCompanyIds()) {
 
@@ -123,7 +122,7 @@ public class CompanyIndexFactory
 				RestHighLevelClient restHighLevelClient =
 					_elasticsearchConnectionManager.getRestHighLevelClient();
 
-				createIndices(restHighLevelClient.indices(), companyId);
+				initializeIndex(restHighLevelClient.indices(), companyId);
 			}
 			catch (Exception exception) {
 				if (_log.isWarnEnabled()) {
@@ -132,29 +131,6 @@ public class CompanyIndexFactory
 						exception);
 				}
 			}
-		}
-	}
-
-	private void _executeIndexContributorBeforeRemove(
-		IndexContributor indexContributor, String indexName) {
-
-		try {
-			indexContributor.onBeforeRemove(indexName);
-		}
-		catch (Throwable throwable) {
-			_log.error(
-				StringBundler.concat(
-					"Unable to apply contributor ", indexContributor,
-					" when removing index ", indexName),
-				throwable);
-		}
-	}
-
-	private void _executeIndexContributorsBeforeRemove(String indexName) {
-		for (IndexContributor indexContributor :
-				_companyIndexFactoryHelper.getIndexContributors()) {
-
-			_executeIndexContributorBeforeRemove(indexContributor, indexName);
 		}
 	}
 

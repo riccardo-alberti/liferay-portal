@@ -28,13 +28,13 @@ apply plugin: "com.liferay.yarn.defaults.plugin"
 
 ext {
 	projectTemplateTokens = [
-		"biz.aQute.bnd.version": "5.3.0",
-		"com.liferay.ant.bnd.version": "3.2.10",
+		"biz.aQute.bnd.version": "6.4.0",
+		"com.liferay.ant.bnd.version": "3.2.11",
 		"com.liferay.css.builder.version": "3.1.4",
 		"com.liferay.gradle.plugins.css.builder.version": "5.0.9",
 		"com.liferay.gradle.plugins.theme.builder.version": "2.0.17",
 		"com.liferay.portal.tools.bundle.support.version": "3.7.5",
-		"com.liferay.portal.tools.service.builder.version": "1.0.475",
+		"com.liferay.portal.tools.service.builder.version": "1.0.481",
 		"com.liferay.portal.tools.rest.builder.version": "1.0.222",
 		"com.liferay.portal.tools.soy.builder.version": "3.0.4",
 		"com.liferay.portal.tools.theme.builder.version": "1.1.9",
@@ -90,36 +90,6 @@ if (FileUtil.exists(rootProject, "private/yarn.lock")) {
 	portalYarnInstall {
 		dependsOn ":private:yarnInstall"
 	}
-}
-
-File workspacesYarnLockFile = new File(rootDir.parentFile, "workspaces/yarn.lock")
-
-if (workspacesYarnLockFile.exists()) {
-	task portalWorkspacesYarnCheckFormat(type: PackageRunTask)
-	task portalWorkspacesYarnFormat(type: PackageRunTask)
-	task portalWorkspacesYarnInstall(type: ExecutePackageManagerTask)
-
-	portalWorkspacesYarnCheckFormat {
-		dependsOn portalWorkspacesYarnInstall
-
-		scriptName = "checkFormat"
-		workingDir = new File(rootDir.parentFile, "workspaces")
-	}
-
-	portalWorkspacesYarnFormat {
-		dependsOn portalWorkspacesYarnInstall
-
-		scriptName = "format"
-		workingDir = new File(rootDir.parentFile, "workspaces")
-	}
-
-	portalWorkspacesYarnInstall {
-		args "install", "--frozen-lockfile", "--ignore-engines"
-		workingDir = new File(rootDir.parentFile, "workspaces")
-	}
-
-	portalYarnCheckFormat.finalizedBy portalWorkspacesYarnCheckFormat
-	portalYarnFormat.finalizedBy portalWorkspacesYarnFormat
 }
 
 buildDir = new File(rootDir.parentFile, "build")
@@ -387,14 +357,16 @@ gradle.beforeProject {
 						!it.endsWith(".gitignore")
 					}
 
-					ant.jar(basedir: project.file("classes"), defaultexcludes: false, destfile: jar.archivePath, excludes: filteredDefaultExcludes.join(","), includes: "**/.gitignore", update: true)
+					if (sourceSets.main.output.resourcesDir.exists()) {
+						ant.jar(basedir: sourceSets.main.output.resourcesDir, defaultexcludes: false, destfile: jar.archivePath, excludes: filteredDefaultExcludes.join(","), includes: "**/.gitignore", update: true)
+					}
 				}
 			}
 
 			processResources {
 				exclude "**/.sass-cache/"
 
-				filesMatching(["**/*.gradle", "**/pom.xml"]) {
+				filesMatching(["**/*.gradle", "**/*.properties", "**/pom.xml"]) {
 					filter(ReplaceTokens, tokens: projectTemplateTokens)
 				}
 
@@ -440,33 +412,44 @@ gradle.beforeProject {
 				rtlExcludedPathRegexps = [".+"]
 			}
 
-			if (FileUtil.exists(project, "package.json")) {
-				JsonSlurper jsonSlurper = new JsonSlurper()
+			if (project.name.equals("portal-osgi-web-wab-reference-support-test") || project.path.contains("-theme")) {
+				if (FileUtil.exists(project, "package.json")) {
+					JsonSlurper jsonSlurper = new JsonSlurper()
 
-				File packageJSONFile = project.file("package.json")
+					File packageJSONFile = project.file("package.json")
 
-				Map<String, Object> packageJSONMap = jsonSlurper.parse(packageJSONFile, "UTF-8")
+					Map<String, Object> packageJSONMap = jsonSlurper.parse(packageJSONFile, "UTF-8")
 
-				Map<String, String> scriptsJSONMap = packageJSONMap.get("scripts")
+					Map<String, String> scriptsJSONMap = packageJSONMap.get("scripts")
 
-				boolean liferayESModule = false
+					boolean liferayESModule = false
 
-				if (scriptsJSONMap != null) {
-					for (Map.Entry<String, String> entry : scriptsJSONMap.entrySet()) {
-						if (Objects.equals(entry.key, "build") && entry.value.startsWith("node ") && entry.value.endsWith("/liferay.mjs")) {
-							liferayESModule = true
+					if (scriptsJSONMap != null) {
+						for (Map.Entry<String, String> entry : scriptsJSONMap.entrySet()) {
+							if (Objects.equals(entry.key, "build") && (Objects.equals(entry.value, "node-scripts") || entry.value.startsWith("node-scripts "))) {
+								liferayESModule = true
+							}
+						}
+					}
+
+					if (packageJSONFile.text.contains("liferay-npm-scripts build") || liferayESModule) {
+						buildCSS {
+							enabled = false
+						}
+
+						copyCSS {
+							enabled = false
 						}
 					}
 				}
+			}
+			else if (!project.path.startsWith(":dxp:apps:osb:osb-faro:") && !project.path.startsWith(":sdk:") && !project.path.startsWith(":test:") && !project.path.startsWith(":util:") && !project.path.contains("site-initializer-")) {
+				buildCSS {
+					enabled = false
+				}
 
-				if (packageJSONFile.text.contains("liferay-npm-scripts build") || liferayESModule) {
-					buildCSS {
-						enabled = false
-					}
-
-					copyCSS {
-						enabled = false
-					}
+				copyCSS {
+					enabled = false
 				}
 			}
 		}
@@ -717,10 +700,6 @@ gradle.beforeProject {
 					if (!it.dependencyProject.name.endsWith("-theme")) {
 						mustRunAfter "${it.dependencyProject.path}:processResources"
 					}
-				}
-
-				outputs.cacheIf {
-					false
 				}
 			}
 

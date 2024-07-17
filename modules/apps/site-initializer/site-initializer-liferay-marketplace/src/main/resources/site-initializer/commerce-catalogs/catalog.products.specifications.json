@@ -73,6 +73,14 @@
 	},
 	{
 		"categoryKey": "product-metadata",
+		"cpDefinitionExternalReferenceCode": "MKT-LIFERAY-VERSION",
+		"description": "Compatible Liferay Release Version",
+		"facetable": true,
+		"key": "liferay-version",
+		"title": "Liferay Version"
+	},
+	{
+		"categoryKey": "product-metadata",
 		"cpDefinitionExternalReferenceCode": "MKT-PUBLISHER-NAME",
 		"description": "Name of the primary app publisher",
 		"facetable": false,
@@ -142,6 +150,14 @@
 		"facetable": false,
 		"key": "publisherwebsiteurl",
 		"title": "Publisher Web site URL"
+	},
+	{
+		"categoryKey": "app-support-and-help",
+		"cpDefinitionExternalReferenceCode": "MKT-SUPPORT-EMAIL",
+		"description": "",
+		"facetable": false,
+		"key": "supportemailaddress",
+		"title": "Support Email Address"
 	},
 	{
 		"categoryKey": "app-support-and-help",
@@ -222,6 +238,14 @@
 		"facetable": true,
 		"key": "solution-contact-email",
 		"title": "Solution Contact Email"
+	},
+	{
+		"categoryKey": "solution-metadata",
+		"cpDefinitionExternalReferenceCode": "MKT-SOLUTION-DETAILS-BLOCKS",
+		"description": "Solution details blocks",
+		"facetable": true,
+		"key": "solution-details-blocks",
+		"title": "Solution Details Blocks"
 	},
 	{
 		"categoryKey": "solution-metadata",

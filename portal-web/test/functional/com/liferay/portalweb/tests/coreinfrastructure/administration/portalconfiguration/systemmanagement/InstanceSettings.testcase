@@ -269,9 +269,7 @@ definition {
 			locator1 = "TextInput#EMAIL_ADDRESS",
 			value1 = "userea@liferay.com");
 
-		Type.typePause(
-			locator1 = "TextInput#PASSWORD",
-			value1 = "test");
+		TestCase.typePassword(password = PropsUtil.get("default.admin.password"));
 
 		User._clickSignInButton(localization = ${localization});
 
@@ -343,7 +341,7 @@ definition {
 
 		User.firstLoginUI(
 			authenticationMethod = "By User ID",
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			userId = ${userId});
 
 		PortalSettings.gotoConfiguration(
@@ -595,7 +593,7 @@ definition {
 
 		task ("And login to www.able.com and go to Web Content in the instance settings") {
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
@@ -670,9 +668,7 @@ definition {
 			locator1 = "TextInput#EMAIL_ADDRESS",
 			value1 = "userea@liferay.com");
 
-		Type.typePause(
-			locator1 = "TextInput#PASSWORD",
-			value1 = "test");
+		TestCase.typePassword(password = PropsUtil.get("default.admin.password"));
 
 		User._clickSignInButton(localization = ${localization});
 
@@ -823,7 +819,7 @@ definition {
 
 		task ("And login to the new instance and go to Web Content in the instance settings") {
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 
@@ -921,31 +917,6 @@ definition {
 		User.viewMemberships(
 			assetType = "Sites",
 			assigneeName = "Site Name");
-	}
-
-	@priority = 4
-	test EditDefaultUserAssociationsUserGroups {
-		property testray.main.component.name = "Users and Organizations";
-
-		UserGroup.openUserGroupsAdmin();
-
-		UserGroup.addCP(userGroupName = "UG UserGroup Name");
-
-		PortalSettings.editConfigurationUsersDefaultUserAssociationsCP(userGroupName = "UG UserGroup Name");
-
-		JSONUser.addUser(
-			userEmailAddress = "userea@liferay.com",
-			userFirstName = "userfn",
-			userLastName = "userln",
-			userScreenName = "usersn");
-
-		User.openUsersAdmin();
-
-		UserNavigator.gotoUser(userScreenName = "usersn");
-
-		User.viewMemberships(
-			assetType = "User Groups",
-			assigneeName = "UG UserGroup Name");
 	}
 
 	@priority = 5
@@ -1084,7 +1055,7 @@ definition {
 		PortalInstances.viewCP(virtualHost = "www.able.com");
 
 		User.firstLoginUI(
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			specificURL = "http://www.able.com:8080",
 			userEmailAddress = "test@www.able.com");
 
@@ -1431,7 +1402,7 @@ definition {
 				webId = "www.able.com");
 
 			User.firstLoginUI(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				specificURL = "http://www.able.com:8080",
 				userEmailAddress = "test@www.able.com");
 

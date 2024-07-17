@@ -1320,11 +1320,21 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
+                dateExpired:
+                    description:
+                        The expiration date of the document.
+                    format: date-time
+                    type: string
                 dateModified:
                     description:
                         The last time a field of the document changed.
                     format: date-time
                     readOnly: true
+                    type: string
+                datePublished:
+                    description:
+                        The document's most recent publication date.
+                    format: date-time
                     type: string
                 description:
                     description:
@@ -1574,6 +1584,72 @@ components:
                     writeOnly: true
             required:
                 - name
+            type: object
+        DocumentShortcut:
+            description:
+                Represents a document shortcut.
+            properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            type: string
+                        type: object
+                    # @review
+                    description:
+                        Block of actions allowed by the user making the request.
+                    readOnly: true
+                    type: object
+                assetLibraryKey:
+                    # @review
+                    description:
+                        The key of the asset library to which the document shortcut is scoped.
+                    readOnly: true
+                    type: string
+                dateCreated:
+                    description:
+                        The document shortcut's creation date.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateModified:
+                    description:
+                        The last time a field of the document shortcut changed.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                folderId:
+                    description:
+                        The document shortcut's folder ID.
+                    format: int64
+                    type: integer
+                id:
+                    description:
+                        The document shortcut's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                siteId:
+                    description:
+                        The ID of the site to which this document shortcut is scoped.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                targetDocumentId:
+                    description:
+                        The ID of the document to which this shortcut is scoped.
+                    format: int64
+                    type: integer
+                title:
+                    description:
+                        The title of the document to which this shortcut is scoped.
+                    readOnly: true
+                    type: string
+                viewableBy:
+                    description:
+                        A write-only property that specifies the default permissions.
+                    enum: [Anyone, Members, Owner]
+                    type: string
+                    writeOnly: true
             type: object
         Experience:
             description:
@@ -5101,6 +5177,11 @@ components:
                     format: date-time
                     readOnly: true
                     type: string
+                dateExpired:
+                    description:
+                        The expiration date of the structured content.
+                    format: date-time
+                    type: string
                 dateModified:
                     description:
                         The last time any field of the structured content was changed.
@@ -5157,6 +5238,10 @@ components:
                     items:
                         type: string
                     type: array
+                neverExpire:
+                    description:
+                        Whether the web content article is not set to auto expire
+                    type: boolean
                 numberOfComments:
                     description:
                         The number of comments the structured content has received.
@@ -5776,7 +5861,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.delivery.client', and version '4.0.78'."
+        'com.liferay.headless.delivery.client', and version '4.0.82'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -6285,6 +6370,73 @@ paths:
                                     $ref: "#/components/schemas/DocumentFolder"
                                 type: array
             tags: ["DocumentFolder"]
+    "/asset-libraries/{assetLibraryId}/document-shortcuts":
+        get:
+            operationId: getAssetLibraryDocumentShortcutsPage
+            parameters:
+                - in: path
+                  name: assetLibraryId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentShortcut"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentShortcut"
+                                type: array
+            tags: ["DocumentShortcut"]
+        post:
+            operationId: postAssetLibraryDocumentShortcut
+            parameters:
+                - in: path
+                  name: assetLibraryId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+            tags: ["DocumentShortcut"]
     "/asset-libraries/{assetLibraryId}/documents":
         get:
             operationId: getAssetLibraryDocumentsPage
@@ -8417,6 +8569,116 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/DocumentFolder"
             tags: ["DocumentFolder"]
+    "/document-shortcuts/{documentShortcutId}":
+        delete:
+            description:
+                Deletes the document shortcut and returns a 204 if the operation succeeds.
+            operationId: deleteDocumentShortcut
+            parameters:
+                - in: path
+                  name: documentShortcutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["DocumentShortcut"]
+        get:
+            description:
+                Retrieves the document shortcut.
+            operationId: getDocumentShortcut
+            parameters:
+                - in: path
+                  name: documentShortcutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: nestedFields
+                  schema:
+                      type: string
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+            tags: ["DocumentShortcut"]
+        patch:
+            description:
+                Updates only the fields received in the request body, leaving any other fields untouched.
+            operationId: patchDocumentShortcut
+            parameters:
+                - in: path
+                  name: documentShortcutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+            tags: ["DocumentShortcut"]
+        put:
+            description:
+                Replaces the document shortcut with the information sent in the request body. Any missing fields are
+                deleted, unless they are required.
+            operationId: putDocumentShortcut
+            parameters:
+                - in: path
+                  name: documentShortcutId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+            tags: ["DocumentShortcut"]
     "/documents/{documentId}":
         delete:
             description:
@@ -12410,6 +12672,73 @@ paths:
                                     $ref: "#/components/schemas/DocumentFolder"
                                 type: array
             tags: ["DocumentFolder"]
+    "/sites/{siteId}/document-shortcuts":
+        get:
+            operationId: getSiteDocumentShortcutsPage
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentShortcut"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentShortcut"
+                                type: array
+            tags: ["DocumentShortcut"]
+        post:
+            operationId: postSiteDocumentShortcut
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/DocumentShortcut"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentShortcut"
+            tags: ["DocumentShortcut"]
     "/sites/{siteId}/documents":
         get:
             description:

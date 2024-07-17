@@ -12,10 +12,12 @@ import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.db.partition.test.util.BaseDBPartitionTestCase;
 import com.liferay.portal.db.partition.util.DBPartitionUtil;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.model.ClassName;
+import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -95,6 +98,19 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 		Assert.assertTrue(
 			dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+	}
+
+	@Test
+	public void testAddIndexControlTableSystemCompany() throws Exception {
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setWithSafeCloseable(
+					CompanyConstants.SYSTEM)) {
+
+			createIndex(TEST_CONTROL_TABLE_NAME);
+
+			Assert.assertTrue(
+				dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		}
 	}
 
 	@Test
@@ -493,6 +509,29 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	}
 
 	@Test
+	public void testGetClassNameIdsSupplier() throws Exception {
+		_assertClassNameIds(
+			classNameIds -> {
+				for (long classNameId :
+						_classNameLocalService.getClassNameIdsSupplier(
+							new String[] {"class.name.test"}
+						).get()) {
+
+					classNameIds.add(classNameId);
+				}
+			});
+	}
+
+	@Test
+	public void testGetClassNameIdSupplier() throws Exception {
+		_assertClassNameIds(
+			classNameIds -> classNameIds.add(
+				_classNameLocalService.getClassNameIdSupplier(
+					"class.name.test"
+				).get()));
+	}
+
+	@Test
 	public void testGetResourceAction() throws Exception {
 		Set<ResourceAction> resourceActions = new CopyOnWriteArraySet<>();
 
@@ -555,6 +594,12 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 			DBPartitionUtil.checkDatabasePartitionSchemaNamePrefix();
 		}
+	}
+
+	@Test
+	public void testInitResourceActions() throws Exception {
+		DBPartitionUtil.forEachCompanyId(
+			companyId -> StartupHelperUtil.initResourceActions());
 	}
 
 	@Test
@@ -648,6 +693,27 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 		private volatile List<Long> _companyIds = new CopyOnWriteArrayList<>();
 
+	}
+
+	private void _assertClassNameIds(Consumer<Set<Long>> consumer)
+		throws Exception {
+
+		Set<Long> classNameIds = Collections.synchronizedSet(
+			Collections.newSetFromMap(new IdentityHashMap<>()));
+
+		try {
+			DBPartitionUtil.forEachCompanyId(
+				companyId -> consumer.accept(classNameIds));
+
+			Assert.assertEquals(
+				classNameIds.toString(),
+				companyLocalService.getCompaniesCount(), classNameIds.size());
+		}
+		finally {
+			DBPartitionUtil.forEachCompanyId(
+				companyId -> _classNameLocalService.deleteClassName(
+					_classNameLocalService.fetchClassName("class.name.test")));
+		}
 	}
 
 	private static final String _CLASS_NAME = DBPartitionTest.class.getName();

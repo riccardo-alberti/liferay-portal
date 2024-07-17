@@ -49,7 +49,7 @@ definition {
 			outputParameterName = "Country Names",
 			outputParameterPath = "nameCurrentValue",
 			outputParameterType = "List",
-			password = "test",
+			password = PropsUtil.get("default.admin.password"),
 			timeout = 10000,
 			url = "${portalURL}/api/jsonws/country/get-countries",
 			username = "test@liferay.com");
@@ -266,6 +266,11 @@ definition {
 			portlet = "Forms");
 
 		FormsAdmin.deleteForm(formName = "Created Form Name");
+
+		JSONDocument.addFile(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentTitle = "DM Document Title",
+			groupName = "Site Name");
 
 		PublicationsNavigator.gotoReviewChanges(publicationName = "Publication Name 2");
 

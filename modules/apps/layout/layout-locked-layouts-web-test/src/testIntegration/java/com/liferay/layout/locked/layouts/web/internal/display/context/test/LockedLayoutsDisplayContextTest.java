@@ -255,7 +255,7 @@ public class LockedLayoutsDisplayContextTest {
 		throws Exception {
 
 		_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
-			TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
+			null, TestPropsValues.getUserId(), _group.getGroupId(), 0, 0, 0,
 			RandomTestUtil.randomString(), type, 0, true, 0, plid, 0,
 			WorkflowConstants.STATUS_APPROVED, _serviceContext);
 	}
@@ -334,13 +334,15 @@ public class LockedLayoutsDisplayContextTest {
 	}
 
 	private Layout _getDraftLayout(String type) throws Exception {
-		if (Objects.equals(LayoutConstants.TYPE_ASSET_DISPLAY, type)) {
+		if (Objects.equals(LayoutConstants.TYPE_ASSET_DISPLAY, type) ||
+			Objects.equals(LayoutConstants.TYPE_UTILITY, type)) {
+
 			_serviceContext.setAttribute(
 				"layout.instanceable.allowed", Boolean.TRUE);
 		}
 
 		Layout layout = _layoutLocalService.addLayout(
-			TestPropsValues.getUserId(), _group.getGroupId(), false,
+			null, TestPropsValues.getUserId(), _group.getGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, 0, 0,
 			RandomTestUtil.randomLocaleStringMap(),
 			RandomTestUtil.randomLocaleStringMap(), Collections.emptyMap(),

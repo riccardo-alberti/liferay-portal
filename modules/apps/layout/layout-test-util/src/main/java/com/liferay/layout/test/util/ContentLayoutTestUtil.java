@@ -42,6 +42,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -51,6 +52,7 @@ import com.liferay.segments.service.SegmentsExperienceLocalServiceUtil;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Locale;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -106,7 +108,7 @@ public class ContentLayoutTestUtil {
 
 			FragmentEntry fragmentEntry =
 				FragmentEntryLocalServiceUtil.addFragmentEntry(
-					TestPropsValues.getUserId(), layout.getGroupId(), 0,
+					null, TestPropsValues.getUserId(), layout.getGroupId(), 0,
 					StringUtil.randomString(), StringUtil.randomString(),
 					RandomTestUtil.randomString(), inputHTML,
 					RandomTestUtil.randomString(), false, "{fieldSets: []}",
@@ -132,7 +134,7 @@ public class ContentLayoutTestUtil {
 		if (addCaptcha) {
 			FragmentEntry fragmentEntry =
 				FragmentEntryLocalServiceUtil.addFragmentEntry(
-					TestPropsValues.getUserId(), layout.getGroupId(), 0,
+					null, TestPropsValues.getUserId(), layout.getGroupId(), 0,
 					StringUtil.randomString(), StringUtil.randomString(),
 					RandomTestUtil.randomString(), inputHTML,
 					RandomTestUtil.randomString(), false, "{fieldSets: []}",
@@ -194,7 +196,7 @@ public class ContentLayoutTestUtil {
 
 		FragmentEntry fragmentEntry =
 			FragmentEntryLocalServiceUtil.addFragmentEntry(
-				TestPropsValues.getUserId(), layout.getGroupId(), 0,
+				null, TestPropsValues.getUserId(), layout.getGroupId(), 0,
 				StringUtil.randomString(), StringUtil.randomString(),
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), false, "{fieldSets: []}", null,
@@ -221,9 +223,10 @@ public class ContentLayoutTestUtil {
 
 		FragmentEntryLink fragmentEntryLink =
 			FragmentEntryLinkServiceUtil.addFragmentEntryLink(
-				layout.getGroupId(), 0, fragmentEntryId, segmentsExperienceId,
-				layout.getPlid(), css, html, js, configuration, editableValues,
-				StringPool.BLANK, 0, rendererKey, type,
+				null, layout.getGroupId(), 0, fragmentEntryId,
+				segmentsExperienceId, layout.getPlid(), css, html, js,
+				configuration, editableValues, StringPool.BLANK, 0, rendererKey,
+				type,
 				ServiceContextTestUtil.getServiceContext(
 					layout.getGroupId(), TestPropsValues.getUserId()));
 
@@ -451,11 +454,16 @@ public class ContentLayoutTestUtil {
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
 		themeDisplay.setCompany(company);
+
+		Locale locale = PortalUtil.getSiteDefaultLocale(group);
+
+		themeDisplay.setLanguageId(LocaleUtil.toLanguageId(locale));
+
 		themeDisplay.setLayout(layout);
 		themeDisplay.setLayoutSet(layout.getLayoutSet());
 		themeDisplay.setLayoutTypePortlet(
 			(LayoutTypePortlet)layout.getLayoutType());
-		themeDisplay.setLocale(PortalUtil.getSiteDefaultLocale(group));
+		themeDisplay.setLocale(locale);
 
 		LayoutSet layoutSet = group.getPublicLayoutSet();
 

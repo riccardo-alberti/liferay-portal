@@ -3,17 +3,32 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {FrameLocator, Locator, Page} from '@playwright/test';
 
+import {liferayConfig} from '../../liferay.config';
 import {clickAndExpectToBeHidden} from '../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {PORTLET_URLS} from '../../utils/portletUrls';
+import {reloadUntilVisible} from '../../utils/reloadUntilVisible';
 import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {PageEditorPage} from '../layout-content-page-editor-web/PageEditorPage';
+import {UIElementsPage} from '../uielements/UIElementsPage';
 
 export class PagesAdminPage {
+	readonly addButton: Locator;
+	readonly addPageIFrame: FrameLocator;
+	readonly addTemplatePageButton: Locator;
+	readonly blankTypeButton: Locator;
 	readonly configurationSaveButton: Locator;
+	readonly homePageLink: Locator;
 	readonly javaScriptClientExtensionsTab: Locator;
+	readonly oneColumnButton: Locator;
 	readonly page: Page;
+	readonly pageTitleBox: Locator;
+	readonly uiElementsPage: UIElementsPage;
+	readonly widgetPageButton: Locator;
+	readonly newButton: Locator;
+	readonly pageEditorPage: PageEditorPage;
 
 	constructor(page: Page) {
 		this.configurationSaveButton = page.getByRole('button', {
@@ -24,6 +39,108 @@ export class PagesAdminPage {
 			name: 'JavaScript',
 		});
 		this.page = page;
+		this.uiElementsPage = new UIElementsPage(page);
+
+		this.addPageIFrame = page.frameLocator('iframe[title="Add Page"]');
+		this.addTemplatePageButton = page.getByRole('menuitem', {
+			name: 'Add Site Template Page',
+		});
+		this.addButton = this.addPageIFrame.getByRole('button', {name: 'Add'});
+		this.blankTypeButton = page.getByRole('button', {name: 'Blank'});
+		this.homePageLink = page.getByLabel('Home', {exact: true});
+		this.oneColumnButton = page.getByText('1 Column', {exact: true});
+		this.pageTitleBox = this.addPageIFrame.locator(
+			'input[id="_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_name"]'
+		);
+		this.widgetPageButton = page.getByRole('button', {name: 'Widget Page'});
+		this.newButton = page
+			.locator('.management-bar')
+			.getByRole('button', {name: 'New'});
+		this.pageEditorPage = new PageEditorPage(this.page);
+	}
+
+	async addContentPage(pageName: string) {
+		await this.blankTypeButton.waitFor({state: 'visible'});
+		await this.blankTypeButton.click();
+		await this.pageTitleBox.fill(pageName);
+		await this.addButton.click();
+		await this.page
+			.getByTitle(`Go to ${pageName}`)
+			.waitFor({state: 'visible'});
+	}
+
+	async addWidgetPage(pageName: string) {
+		await this.widgetPageButton.waitFor({state: 'visible'});
+		await this.widgetPageButton.click();
+		await this.pageTitleBox.waitFor({state: 'attached'});
+		await this.pageTitleBox.hover();
+		await this.pageTitleBox.click();
+		await this.pageTitleBox.fill(pageName);
+		await this.addButton.waitFor({state: 'attached'});
+		await this.addButton.hover();
+		await this.addButton.click();
+		await this.page
+			.getByText('Success:The page was created successfully.')
+			.waitFor({state: 'visible'});
+		await this.oneColumnButton.click();
+		await this.uiElementsPage.saveButton.click();
+		await this.page
+			.getByText('Success:The page was updated successfully.')
+			.waitFor({state: 'visible'});
+	}
+
+	async checkIfWebContentAddedToHome(
+		siteName: string,
+		webContentBody: string
+	) {
+		await this.page.goto(
+			liferayConfig.environment.baseUrl + `/group/${siteName}`
+		);
+		const myLocator = this.page.getByRole('link', {
+			name: `Go to ${siteName}`,
+		});
+		await reloadUntilVisible({
+			myLocator,
+			page: this.page,
+		});
+		await this.page
+			.getByText(webContentBody)
+			.waitFor({state: 'visible', timeout: 3000});
+		await this.page.getByText(webContentBody).isVisible();
+	}
+
+	async checkIfWebContentAdded(
+		siteName: string,
+		webContentName: string,
+		webContentBody: string
+	) {
+		await this.page.goto(
+			liferayConfig.environment.baseUrl + `/group/${siteName}`
+		);
+		const myLocator = this.page.getByText(webContentName);
+		await reloadUntilVisible({
+			myLocator,
+			page: this.page,
+		});
+		await this.page
+			.getByRole('menuitem', {name: webContentName})
+			.waitFor({state: 'visible'});
+		await this.page.getByRole('menuitem', {name: webContentName}).click();
+		await this.page.getByText(webContentBody).waitFor({state: 'visible'});
+		await this.page.getByText(webContentBody).isVisible();
+	}
+
+	async clickOnAction(action: string, title: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: action,
+			}),
+			trigger: this.page
+				.locator('li', {has: this.page.getByText(title)})
+				.getByRole('button', {name: 'Open Page Options Menu'}),
+		});
 	}
 
 	async goto(siteUrl?: Site['friendlyUrlPath']) {
@@ -32,13 +149,106 @@ export class PagesAdminPage {
 		);
 	}
 
+	async createNewPage({
+		draft = false,
+		name,
+		parent,
+		template,
+	}: {
+		draft?: boolean;
+		name: string;
+		parent?: string;
+		template?: string;
+	}) {
+
+		// If no parent specified, just create from toolbar
+
+		if (!parent) {
+			await this.newButton.click();
+
+			await this.page
+				.getByRole('menuitem')
+				.getByText('Page', {exact: true})
+				.click();
+		}
+
+		// If parent is specified, create child page
+
+		else {
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: this.page.getByRole('menuitem', {name: 'Add Page'}),
+				trigger: this.page
+					.locator('li', {has: this.page.getByText(parent)})
+					.getByTitle('Add Child Page'),
+			});
+		}
+
+		// Select template and fill name
+
+		await this.page
+			.locator('.card-page-item')
+			.filter({hasText: template || 'Blank'})
+			.click();
+
+		const loadingAnimation = this.page.locator(
+			'.modal-body-iframe .loading-animation'
+		);
+		await loadingAnimation.waitFor();
+		await loadingAnimation.waitFor({state: 'hidden'});
+
+		const modalFrame = this.page.frameLocator('iframe[title="Add Page"]');
+		const inputName = modalFrame.getByPlaceholder('Add Page Name');
+
+		await inputName.fill(name);
+
+		await modalFrame.getByRole('button', {name: 'Add'}).click();
+
+		await waitForSuccessAlert(
+			this.page,
+			'Success:The page was created successfully.'
+		);
+
+		// Publish is draft param is false
+
+		if (!draft) {
+			await this.pageEditorPage.publishPage();
+		}
+	}
+
+	async deletePage(name: string) {
+		await this.clickOnAction('Delete', name);
+
+		await this.page
+			.locator('.modal-title')
+			.getByText('Delete Page')
+			.waitFor();
+
+		await this.page.getByRole('button', {name: 'Delete'}).click();
+
+		await waitForSuccessAlert(
+			this.page,
+			'Success:Your request completed successfully.'
+		);
+	}
+
+	async editPage(name: string) {
+		await this.clickOnAction('Edit', name);
+
+		await this.page
+			.getByText('Select a Page Element', {exact: true})
+			.waitFor();
+	}
+
 	async gotoPagesConfiguration() {
 		await this.goto();
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: this.page.getByRole('menuitem', {name: 'Configuration'}),
-			trigger: this.page.getByTestId('headerOptions'),
+			trigger: this.page
+				.locator('.control-menu-nav-item')
+				.getByTitle('Options', {exact: true}),
 		});
 	}
 

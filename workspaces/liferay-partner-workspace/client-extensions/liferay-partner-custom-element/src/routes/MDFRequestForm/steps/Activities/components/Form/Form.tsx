@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+
 /**
  * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
@@ -27,6 +28,7 @@ import useTypeActivityOptions from './hooks/useTypeActivityOptions';
 interface IProps {
 	claimPercent: number;
 	currency: LiferayPicklist;
+	currencyExchangeRate: number;
 	currentActivity: MDFRequestActivity;
 	currentActivityIndex: number;
 	isButtonClicked?: boolean;
@@ -44,6 +46,7 @@ type TypeActivityComponent = {
 const Form = ({
 	claimPercent,
 	currency,
+	currencyExchangeRate,
 	currentActivity,
 	currentActivityIndex,
 	isButtonClicked,
@@ -73,21 +76,19 @@ const Form = ({
 		);
 	}, [currentActivity.tactic, currentActivity?.typeActivity?.key]);
 
-	const {
-		onTypeActivitySelected,
-		typeActivitiesOptions,
-	} = useTypeActivityOptions(
-		fieldEntries[LiferayPicklistName.TYPE_OF_ACTIVITY],
-		(selectedTypeActivity) => {
-			setFieldValue(
-				`activities[${currentActivityIndex}].typeActivity`,
-				selectedTypeActivity
-			);
+	const {onTypeActivitySelected, typeActivitiesOptions} =
+		useTypeActivityOptions(
+			fieldEntries[LiferayPicklistName.TYPE_OF_ACTIVITY],
+			(selectedTypeActivity) => {
+				setFieldValue(
+					`activities[${currentActivityIndex}].typeActivity`,
+					selectedTypeActivity
+				);
 
-			setFieldValue(`activities[${currentActivityIndex}].tactic`, {});
-		},
-		handleClearForm
-	);
+				setFieldValue(`activities[${currentActivityIndex}].tactic`, {});
+			},
+			handleClearForm
+		);
 
 	const {onTacticSelected, tacticsOptions} = useTacticsOptions(
 		useMemo(
@@ -202,6 +203,7 @@ const Form = ({
 				claimPercent={claimPercent}
 				component={BudgetBreakdownSection}
 				currency={currency}
+				currencyExchangeRate={currencyExchangeRate}
 				currentActivityIndex={currentActivityIndex}
 				expenseEntries={
 					fieldEntries[LiferayPicklistName.BUDGET_EXPENSES]

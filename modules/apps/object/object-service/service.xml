@@ -133,6 +133,10 @@
 		<finder name="System" return-type="Collection">
 			<finder-column name="system" />
 		</finder>
+		<finder name="C_U" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="userId" />
+		</finder>
 		<finder name="C_RODI" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="rootObjectDefinitionId" />
@@ -298,6 +302,10 @@
 		</finder>
 		<finder name="ObjectDefinitionId" return-type="Collection">
 			<finder-column name="objectDefinitionId" />
+		</finder>
+		<finder name="C_U" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="userId" />
 		</finder>
 		<finder name="LTDI_S" return-type="Collection">
 			<finder-column name="listTypeDefinitionId" />

@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-// @ts-ignore
-
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../fixtures/dataApiHelpersTest';
@@ -18,6 +16,7 @@ export const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-21265': true,
+		'LPS-178052': true,
 	}),
 	loginTest(),
 	portalDefaultPermissionsPagesTest
@@ -44,7 +43,7 @@ const setupInstanceDefaultPermissions = async ({
 	await defaultPermissionsConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox.setChecked(
 		true
 	);
-	await defaultPermissionsConfigurationPage.ownerUpdateDiscussionCheckbox.setChecked(
+	await defaultPermissionsConfigurationPage.powerUserUpdateDiscussionCheckbox.setChecked(
 		true
 	);
 
@@ -57,62 +56,11 @@ const setupInstanceDefaultPermissions = async ({
 	await waitForSuccessAlert(page);
 };
 
-test('LPD-21645 set up the default permissions for pages', async ({
-	defaultPermissionsConfigurationPage,
-	page,
-}) => {
-	await setupInstanceDefaultPermissions({
-		defaultPermissionsConfigurationPage,
-		page,
-	});
-
-	await defaultPermissionsConfigurationPage.editPageButton.click();
-
-	await defaultPermissionsConfigurationPage.frameSaveButton.waitFor({
-		state: 'attached',
-	});
-
-	await expect(
-		defaultPermissionsConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox
-	).toBeChecked();
-
-	await expect(
-		defaultPermissionsConfigurationPage.ownerUpdateDiscussionCheckbox
-	).toBeChecked();
-
-	await defaultPermissionsConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox.setChecked(
-		false
-	);
-	await defaultPermissionsConfigurationPage.ownerUpdateDiscussionCheckbox.setChecked(
-		false
-	);
-
-	await defaultPermissionsConfigurationPage.frameSaveButton.click();
-
-	await defaultPermissionsConfigurationPage.frameSaveButton.waitFor({
-		state: 'detached',
-	});
-
-	await waitForSuccessAlert(page);
-});
-
-test('LPD-22038 set up the default site permissions for pages', async ({
-	apiHelpers,
-	defaultPermissionsConfigurationPage,
+const setupSiteDefaultPermissions = async ({
 	defaultPermissionsSiteConfigurationPage,
 	page,
+	site,
 }) => {
-	await setupInstanceDefaultPermissions({
-		defaultPermissionsConfigurationPage,
-		page,
-	});
-
-	const site = await apiHelpers.headlessSite.createSite({
-		name: getRandomString(),
-	});
-
-	apiHelpers.data.push({id: site.id, type: 'site'});
-
 	await defaultPermissionsSiteConfigurationPage.goto(site.name);
 
 	await expect(
@@ -139,6 +87,69 @@ test('LPD-22038 set up the default site permissions for pages', async ({
 	});
 
 	await waitForSuccessAlert(page);
+};
+
+test('LPD-21645 Set up the default permissions for pages', async ({
+	defaultPermissionsConfigurationPage,
+	page,
+}) => {
+	await setupInstanceDefaultPermissions({
+		defaultPermissionsConfigurationPage,
+		page,
+	});
+
+	await defaultPermissionsConfigurationPage.editPageButton.click();
+
+	await defaultPermissionsConfigurationPage.frameSaveButton.waitFor({
+		state: 'attached',
+	});
+
+	await expect(
+		defaultPermissionsConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox
+	).toBeChecked();
+
+	await expect(
+		defaultPermissionsConfigurationPage.powerUserUpdateDiscussionCheckbox
+	).toBeChecked();
+
+	await defaultPermissionsConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox.setChecked(
+		false
+	);
+	await defaultPermissionsConfigurationPage.powerUserUpdateDiscussionCheckbox.setChecked(
+		false
+	);
+
+	await defaultPermissionsConfigurationPage.frameSaveButton.click();
+
+	await defaultPermissionsConfigurationPage.frameSaveButton.waitFor({
+		state: 'detached',
+	});
+
+	await waitForSuccessAlert(page);
+});
+
+test('LPD-22038 Set up the default site permissions for pages', async ({
+	apiHelpers,
+	defaultPermissionsConfigurationPage,
+	defaultPermissionsSiteConfigurationPage,
+	page,
+}) => {
+	await setupInstanceDefaultPermissions({
+		defaultPermissionsConfigurationPage,
+		page,
+	});
+
+	const site = await apiHelpers.headlessSite.createSite({
+		name: getRandomString(),
+	});
+
+	apiHelpers.data.push({id: site.id, type: 'site'});
+
+	await setupSiteDefaultPermissions({
+		defaultPermissionsSiteConfigurationPage,
+		page,
+		site,
+	});
 
 	await defaultPermissionsSiteConfigurationPage.actionsPageButton.click();
 	await defaultPermissionsSiteConfigurationPage.editPageButton.click();
@@ -151,7 +162,7 @@ test('LPD-22038 set up the default site permissions for pages', async ({
 		defaultPermissionsSiteConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox
 	).not.toBeChecked();
 	await expect(
-		defaultPermissionsSiteConfigurationPage.ownerUpdateDiscussionCheckbox
+		defaultPermissionsSiteConfigurationPage.powerUserUpdateDiscussionCheckbox
 	).toBeChecked();
 
 	await defaultPermissionsConfigurationPage.frameSaveButton.click();
@@ -186,6 +197,74 @@ test('LPD-22038 set up the default site permissions for pages', async ({
 		defaultPermissionsSiteConfigurationPage.analyticsAdministratorUpdateDiscussionCheckbox
 	).toBeChecked();
 	await expect(
-		defaultPermissionsSiteConfigurationPage.ownerUpdateDiscussionCheckbox
+		defaultPermissionsSiteConfigurationPage.powerUserUpdateDiscussionCheckbox
 	).toBeChecked();
+});
+
+test('LPD-22040 Check default permissions for pages', async ({
+	apiHelpers,
+	defaultPermissionsConfigurationPage,
+	defaultPermissionsSiteConfigurationPage,
+	page,
+}) => {
+	await setupInstanceDefaultPermissions({
+		defaultPermissionsConfigurationPage,
+		page,
+	});
+
+	const site = await apiHelpers.headlessSite.createSite({
+		name: getRandomString(),
+	});
+
+	apiHelpers.data.push({id: site.id, type: 'site'});
+
+	let layout = await apiHelpers.headlessDelivery.createSitePage({
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	// @ts-ignore
+
+	layout.pagePermissions.forEach((pagePermission) => {
+		if (
+			['Analytics Administrator', 'Owner', 'Power User'].indexOf(
+				pagePermission.roleKey
+			) >= 0
+		) {
+			expect(
+				pagePermission.actionKeys.indexOf('UPDATE_DISCUSSION')
+			).toBeGreaterThanOrEqual(0);
+		}
+		else {
+			expect(
+				pagePermission.actionKeys.indexOf('UPDATE_DISCUSSION')
+			).toBeLessThan(0);
+		}
+	});
+
+	await setupSiteDefaultPermissions({
+		defaultPermissionsSiteConfigurationPage,
+		page,
+		site,
+	});
+
+	layout = await apiHelpers.headlessDelivery.createSitePage({
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	// @ts-ignore
+
+	layout.pagePermissions.forEach((pagePermission) => {
+		if (['Owner', 'Power User'].indexOf(pagePermission.roleKey) >= 0) {
+			expect(
+				pagePermission.actionKeys.indexOf('UPDATE_DISCUSSION')
+			).toBeGreaterThanOrEqual(0);
+		}
+		else {
+			expect(
+				pagePermission.actionKeys.indexOf('UPDATE_DISCUSSION')
+			).toBeLessThan(0);
+		}
+	});
 });

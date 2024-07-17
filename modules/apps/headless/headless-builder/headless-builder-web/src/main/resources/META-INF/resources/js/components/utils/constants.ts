@@ -23,7 +23,8 @@ export const BUSINESS_TYPES_TO_SYMBOLS = {
 	'Workflow Status': 'text',
 };
 
-export const DEFAULT_LANGUAGE_ID: string = Liferay.ThemeDisplay.getDefaultLanguageId();
+export const DEFAULT_LANGUAGE_ID: string =
+	Liferay.ThemeDisplay.getDefaultLanguageId();
 
 export const HTTP_METHODS = {
 	GET: 'get',
@@ -37,6 +38,6 @@ export const RETRIEVE_TYPES = {
 
 export const STR_BLANK = '';
 
-export const UNMODIFIABLE_OBJECTS_WHITELIST = Liferay.FeatureFlags['LPD-21414']
+export const ALLOWED_UNMODIFIABLE_OBJECTS = Liferay.FeatureFlags['LPD-21414']
 	? ['L_ACCOUNT', 'L_USER']
 	: [];

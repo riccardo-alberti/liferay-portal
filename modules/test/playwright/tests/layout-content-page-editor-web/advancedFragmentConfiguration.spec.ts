@@ -7,16 +7,16 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
+import {fragmentsPagesTest} from '../../fixtures/fragmentPagesTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import getRandomString from '../../utils/getRandomString';
-import {fragmentsPagesTest} from '../fragment-web/fixtures/fragmentPagesTest';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 import getWidgetDefinition from './utils/getWidgetDefinition';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPS-178052': true,
@@ -55,10 +55,10 @@ test('checks that the fragment is hidden from Site Search Results', async ({
 
 	const headingId = getRandomString();
 
-	const headingFragmentDefinition = getFragmentDefinition(
-		headingId,
-		'BASIC_COMPONENT-heading'
-	);
+	const headingFragmentDefinition = getFragmentDefinition({
+		id: headingId,
+		key: 'BASIC_COMPONENT-heading',
+	});
 
 	layouts.fragment = await apiHelpers.headlessDelivery.createSitePage({
 		pageDefinition: getPageDefinition([headingFragmentDefinition]),
@@ -66,7 +66,7 @@ test('checks that the fragment is hidden from Site Search Results', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layouts.fragment, site.friendlyUrlPath);
+	await pageEditorPage.goto(layouts.fragment, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -96,7 +96,7 @@ test('checks that the fragment is hidden from Site Search Results', async ({
 
 	// Go back to the fragment page and hide the fragment from the search results
 
-	await pageEditorPage.goToEditMode(layouts.fragment, site.friendlyUrlPath);
+	await pageEditorPage.goto(layouts.fragment, site.friendlyUrlPath);
 
 	await pageEditorPage.selectFragment(headingId);
 
@@ -183,19 +183,21 @@ test('checks that the advanced configuration of a fragment appears in its corres
 
 	// Create a content page with the fragment previously created
 
-	const fragmentDefinition = getFragmentDefinition(
-		getRandomString(),
-		'my-fragment',
-		{
+	const fragmentDefinition = getFragmentDefinition({
+		fragmentConfig: {
 			advancedConfigField: '1',
-		}
-	);
-
-	await pageEditorPage.createPageWithFragmentAndGoToEditMode({
-		apiHelpers,
-		fragment: fragmentDefinition,
-		site,
+		},
+		id: getRandomString(),
+		key: 'my-fragment',
 	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([fragmentDefinition]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	await page.getByTitle('Browser').click();
 

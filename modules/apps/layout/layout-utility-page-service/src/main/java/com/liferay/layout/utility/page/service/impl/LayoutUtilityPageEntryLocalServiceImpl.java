@@ -228,6 +228,16 @@ public class LayoutUtilityPageEntryLocalServiceImpl
 	}
 
 	@Override
+	public LayoutUtilityPageEntry deleteLayoutUtilityPageEntry(
+			String externalReferenceCode, long groupId)
+		throws PortalException {
+
+		return layoutUtilityPageEntryLocalService.deleteLayoutUtilityPageEntry(
+			getLayoutUtilityPageEntryByExternalReferenceCode(
+				externalReferenceCode, groupId));
+	}
+
+	@Override
 	public LayoutUtilityPageEntry fetchDefaultLayoutUtilityPageEntry(
 		long groupId, String type) {
 
@@ -451,8 +461,8 @@ public class LayoutUtilityPageEntryLocalServiceImpl
 			"layout.instanceable.allowed", Boolean.TRUE);
 
 		Layout layout = _layoutLocalService.addLayout(
-			userId, groupId, false, 0, 0, 0, titleMap, titleMap, null, null,
-			null, LayoutConstants.TYPE_UTILITY, typeSettings, true, true,
+			null, userId, groupId, false, 0, 0, 0, titleMap, titleMap, null,
+			null, null, LayoutConstants.TYPE_UTILITY, typeSettings, true, true,
 			new HashMap<>(), masterLayoutPlid, serviceContext);
 
 		Layout draftLayout = layout.fetchDraftLayout();

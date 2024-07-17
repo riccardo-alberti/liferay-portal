@@ -45,7 +45,6 @@ type TypeActivityComponent = {
 
 const ActivityStatus = {
 	ACTIVE: 'active',
-	APPROVED: 'approved',
 	CLAIMED: 'claimed',
 	EXPIRED: 'expired',
 	SUBMITTED: 'submitted',
@@ -54,9 +53,8 @@ const ActivityStatus = {
 
 const activityStatusClassName = {
 	[ActivityStatus.ACTIVE]: 'label label-tonal-info ml-2',
-	[ActivityStatus.SUBMITTED]: 'label label-tonal-warning ml-2',
-	[ActivityStatus.APPROVED]: 'label label-tonal-success ml-2',
 	[ActivityStatus.EXPIRED]: 'label label-tonal-danger ml-2',
+	[ActivityStatus.SUBMITTED]: 'label label-tonal-warning ml-2',
 };
 
 const activityClaimStatusClassName = {
@@ -87,12 +85,11 @@ const ActivityClaimPanel = ({
 				}
 
 				return accumulator;
-		  }, [])
+			}, [])
 		: undefined;
 
-	const siteURL = Liferay.ThemeDisplay.getLayoutRelativeControlPanelURL().split(
-		'/'
-	)[2];
+	const siteURL =
+		Liferay.ThemeDisplay.getLayoutRelativeControlPanelURL().split('/')[2];
 
 	useBudgetsAmount(
 		activity.budgets,
@@ -252,19 +249,23 @@ const ActivityClaimPanel = ({
 							!isBudgetSelected.includes(activityIndex) &&
 							(isButtonClicked || isEdit) && (
 								<>
-									{(errors.activities[activityIndex] as {
-										budgets?: boolean;
-									})?.budgets && (
+									{(
+										errors.activities[activityIndex] as {
+											budgets?: boolean;
+										}
+									)?.budgets && (
 										<ClayAlert
 											displayType="danger"
 											hideCloseIcon={true}
 										>
 											{
-												(errors?.activities[
-													activityIndex
-												] as {
-													budgets?: string;
-												})?.budgets
+												(
+													errors?.activities[
+														activityIndex
+													] as {
+														budgets?: string;
+													}
+												)?.budgets
 											}
 										</ClayAlert>
 									)}

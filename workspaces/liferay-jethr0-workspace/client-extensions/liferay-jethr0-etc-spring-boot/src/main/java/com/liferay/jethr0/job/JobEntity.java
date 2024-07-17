@@ -46,6 +46,8 @@ public interface JobEntity extends Entity {
 
 	public void addTestSuiteEntity(TestSuiteEntity testSuiteEntity);
 
+	public boolean getBlessed();
+
 	public Set<BuildEntity> getBuildEntities();
 
 	public GitCommitEntity getGitCommitEntity();
@@ -99,6 +101,8 @@ public interface JobEntity extends Entity {
 	public void removeTestSuiteEntities(Set<TestSuiteEntity> testSuiteEntities);
 
 	public void removeTestSuiteEntity(TestSuiteEntity testSuiteEntity);
+
+	public void setBlessed(boolean blessed);
 
 	public void setGitCommitEntity(GitCommitEntity gitCommitEntity);
 
@@ -237,10 +241,13 @@ public interface JobEntity extends Entity {
 		ROOT_CAUSE_ANALYSIS_TOOL(
 			"rootCauseAnalysisTool", "Root Cause Analysis Tool"),
 		SANITIZE_LANGUAGE("sanitizeLanguage", "Sanitize Language"),
+		SCANCODE_PIPELINES("scancodePipelines", "Scancode Pipelines"),
 		SUBREPOSITORY_PULL_REQUEST(
 			"subrepositoryPullRequest", "Subrepository Pull Request"),
 		VERIFICATION("verification", "Verification"),
-		VERIFICATION_NODE("verificationNode", "Verification Node");
+		VERIFICATION_NODE("verificationNode", "Verification Node"),
+		VERIFICATION_SERVERS_DAILY(
+			"verificationServersDaily", "verificationServersDaily");
 
 		public static Type get(Object picklistValue) {
 			return _types.get(

@@ -1,22 +1,23 @@
 {
 	"dependencies": {
 		"@clayui/alert": "3.111.0",
-		"@clayui/button": "3.113.0",
-		"@clayui/core": "3.114.0",
-		"@clayui/date-picker": "3.114.0",
-		"@clayui/drop-down": "3.114.0",
-		"@clayui/empty-state": "3.114.0",
-		"@clayui/form": "3.113.0",
+		"@clayui/button": "3.116.0",
+		"@clayui/core": "3.116.1",
+		"@clayui/date-picker": "3.116.1",
+		"@clayui/drop-down": "3.116.1",
+		"@clayui/empty-state": "3.116.0",
+		"@clayui/form": "3.116.0",
 		"@clayui/icon": "3.111.0",
 		"@clayui/label": "3.111.0",
 		"@clayui/layout": "3.111.0",
 		"@clayui/loading-indicator": "3.111.0",
-		"@clayui/modal": "3.113.0",
+		"@clayui/modal": "3.116.0",
 		"@clayui/table": "3.111.0",
 		"@liferay/frontend-js-react-web": "*",
 		"@liferay/layout-js-components-web": "*",
 		"@liferay/template-web": "*",
 		"classnames": "2.3.1",
+		"data-engine-js-components-web": "*",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
 		"moment": "2.29.4",
@@ -26,10 +27,10 @@
 	"main": "js/index.js",
 	"name": "journal-web",
 	"scripts": {
-		"build": "liferay-npm-scripts build",
-		"checkFormat": "liferay-npm-scripts check",
-		"format": "liferay-npm-scripts fix",
-		"test": "liferay-npm-scripts test"
+		"build": "node-scripts build",
+		"checkFormat": "node-scripts format --check",
+		"format": "node-scripts format",
+		"test": "node-scripts test"
 	},
-	"version": "5.0.169"
+	"version": "5.0.174"
 }

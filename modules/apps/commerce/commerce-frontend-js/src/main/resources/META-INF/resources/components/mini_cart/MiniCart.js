@@ -68,11 +68,21 @@ function MiniCart({
 	const closeCart = () => {
 		setIsOpen(false);
 
+		if (toggleable) {
+			document.body.classList.remove('overflow-hidden');
+		}
+
 		if (editedItem) {
 			setEditedItem(null);
 		}
 	};
-	const openCart = () => setIsOpen(true);
+	const openCart = () => {
+		if (toggleable) {
+			document.body.classList.add('overflow-hidden');
+		}
+
+		setIsOpen(true);
+	};
 
 	const [replacementSKUList, setReplacementSKUList] = useState([]);
 
@@ -105,7 +115,7 @@ function MiniCart({
 							? regenerateOrderDetailURL(
 									updatedCart.orderUUID,
 									currentURLs.siteDefaultURL
-							  )
+								)
 							: new URL(orderDetailURL),
 					};
 
@@ -134,7 +144,7 @@ function MiniCart({
 						cartState.cartItems.filter(
 							({replacedSku: replacedSKU}) => Boolean(replacedSKU)
 						)
-				  )
+					)
 				: null,
 		[cartState.cartItems]
 	);

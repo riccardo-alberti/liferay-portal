@@ -11,16 +11,6 @@
 	},
 	"items": [
 		{
-			"cron": "0 0 0/8 ? * *",
-			"externalReferenceCode": "archiveCIBuildDataController",
-			"jobName": "Archive CI Build Data - $[current_date]",
-			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"master\"}]",
-			"jobPriority": 1,
-			"jobType": "archiveCIBuildData",
-			"name": "Archive CI Build Data Controller",
-			"type": "cron"
-		},
-		{
 			"cron": "0 0 16 ? * * *",
 			"externalReferenceCode": "analyticsCloudAcceptanceController",
 			"jobName": "ci:test:analytics-cloud-acceptance - master - $[current_date]",
@@ -75,6 +65,16 @@
 			"type": "cron"
 		},
 		{
+			"cron": "0 0 0/8 ? * *",
+			"externalReferenceCode": "archiveCIBuildDataController",
+			"jobName": "Archive CI Build Data - $[current_date]",
+			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"master\"}]",
+			"jobPriority": 1,
+			"jobType": "archiveCIBuildData",
+			"name": "Archive CI Build Data Controller",
+			"type": "cron"
+		},
+		{
 			"cron": "0 0 0 ? * *",
 			"externalReferenceCode": "forwardBranchesCleanupDailyController",
 			"jobName": "Forward Branches Cleanup Daily - $[current_date]",
@@ -82,46 +82,6 @@
 			"jobPriority": 1,
 			"jobType": "forwardBranchesCleanupDaily",
 			"name": "Forward Branches Cleanup Daily Controller",
-			"type": "cron"
-		},
-		{
-			"cron": "0 0 0 ? * *",
-			"externalReferenceCode": "generateReportsController",
-			"jobName": "Generate Reports - $[current_date]",
-			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"}]",
-			"jobPriority": 1,
-			"jobType": "generateReports",
-			"name": "Generate Reports Controller",
-			"type": "cron"
-		},
-		{
-			"cron": "0 0 0 ? * *",
-			"externalReferenceCode": "generateFlakyTestReportControllerEE61x",
-			"jobName": "Generate Flaky Test Report (ee-6.1.x) - $[current_date]",
-			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"ee-6.1.x\"}]",
-			"jobPriority": 1,
-			"jobType": "generateFlakyTestReport",
-			"name": "Generate Flaky Test Report Controller (ee-6.1.x)",
-			"type": "cron"
-		},
-		{
-			"cron": "0 0 0 ? * *",
-			"externalReferenceCode": "generateFlakyTestReportControllerEE62x",
-			"jobName": "Generate Flaky Test Report (ee-6.2.x) - $[current_date]",
-			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"ee-6.2.x\"}]",
-			"jobPriority": 1,
-			"jobType": "generateFlakyTestReport",
-			"name": "Generate Flaky Test Report Controller (ee-6.2.x)",
-			"type": "cron"
-		},
-		{
-			"cron": "0 0 0 ? * *",
-			"externalReferenceCode": "generateFlakyTestReportControllerMaster",
-			"jobName": "Generate Flaky Test Report (master) - $[current_date]",
-			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"master\"}]",
-			"jobPriority": 1,
-			"jobType": "generateFlakyTestReport",
-			"name": "Generate Flaky Test Report Controller (master)",
 			"type": "cron"
 		},
 		{
@@ -165,13 +125,43 @@
 			"type": "cron"
 		},
 		{
-			"cron": "0 */10 * ? * *",
-			"externalReferenceCode": "generateReportsControllerEvery10Mins",
-			"jobName": "Generate Reports (Every 10 Mins) - $[current_date]",
-			"jobParameters": "[{\"key\":\"reportNames\",\"value\":\"CI System Status\"}]",
-			"jobPriority": 3,
+			"cron": "0 0 0 ? * *",
+			"externalReferenceCode": "generateFlakyTestReportControllerEE61x",
+			"jobName": "Generate Flaky Test Report (ee-6.1.x) - $[current_date]",
+			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"ee-6.1.x\"}]",
+			"jobPriority": 1,
+			"jobType": "generateFlakyTestReport",
+			"name": "Generate Flaky Test Report Controller (ee-6.1.x)",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 0 ? * *",
+			"externalReferenceCode": "generateFlakyTestReportControllerEE62x",
+			"jobName": "Generate Flaky Test Report (ee-6.2.x) - $[current_date]",
+			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"ee-6.2.x\"}]",
+			"jobPriority": 1,
+			"jobType": "generateFlakyTestReport",
+			"name": "Generate Flaky Test Report Controller (ee-6.2.x)",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 0 ? * *",
+			"externalReferenceCode": "generateFlakyTestReportControllerMaster",
+			"jobName": "Generate Flaky Test Report (master) - $[current_date]",
+			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"master\"}]",
+			"jobPriority": 1,
+			"jobType": "generateFlakyTestReport",
+			"name": "Generate Flaky Test Report Controller (master)",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 0 ? * *",
+			"externalReferenceCode": "generateReportsController",
+			"jobName": "Generate Reports - $[current_date]",
+			"jobParameters": "[{\"key\":\"jenkinsSlaveLabel\",\"value\":\"!master\"}]",
+			"jobPriority": 1,
 			"jobType": "generateReports",
-			"name": "Generate Reports Controller (Every 10 Mins)",
+			"name": "Generate Reports Controller",
 			"type": "cron"
 		},
 		{
@@ -182,6 +172,16 @@
 			"jobPriority": 3,
 			"jobType": "generateReports",
 			"name": "Generate Reports Controller (Daily)",
+			"type": "cron"
+		},
+		{
+			"cron": "0 */10 * ? * *",
+			"externalReferenceCode": "generateReportsControllerEvery10Mins",
+			"jobName": "Generate Reports (Every 10 Mins) - $[current_date]",
+			"jobParameters": "[{\"key\":\"reportNames\",\"value\":\"CI System Status\"}]",
+			"jobPriority": 3,
+			"jobType": "generateReports",
+			"name": "Generate Reports Controller (Every 10 Mins)",
 			"type": "cron"
 		},
 		{
@@ -630,23 +630,23 @@
 		},
 		{
 			"cron": "0 0 0 ? * * *",
-			"externalReferenceCode": "portalUpstreamTestSuiteControllerMasterDataEngine",
-			"jobName": "ci:test:data-engine - master - $[current_date]",
-			"jobParameters": "[{\"key\":\"portalBranchURL\",\"value\":\"https://github.com/liferay/liferay-portal/tree/master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"master\"},{\"key\":\"testSuiteName\",\"value\":\"data-engine\"}]",
-			"jobPriority": 5,
-			"jobType": "portalUpstreamTestSuite",
-			"name": "ci:test:data-engine - master",
-			"r_gitBranchToRoutines_c_gitBranchERC": "liferayPortalMaster",
-			"type": "upstreamBranchCron"
-		},
-		{
-			"cron": "0 0 0 ? * * *",
 			"externalReferenceCode": "portalUpstreamTestSuiteControllerMasterDBPartition",
 			"jobName": "ci:test:db-partition - master - $[current_date]",
 			"jobParameters": "[{\"key\":\"portalBranchURL\",\"value\":\"https://github.com/liferay/liferay-portal/tree/master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"master\"},{\"key\":\"testSuiteName\",\"value\":\"db-partition\"}]",
 			"jobPriority": 5,
 			"jobType": "portalUpstreamTestSuite",
 			"name": "ci:test:db-partition - master",
+			"r_gitBranchToRoutines_c_gitBranchERC": "liferayPortalMaster",
+			"type": "upstreamBranchCron"
+		},
+		{
+			"cron": "0 0 0 ? * * *",
+			"externalReferenceCode": "portalUpstreamTestSuiteControllerMasterDataEngine",
+			"jobName": "ci:test:data-engine - master - $[current_date]",
+			"jobParameters": "[{\"key\":\"portalBranchURL\",\"value\":\"https://github.com/liferay/liferay-portal/tree/master\"},{\"key\":\"portalUpstreamBranchName\",\"value\":\"master\"},{\"key\":\"testSuiteName\",\"value\":\"data-engine\"}]",
+			"jobPriority": 5,
+			"jobType": "portalUpstreamTestSuite",
+			"name": "ci:test:data-engine - master",
 			"r_gitBranchToRoutines_c_gitBranchERC": "liferayPortalMaster",
 			"type": "upstreamBranchCron"
 		},
@@ -922,6 +922,97 @@
 			"jobPriority": 1,
 			"jobType": "publishPortalDockerImage",
 			"name": "Publish Portal Docker Image DXP Nightly Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 14 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyACGeneratorsController",
+			"jobName": "QA Websites AC Generators - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"analytics-cloud\"},{\"key\":\"testSuiteName\",\"value\":\"analytics-cloud-generators\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites AC Generators Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 20 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyACVerifiersController",
+			"jobName": "QA Websites AC Verifiers - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"analytics-cloud\"},{\"key\":\"testSuiteName\",\"value\":\"analytics-cloud-verifiers\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites AC Verifiers Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 19 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyLearnProductionController",
+			"jobName": "QA Websites - Learn Production - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"learn\"},{\"key\":\"testrayProjectName\",\"value\":\"Learn\"},{\"key\":\"testrayRoutineName\",\"value\":\"Production\"},{\"key\":\"testSuiteName\",\"value\":\"learn_production\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - Learn Production - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 19 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyLearnUATController",
+			"jobName": "QA Websites - Learn UAT - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"learn\"},{\"key\":\"testrayProjectName\",\"value\":\"Learn\"},{\"key\":\"testrayRoutineName\",\"value\":\"UAT\"},{\"key\":\"testSuiteName\",\"value\":\"learn_uat\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - Learn UAT - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 4 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyMarketplaceProductionController",
+			"jobName": "QA Websites - Marketplace Production - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"marketplace\"},{\"key\":\"testrayProjectName\",\"value\":\"Marketplace\"},{\"key\":\"testrayRoutineName\",\"value\":\"Production\"},{\"key\":\"testSuiteName\",\"value\":\"marketplace-production\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - Marketplace Production - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 4 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyMarketplaceUATController",
+			"jobName": "QA Websites - Marketplace UAT - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"marketplace\"},{\"key\":\"testrayProjectName\",\"value\":\"Marketplace\"},{\"key\":\"testrayRoutineName\",\"value\":\"UAT\"},{\"key\":\"testSuiteName\",\"value\":\"marketplace-uat\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - Marketplace UAT - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 19 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyPartnerUATController",
+			"jobName": "QA Websites - Partner UAT - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"partner\"},{\"key\":\"testrayProjectName\",\"value\":\"Partner\"},{\"key\":\"testrayRoutineName\",\"value\":\"UAT\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - Partner UAT - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 4 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyWWWProductionController",
+			"jobName": "QA Websites - WWW Production - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"www\"},{\"key\":\"testrayProjectName\",\"value\":\"WWW\"},{\"key\":\"testrayRoutineName\",\"value\":\"Production\"},{\"key\":\"testSuiteName\",\"value\":\"www-production\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - WWW Production - Controller",
+			"type": "cron"
+		},
+		{
+			"cron": "0 0 4 ? * 1-5 *",
+			"externalReferenceCode": "qaWebsitesDailyWWWUATController",
+			"jobName": "QA Websites - WWW UAT - $[current_date]",
+			"jobParameters": "[{\"key\":\"qaWebsitesBranchURL\",\"value\":\"https://github.com/liferay/liferay-qa-websites-ee/tree/master\"},{\"key\":\"qaWebsitesProjectName\",\"value\":\"www\"},{\"key\":\"testrayProjectName\",\"value\":\"WWW\"},{\"key\":\"testrayRoutineName\",\"value\":\"UAT\"},{\"key\":\"testSuiteName\",\"value\":\"www-uat\"}]",
+			"jobPriority": 4,
+			"jobType": "qaWebsitesDaily",
+			"name": "QA Websites - WWW UAT - Controller",
+			"r_gitBranchToRoutines_c_gitBranchERC": "liferayQAWebsitesMaster",
 			"type": "cron"
 		},
 		{

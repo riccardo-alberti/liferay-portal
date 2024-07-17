@@ -1443,32 +1443,6 @@ definition {
 		}
 
 		task ("Then it must be possible to select the "Results", "Location" and "Search In" fields with the keyboard and must be in compliance with WCAG 2.1 AA standard.") {
-			task ("Using just the keyboard, in the "Results" field select the "Versions" option.") {
-				KeyPress(
-					buttonId = "JournalPortlet_searchResults",
-					locator1 = "Button#BUTTON_ID");
-
-				KeyPress(
-					buttonId = "JournalPortlet_searchResults",
-					locator1 = "Button#BUTTON_ID",
-					value1 = "\DOWN");
-
-				KeyPress(
-					buttonId = "JournalPortlet_searchResults",
-					locator1 = "Button#BUTTON_ID",
-					value1 = "\ENTER");
-			}
-
-			task ("Check that the web content version is present.") {
-				AssertTextEquals(
-					locator1 = "//span[contains(@class, 'workflow-value')]",
-					value1 = "1.0");
-			}
-
-			task ("View no accessibility issues found.") {
-				AssertAccessible();
-			}
-
 			task ("Using just the keyboard, in the "Location" field select the "Everywhere" option.") {
 				KeyPress(
 					buttonId = "JournalPortlet_searchLocation",
@@ -1733,38 +1707,6 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-151948. The Filter by Status is available to the Versions tab."
-	@priority = 4
-	test ViewFilterByStatusAvailableToVersionsTab {
-		task ("Given a site designer has a draft web content") {
-			JSONWebcontent.addWebContent(
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "Web Content Title",
-				workflowAction = "DRAFT");
-		}
-
-		task ("When the site designer search the web content in Web Content admin") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-			WebContent.searchCP(webContentTitle = "Web Content Title");
-		}
-
-		task ("Then the site designer could filter search results by status in Versions panel") {
-			Click(
-				buttonId = "JournalPortlet_searchResults",
-				locator1 = "Button#BUTTON_ID");
-
-			MenuItem.click(menuItem = "Versions");
-
-			WaitForPageLoad();
-
-			Click(locator1 = "ManagementBar#FILTER");
-
-			MenuItem.viewVisible(menuItem = "Filter by Status");
-		}
-	}
-
 	@description = "This is a test for LPS-196819. The site administrator could see info panel of web contents in specific structure sheet."
 	@priority = 3
 	test ViewInfoPanelOfWebContentsInHighlightedStructureSheet {
@@ -2000,7 +1942,7 @@ definition {
 
 			Click(locator1 = "ManagementBar#FILTER");
 
-			for (var filterName : list "Draft,With Scheduled Versions,With Approved Versions,With Expired Versions") {
+			for (var filterName : list "Draft,Scheduled,Approved,Expired") {
 				MenuItem.viewVisible(menuItem = ${filterName});
 			}
 
@@ -2024,7 +1966,7 @@ definition {
 
 			Click(locator1 = "ManagementBar#FILTER");
 
-			for (var filterName : list "Draft,Denied,Pending,With Scheduled Versions,With Approved Versions,With Expired Versions") {
+			for (var filterName : list "Draft,Denied,Pending,Scheduled,Approved,Expired") {
 				MenuItem.viewVisible(menuItem = ${filterName});
 			}
 		}

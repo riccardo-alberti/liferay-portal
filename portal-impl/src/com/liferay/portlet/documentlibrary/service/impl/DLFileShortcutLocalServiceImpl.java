@@ -9,6 +9,7 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
+import com.liferay.document.library.kernel.exception.NoSuchFolderException;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFileShortcut;
 import com.liferay.document.library.kernel.model.DLFileShortcutConstants;
@@ -60,7 +61,7 @@ public class DLFileShortcutLocalServiceImpl
 
 		folderId = getFolderId(user.getCompanyId(), folderId);
 
-		validate(user, toFileEntryId);
+		validate(user, groupId, folderId, toFileEntryId);
 
 		long fileShortcutId = counterLocalService.increment();
 
@@ -310,6 +311,11 @@ public class DLFileShortcutLocalServiceImpl
 	}
 
 	@Override
+	public List<DLFileShortcut> getGroupFileShortcuts(long groupId) {
+		return dlFileShortcutPersistence.findByGroupId(groupId);
+	}
+
+	@Override
 	public void rebuildTree(long companyId) throws PortalException {
 		_dlFolderLocalService.rebuildTree(companyId);
 	}
@@ -327,6 +333,19 @@ public class DLFileShortcutLocalServiceImpl
 
 		actionableDynamicQuery.setAddCriteriaMethod(
 			dynamicQuery -> {
+				if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+					DLFolder dlFolder = _dlFolderLocalService.fetchDLFolder(
+						folderId);
+
+					if (dlFolder != null) {
+						Property groupIdProperty = PropertyFactoryUtil.forName(
+							"groupId");
+
+						dynamicQuery.add(
+							groupIdProperty.eq(dlFolder.getGroupId()));
+					}
+				}
+
 				Property folderIdProperty = PropertyFactoryUtil.forName(
 					"folderId");
 
@@ -383,7 +402,7 @@ public class DLFileShortcutLocalServiceImpl
 		DLFileShortcut fileShortcut =
 			dlFileShortcutPersistence.findByPrimaryKey(fileShortcutId);
 
-		validate(user, toFileEntryId);
+		validate(user, fileShortcut.getGroupId(), folderId, toFileEntryId);
 
 		fileShortcut.setFolderId(folderId);
 		fileShortcut.setToFileEntryId(toFileEntryId);
@@ -489,8 +508,20 @@ public class DLFileShortcutLocalServiceImpl
 		return folderId;
 	}
 
-	protected void validate(User user, long toFileEntryId)
+	protected void validate(
+			User user, long groupId, long folderId, long toFileEntryId)
 		throws PortalException {
+
+		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			DLFolder parentDLFolder = _dlFolderPersistence.findByPrimaryKey(
+				folderId);
+
+			if ((groupId != parentDLFolder.getGroupId()) ||
+				parentDLFolder.isInTrash()) {
+
+				throw new NoSuchFolderException();
+			}
+		}
 
 		FileEntry fileEntry = _dlAppLocalService.getFileEntry(toFileEntryId);
 

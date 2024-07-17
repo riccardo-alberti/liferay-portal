@@ -46,17 +46,16 @@ function UnitOfMeasureSelector({
 	const [skuId, setSkuId] = useState(cpInstanceId);
 	const [skuOptionsAtomState] = useLiferayState(skuOptionsAtom);
 
-	const DeliveryCatalogAPIServiceProvider = ServiceProvider.DeliveryCatalogAPI(
-		'v1'
-	);
+	const DeliveryCatalogAPIServiceProvider =
+		ServiceProvider.DeliveryCatalogAPI('v1');
 
 	const postChannelProductSkuBySkuOption = useCallback(
-		(skuUnitOfMeasureKey) => {
+		(quantity = 1, skuUnitOfMeasureKey) => {
 			DeliveryCatalogAPIServiceProvider.postChannelProductSkuBySkuOption(
 				channelId,
 				productId,
 				accountId,
-				inputProperties.quantity,
+				quantity,
 				skuUnitOfMeasureKey,
 				options || skuOptionsAtomState.skuOptions
 			).then((cpInstance) => {
@@ -75,6 +74,7 @@ function UnitOfMeasureSelector({
 				);
 			});
 		},
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[accountId, channelId, options, productId, skuOptionsAtomState]
 	);
@@ -102,24 +102,30 @@ function UnitOfMeasureSelector({
 					}
 				}
 
+				const quantity = getMinQuantity(
+					productConfiguration?.minOrderQuantity,
+					skuUnitOfMeasure?.incrementalOrderQuantity || 1,
+					skuUnitOfMeasure?.precision || 0
+				);
+
 				setInputProperties((inputProperties) => ({
 					...inputProperties,
 					fireEvent: true,
-					quantity: getMinQuantity(
-						productConfiguration?.minOrderQuantity,
-						skuUnitOfMeasure?.incrementalOrderQuantity || 1,
-						skuUnitOfMeasure?.precision || 0
-					),
+					quantity,
 					resetQuantity,
 					unitOfMeasures: skuUnitOfMeasures,
 					value: skuUnitOfMeasure?.key || '',
 				}));
 
 				if (skuUnitOfMeasure?.key) {
-					postChannelProductSkuBySkuOption(skuUnitOfMeasure?.key);
+					postChannelProductSkuBySkuOption(
+						quantity,
+						skuUnitOfMeasure?.key
+					);
 				}
 			});
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [accountId, channelId, cpInstanceId, resetQuantity, productId]);
 
@@ -196,6 +202,7 @@ function UnitOfMeasureSelector({
 		if (inputProperties.fireEvent) {
 			fireSelectorChangedEvent();
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [inputProperties.fireEvent]);
 
@@ -235,7 +242,22 @@ function UnitOfMeasureSelector({
 							value: target.value,
 						}));
 
-						postChannelProductSkuBySkuOption(target.value);
+						const selectedUnitOfMeasure =
+							inputProperties.unitOfMeasures.find(
+								(unitOfMeasure) => {
+									return unitOfMeasure.key === target.value;
+								}
+							);
+
+						postChannelProductSkuBySkuOption(
+							getMinQuantity(
+								productConfiguration?.minOrderQuantity,
+								selectedUnitOfMeasure?.incrementalOrderQuantity ||
+									1,
+								selectedUnitOfMeasure?.precision || 0
+							),
+							target.value
+						);
 					}}
 					options={inputProperties.unitOfMeasures.map(
 						(unitOfMeasure) => ({

@@ -1,4 +1,4 @@
-@component-name = "portal-user-management"
+@component-name = "portal-commerce"
 definition {
 
 	property ci.retries.disabled = "true";
@@ -179,8 +179,6 @@ definition {
 	@priority = 4
 	@uitest
 	test AddSiteTeamRemoveUser {
-		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
-		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property testray.component.names = "Site Teams,Users and Organizations";
@@ -576,7 +574,7 @@ definition {
 
 		task ("Log out and log in as the first created user") {
 			User.firstLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "userea1@liferay.com");
 		}
 
@@ -595,7 +593,7 @@ definition {
 
 		task ("Log out and log in as the second created user") {
 			User.firstLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "userea2@liferay.com");
 		}
 
@@ -607,7 +605,7 @@ definition {
 
 		task ("Log out and log in as default user") {
 			User.firstLoginPG(
-				password = "test",
+				password = PropsUtil.get("default.admin.password"),
 				userEmailAddress = "test@liferay.com");
 		}
 	}

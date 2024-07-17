@@ -12,11 +12,18 @@ import StatusBadge from '~/components/StatusBadge';
 import {StatusBadgeType} from '~/components/StatusBadge/StatusBadge';
 import i18n from '~/i18n';
 import {TestrayRun} from '~/services/rest';
+import {getTruncateText} from '~/util/getTruncateText';
 import {CaseResultStatuses} from '~/util/statuses';
 
 type RunStatusProps = {
 	caseResultId: number;
 	dueStatusApplied?: string | null;
+	run: TestrayRun;
+};
+
+type RunErrorProps = {
+	caseResultId: number;
+	error: string;
 	run: TestrayRun;
 };
 
@@ -49,7 +56,20 @@ const RunStatus: React.FC<RunStatusProps> = ({
 	);
 };
 
+const RunError: React.FC<RunErrorProps> = ({caseResultId, error, run}) => {
+	const LinkWrapper = Link;
+
+	return (
+		<LinkWrapper
+			to={`/project/${run?.build?.project?.id}/routines/${run?.build?.routine?.id}/build/${run?.build?.id}/case-result/${caseResultId}`}
+		>
+			<Code title={error as string}>{getTruncateText(error, 200)}</Code>
+		</LinkWrapper>
+	);
+};
+
 const RunStatusMemoized = memo(RunStatus);
+const RunErrorMemoized = memo(RunError);
 
 const CompareRunsCases = () => {
 	const {runA: runAId, runB: runBId} = useParams();
@@ -69,7 +89,7 @@ const CompareRunsCases = () => {
 					display: {columns: false},
 					filterSchema: 'compareRunsCases',
 				}}
-				resource={`/testray-run-comparisons/${runAId}/${runBId}/details`}
+				resource={`/testray-run-comparisons/${runAId}/${runBId}/testray-case-result-comparisons`}
 				tableProps={{
 					columns: [
 						{
@@ -122,15 +142,27 @@ const CompareRunsCases = () => {
 						},
 						{
 							key: 'error1',
-							render: (error1: string) =>
-								error1 && <Code>{error1}</Code>,
+							render: (error1: string, data: any) =>
+								error1 && (
+									<RunErrorMemoized
+										caseResultId={data?.id1}
+										error={error1}
+										run={runA}
+									/>
+								),
 							size: 'lg',
 							value: i18n.sub('error-in-x', 'run-a'),
 						},
 						{
 							key: 'error2',
-							render: (error2: string) =>
-								error2 && <Code>{error2}</Code>,
+							render: (error2: string, data: any) =>
+								error2 && (
+									<RunErrorMemoized
+										caseResultId={data?.id2}
+										error={error2}
+										run={runB}
+									/>
+								),
 							size: 'lg',
 							value: i18n.sub('error-in-x', 'run-b'),
 						},

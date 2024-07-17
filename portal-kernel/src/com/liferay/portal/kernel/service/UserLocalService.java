@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.io.Serializable;
@@ -588,20 +587,6 @@ public interface UserLocalService
 	 */
 	@Transactional(enabled = false)
 	public User createUser(long userId);
-
-	/**
-	 * Decrypts the user's primary key and password from their encrypted forms.
-	 * Used for decrypting a user's credentials from the values stored in an
-	 * automatic login cookie.
-	 *
-	 * @param companyId the primary key of the user's company
-	 * @param name the encrypted primary key of the user
-	 * @param password the encrypted password of the user
-	 * @return the user's primary key and password
-	 */
-	public KeyValuePair decryptUserId(
-			long companyId, String name, String password)
-		throws PortalException;
 
 	public void deleteGroupUser(long groupId, long userId);
 
@@ -2285,7 +2270,10 @@ public interface UserLocalService
 	 * @return the user
 	 */
 	@CTAware(onProduction = true)
-	@Indexable(type = IndexableType.REINDEX)
+	@Indexable(
+		callbackKey = "com.liferay.portal.kernel.model.User#lastLoginDate",
+		type = IndexableType.REINDEX
+	)
 	public User updateLastLogin(long userId, String loginIP)
 		throws PortalException;
 

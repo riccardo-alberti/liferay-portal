@@ -8,7 +8,6 @@ package com.liferay.jenkins.results.parser.testray;
 import com.liferay.jenkins.results.parser.AxisBuild;
 import com.liferay.jenkins.results.parser.Build;
 import com.liferay.jenkins.results.parser.BuildDatabase;
-import com.liferay.jenkins.results.parser.BuildDatabaseUtil;
 import com.liferay.jenkins.results.parser.BuildReportFactory;
 import com.liferay.jenkins.results.parser.Dom4JUtil;
 import com.liferay.jenkins.results.parser.DownstreamBuild;
@@ -89,7 +88,7 @@ public class TestrayAttachmentRecorder {
 
 		_build = build;
 
-		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase(build);
+		BuildDatabase buildDatabase = build.getBuildDatabase();
 
 		String jobVariant = build.getParameterValue("JOB_VARIANT");
 
@@ -151,6 +150,21 @@ public class TestrayAttachmentRecorder {
 		}
 
 		return sb.toString();
+	}
+
+	private void _copyToRecordedFilesBuildDir(File sourceFile) {
+		if (!sourceFile.exists()) {
+			return;
+		}
+
+		try {
+			JenkinsResultsParserUtil.copy(
+				sourceFile,
+				new File(_getRecordedFilesBuildDir(), sourceFile.getName()));
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
 	}
 
 	private List<File> _getLiferayBundlesDirs() {
@@ -714,19 +728,24 @@ public class TestrayAttachmentRecorder {
 				"modules/test/playwright/playwright-report/index.html");
 
 			if (playwrightReportFile.exists()) {
-				File sourceReportDir = playwrightReportFile.getParentFile();
+				_copyToRecordedFilesBuildDir(
+					playwrightReportFile.getParentFile());
 
-				File recordedFilesBuildDir = _getRecordedFilesBuildDir();
+				return;
+			}
+		}
 
-				try {
-					JenkinsResultsParserUtil.copy(
-						sourceReportDir,
-						new File(
-							recordedFilesBuildDir, sourceReportDir.getName()));
-				}
-				catch (IOException ioException) {
-					throw new RuntimeException(ioException);
-				}
+		GitWorkingDirectory qaWebsitesGitWorkingDirectory =
+			_getQAWebsitesGitWorkingDirectory();
+
+		if (qaWebsitesGitWorkingDirectory != null) {
+			File playwrightReportFile = new File(
+				qaWebsitesGitWorkingDirectory.getWorkingDirectory(),
+				"playwright/playwright-report/index.html");
+
+			if (playwrightReportFile.exists()) {
+				_copyToRecordedFilesBuildDir(
+					playwrightReportFile.getParentFile());
 			}
 		}
 	}

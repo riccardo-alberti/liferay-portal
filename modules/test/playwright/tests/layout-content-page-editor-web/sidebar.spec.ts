@@ -10,10 +10,11 @@ import {applicationsMenuPageTest} from '../../fixtures/applicationsMenuPageTest'
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
+import {checkAccessibility} from '../../utils/checkAccessibility';
 import getRandomString from '../../utils/getRandomString';
-import {pageEditorPagesTest} from './fixtures/pageEditorPagesTest';
 
-export const test = mergeTests(
+const test = mergeTests(
 	apiHelpersTest,
 	applicationsMenuPageTest,
 	featureFlagsTest({
@@ -47,10 +48,16 @@ test('renders all panel buttons in the vertical bar', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	for (const panel of PANELS) {
-		await expect(page.getByLabel(panel, {exact: true})).toBeVisible();
+		const panelButton = await page.getByLabel(panel, {exact: true});
+
+		await expect(panelButton).toBeVisible();
+		await expect(panelButton).toHaveAttribute(
+			'aria-selected',
+			panel === PANELS[0] ? 'true' : 'false'
+		);
 	}
 });
 
@@ -67,7 +74,7 @@ test('renders sidebars visible at desktop size and sidebars not visible at small
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	const panel = await page.getByLabel('Fragments and Widgets Panel');
 	const configurationPanel = await page.getByLabel('Configuration Panel', {
@@ -102,7 +109,7 @@ test('checks if sidebars are open or closed depending on Product Menu', async ({
 		title: getRandomString(),
 	});
 
-	await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 	const panel = await page.getByLabel('Fragments and Widgets Panel');
 	const configurationPanel = await page.getByLabel('Configuration Panel', {
@@ -131,4 +138,33 @@ test('checks if sidebars are open or closed depending on Product Menu', async ({
 	await expect(panel).toBeVisible();
 
 	await expect(configurationPanel).toBeVisible();
+});
+
+test('checks sidebar accessibility', async ({
+	apiHelpers,
+	page,
+	pageEditorPage,
+	site,
+}) => {
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+	// Check where the focus goes when the sidebar is closed
+
+	await page.getByRole('button', {name: 'Close'}).press('Enter');
+
+	await expect(
+		page.getByLabel('Fragments and Widgets', {exact: true})
+	).toBeFocused();
+
+	// Check with axe
+
+	await checkAccessibility({
+		page,
+		selectors: ['.page-editor__sidebar'],
+	});
 });

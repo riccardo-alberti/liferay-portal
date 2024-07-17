@@ -98,6 +98,7 @@
 										"pageElements": [
 											{
 												"definition": {
+													"customCSS": ".[$FRAGMENT_CLASS$] {\n  margin-top: 5px;\n}",
 													"fragmentStyle": {
 														"backgroundColor": "var(--color-brand-primary-lighten-5, #e7efff);",
 														"borderRadius": "10px",
@@ -131,7 +132,7 @@
 																			},
 																			"url": {
 																				"value_i18n": {
-																					"en_US": "/documents/d/liferay-learn//site-initializer/taxonomy-vocabularies/capability/integration.json-svg?imagePreview=1"
+																					"en_US": "[$DOCUMENT_URL:/site-initializer/documents/group/icons/integration.svg$]"
 																				}
 																			}
 																		},
@@ -508,6 +509,22 @@
 												"widgetName": "com_liferay_portal_search_web_search_options_portlet_SearchOptionsPortlet"
 											}
 										},
+										"type": "Widget"
+									},
+									{
+										"definition": {
+											"fragmentStyle": {
+												"hidden": true
+											},
+											"widgetInstance": {
+												"widgetConfig": {
+													"federatedSearchKey": "",
+													"sxpBlueprintExternalReferenceCode": "LIFERAY_LEARN"
+												},
+												"widgetName": "com_liferay_search_experiences_web_internal_blueprint_options_portlet_SXPBlueprintOptionsPortlet"
+											}
+										},
+										"id": "3ee652df-f315-eaab-f0e9-117e9a7f80b5",
 										"type": "Widget"
 									}
 								],

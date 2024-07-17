@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -179,7 +178,7 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 			workspaceGitRepository.storeCommitHistory(commitSHAs);
 		}
 		catch (Exception exception) {
-			failBuildRunner("Failed to store the commit history", exception);
+			failBuildRunner("Unable to store the commit history", exception);
 		}
 	}
 
@@ -406,7 +405,10 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 				return list;
 			}
 
-			_setBuildStartProperty("PORTAL_BATCH_TEST_SELECTOR", "**/*");
+			BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
+
+			buildDatabase.putProperty(
+				"start.properties", "PORTAL_BATCH_TEST_SELECTOR", "**/*");
 		}
 
 		BatchTestClassGroup batchTestClassGroup =
@@ -481,23 +483,6 @@ public class RootCauseAnalysisToolTopLevelBuildRunner
 		}
 
 		return false;
-	}
-
-	private void _setBuildStartProperty(
-		String propertyName, String propertyValue) {
-
-		BuildDatabase buildDatabase = BuildDatabaseUtil.getBuildDatabase();
-
-		Properties startProperties = new Properties();
-
-		if (buildDatabase.hasProperties("start.properties")) {
-			startProperties.putAll(
-				buildDatabase.getProperties("start.properties"));
-		}
-
-		startProperties.put(propertyName, propertyValue);
-
-		buildDatabase.putProperties("start.properties", startProperties);
 	}
 
 	private void _validateBuildParameterJenkinsGitHubURL() {
