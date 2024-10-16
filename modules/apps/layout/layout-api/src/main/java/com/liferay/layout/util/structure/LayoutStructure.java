@@ -477,33 +477,59 @@ public class LayoutStructure {
 					" cannot be selected as parent item"));
 		}
 
+		int position = 0;
+
 		List<LayoutStructureItem> copiedLayoutStructureItems =
 			new ArrayList<>();
 
-		int position = 0;
-
-		if (parentLayoutStructureItem instanceof
-				FormStepContainerStyledLayoutStructureItem ||
-			parentLayoutStructureItem instanceof
-				FragmentStyledLayoutStructureItem ||
-			parentLayoutStructureItem instanceof RowStyledLayoutStructureItem) {
-
-			parentItemId = parentLayoutStructureItem.getParentItemId();
-
-			position = -1;
-		}
-
 		for (String itemId : itemIds) {
 			if (Objects.equals(itemId, parentItemId)) {
-				throw new UnsupportedOperationException(
-					"Unable to copy items because item ID and parent item ID " +
-						"cannot be the same item");
+				parentLayoutStructureItem = _layoutStructureItems.get(
+					parentItemId);
+			}
+
+			String currentParentItemId = parentLayoutStructureItem.getItemId();
+
+			if (Objects.equals(itemId, parentItemId) ||
+				(parentLayoutStructureItem instanceof
+					FragmentStyledLayoutStructureItem) ||
+				(parentLayoutStructureItem instanceof
+					RowStyledLayoutStructureItem)) {
+
+				String oldParentItemId = parentLayoutStructureItem.getItemId();
+
+				currentParentItemId =
+					parentLayoutStructureItem.getParentItemId();
+
+				parentLayoutStructureItem = _layoutStructureItems.get(
+					currentParentItemId);
+
+				List<String> childrenItemIds =
+					parentLayoutStructureItem.getChildrenItemIds();
+
+				position = childrenItemIds.indexOf(oldParentItemId) + 1;
+			}
+			else if (parentLayoutStructureItem instanceof
+						CollectionStyledLayoutStructureItem) {
+
+				List<String> childrenItemIds =
+					parentLayoutStructureItem.getChildrenItemIds();
+
+				if (ListUtil.isEmpty(childrenItemIds)) {
+					throw new UnsupportedOperationException(
+						"Unable to copy items because collection does not " +
+							"have collection items");
+				}
+
+				currentParentItemId = childrenItemIds.get(0);
+
+				position = 0;
 			}
 
 			List<String> childrenItemIds =
 				LayoutStructureItemUtil.getChildrenItemIds(itemId, this);
 
-			if (childrenItemIds.contains(parentItemId)) {
+			if (childrenItemIds.contains(currentParentItemId)) {
 				throw new UnsupportedOperationException(
 					"Unable to copy items because parent item ID cannot be a " +
 						"child of item ID");
@@ -526,8 +552,13 @@ public class LayoutStructure {
 						" cannot be copied"));
 			}
 
-			copiedLayoutStructureItems.addAll(
-				_duplicateLayoutStructureItem(itemId, parentItemId, position));
+			List<LayoutStructureItem> duplicatedLayoutStructureItems =
+				_duplicateLayoutStructureItem(
+					itemId, currentParentItemId, position);
+
+			copiedLayoutStructureItems.addAll(duplicatedLayoutStructureItems);
+
+			parentLayoutStructureItem = duplicatedLayoutStructureItems.get(0);
 		}
 
 		return copiedLayoutStructureItems;

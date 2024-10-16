@@ -15,7 +15,6 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -60,27 +59,14 @@ public class FDSAdminDisplayContext {
 		_themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		_fdsEntryObjectDefinition =
+		_dataSetObjectDefinition =
 			objectDefinitionLocalService.fetchObjectDefinition(
-				_themeDisplay.getCompanyId(), "FDSEntry");
-		_fdsViewObjectDefinition =
-			objectDefinitionLocalService.fetchObjectDefinition(
-				_themeDisplay.getCompanyId(), "FDSView");
+				_themeDisplay.getCompanyId(), "DataSet");
 	}
 
-	public String getEditDataSetURL() {
-		return PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
-				RenderRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/data_set.jsp"
-		).setBackURL(
-			_themeDisplay.getURLCurrent()
-		).buildString();
-	}
+	public JSONArray getCellClientExtensionRenderersJSONArray()
+		throws Exception {
 
-	public JSONArray getFDSCellRendererCETsJSONArray() throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -97,17 +83,7 @@ public class FDSAdminDisplayContext {
 			));
 	}
 
-	public String getFDSEntriesURL() {
-		return PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
-				RenderRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/data_sets.jsp"
-		).buildString();
-	}
-
-	public String getFDSEntryPermissionsURL() {
+	public String getDataSetPermissionsURL() {
 		return PortletURLBuilder.create(
 			PortalUtil.getControlPanelPortletURL(
 				_renderRequest,
@@ -119,14 +95,36 @@ public class FDSAdminDisplayContext {
 		).setRedirect(
 			PortletURLUtil.getCurrent(_renderRequest, _renderResponse)
 		).setParameter(
-			"modelResource", _fdsEntryObjectDefinition.getClassName()
+			"modelResource", _dataSetObjectDefinition.getClassName()
 		).setParameter(
 			"modelResourceDescription",
-			_fdsEntryObjectDefinition.getLabel(_themeDisplay.getLocale())
+			_dataSetObjectDefinition.getLabel(_themeDisplay.getLocale())
 		).setParameter(
 			"resourcePrimKey", "{id}"
 		).setWindowState(
 			LiferayWindowState.POP_UP
+		).buildString();
+	}
+
+	public String getEditDataSetURL() {
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
+				RenderRequest.RENDER_PHASE)
+		).setMVCPath(
+			"/data_set.jsp"
+		).setBackURL(
+			_themeDisplay.getURLCurrent()
+		).buildString();
+	}
+
+	public String getFDSEntriesURL() {
+		return PortletURLBuilder.create(
+			PortletURLFactoryUtil.create(
+				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
+				RenderRequest.RENDER_PHASE)
+		).setMVCPath(
+			"/data_sets.jsp"
 		).buildString();
 	}
 
@@ -146,73 +144,14 @@ public class FDSAdminDisplayContext {
 			));
 	}
 
-	public String getFDSViewPermissionsURL() {
-		return PortletURLBuilder.create(
-			PortalUtil.getControlPanelPortletURL(
-				_renderRequest,
-				"com_liferay_portlet_configuration_web_portlet_" +
-					"PortletConfigurationPortlet",
-				ActionRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/edit_permissions.jsp"
-		).setRedirect(
-			PortletURLUtil.getCurrent(_renderRequest, _renderResponse)
-		).setParameter(
-			"modelResource", _fdsViewObjectDefinition.getClassName()
-		).setParameter(
-			"modelResourceDescription",
-			_fdsViewObjectDefinition.getLabel(_themeDisplay.getLocale())
-		).setParameter(
-			"resourcePrimKey", "{id}"
-		).setWindowState(
-			LiferayWindowState.POP_UP
-		).buildString();
-	}
-
-	public String getFDSViewsURL() {
-		return PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
-				RenderRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/fds_views.jsp"
-		).buildString();
-	}
-
-	public String getFDSViewsURL(String fdsEntryId, String fdsEntryLabel) {
-		return PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
-				RenderRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/fds_views.jsp"
-		).setParameter(
-			"fdsEntryId", fdsEntryId
-		).setParameter(
-			"fdsEntryLabel", fdsEntryLabel
-		).buildString();
-	}
-
-	public String getFDSViewURL() {
-		return PortletURLBuilder.create(
-			PortletURLFactoryUtil.create(
-				_renderRequest, FDSAdminPortletKeys.FDS_ADMIN,
-				RenderRequest.RENDER_PHASE)
-		).setMVCPath(
-			"/fds_view.jsp"
-		).buildString();
-	}
-
 	public JSONArray getRESTApplicationResolvedSchemasJSONArray() {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
-		if (FeatureFlagManagerUtil.isEnabled("LPD-25230")) {
-			List<FDSAPIURLResolver> fdsAPIURLResolvers =
-				_fdsAPIURLResolverRegistry.getFDSAPIURLResolvers();
+		List<FDSAPIURLResolver> fdsAPIURLResolvers =
+			_fdsAPIURLResolverRegistry.getFDSAPIURLResolvers();
 
-			for (FDSAPIURLResolver fdsAPIURLResolver : fdsAPIURLResolvers) {
-				jsonArray.put(fdsAPIURLResolver.getSchema());
-			}
+		for (FDSAPIURLResolver fdsAPIURLResolver : fdsAPIURLResolvers) {
+			jsonArray.put(fdsAPIURLResolver.getSchema());
 		}
 
 		return jsonArray;
@@ -250,34 +189,35 @@ public class FDSAdminDisplayContext {
 		return jsonArray;
 	}
 
-	public String getSaveFDSFieldsURL() {
+	public String getSaveDataSetSortURL() {
 		ResourceURL resourceURL =
 			(ResourceURL)PortalUtil.getControlPanelPortletURL(
 				_renderRequest, _themeDisplay.getScopeGroup(),
 				FDSAdminPortletKeys.FDS_ADMIN, 0, 0,
 				RenderRequest.RESOURCE_PHASE);
 
-		resourceURL.setResourceID("/frontend_data_set_admin/save_fds_fields");
+		resourceURL.setResourceID(
+			"/frontend_data_set_admin/save_data_set_sort");
 
 		return resourceURL.toString();
 	}
 
-	public String getSaveFDSSortURL() {
+	public String getSaveDataSetTableSectionsURL() {
 		ResourceURL resourceURL =
 			(ResourceURL)PortalUtil.getControlPanelPortletURL(
 				_renderRequest, _themeDisplay.getScopeGroup(),
 				FDSAdminPortletKeys.FDS_ADMIN, 0, 0,
 				RenderRequest.RESOURCE_PHASE);
 
-		resourceURL.setResourceID("/frontend_data_set_admin/save_fds_sort");
+		resourceURL.setResourceID(
+			"/frontend_data_set_admin/save_data_set_table_sections");
 
 		return resourceURL.toString();
 	}
 
 	private final CETManager _cetManager;
+	private final ObjectDefinition _dataSetObjectDefinition;
 	private final FDSAPIURLResolverRegistry _fdsAPIURLResolverRegistry;
-	private final ObjectDefinition _fdsEntryObjectDefinition;
-	private final ObjectDefinition _fdsViewObjectDefinition;
 	private final RenderRequest _renderRequest;
 	private final RenderResponse _renderResponse;
 	private final ServiceTrackerList

@@ -93,6 +93,27 @@ public class LayoutStructureTest {
 				serviceContext);
 	}
 
+	@Test
+	public void testCopyCollectionStyledLayoutStructureItemWithSameCollectionStyledLayoutStructureItemAsParent() {
+		LayoutStructure layoutStructure = new LayoutStructure();
+
+		LayoutStructureItem rootLayoutStructureItem =
+			layoutStructure.addRootLayoutStructureItem();
+
+		LayoutStructureItem collectionStyledLayoutStructureItem =
+			layoutStructure.addCollectionStyledLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0);
+
+		List<LayoutStructureItem> copiedLayoutStructureItems =
+			layoutStructure.copyLayoutStructureItems(
+				Collections.singletonList(
+					collectionStyledLayoutStructureItem.getItemId()),
+				collectionStyledLayoutStructureItem.getItemId());
+
+		_assertParentLayoutStructureItem(
+			2, 2, 1, copiedLayoutStructureItems, rootLayoutStructureItem);
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCopyColumnLayoutStructureItem() {
 		LayoutStructure layoutStructure = new LayoutStructure();
@@ -181,6 +202,32 @@ public class LayoutStructureTest {
 			rootLayoutStructureItem.getItemId());
 	}
 
+	@Test
+	public void testCopyFragmentStyledLayoutStructureItemWithSameFragmentStyledLayoutStructureItemAsParent()
+		throws Exception {
+
+		LayoutStructure layoutStructure = new LayoutStructure();
+
+		LayoutStructureItem rootLayoutStructureItem =
+			layoutStructure.addRootLayoutStructureItem();
+
+		FragmentEntryLink fragmentEntryLink = _addFragmentEntryLink();
+
+		LayoutStructureItem fragmentStyledLayoutStructureItem =
+			layoutStructure.addFragmentStyledLayoutStructureItem(
+				fragmentEntryLink.getFragmentEntryLinkId(),
+				rootLayoutStructureItem.getItemId(), 0);
+
+		List<LayoutStructureItem> copiedLayoutStructureItems =
+			layoutStructure.copyLayoutStructureItems(
+				Collections.singletonList(
+					fragmentStyledLayoutStructureItem.getItemId()),
+				fragmentStyledLayoutStructureItem.getItemId());
+
+		_assertParentLayoutStructureItem(
+			1, 2, 1, copiedLayoutStructureItems, rootLayoutStructureItem);
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCopyLayoutStructureItemsWithCollectionItemAsParent() {
 		LayoutStructure layoutStructure = new LayoutStructure();
@@ -259,9 +306,12 @@ public class LayoutStructureTest {
 					fragmentStyledLayoutStructureItem.getItemId()),
 				collectionStyledLayoutStructureItem.getItemId());
 
+		List<String> childrenItemIds =
+			collectionStyledLayoutStructureItem.getChildrenItemIds();
+
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems,
-			collectionStyledLayoutStructureItem);
+			1, 1, 0, copiedLayoutStructureItems,
+			layoutStructure.getLayoutStructureItem(childrenItemIds.get(0)));
 	}
 
 	@Test
@@ -299,7 +349,7 @@ public class LayoutStructureTest {
 				columnLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems, columnLayoutStructureItem);
+			1, 2, 0, copiedLayoutStructureItems, columnLayoutStructureItem);
 	}
 
 	@Test
@@ -337,7 +387,7 @@ public class LayoutStructureTest {
 				containerStyledLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems,
+			1, 2, 0, copiedLayoutStructureItems,
 			containerStyledLayoutStructureItem);
 	}
 
@@ -368,45 +418,7 @@ public class LayoutStructureTest {
 				dropZoneLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems, dropZoneLayoutStructureItem);
-	}
-
-	@Test
-	public void testCopyLayoutStructureItemWithFormStepContainerStyledLayoutStructureItemAsParent()
-		throws Exception {
-
-		LayoutStructure layoutStructure = new LayoutStructure();
-
-		LayoutStructureItem rootLayoutStructureItem =
-			layoutStructure.addRootLayoutStructureItem();
-
-		LayoutStructureItem formStyledLayoutStructureItem =
-			layoutStructure.addFormStyledLayoutStructureItem(
-				rootLayoutStructureItem.getItemId(), 0);
-
-		LayoutStructureItem formStepContainerStyledLayoutStructureItem =
-			layoutStructure.addFormStepContainerStyledLayoutStructureItem(
-				formStyledLayoutStructureItem.getItemId(), 0);
-
-		LayoutStructureItem formStepLayoutStructureItem =
-			layoutStructure.addFormStepLayoutStructureItem(
-				formStepContainerStyledLayoutStructureItem.getItemId(), 0);
-
-		FragmentEntryLink fragmentEntryLink = _addFragmentEntryLink();
-
-		LayoutStructureItem fragmentStyledLayoutStructureItem =
-			layoutStructure.addFragmentStyledLayoutStructureItem(
-				fragmentEntryLink.getFragmentEntryLinkId(),
-				formStepLayoutStructureItem.getItemId(), 0);
-
-		List<LayoutStructureItem> copiedLayoutStructureItems =
-			layoutStructure.copyLayoutStructureItems(
-				Collections.singletonList(
-					fragmentStyledLayoutStructureItem.getItemId()),
-				formStepContainerStyledLayoutStructureItem.getItemId());
-
-		_assertParentLayoutStructureItem(
-			2, 1, copiedLayoutStructureItems, formStyledLayoutStructureItem);
+			1, 2, 0, copiedLayoutStructureItems, dropZoneLayoutStructureItem);
 	}
 
 	@Test
@@ -444,7 +456,7 @@ public class LayoutStructureTest {
 				formStepLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems, formStepLayoutStructureItem);
+			1, 2, 0, copiedLayoutStructureItems, formStepLayoutStructureItem);
 	}
 
 	@Test
@@ -474,7 +486,7 @@ public class LayoutStructureTest {
 				formStyledLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems, formStyledLayoutStructureItem);
+			1, 2, 0, copiedLayoutStructureItems, formStyledLayoutStructureItem);
 	}
 
 	@Test
@@ -511,7 +523,7 @@ public class LayoutStructureTest {
 				fragmentDropZoneLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems,
+			1, 2, 0, copiedLayoutStructureItems,
 			fragmentDropZoneLayoutStructureItem);
 	}
 
@@ -545,7 +557,7 @@ public class LayoutStructureTest {
 				fragmentStyledLayoutStructureItem1.getItemId());
 
 		_assertParentLayoutStructureItem(
-			3, 2, copiedLayoutStructureItems, rootLayoutStructureItem);
+			1, 3, 2, copiedLayoutStructureItems, rootLayoutStructureItem);
 	}
 
 	@Test
@@ -571,7 +583,7 @@ public class LayoutStructureTest {
 				rootLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 0, copiedLayoutStructureItems, rootLayoutStructureItem);
+			1, 2, 0, copiedLayoutStructureItems, rootLayoutStructureItem);
 	}
 
 	@Test
@@ -609,20 +621,53 @@ public class LayoutStructureTest {
 				rowStyledLayoutStructureItem.getItemId());
 
 		_assertParentLayoutStructureItem(
-			2, 1, copiedLayoutStructureItems,
+			1, 2, 1, copiedLayoutStructureItems,
 			containerStyledLayoutStructureItem);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	public void testCopyLayoutStructureItemWithRowStyleLayoutStructureItemAsParent() {
+		LayoutStructure layoutStructure = new LayoutStructure();
+
+		LayoutStructureItem rootLayoutStructureItem =
+			layoutStructure.addRootLayoutStructureItem();
+
+		LayoutStructureItem rowStyledLayoutStructureItem =
+			layoutStructure.addRowStyledLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0, 3);
+
+		layoutStructure.addContainerStyledLayoutStructureItem(
+			rootLayoutStructureItem.getItemId(), 1);
+
+		List<LayoutStructureItem> copiedLayoutStructureItems =
+			layoutStructure.copyLayoutStructureItems(
+				Collections.singletonList(
+					rowStyledLayoutStructureItem.getItemId()),
+				rowStyledLayoutStructureItem.getItemId());
+
+		_assertParentLayoutStructureItem(
+			1, 3, 1, copiedLayoutStructureItems, rootLayoutStructureItem);
+	}
+
+	@Test
 	public void testCopyLayoutStructureItemWithSameItemIdAndParentItemId() {
 		LayoutStructure layoutStructure = new LayoutStructure();
 
 		LayoutStructureItem rootLayoutStructureItem =
 			layoutStructure.addRootLayoutStructureItem();
 
-		layoutStructure.copyLayoutStructureItems(
-			Collections.singletonList(rootLayoutStructureItem.getItemId()),
-			rootLayoutStructureItem.getItemId());
+		LayoutStructureItem containerStyledLayoutStructureItem =
+			layoutStructure.addContainerStyledLayoutStructureItem(
+				rootLayoutStructureItem.getItemId(), 0);
+
+		List<LayoutStructureItem> copiedLayoutStructureItems =
+			layoutStructure.copyLayoutStructureItems(
+				Collections.singletonList(
+					containerStyledLayoutStructureItem.getItemId()),
+				containerStyledLayoutStructureItem.getItemId());
+
+		_assertParentLayoutStructureItem(
+			1, 2, 1, copiedLayoutStructureItems, rootLayoutStructureItem);
 	}
 
 	@Test
@@ -673,17 +718,30 @@ public class LayoutStructureTest {
 			copiedLayoutStructureItems.toString(), 2,
 			copiedLayoutStructureItems.size());
 
+		List<String> childrenItemIds =
+			containerStyledLayoutStructureItem.getChildrenItemIds();
+
+		LayoutStructureItem copiedLayoutStructureItem1 =
+			copiedLayoutStructureItems.get(0);
+
 		_assertFragmentStyledLayoutStructureItem(
-			(FragmentStyledLayoutStructureItem)copiedLayoutStructureItems.get(
-				0),
+			(FragmentStyledLayoutStructureItem)copiedLayoutStructureItem1,
 			(FragmentStyledLayoutStructureItem)
 				fragmentStyledLayoutStructureItem1);
 
+		Assert.assertEquals(
+			0, childrenItemIds.indexOf(copiedLayoutStructureItem1.getItemId()));
+
+		LayoutStructureItem copiedLayoutStructureItem2 =
+			copiedLayoutStructureItems.get(1);
+
 		_assertFragmentStyledLayoutStructureItem(
-			(FragmentStyledLayoutStructureItem)copiedLayoutStructureItems.get(
-				1),
+			(FragmentStyledLayoutStructureItem)copiedLayoutStructureItem2,
 			(FragmentStyledLayoutStructureItem)
 				fragmentStyledLayoutStructureItem2);
+
+		Assert.assertEquals(
+			1, childrenItemIds.indexOf(copiedLayoutStructureItem2.getItemId()));
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -979,12 +1037,12 @@ public class LayoutStructureTest {
 	}
 
 	private void _assertParentLayoutStructureItem(
-		int expectedChildrenItemIds, int childIndex,
+		int expectedCopiedItemsIds, int expectedChildrenItemIds, int childIndex,
 		List<LayoutStructureItem> copiedLayoutStructureItems,
 		LayoutStructureItem parentLayoutStructureItem) {
 
 		Assert.assertEquals(
-			copiedLayoutStructureItems.toString(), 1,
+			copiedLayoutStructureItems.toString(), expectedCopiedItemsIds,
 			copiedLayoutStructureItems.size());
 
 		LayoutStructureItem layoutStructureItem =

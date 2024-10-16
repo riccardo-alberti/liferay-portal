@@ -29,9 +29,9 @@ import {
 } from '../../../../../app/contexts/ControlsContext';
 import {
 	useDisableKeyboardMovement,
-	useMovementSource,
+	useMovementSources,
 	useMovementTarget,
-	useSetMovementSource,
+	useSetMovementSources,
 	useSetMovementText,
 } from '../../../../../app/contexts/KeyboardMovementContext';
 import {
@@ -45,7 +45,8 @@ import {
 	useSelectorRef,
 } from '../../../../../app/contexts/StoreContext';
 import selectCanUpdatePageStructure from '../../../../../app/selectors/selectCanUpdatePageStructure';
-import moveItem from '../../../../../app/thunks/moveItem';
+import moveItems from '../../../../../app/thunks/moveItems';
+import moveStepper from '../../../../../app/thunks/moveStepper';
 import updateItemConfig from '../../../../../app/thunks/updateItemConfig';
 import canBeRenamed from '../../../../../app/utils/canBeRenamed';
 import {deepEqual} from '../../../../../app/utils/checkDeepEqual';
@@ -69,6 +70,7 @@ import {formIsRestricted} from '../../../../../app/utils/formIsRestricted';
 import {formIsUnavailable} from '../../../../../app/utils/formIsUnavailable';
 import getFirstControlsId from '../../../../../app/utils/getFirstControlsId';
 import getMappingFieldsKey from '../../../../../app/utils/getMappingFieldsKey';
+import getNormalizedDragItems from '../../../../../app/utils/getNormalizedDragItems';
 import isItemWidget from '../../../../../app/utils/isItemWidget';
 import loadCollectionFields from '../../../../../app/utils/loadCollectionFields';
 
@@ -132,6 +134,7 @@ export default function StructureTreeNode({node}) {
 	return (
 		<MemoizedStructureTreeNodeContent
 			activationOrigin={isSelected ? activationOrigin : null}
+			activeItemIds={activeItemIds}
 			isActive={node.activable && isSelected}
 			isMapped={node.mapped}
 			node={node}
@@ -154,6 +157,7 @@ const MemoizedStructureTreeNodeContent = React.memo(
 
 function StructureTreeNodeContent({
 	activationOrigin,
+	activeItemIds,
 	isActive,
 	isMapped,
 	node,
@@ -204,26 +208,51 @@ function StructureTreeNodeContent({
 		deepEqual
 	);
 
-	const isWidget = useSelectorCallback(
-		(state) => isItemWidget(item, state.fragmentEntryLinks),
-		[item]
-	);
-
 	const {isOverTarget, targetPosition, targetRef} = useDropTarget(
 		item,
 		computeHover
 	);
 
-	const {handlerRef, isDraggingSource: itemIsDraggingSource} = useDragItem(
-		{...item, fieldTypes, fragmentEntryType, isWidget},
-		(parentItemId, position) =>
-			dispatch(
-				moveItem({
+	const dragItems = useSelectorCallback(
+		(state) =>
+			getNormalizedDragItems(
+				item,
+				activeItemIds,
+				state.layoutData,
+				state.fragmentEntryLinks
+			),
+		[item, activeItemIds],
+		deepEqual
+	);
+
+	const onDragEnd = (parentItemId, position) => {
+		const thunk = fieldTypes?.includes('stepper')
+			? moveStepper({
 					itemId: node.id,
 					parentItemId,
 					position,
 				})
-			)
+			: moveItems({
+					itemIds: dragItems.map((item) => item.itemId),
+					parentItemIds: [parentItemId],
+					positions: [position],
+				});
+
+		dispatch(thunk);
+	};
+
+	const onDragBegin = () => {
+		if (!isActive) {
+			selectItem(item.itemId, {
+				origin: ITEM_ACTIVATION_ORIGINS.layout,
+			});
+		}
+	};
+
+	const {handlerRef, isDraggingSource: itemIsDraggingSource} = useDragItem(
+		dragItems,
+		onDragEnd,
+		onDragBegin
 	);
 
 	const {
@@ -233,10 +262,12 @@ function StructureTreeNodeContent({
 
 	const dropTargetPosition = targetPosition || keyboardMovementPosition;
 
-	const keyboardMovementSource = useMovementSource();
+	const keyboardMovementSources = useMovementSources();
+	const lastSource =
+		keyboardMovementSources[keyboardMovementSources.length - 1];
 
 	const isDraggingSource =
-		itemIsDraggingSource || keyboardMovementSource?.itemId === item.itemId;
+		itemIsDraggingSource || lastSource?.itemId === item.itemId;
 
 	const isDroppable = useIsDroppable();
 
@@ -370,7 +401,7 @@ function StructureTreeNodeContent({
 				canUpdate={canUpdatePageStructure}
 				fieldTypes={fieldTypes}
 				fragmentEntryType={fragmentEntryType}
-				isWidget={isWidget}
+				item={item}
 				node={node}
 				nodeRef={nodeRef}
 				onKeyDown={handleButtonsKeyDown}
@@ -535,14 +566,19 @@ const MoveButton = ({
 	canUpdate,
 	fieldTypes,
 	fragmentEntryType,
-	isWidget,
+	item,
 	node,
 	nodeRef,
 	onKeyDown,
 	selectedViewportSize,
 }) => {
-	const setMovementSource = useSetMovementSource();
+	const setMovementSources = useSetMovementSources();
 	const disableMovement = useDisableKeyboardMovement();
+
+	const isWidget = useSelectorCallback(
+		(state) => isItemWidget(item, state.fragmentEntryLinks),
+		[item]
+	);
 
 	const buttonRef = useRef(null);
 
@@ -561,6 +597,9 @@ const MoveButton = ({
 
 	if (
 		selectedViewportSize !== VIEWPORT_SIZES.desktop ||
+		item.type === LAYOUT_DATA_ITEM_TYPES.column ||
+		item.type === LAYOUT_DATA_ITEM_TYPES.formStep ||
+		item.type === LAYOUT_DATA_ITEM_TYPES.fragmentDropZone ||
 		node.itemType === ITEM_TYPES.editable ||
 		node.itemType === ITEM_TYPES.dropZone ||
 		node.isMasterItem ||
@@ -578,15 +617,17 @@ const MoveButton = ({
 			displayType="unstyled"
 			onBlur={(event) => event.stopPropagation()}
 			onClick={() =>
-				setMovementSource({
-					fieldTypes,
-					fragmentEntryType,
-					icon: node.icon,
-					isWidget,
-					itemId: node.id,
-					name: node.name,
-					type: node.type,
-				})
+				setMovementSources([
+					{
+						fieldTypes,
+						fragmentEntryType,
+						icon: node.icon,
+						isWidget,
+						itemId: node.id,
+						name: node.name,
+						type: node.type,
+					},
+				])
 			}
 			onFocus={(event) => {
 				buttonRef.current
@@ -693,8 +734,8 @@ function computeHover({
 			droppable: checkAllowedChild(
 				sourceItem,
 				targetItem,
-				layoutDataRef,
-				fragmentEntryLinksRef
+				layoutDataRef.current,
+				fragmentEntryLinksRef.current
 			),
 			elevate: null,
 			targetPositionWithMiddle,
@@ -714,8 +755,8 @@ function computeHover({
 			droppable: checkAllowedChild(
 				sourceItem,
 				targetItem,
-				layoutDataRef,
-				fragmentEntryLinksRef
+				layoutDataRef.current,
+				fragmentEntryLinksRef.current
 			),
 			elevate: true,
 			targetPositionWithMiddle,

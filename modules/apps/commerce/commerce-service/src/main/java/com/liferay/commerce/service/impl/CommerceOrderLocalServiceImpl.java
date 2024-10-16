@@ -417,10 +417,6 @@ public class CommerceOrderLocalServiceImpl
 			CommerceContext commerceContext, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		// Update
 
 		CommerceOrder commerceOrder = null;
@@ -692,18 +688,6 @@ public class CommerceOrderLocalServiceImpl
 			comment, null, true);
 
 		return commerceOrder;
-	}
-
-	@Override
-	public CommerceOrder fetchByExternalReferenceCode(
-		String externalReferenceCode, long companyId) {
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			return null;
-		}
-
-		return commerceOrderPersistence.fetchByERC_C(
-			externalReferenceCode, companyId);
 	}
 
 	/**
@@ -1345,10 +1329,6 @@ public class CommerceOrderLocalServiceImpl
 			boolean recalculate, CommerceContext commerceContext)
 		throws PortalException {
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		CommerceOrder commerceOrder = commerceOrderPersistence.findByPrimaryKey(
 			commerceOrderId);
 
@@ -1699,10 +1679,6 @@ public class CommerceOrderLocalServiceImpl
 			BigDecimal taxAmount, BigDecimal total,
 			BigDecimal totalDiscountAmount, BigDecimal totalWithTaxAmount)
 		throws PortalException {
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
 
 		CommerceOrder commerceOrder = commerceOrderPersistence.findByPrimaryKey(
 			commerceOrderId);
@@ -2242,10 +2218,6 @@ public class CommerceOrderLocalServiceImpl
 			int paymentStatus, int orderStatus, String advanceStatus,
 			CommerceContext commerceContext, ServiceContext serviceContext)
 		throws PortalException {
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
 
 		// Update
 

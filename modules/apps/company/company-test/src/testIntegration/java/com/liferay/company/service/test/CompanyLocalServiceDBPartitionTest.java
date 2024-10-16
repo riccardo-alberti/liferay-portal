@@ -118,21 +118,26 @@ public class CompanyLocalServiceDBPartitionTest
 
 	@Test
 	public void testAddCompanyUsesVirtualHostCounter() throws Exception {
-		long counter = _counterLocalService.increment();
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_defaultCompanyId)) {
 
-		_company1 = CompanyTestUtil.addCompany();
+			long counter = _counterLocalService.increment();
 
-		VirtualHost virtualHost = _virtualHostLocalService.getVirtualHost(
-			_company1.getVirtualHostname());
+			_company1 = CompanyTestUtil.addCompany();
 
-		Assert.assertEquals(counter + 1, virtualHost.getVirtualHostId());
+			VirtualHost virtualHost = _virtualHostLocalService.getVirtualHost(
+				_company1.getVirtualHostname());
 
-		_company2 = CompanyTestUtil.addCompany();
+			Assert.assertEquals(counter + 1, virtualHost.getVirtualHostId());
 
-		virtualHost = _virtualHostLocalService.getVirtualHost(
-			_company2.getVirtualHostname());
+			_company2 = CompanyTestUtil.addCompany();
 
-		Assert.assertEquals(counter + 2, virtualHost.getVirtualHostId());
+			virtualHost = _virtualHostLocalService.getVirtualHost(
+				_company2.getVirtualHostname());
+
+			Assert.assertEquals(counter + 2, virtualHost.getVirtualHostId());
+		}
 	}
 
 	@Test
@@ -388,7 +393,8 @@ public class CompanyLocalServiceDBPartitionTest
 				_getRulesCount(getPartitionName(copiedCompany.getCompanyId())));
 
 			SafeCloseable safeCloseable =
-				PortalInstances.setCopyInProcessCompanyId(copiedCompanyId);
+				PortalInstances.setCopyInProcessCompanyIdWithSafeCloseable(
+					copiedCompanyId);
 
 			safeCloseable.close();
 		}
@@ -423,7 +429,8 @@ public class CompanyLocalServiceDBPartitionTest
 			_checkPartitionDoesNotExist(toCompanyId);
 
 			SafeCloseable safeCloseable =
-				PortalInstances.setCopyInProcessCompanyId(toCompanyId);
+				PortalInstances.setCopyInProcessCompanyIdWithSafeCloseable(
+					toCompanyId);
 
 			safeCloseable.close();
 		}
@@ -475,7 +482,8 @@ public class CompanyLocalServiceDBPartitionTest
 			_checkPartitionDoesNotExist(toCompanyId);
 
 			SafeCloseable safeCloseable =
-				PortalInstances.setCopyInProcessCompanyId(toCompanyId);
+				PortalInstances.setCopyInProcessCompanyIdWithSafeCloseable(
+					toCompanyId);
 
 			safeCloseable.close();
 		}
@@ -731,7 +739,7 @@ public class CompanyLocalServiceDBPartitionTest
 		String pid = null;
 
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(companyId)) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(companyId)) {
 
 			pid = ConfigurationTestUtil.createFactoryConfiguration(
 				CompanyLocalServiceDBPartitionTest.class.getName(),

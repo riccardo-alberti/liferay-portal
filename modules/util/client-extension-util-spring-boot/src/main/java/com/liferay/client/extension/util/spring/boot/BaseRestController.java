@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -39,9 +40,7 @@ public abstract class BaseRestController {
 		).method(
 			HttpMethod.DELETE
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).bodyValue(
@@ -55,9 +54,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).get(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).exchangeToMono(
@@ -71,9 +68,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).patch(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).bodyValue(
 			body
 		).header(
@@ -89,9 +84,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).post(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).bodyValue(
 			body
 		).header(
@@ -107,9 +100,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).put(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).bodyValue(
@@ -124,9 +115,7 @@ public abstract class BaseRestController {
 		).method(
 			HttpMethod.DELETE
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).bodyValue(
@@ -140,14 +129,17 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).get(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).exchangeToMono(
 			_getExchangeToMonoFunction()
 		).block();
+	}
+
+	protected ExchangeFilterFunction getExchangeFilterFunction() {
+		return (clientRequest, exchangeFunction) -> exchangeFunction.exchange(
+			clientRequest);
 	}
 
 	protected String getLXCDXPURL() {
@@ -192,9 +184,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).patch(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).bodyValue(
 			body
 		).header(
@@ -208,9 +198,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).post(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).bodyValue(
 			body
 		).header(
@@ -224,9 +212,7 @@ public abstract class BaseRestController {
 		return _getWebClient(
 		).put(
 		).uri(
-			uriBuilder -> uriBuilder.path(
-				path
-			).build()
+			path
 		).header(
 			HttpHeaders.AUTHORIZATION, authorization
 		).bodyValue(
@@ -283,6 +269,8 @@ public abstract class BaseRestController {
 					16 * 1024 * 1024
 				)
 			).build()
+		).filter(
+			getExchangeFilterFunction()
 		).build();
 	}
 

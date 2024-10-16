@@ -8,7 +8,6 @@ package com.liferay.change.tracking.rest.internal.dto.v1_0.converter;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.rest.dto.v1_0.CTEntry;
 import com.liferay.change.tracking.rest.dto.v1_0.Status;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.BaseModel;
@@ -71,54 +70,36 @@ public class CTEntryDTOConverter
 	}
 
 	private String _getStatusMessage(
-		com.liferay.change.tracking.model.CTEntry ctEntry,
+		int ctCollectionStatus, Date ctCollectionStatusDate,
+		String ctCollectionStatusUserName,
 		HttpServletRequest httpServletRequest) {
 
-		if (ctEntry == null) {
-			return StringPool.BLANK;
-		}
-
-		StringBundler sb = new StringBundler(3);
-
-		if (ctEntry.getChangeType() == CTConstants.CT_CHANGE_TYPE_ADDITION) {
-			sb.append(
-				_language.get(
-					httpServletRequest,
-					CTConstants.CT_CHANGE_TYPE_LABEL_ADDITION));
-		}
-		else if (ctEntry.getChangeType() ==
-					CTConstants.CT_CHANGE_TYPE_DELETION) {
-
-			sb.append(
-				_language.get(
-					httpServletRequest,
-					CTConstants.CT_CHANGE_TYPE_LABEL_DELETION));
-		}
-		else if (ctEntry.getChangeType() ==
-					CTConstants.CT_CHANGE_TYPE_MODIFICATION) {
-
-			sb.append(
-				_language.get(
-					httpServletRequest,
-					CTConstants.CT_CHANGE_TYPE_LABEL_MODIFICATION));
-		}
-
-		sb.append(StringPool.SPACE);
-
-		Date modifiedDate = ctEntry.getModifiedDate();
-
-		sb.append(
-			_language.format(
-				httpServletRequest, "x-ago-by-x",
-				new Object[] {
+		if (ctCollectionStatus == WorkflowConstants.STATUS_APPROVED) {
+			return _language.format(
+				httpServletRequest, "published-x-ago-by-x",
+				new String[] {
 					_language.getTimeDescription(
 						httpServletRequest,
-						System.currentTimeMillis() - modifiedDate.getTime(),
+						System.currentTimeMillis() -
+							ctCollectionStatusDate.getTime(),
 						true),
-					HtmlUtil.escape(ctEntry.getUserName())
-				}));
+					HtmlUtil.escape(ctCollectionStatusUserName)
+				});
+		}
+		else if (ctCollectionStatus == WorkflowConstants.STATUS_SCHEDULED) {
+			return _language.format(
+				httpServletRequest, "schedule-to-publish-in-x-by-x",
+				new String[] {
+					_language.getTimeDescription(
+						httpServletRequest,
+						ctCollectionStatusDate.getTime() -
+							System.currentTimeMillis(),
+						true),
+					HtmlUtil.escape(ctCollectionStatusUserName)
+				});
+		}
 
-		return sb.toString();
+		return null;
 	}
 
 	private <T extends BaseModel<T>> CTEntry _toCTEntry(
@@ -142,6 +123,34 @@ public class CTEntryDTOConverter
 							GetterUtil.getInteger(
 								document.get("changeType")))));
 				setCtCollectionId(ctEntry::getCtCollectionId);
+				setCtCollectionName(
+					() -> {
+						if (document.hasField("ctCollectionName")) {
+							return document.get("ctCollectionName");
+						}
+
+						return null;
+					});
+				setCtCollectionStatus(
+					() -> _toStatus(
+						dtoConverterContext.getLocale(), document,
+						"ctCollectionStatus"));
+				setCtCollectionStatusDate(
+					() -> {
+						if (document.hasField("ctCollectionStatusDate")) {
+							return document.getDate("ctCollectionStatusDate");
+						}
+
+						return null;
+					});
+				setCtCollectionStatusUserName(
+					() -> {
+						if (document.hasField("ctCollectionStatusUserName")) {
+							return document.get("ctCollectionStatusUserName");
+						}
+
+						return null;
+					});
 				setDateCreated(ctEntry::getCreateDate);
 				setDateModified(ctEntry::getModifiedDate);
 				setHideable(
@@ -171,10 +180,16 @@ public class CTEntryDTOConverter
 						return null;
 					});
 				setStatus(
-					() -> _toStatus(dtoConverterContext.getLocale(), document));
+					() -> _toStatus(
+						dtoConverterContext.getLocale(), document,
+						Field.STATUS));
 				setStatusMessage(
 					() -> _getStatusMessage(
-						ctEntry, dtoConverterContext.getHttpServletRequest()));
+						GetterUtil.getInteger(
+							document.get("ctCollectionStatus")),
+						getCtCollectionStatusDate(),
+						getCtCollectionStatusUserName(),
+						dtoConverterContext.getHttpServletRequest()));
 				setTitle(
 					() -> _getLocalizedValue(
 						document.getField("title"),
@@ -187,14 +202,14 @@ public class CTEntryDTOConverter
 		};
 	}
 
-	private Status _toStatus(Locale locale, Document document)
+	private Status _toStatus(Locale locale, Document document, String fieldName)
 		throws Exception {
 
-		if (!document.hasField(Field.STATUS)) {
+		if (!document.hasField(fieldName)) {
 			return null;
 		}
 
-		int status = Integer.valueOf(document.get(Field.STATUS));
+		int status = GetterUtil.getInteger(document.get(fieldName));
 
 		String statusLabel = WorkflowConstants.getStatusLabel(status);
 

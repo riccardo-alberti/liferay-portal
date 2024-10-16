@@ -13,7 +13,7 @@ import {expandSection} from '../../utils/expandSection';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import {hoverAndExpectToBeVisible} from '../../utils/hoverAndExpectToBeVisible';
 import {selectElement} from '../../utils/selectElement';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {SegmentEditorPage} from '../segments-web/SegmentEditorPage';
 
 const VIEWPORTS_CLASSNAMES = {
@@ -44,8 +44,14 @@ export class PageEditorPage {
 		this.experienceSelector = page.locator(
 			'.page-editor__experience-selector'
 		);
-		this.languageSelector = page.getByLabel('Select a language');
-		this.publishButton = page.getByLabel('Publish', {exact: true});
+		this.languageSelector = page
+			.locator('.page-editor__toolbar')
+			.getByLabel('Select a language');
+		this.publishButton = page.getByLabel('Publish', {exact: true}).or(
+			page.getByLabel('Submit for Workflow', {
+				exact: true,
+			})
+		);
 		this.publishMasterButton = page.getByLabel('Publish Master', {
 			exact: true,
 		});
@@ -56,11 +62,15 @@ export class PageEditorPage {
 		this.undoHistory = page.locator('.page-editor__undo-history');
 	}
 
-	async goto(layout: Layout, siteUrl?: Site['friendlyUrlPath']) {
+	async goto(
+		layout: Layout,
+		siteUrl?: Site['friendlyUrlPath'],
+		doAsUserId?: string
+	) {
 		await this.page.goto('/');
 
 		await this.page.goto(
-			`/web${siteUrl || '/guest'}${layout.friendlyUrlPath}?p_l_mode=edit`
+			`/web${siteUrl || '/guest'}${layout.friendlyUrlPath || layout.friendlyURL}?p_l_mode=edit${doAsUserId ? '&doAsUserId=' + doAsUserId : ''}`
 		);
 	}
 
@@ -228,11 +238,12 @@ export class PageEditorPage {
 				);
 
 				if (inputType === 'checkbox') {
-					if (value as boolean) {
-						await field.check();
-					}
-					else {
-						await field.uncheck();
+					const checked = await field.evaluate(
+						(element: HTMLInputElement) => element.checked
+					);
+
+					if (value !== checked) {
+						await field.click();
 					}
 
 					return;
@@ -356,6 +367,14 @@ export class PageEditorPage {
 			.waitFor({state: 'hidden'});
 	}
 
+	async copyFragment(fragmentId: string) {
+		await this.selectFragment(fragmentId);
+
+		await this.page.keyboard.press('Shift+Control+C');
+
+		await this.waitForChangesSaved();
+	}
+
 	async createExperience(name: string) {
 		await this.openExperienceSelector();
 
@@ -365,6 +384,8 @@ export class PageEditorPage {
 
 		await nameInput.waitFor();
 
+		await expect(nameInput).toHaveAttribute('required');
+
 		await fillAndClickOutside(this.page, nameInput, name);
 
 		await this.page.locator('.modal-footer').getByText('Save').click();
@@ -373,11 +394,19 @@ export class PageEditorPage {
 
 		await this.closeExperienceSelector();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The experience was created successfully.',
 			{autoClose: false}
 		);
+	}
+
+	async cutFragment(fragmentId: string) {
+		await this.selectFragment(fragmentId);
+
+		await this.page.keyboard.press('Shift+Control+X');
+
+		await this.waitForChangesSaved();
 	}
 
 	async deleteExperience(name: string) {
@@ -394,7 +423,7 @@ export class PageEditorPage {
 
 		await this.closeExperienceSelector();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The experience was deleted successfully.',
 			{autoClose: false}
@@ -416,7 +445,7 @@ export class PageEditorPage {
 			.getByLabel('Duplicate Experience')
 			.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The experience was duplicated successfully.',
 			{autoClose: false}
@@ -426,22 +455,30 @@ export class PageEditorPage {
 	async duplicateFragment(fragmentId: string) {
 		await this.selectFragment(fragmentId);
 
-		await this.page.keyboard.press('Control+D');
+		await this.page.keyboard.press('Alt+Control+D');
 
 		await this.waitForChangesSaved();
 	}
 
-	async editHTMLEditable(
-		fragmentId: string,
-		editableId: string,
-		value: string
-	) {
+	async editHTMLEditable({
+		editableId,
+		fragmentId,
+		value,
+	}: {
+		editableId: string;
+		fragmentId: string;
+		useBackwardCompatibility?: boolean;
+		value: string;
+	}) {
 
 		// Select fragment and editable
 
 		await this.selectEditable(fragmentId, editableId);
 
-		const editable = this.getEditable(fragmentId, editableId);
+		const editable = this.getEditable({
+			editableId,
+			fragmentId,
+		});
 
 		// Enable editor
 
@@ -475,7 +512,10 @@ export class PageEditorPage {
 
 		// Click editable again to enable edition
 
-		const editable = this.getEditable(fragmentId, editableId);
+		const editable = this.getEditable({
+			editableId,
+			fragmentId,
+		});
 
 		await editable.click();
 
@@ -522,7 +562,7 @@ export class PageEditorPage {
 
 		await this.closeExperienceSelector();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The experience was updated successfully.',
 			{autoClose: false}
@@ -569,7 +609,7 @@ export class PageEditorPage {
 
 		await this.closeExperienceSelector();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The experience was updated successfully.',
 			{autoClose: false}
@@ -636,7 +676,37 @@ export class PageEditorPage {
 		await selectElement(tabElement);
 	}
 
+	async goToWidgetConfiguration(
+		layout: Layout,
+		site: Site,
+		widgetId: string
+	) {
+		await this.goto(layout, site.friendlyUrlPath);
+
+		const topper = this.getTopper(widgetId);
+
+		await topper.hover();
+
+		await expect(topper.locator('.portlet-options')).toBeVisible();
+
+		await topper.locator('.portlet-options').click();
+
+		await this.page
+			.getByRole('menuitem', {exact: true, name: 'Configuration'})
+			.click();
+	}
+
 	async hideFragment(fragmentId: string, isDesktop = true) {
+		await this.clickFragmentOption(fragmentId, 'Hide Fragment', isDesktop);
+
+		await this.waitForChangesSaved();
+	}
+
+	async clickFragmentOption(
+		fragmentId: string,
+		name: string,
+		isDesktop = true
+	) {
 		await this.selectFragment(fragmentId, isDesktop);
 
 		await this.page
@@ -644,12 +714,7 @@ export class PageEditorPage {
 			.getByRole('button', {name: 'Options'})
 			.click();
 
-		await this.page
-			.locator('.dropdown-menu.show')
-			.getByText('Hide Fragment')
-			.click();
-
-		await this.waitForChangesSaved();
+		await this.page.locator('.dropdown-menu.show').getByText(name).click();
 	}
 
 	async isActive(fragmentId: string, isDesktop = true) {
@@ -712,10 +777,26 @@ export class PageEditorPage {
 			trigger: this.page.locator('.modal-footer').getByText('Save'),
 		});
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:Your form has been successfully loaded.'
 		);
+	}
+
+	async mapLink(editableId: string, fieldId: string, fragmentName: string) {
+		const buttonFragmentId = await this.getFragmentId(fragmentName);
+
+		await this.selectEditable(buttonFragmentId, editableId);
+
+		await this.page.getByRole('tab', {exact: true, name: 'Link'}).click();
+
+		await this.page.locator('select').selectOption({label: 'Mapped URL'});
+
+		await this.waitForChangesSaved();
+
+		await this.page
+			.getByLabel('Field', {exact: true})
+			.selectOption({label: fieldId});
 	}
 
 	async openExperienceSelector() {
@@ -745,24 +826,12 @@ export class PageEditorPage {
 		await this.page.getByLabel(spacingType, {exact: true}).click();
 	}
 
-	async goToWidgetConfiguration(
-		layout: Layout,
-		site: Site,
-		widgetId: string
-	) {
-		await this.goto(layout, site.friendlyUrlPath);
+	async pasteFragment(fragmentId: string) {
+		await this.selectFragment(fragmentId);
 
-		const topper = this.getTopper(widgetId);
+		await this.page.keyboard.press('Shift+Control+V');
 
-		await topper.hover();
-
-		await expect(topper.locator('.portlet-options')).toBeVisible();
-
-		await topper.locator('.portlet-options').click();
-
-		await this.page
-			.getByRole('menuitem', {exact: true, name: 'Configuration'})
-			.click();
+		await this.waitForChangesSaved();
 	}
 
 	async publishPage() {
@@ -776,7 +845,7 @@ export class PageEditorPage {
 		await button.waitFor();
 		await button.click();
 
-		await waitForSuccessAlert(this.page, successMessage);
+		await waitForAlert(this.page, successMessage);
 	}
 
 	async removeFragment(fragmentId: string) {
@@ -819,14 +888,22 @@ export class PageEditorPage {
 		// if it's a collection
 
 		const isCollection = await fragment.evaluate((element) =>
-			element.classList.contains('page-editor__collection')
+			element.classList.contains('lfr-layout-structure-item-collection')
 		);
 
-		const isForm = await fragment.evaluate(
-			(element) => !!element.closest('.page-editor__form')
+		const isContainer = await fragment.evaluate((element) =>
+			element.classList.contains('lfr-layout-structure-item-container')
 		);
 
-		if (isCollection || isForm) {
+		const isForm = await fragment.evaluate((element) =>
+			element.classList.contains('lfr-layout-structure-item-form')
+		);
+
+		const isGrid = await fragment.evaluate((element) =>
+			element.classList.contains('lfr-layout-structure-item-row')
+		);
+
+		if (isCollection || isContainer || isForm || isGrid) {
 			await this.goToSidebarTab('Browser');
 
 			const treeNode = this.page.locator(
@@ -846,7 +923,11 @@ export class PageEditorPage {
 	) {
 		await this.selectFragment(fragmentId, isDesktop);
 
-		const editable = this.getEditable(fragmentId, editableId, isDesktop);
+		const editable = this.getEditable({
+			editableId,
+			fragmentId,
+			isDesktop,
+		});
 
 		await editable.click();
 
@@ -1059,7 +1140,7 @@ export class PageEditorPage {
 	}
 
 	async waitForChangesSaved() {
-		await this.page.getByLabel('Saved').waitFor();
+		await this.page.getByLabel('Saved', {exact: true}).waitFor();
 
 		await this.page
 			.getByText(
@@ -1068,10 +1149,22 @@ export class PageEditorPage {
 			.waitFor();
 	}
 
-	getEditable(fragmentId: string, editableId: string, isDesktop = true) {
-		return this.getFragment(fragmentId, isDesktop)
-			.locator(`[data-lfr-editable-id="${editableId}"]`)
-			.first();
+	getEditable({
+		editableId,
+		fragmentId,
+		isDesktop = true,
+	}: {
+		editableId: string;
+		fragmentId: string;
+		isDesktop?: boolean;
+	}) {
+		const fragment = this.getFragment(fragmentId, isDesktop);
+		const dataAttributeLocator = fragment.locator(
+			`[data-lfr-editable-id="${editableId}"]`
+		);
+		const tagLocator = fragment.locator(`lfr-editable[id="${editableId}"]`);
+
+		return dataAttributeLocator.or(tagLocator).first();
 	}
 
 	getFragment(fragmentId: string, isDesktop = true) {

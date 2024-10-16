@@ -78,8 +78,8 @@ import com.liferay.object.service.test.util.ObjectFieldTestUtil;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.object.tree.Node;
+import com.liferay.object.tree.ObjectEntryTreeFactory;
 import com.liferay.object.tree.Tree;
-import com.liferay.object.tree.TreeFactory;
 import com.liferay.object.validation.rule.ObjectValidationRuleEngine;
 import com.liferay.object.validation.rule.ObjectValidationRuleResult;
 import com.liferay.object.validation.rule.setting.builder.ObjectValidationRuleSettingBuilder;
@@ -1842,6 +1842,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "peter@liferay.com"
 			).put(
 				"firstName", "Peter"
@@ -1858,6 +1860,8 @@ public class ObjectEntryLocalServiceTest {
 			_objectEntryLocalService.getValues(objectEntry.getObjectEntryId()));
 
 		values = HashMapBuilder.<String, Serializable>put(
+			"emailAddressDomain", ""
+		).put(
 			"emailAddressRequired", "peter@liferay.com"
 		).put(
 			"firstName", "Pedro"
@@ -1911,18 +1915,27 @@ public class ObjectEntryLocalServiceTest {
 
 		Tree objectDefinitionTree = TreeTestUtil.createObjectDefinitionTree(
 			_objectDefinitionLocalService, _objectRelationshipLocalService,
-			_treeFactory);
+			true,
+			LinkedHashMapBuilder.put(
+				"A", new String[] {"AA", "AB"}
+			).put(
+				"AA", new String[] {"AAA", "AAB"}
+			).put(
+				"AB", new String[0]
+			).put(
+				"AAA", new String[0]
+			).put(
+				"AAB", new String[0]
+			).build());
 
-		Node rootObjectDefinitionNode = objectDefinitionTree.getRootNode();
-
-		_objectDefinitionLocalService.publishCustomObjectDefinition(
-			TestPropsValues.getUserId(),
-			rootObjectDefinitionNode.getPrimaryKey());
+		ObjectDefinition objectDefinitionA =
+			_objectDefinitionLocalService.getObjectDefinition(
+				TestPropsValues.getCompanyId(), "C_A");
 
 		Tree objectEntryTree1 = TreeTestUtil.createObjectEntryTree(
-			"1", _objectEntryLocalService, _objectFieldLocalService,
-			rootObjectDefinitionNode.getPrimaryKey(),
-			_objectRelationshipLocalService, _treeFactory);
+			"1", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			objectDefinitionA.getObjectDefinitionId());
 
 		TreeTestUtil.assertObjectEntryTree(
 			LinkedHashMapBuilder.put(
@@ -1939,9 +1952,9 @@ public class ObjectEntryLocalServiceTest {
 			objectEntryTree1, _objectEntryLocalService);
 
 		Tree objectEntryTree2 = TreeTestUtil.createObjectEntryTree(
-			"2", _objectEntryLocalService, _objectFieldLocalService,
-			rootObjectDefinitionNode.getPrimaryKey(),
-			_objectRelationshipLocalService, _treeFactory);
+			"2", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			objectDefinitionA.getObjectDefinitionId());
 
 		TreeTestUtil.assertObjectEntryTree(
 			LinkedHashMapBuilder.put(
@@ -1957,17 +1970,17 @@ public class ObjectEntryLocalServiceTest {
 			).build(),
 			objectEntryTree2, _objectEntryLocalService);
 
-		ObjectDefinition objectDefinition =
+		ObjectDefinition objectDefinitionAA =
 			_objectDefinitionLocalService.fetchObjectDefinition(
 				TestPropsValues.getCompanyId(), "C_AA");
 
 		_objectEntryLocalService.addOrUpdateObjectEntry(
 			"AA1", TestPropsValues.getUserId(), 0,
-			objectDefinition.getObjectDefinitionId(),
+			objectDefinitionAA.getObjectDefinitionId(),
 			HashMapBuilder.<String, Serializable>put(
 				() -> {
 					Node node = objectDefinitionTree.getNode(
-						objectDefinition.getObjectDefinitionId());
+						objectDefinitionAA.getObjectDefinitionId());
 
 					ObjectRelationship objectRelationship =
 						_objectRelationshipLocalService.getObjectRelationship(
@@ -1983,14 +1996,18 @@ public class ObjectEntryLocalServiceTest {
 				() -> {
 					ObjectEntry objectEntry =
 						_objectEntryLocalService.getObjectEntry(
-							"A2", rootObjectDefinitionNode.getPrimaryKey());
+							"A2", objectDefinitionA.getObjectDefinitionId());
 
 					return objectEntry.getObjectEntryId();
 				}
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		objectEntryTree1 = _treeFactory.createObjectEntryTree(
+		ObjectEntryTreeFactory objectEntryTreeFactory =
+			new ObjectEntryTreeFactory(
+				_objectEntryLocalService, _objectRelationshipLocalService);
+
+		objectEntryTree1 = objectEntryTreeFactory.create(
 			objectEntryTree1.getRootNode(
 			).getPrimaryKey());
 
@@ -2002,7 +2019,7 @@ public class ObjectEntryLocalServiceTest {
 			).build(),
 			objectEntryTree1, _objectEntryLocalService);
 
-		objectEntryTree2 = _treeFactory.createObjectEntryTree(
+		objectEntryTree2 = objectEntryTreeFactory.create(
 			objectEntryTree2.getRootNode(
 			).getPrimaryKey());
 
@@ -2028,7 +2045,7 @@ public class ObjectEntryLocalServiceTest {
 
 		TreeTestUtil.deleteObjectDefinitionHierarchy(
 			_objectDefinitionLocalService,
-			new String[] {"C_A", "C_AA", "C_AB", "C_AAA", "C_AAB"},
+			new String[] {"C_AAB", "C_AAA", "C_AB", "C_AA", "C_A"},
 			_objectEntryLocalService);
 	}
 
@@ -2295,7 +2312,7 @@ public class ObjectEntryLocalServiceTest {
 			null, TestPropsValues.getUserId(),
 			_objectDefinition.getObjectDefinitionId(),
 			_draftObjectDefinition.getObjectDefinitionId(), 0,
-			ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+			ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			StringUtil.randomId(), false,
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -2374,7 +2391,7 @@ public class ObjectEntryLocalServiceTest {
 			null, TestPropsValues.getUserId(),
 			publishedObjectDefinition.getObjectDefinitionId(),
 			draftObjectDefinition.getObjectDefinitionId(), 0,
-			ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+			ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			StringUtil.randomId(), false,
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -2503,6 +2520,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values1 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "peter@liferay.com"
 			).put(
 				"firstName", "Peter"
@@ -2527,6 +2546,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values2 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "james@liferay.com"
 			).put(
 				"firstName", "James"
@@ -2553,6 +2574,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values3 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "john@liferay.com"
 			).put(
 				"firstName", "John"
@@ -2636,10 +2659,10 @@ public class ObjectEntryLocalServiceTest {
 			"john@liferay.com", values.get("emailAddressRequired"));
 		Assert.assertEquals("John", values.get("firstName"));
 		Assert.assertEquals(0D, values.get("height"));
-		Assert.assertEquals(null, values.get("lastName"));
-		Assert.assertEquals(null, values.get("middleName"));
+		Assert.assertEquals("", values.get("lastName"));
+		Assert.assertEquals("", values.get("middleName"));
 		Assert.assertEquals(0, values.get("numberOfBooksWritten"));
-		Assert.assertEquals(null, values.get("listTypeEntryKey"));
+		Assert.assertEquals("", values.get("listTypeEntryKey"));
 		Assert.assertEquals(
 			"listTypeEntryKey1", values.get("listTypeEntryKeyRequired"));
 		Assert.assertEquals(StringPool.BLANK, values.get("script"));
@@ -2676,6 +2699,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values1 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "peter@liferay.com"
 			).put(
 				"firstName", "Peter"
@@ -2700,6 +2725,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values2 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "james@liferay.com"
 			).put(
 				"firstName", "James"
@@ -2725,6 +2752,8 @@ public class ObjectEntryLocalServiceTest {
 
 		Map<String, Serializable> values3 =
 			HashMapBuilder.<String, Serializable>put(
+				"emailAddressDomain", ""
+			).put(
 				"emailAddressRequired", "john@liferay.com"
 			).put(
 				"firstName", "John"
@@ -3118,10 +3147,10 @@ public class ObjectEntryLocalServiceTest {
 		Assert.assertEquals("João", values.get("firstName"));
 		Assert.assertEquals(0D, values.get("height"));
 		Assert.assertEquals("o Discípulo Amado", values.get("lastName"));
-		Assert.assertEquals(null, values.get("listTypeEntryKey"));
+		Assert.assertEquals("", values.get("listTypeEntryKey"));
 		Assert.assertEquals(
 			"listTypeEntryKey2", values.get("listTypeEntryKeyRequired"));
-		Assert.assertEquals(null, values.get("middleName"));
+		Assert.assertEquals("", values.get("middleName"));
 		Assert.assertEquals(
 			"multipleListTypeEntryKey3, multipleListTypeEntryKey4",
 			values.get("multipleListTypeEntriesKey"));
@@ -3203,7 +3232,7 @@ public class ObjectEntryLocalServiceTest {
 			"listTypeEntryKey1", values.get("listTypeEntryKey"));
 		Assert.assertEquals(
 			"listTypeEntryKey3", values.get("listTypeEntryKeyRequired"));
-		Assert.assertEquals(null, values.get("middleName"));
+		Assert.assertEquals("", values.get("middleName"));
 		Assert.assertEquals(
 			"multipleListTypeEntryKey5, multipleListTypeEntryKey6",
 			values.get("multipleListTypeEntriesKey"));
@@ -3247,7 +3276,7 @@ public class ObjectEntryLocalServiceTest {
 			"listTypeEntryKey1", values.get("listTypeEntryKey"));
 		Assert.assertEquals(
 			"listTypeEntryKey3", values.get("listTypeEntryKeyRequired"));
-		Assert.assertEquals(null, values.get("middleName"));
+		Assert.assertEquals("", values.get("middleName"));
 		Assert.assertEquals(
 			"multipleListTypeEntryKey5, multipleListTypeEntryKey6",
 			values.get("multipleListTypeEntriesKey"));
@@ -3437,10 +3466,12 @@ public class ObjectEntryLocalServiceTest {
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build());
 
-			_addObjectValidationRule(
-				key,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"");
+			ObjectValidationRule objectValidationRule =
+				_addObjectValidationRule(
+					key,
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString()),
+					"");
 
 			_objectEntryLocalService.updateObjectEntry(
 				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
@@ -3450,6 +3481,9 @@ public class ObjectEntryLocalServiceTest {
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build(),
 				ServiceContextTestUtil.getServiceContext());
+
+			_objectValidationRuleLocalService.deleteObjectValidationRule(
+				objectValidationRule);
 		}
 	}
 
@@ -3649,15 +3683,21 @@ public class ObjectEntryLocalServiceTest {
 					).build(),
 					serviceContext);
 
-			_objectValidationRuleLocalService.addObjectValidationRule(
-				StringPool.BLANK, TestPropsValues.getUserId(),
-				objectDefinition.getObjectDefinitionId(), true, key,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				ObjectValidationRuleConstants.OUTPUT_TYPE_FULL_VALIDATION, "",
-				false, Collections.emptyList());
+			ObjectValidationRule objectValidationRule =
+				_objectValidationRuleLocalService.addObjectValidationRule(
+					StringPool.BLANK, TestPropsValues.getUserId(),
+					objectDefinition.getObjectDefinitionId(), true, key,
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString()),
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString()),
+					ObjectValidationRuleConstants.OUTPUT_TYPE_FULL_VALIDATION,
+					"", false, Collections.emptyList());
 
 			UserTestUtil.updateUser(user);
+
+			_objectValidationRuleLocalService.deleteObjectValidationRule(
+				objectValidationRule);
 		}
 	}
 
@@ -4538,9 +4578,6 @@ public class ObjectEntryLocalServiceTest {
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
-
-	@Inject
-	private TreeFactory _treeFactory;
 
 	@Inject
 	private UserLocalService _userLocalService;

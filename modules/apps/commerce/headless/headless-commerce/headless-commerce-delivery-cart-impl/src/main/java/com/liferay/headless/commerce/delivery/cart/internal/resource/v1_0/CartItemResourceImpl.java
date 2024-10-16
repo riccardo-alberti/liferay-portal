@@ -5,6 +5,8 @@
 
 package com.liferay.headless.commerce.delivery.cart.internal.resource.v1_0;
 
+import com.liferay.commerce.configuration.CommerceOrderCheckoutConfiguration;
+import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.commerce.context.CommerceContext;
 import com.liferay.commerce.context.CommerceContextFactory;
 import com.liferay.commerce.exception.NoSuchOrderException;
@@ -17,6 +19,7 @@ import com.liferay.commerce.product.service.CPInstanceService;
 import com.liferay.commerce.service.CommerceAddressService;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderService;
+import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Cart;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.CartItem;
@@ -25,8 +28,12 @@ import com.liferay.headless.commerce.delivery.cart.internal.dto.v1_0.converter.C
 import com.liferay.headless.commerce.delivery.cart.internal.dto.v1_0.converter.constants.DTOConverterConstants;
 import com.liferay.headless.commerce.delivery.cart.resource.v1_0.CartItemResource;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.BigDecimalUtil;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.fields.NestedField;
@@ -37,7 +44,9 @@ import com.liferay.portal.vulcan.pagination.Pagination;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,8 +89,9 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.fetchByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
+			_commerceOrderItemService.
+				fetchCommerceOrderItemByExternalReferenceCode(
+					externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
@@ -98,7 +108,7 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -144,8 +154,9 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.fetchByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
+			_commerceOrderItemService.
+				fetchCommerceOrderItemByExternalReferenceCode(
+					externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
@@ -201,8 +212,9 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.fetchByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
+			_commerceOrderItemService.
+				fetchCommerceOrderItemByExternalReferenceCode(
+					externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
@@ -220,7 +232,7 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -255,17 +267,62 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 
 		CommerceOrder commerceOrder = commerceOrderItem.getCommerceOrder();
 
+		commerceOrderItem = _commerceOrderItemService.updateCommerceOrderItem(
+			commerceOrderItem.getCommerceOrderItemId(), cartItem.getQuantity(),
+			_commerceContextFactory.create(
+				contextCompany.getCompanyId(), commerceOrder.getGroupId(),
+				contextUser.getUserId(), commerceOrder.getCommerceOrderId(),
+				commerceOrder.getCommerceAccountId()),
+			_serviceContextHelper.getServiceContext(
+				commerceOrder.getGroupId()));
+
+		long shippingAddressId = GetterUtil.getLong(
+			cartItem.getShippingAddressId());
+
+		if (shippingAddressId == 0) {
+			CommerceAddress commerceAddress =
+				_commerceAddressService.
+					fetchCommerceAddressByExternalReferenceCode(
+						cartItem.getShippingAddressExternalReferenceCode(),
+						contextCompany.getCompanyId());
+
+			if (commerceAddress != null) {
+				shippingAddressId = commerceAddress.getCommerceAddressId();
+			}
+			else {
+				shippingAddressId = commerceOrderItem.getShippingAddressId();
+			}
+		}
+
+		Date requestedDeliveryDate = cartItem.getRequestedDeliveryDate();
+
+		if (requestedDeliveryDate != null) {
+			Calendar requestedDeliveryDateCalendar =
+				CalendarFactoryUtil.getCalendar(
+					requestedDeliveryDate.getTime());
+
+			DateConfig requestedDeliveryDateConfig = new DateConfig(
+				requestedDeliveryDateCalendar);
+
+			commerceOrderItem =
+				_commerceOrderItemService.updateCommerceOrderItemInfo(
+					commerceOrderItem.getCommerceOrderItemId(),
+					shippingAddressId, cartItem.getDeliveryGroup(),
+					commerceOrderItem.getPrintedNote(),
+					requestedDeliveryDateConfig.getMonth(),
+					requestedDeliveryDateConfig.getDay(),
+					requestedDeliveryDateConfig.getYear());
+		}
+		else {
+			commerceOrderItem =
+				_commerceOrderItemService.updateCommerceOrderItemInfo(
+					commerceOrderItem.getCommerceOrderItemId(),
+					shippingAddressId, cartItem.getDeliveryGroup(),
+					commerceOrderItem.getPrintedNote());
+		}
+
 		return _toCartItem(
-			commerceOrder.getCommerceAccountId(),
-			_commerceOrderItemService.updateCommerceOrderItem(
-				commerceOrderItem.getCommerceOrderItemId(),
-				cartItem.getQuantity(),
-				_commerceContextFactory.create(
-					contextCompany.getCompanyId(), commerceOrder.getGroupId(),
-					contextUser.getUserId(), commerceOrder.getCommerceOrderId(),
-					commerceOrder.getCommerceAccountId()),
-				_serviceContextHelper.getServiceContext(
-					commerceOrder.getGroupId())));
+			commerceOrder.getCommerceAccountId(), commerceOrderItem);
 	}
 
 	@Override
@@ -274,8 +331,9 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 		throws Exception {
 
 		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.fetchByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
+			_commerceOrderItemService.
+				fetchCommerceOrderItemByExternalReferenceCode(
+					externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrderItem == null) {
 			throw new NoSuchOrderItemException(
@@ -349,7 +407,7 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 
 		if (replacedSkuId == 0) {
 			CPInstance replacedSku =
-				_cpInstanceService.fetchByExternalReferenceCode(
+				_cpInstanceService.fetchCPInstanceByExternalReferenceCode(
 					cartItem.getReplacedSkuExternalReferenceCode(),
 					contextCompany.getCompanyId());
 
@@ -358,27 +416,55 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 			}
 		}
 
-		CommerceOrderItem commerceOrderItem =
-			_commerceOrderItemService.addOrUpdateCommerceOrderItem(
+		CommerceOrderCheckoutConfiguration commerceOrderCheckoutConfiguration =
+			_configurationProvider.getConfiguration(
+				CommerceOrderCheckoutConfiguration.class,
+				new GroupServiceSettingsLocator(
+					commerceOrder.getGroupId(),
+					CommerceConstants.SERVICE_NAME_COMMERCE_ORDER));
+
+		CommerceOrderItem commerceOrderItem;
+
+		if (commerceOrderCheckoutConfiguration.showSeparateOrderItems()) {
+			commerceOrderItem = _commerceOrderItemService.addCommerceOrderItem(
 				commerceOrder.getCommerceOrderId(), cartItem.getSkuId(),
 				cartItem.getOptions(),
-				BigDecimal.valueOf(GetterUtil.get(cartItem.getQuantity(), 1)),
-				replacedSkuId, BigDecimal.ZERO, skuUnitOfMeasureKey,
+				BigDecimalUtil.get(cartItem.getQuantity(), BigDecimal.ONE),
+				GetterUtil.getLong(cartItem.getReplacedSkuId()),
+				BigDecimal.ZERO, skuUnitOfMeasureKey,
 				_commerceContextFactory.create(
 					contextCompany.getCompanyId(), commerceOrder.getGroupId(),
 					contextUser.getUserId(), commerceOrder.getCommerceOrderId(),
 					commerceOrder.getCommerceAccountId()),
 				_serviceContextHelper.getServiceContext(
 					commerceOrder.getGroupId()));
+		}
+		else {
+			commerceOrderItem =
+				_commerceOrderItemService.addOrUpdateCommerceOrderItem(
+					commerceOrder.getCommerceOrderId(), cartItem.getSkuId(),
+					cartItem.getOptions(),
+					BigDecimal.valueOf(
+						GetterUtil.get(cartItem.getQuantity(), 1)),
+					replacedSkuId, BigDecimal.ZERO, skuUnitOfMeasureKey,
+					_commerceContextFactory.create(
+						contextCompany.getCompanyId(),
+						commerceOrder.getGroupId(), contextUser.getUserId(),
+						commerceOrder.getCommerceOrderId(),
+						commerceOrder.getCommerceAccountId()),
+					_serviceContextHelper.getServiceContext(
+						commerceOrder.getGroupId()));
+		}
 
 		long shippingAddressId = GetterUtil.getLong(
 			cartItem.getShippingAddressId());
 
 		if (shippingAddressId == 0) {
 			CommerceAddress commerceAddress =
-				_commerceAddressService.fetchByExternalReferenceCode(
-					cartItem.getShippingAddressExternalReferenceCode(),
-					contextCompany.getCompanyId());
+				_commerceAddressService.
+					fetchCommerceAddressByExternalReferenceCode(
+						cartItem.getShippingAddressExternalReferenceCode(),
+						contextCompany.getCompanyId());
 
 			if (commerceAddress != null) {
 				shippingAddressId = commerceAddress.getCommerceAddressId();
@@ -388,10 +474,27 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 			}
 		}
 
+		Date requestedDeliveryDate = cartItem.getRequestedDeliveryDate();
+
+		if (requestedDeliveryDate != null) {
+			Calendar requestedDeliveryDateCalendar =
+				CalendarFactoryUtil.getCalendar(
+					requestedDeliveryDate.getTime());
+
+			DateConfig requestedDeliveryDateConfig = new DateConfig(
+				requestedDeliveryDateCalendar);
+
+			return _commerceOrderItemService.updateCommerceOrderItemInfo(
+				commerceOrderItem.getCommerceOrderItemId(), shippingAddressId,
+				cartItem.getDeliveryGroup(), commerceOrderItem.getPrintedNote(),
+				requestedDeliveryDateConfig.getMonth(),
+				requestedDeliveryDateConfig.getDay(),
+				requestedDeliveryDateConfig.getYear());
+		}
+
 		return _commerceOrderItemService.updateCommerceOrderItemInfo(
 			commerceOrderItem.getCommerceOrderItemId(), shippingAddressId,
-			commerceOrderItem.getDeliveryGroup(),
-			commerceOrderItem.getPrintedNote());
+			cartItem.getDeliveryGroup(), commerceOrderItem.getPrintedNote());
 	}
 
 	@Reference
@@ -405,6 +508,9 @@ public class CartItemResourceImpl extends BaseCartItemResourceImpl {
 
 	@Reference
 	private CommerceOrderService _commerceOrderService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private CPInstanceService _cpInstanceService;

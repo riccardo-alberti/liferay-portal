@@ -12,9 +12,10 @@ import KeyboardMovementManager, {
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
 import {
 	useDisableKeyboardMovement,
+	useMovementSources,
 	useSetMovementTarget,
 } from '../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/KeyboardMovementContext';
-import moveItem from '../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/moveItem';
+import moveItems from '../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/moveItems';
 import StoreMother from '../../../../src/main/resources/META-INF/resources/page_editor/test_utils/StoreMother';
 
 jest.mock(
@@ -25,14 +26,16 @@ jest.mock(
 			position: 'bottom',
 		};
 
-		const source = {
-			fieldTypes: [],
-			fragmentEntryType: 'component',
-			isWidget: false,
-			itemId: 'item-3',
-			name: 'Item 3',
-			type: 'fragment',
-		};
+		const sources = [
+			{
+				fieldTypes: [],
+				fragmentEntryType: 'component',
+				isWidget: false,
+				itemId: 'item-3',
+				name: 'Item 3',
+				type: 'fragment',
+			},
+		];
 
 		const disableMovement = jest.fn();
 		const setTarget = jest.fn();
@@ -40,7 +43,7 @@ jest.mock(
 
 		return {
 			useDisableKeyboardMovement: () => disableMovement,
-			useMovementSource: () => source,
+			useMovementSources: jest.fn(() => sources),
 			useMovementTarget: () => initialTarget,
 			useSetMovementTarget: () => setTarget,
 			useSetMovementText: () => setText,
@@ -49,7 +52,7 @@ jest.mock(
 );
 
 jest.mock(
-	'../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/moveItem',
+	'../../../../src/main/resources/META-INF/resources/page_editor/app/thunks/moveItems',
 	() => jest.fn()
 );
 
@@ -119,6 +122,10 @@ jest.mock(
 );
 
 describe('KeyboardMovementManager', () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
+
 	it('calculates previous drop position when pressing up arrow', () => {
 		renderComponent();
 
@@ -188,13 +195,93 @@ describe('KeyboardMovementManager', () => {
 			})
 		);
 
-		expect(moveItem).toBeCalledWith(
+		expect(moveItems).toBeCalledWith(
 			expect.objectContaining({
-				itemId: 'item-3',
-				parentItemId: 'root-id',
-				position: 2,
+				itemIds: ['item-3'],
+				parentItemIds: ['root-id'],
+				positions: [2],
 			})
 		);
+	});
+
+	it('calls move item thunk with two items when pressing enter', () => {
+		const mockDispatch = jest.fn((a) => {
+			if (typeof a === 'function') {
+				return a(mockDispatch);
+			}
+		});
+
+		useMovementSources.mockImplementation(() => [
+			{
+				fieldTypes: [],
+				fragmentEntryType: 'component',
+				isWidget: false,
+				itemId: 'item-3',
+				name: 'Item 3',
+				type: 'fragment',
+			},
+			{
+				fieldTypes: [],
+				fragmentEntryType: 'component',
+				isWidget: false,
+				itemId: 'item-1',
+				name: 'Item 1',
+				type: 'fragment',
+			},
+		]);
+
+		renderComponent({dispatch: mockDispatch});
+
+		document.body.dispatchEvent(
+			new KeyboardEvent('keydown', {
+				code: 'Enter',
+			})
+		);
+
+		expect(moveItems).toBeCalledWith(
+			expect.objectContaining({
+				itemIds: ['item-3', 'item-1'],
+				parentItemIds: ['root-id'],
+				positions: [2],
+			})
+		);
+	});
+
+	it('does not call move item thunk when pressing enter and some of the active items are the same as the target', () => {
+		const mockDispatch = jest.fn((a) => {
+			if (typeof a === 'function') {
+				return a(mockDispatch);
+			}
+		});
+
+		useMovementSources.mockImplementation(() => [
+			{
+				fieldTypes: [],
+				fragmentEntryType: 'component',
+				isWidget: false,
+				itemId: 'item-3',
+				name: 'Item 3',
+				type: 'fragment',
+			},
+			{
+				fieldTypes: [],
+				fragmentEntryType: 'component',
+				isWidget: false,
+				itemId: 'item-2',
+				name: 'Item 2',
+				type: 'fragment',
+			},
+		]);
+
+		renderComponent({dispatch: mockDispatch});
+
+		document.body.dispatchEvent(
+			new KeyboardEvent('keydown', {
+				code: 'Enter',
+			})
+		);
+
+		expect(moveItems).toBeCalledTimes(0);
 	});
 
 	it('looks for initial target recursively', () => {
@@ -237,7 +324,7 @@ describe('KeyboardMovementManager', () => {
 
 		expect(
 			getInitialTarget(
-				formInputSource,
+				[formInputSource],
 				layoutDataRef,
 				fragmentEntryLinksRef
 			)

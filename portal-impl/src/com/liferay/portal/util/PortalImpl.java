@@ -15,6 +15,7 @@ import com.liferay.layout.utility.page.kernel.StatusLayoutUtilityPageEntryReques
 import com.liferay.layout.utility.page.kernel.request.contributor.StatusLayoutUtilityPageEntryRequestContributor;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -1254,8 +1255,9 @@ public class PortalImpl implements Portal {
 
 		if ((pos <= 0) || (pos >= canonicalURL.length())) {
 			for (Locale locale : availableLocales) {
-				if (siteDefaultLocale.equals(locale) &&
-					(localePrependFriendlyURLStyle != 2)) {
+				if ((localePrependFriendlyURLStyle == 0) ||
+					((localePrependFriendlyURLStyle != 2) &&
+					 siteDefaultLocale.equals(locale))) {
 
 					alternateURLs.put(locale, canonicalURL);
 				}
@@ -1485,21 +1487,26 @@ public class PortalImpl implements Portal {
 
 			int pos = -1;
 
-			for (String urlSeparator :
-					FriendlyURLResolverRegistryUtil.getURLSeparators()) {
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						themeDisplay.getCompanyId())) {
 
-				pos = completeURL.indexOf(urlSeparator);
+				for (String urlSeparator :
+						FriendlyURLResolverRegistryUtil.getURLSeparators()) {
 
-				if (pos != -1) {
-					String friendlyURL = layout.getFriendlyURL();
+					pos = completeURL.indexOf(urlSeparator);
 
-					if (friendlyURL.contains(urlSeparator)) {
-						pos = -1;
-					}
-					else {
-						includeParametersURL = true;
+					if (pos != -1) {
+						String friendlyURL = layout.getFriendlyURL();
 
-						break;
+						if (friendlyURL.contains(urlSeparator)) {
+							pos = -1;
+						}
+						else {
+							includeParametersURL = true;
+
+							break;
+						}
 					}
 				}
 			}
@@ -4219,14 +4226,7 @@ public class PortalImpl implements Portal {
 			return null;
 		}
 
-		List<PreferencesValidator> preferencesValidatorInstances =
-			portletBag.getPreferencesValidatorInstances();
-
-		if (preferencesValidatorInstances.isEmpty()) {
-			return null;
-		}
-
-		return preferencesValidatorInstances.get(0);
+		return portletBag.getPreferencesValidatorInstance();
 	}
 
 	@Override
@@ -7819,20 +7819,23 @@ public class PortalImpl implements Portal {
 					PortletQNameUtil.getPublicRenderParameterName(qName));
 			}
 
-			FriendlyURLMapperThreadLocal.setPRPIdentifiers(prpIdentifiers);
+			try (SafeCloseable safeCloseable1 =
+					FriendlyURLMapperThreadLocal.
+						setParentParametersWithSafeCloseable(params);
+				SafeCloseable safeCloseable2 =
+					FriendlyURLMapperThreadLocal.
+						setPRPIdentifiersWithSafeCloseable(prpIdentifiers)) {
 
-			if (friendlyURLMapper.isCheckMappingWithPrefix()) {
-				friendlyURLMapper.populateParams(
-					url.substring(position + 2), actualParams, requestContext);
+				if (friendlyURLMapper.isCheckMappingWithPrefix()) {
+					friendlyURLMapper.populateParams(
+						url.substring(position + 2), actualParams,
+						requestContext);
+				}
+				else {
+					friendlyURLMapper.populateParams(
+						url.substring(position), actualParams, requestContext);
+				}
 			}
-			else {
-				friendlyURLMapper.populateParams(
-					url.substring(position), actualParams, requestContext);
-			}
-
-			Set<String> actualKeySet = actualParams.keySet();
-
-			actualKeySet.removeAll(params.keySet());
 
 			String actualParamsString = HttpComponentsUtil.parameterMapToString(
 				actualParams, false);

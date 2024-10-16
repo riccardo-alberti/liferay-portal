@@ -345,6 +345,17 @@ public class ResourceActionsImpl implements ResourceActions {
 	}
 
 	@Override
+	public List<String> getPortletResourceOwnerDefaultActions(String name) {
+		name = PortletIdCodec.decodePortletName(name);
+
+		ResourceActionsBag portletResourceActionsBag = _getResourceActionsBag(
+			name, false);
+
+		return new ArrayList<>(
+			portletResourceActionsBag.getOwnerDefaultActions());
+	}
+
+	@Override
 	public String getPortletRootModelResource(String portletName) {
 		return _portletRootModelResources.get(
 			PortletIdCodec.decodePortletName(portletName));
@@ -1309,13 +1320,19 @@ public class ResourceActionsImpl implements ResourceActions {
 				guestUnsupportedActions, guestDefaultActions);
 		}
 
+		Set<String> ownerDefaultActions =
+			resourceActionsBag.getOwnerDefaultActions();
+
 		Element ownerDefaultsElement = _getPermissionsChildElement(
 			resourceElement, "owner-defaults");
 
 		if (ownerDefaultsElement != null) {
-			_readActionKeys(
-				resourceActionsBag.getOwnerDefaultActions(),
-				ownerDefaultsElement);
+			ownerDefaultActions.clear();
+
+			_readActionKeys(ownerDefaultActions, ownerDefaultsElement);
+		}
+		else {
+			ownerDefaultActions.addAll(resourceActions);
 		}
 
 		Set<String> layoutManagerActions =

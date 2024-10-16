@@ -69,7 +69,7 @@ List<FragmentCollectionContributor> fragmentCollectionContributors = fragmentEnt
 									<c:if test="<%= FragmentPermission.contains(permissionChecker, scopeGroupId, FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES) %>">
 										<clay:link
 											borderless="<%= true %>"
-											cssClass="component-action"
+											cssClass="component-action lfr-portal-tooltip"
 											href="<%= editFragmentCollectionURL %>"
 											icon="plus"
 											title='<%= LanguageUtil.get(request, "add-fragment-set") %>'
@@ -102,6 +102,7 @@ List<FragmentCollectionContributor> fragmentCollectionContributors = fragmentEnt
 										aria-label='<%= LanguageUtil.get(request, "show-actions") %>'
 										dropdownItems="<%= fragmentEntriesDisplayContext.getCollectionsDropdownItems() %>"
 										propsTransformer="{FragmentCollectionViewDefaultPropsTransformer} from fragment-web"
+										title='<%= LanguageUtil.get(request, "fragment-sets-options") %>'
 									/>
 								</li>
 							</ul>

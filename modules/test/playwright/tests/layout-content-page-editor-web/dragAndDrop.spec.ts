@@ -10,21 +10,27 @@ import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
+import {pageManagementSiteTest} from '../../fixtures/pageManagementSiteTest';
 import dragAndDropElement from '../../utils/dragAndDropElement';
 import getRandomString from '../../utils/getRandomString';
+import {POTATO_OBJECT_ERC} from '../setup/page-management-site/constants';
 import getContainerDefinition from './utils/getContainerDefinition';
+import getFormContainerDefinition from './utils/getFormContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getGridDefinition from './utils/getGridDefinition';
 import getPageDefinition from './utils/getPageDefinition';
+import getWidgetDefinition from './utils/getWidgetDefinition';
 
 const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
+		'LPD-18221': true,
 		'LPS-178052': true,
 	}),
+	isolatedSiteTest,
 	loginTest(),
 	pageEditorPagesTest,
-	isolatedSiteTest
+	pageManagementSiteTest
 );
 
 test('Checks that a widget can be added and dragged to another part of the page', async ({
@@ -76,7 +82,7 @@ test('Checks that a widget can be added and dragged to another part of the page'
 	expect(gridColumn.nth(2).locator('[data-name="Sort"]')).toBeVisible();
 });
 
-test('checks that the drag target and drop target have the correct classes when dragged', async ({
+test('Checks that the drag target and drop target have the correct classes when dragged', async ({
 	apiHelpers,
 	page,
 	pageEditorPage,
@@ -141,3 +147,208 @@ test('checks that the drag target and drop target have the correct classes when 
 
 	expect(dropTarget.locator('[data-name="Heading"]')).toBeVisible();
 });
+
+test(
+	'Check that multiple items can be dragged at once',
+	{
+		tag: '@LPD-30901',
+	},
+	async ({apiHelpers, page, pageEditorPage, site}) => {
+		const headingId = getRandomString();
+		const headingDefinition = getFragmentDefinition({
+			id: headingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const buttonId = getRandomString();
+		const buttonDefinition = getFragmentDefinition({
+			id: buttonId,
+			key: 'BASIC_COMPONENT-button',
+		});
+
+		const containerDefinition = getContainerDefinition({
+			id: getRandomString(),
+			pageElements: [],
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				buttonDefinition,
+				headingDefinition,
+				containerDefinition,
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		// Go to edit mode of page and select multiple fragments
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.selectFragment(headingId);
+
+		await page.keyboard.down('Control');
+
+		await pageEditorPage.selectFragment(buttonId);
+
+		await page.keyboard.up('Control');
+
+		// Move multiple fragments into the container
+
+		const dropTarget = page.locator('[data-name="Container"]');
+
+		await dragAndDropElement({
+			dragTarget: page.locator('[data-name="Button"]'),
+			dropTarget,
+			page,
+		});
+
+		// Check that the fragment have been moved
+
+		expect(dropTarget.locator('[data-name="Heading"]')).toBeVisible();
+		expect(dropTarget.locator('[data-name="Button"]')).toBeVisible();
+	}
+);
+
+test('Check drag and drop from Page Structure Tree', async ({
+	apiHelpers,
+	page,
+	pageEditorPage,
+	site,
+}) => {
+	const gridId = getRandomString();
+
+	const grid = getGridDefinition({
+		id: gridId,
+	});
+
+	const assetPublisherId = getRandomString();
+
+	const assetPublisher = getWidgetDefinition({
+		id: assetPublisherId,
+		widgetName:
+			'com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet',
+	});
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([grid, assetPublisher]),
+		siteId: site.id,
+		title: getRandomString(),
+	});
+
+	// Go to edit mode
+
+	await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+	// Go to the page structure tree and drag the Asset Publisher into the first column of the Grid
+
+	await pageEditorPage.goToSidebarTab('Browser');
+
+	await pageEditorPage.selectFragment(gridId);
+
+	const assetPublisherNode = page.locator(
+		`.treeview-link[data-id$="${assetPublisherId}"]`
+	);
+
+	const moduleNode = page
+		.locator('.treeview-link')
+		.filter({hasText: 'Module'})
+		.first();
+
+	await dragAndDropElement({
+		dragTarget: assetPublisherNode,
+		dropTarget: moduleNode,
+		page,
+	});
+
+	expect(
+		page
+			.locator('[data-name="Grid"]')
+			.locator('[data-name="Asset Publisher"]')
+	).toBeVisible();
+});
+
+test(
+	'Drag multiple form elements from one step to another',
+	{tag: '@LPD-37828'},
+	async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+		// Get the id of Potato object from the site initializer
+
+		const {id: objectDefinitionId} =
+			await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
+				POTATO_OBJECT_ERC
+			);
+
+		// Create a form with two steps and a stepper
+
+		const stepperId = getRandomString();
+
+		const stepperFragment = getFragmentDefinition({
+			fragmentConfig: {
+				numberOfSteps: 2,
+			},
+			id: stepperId,
+			key: 'INPUTS-stepper',
+		});
+
+		const firstInputId = getRandomString();
+
+		const firstInputDefinition = getFragmentDefinition({
+			id: firstInputId,
+			key: 'INPUTS-text-input',
+		});
+
+		const secondInputId = getRandomString();
+
+		const secondInputDefintion = getFragmentDefinition({
+			id: secondInputId,
+			key: 'INPUTS-text-input',
+		});
+
+		const formDefinition = getFormContainerDefinition({
+			id: getRandomString(),
+			objectDefinitionId,
+			pageElements: [stepperFragment],
+			steps: [[firstInputDefinition, secondInputDefintion], []],
+		});
+
+		// Create page and go to edit mode
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([formDefinition]),
+			siteId: pageManagementSite.id,
+			title: getRandomString(),
+		});
+
+		await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+		// Move multiple fragments into Step 2
+
+		await pageEditorPage.goToSidebarTab('Browser');
+
+		await pageEditorPage.selectFragment(firstInputId);
+
+		await page.keyboard.down('Control');
+
+		await pageEditorPage.selectFragment(secondInputId);
+
+		await page.keyboard.up('Control');
+
+		await dragAndDropElement({
+			dragTarget: page.getByLabel('Select Text').first(),
+			dropTarget: page.getByLabel('Select Step 2'),
+			page,
+		});
+
+		await pageEditorPage.waitForChangesSaved();
+
+		// Check inputs have been moved to second step
+
+		const firstStep = page.locator('.page-editor__form-step').nth(0);
+		const secondStep = page.locator('.page-editor__form-step').nth(1);
+
+		await expect(firstStep.locator('[data-name="Text"]')).toHaveCount(0);
+		await expect(secondStep.locator('[data-name="Text"]')).toHaveCount(2);
+	}
+);

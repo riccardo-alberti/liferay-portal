@@ -11,12 +11,14 @@ import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import getRandomString from '../../utils/getRandomString';
+import getContainerDefinition from './utils/getContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 
 const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
+		'LPD-18221': true,
 		'LPS-178052': true,
 	}),
 	isolatedSiteTest,
@@ -271,3 +273,271 @@ test('Checks that a fragment is selected when it is added and the panel does not
 
 	await expect(page.getByLabel('Fragments and Widgets Panel')).toBeVisible();
 });
+
+test(
+	'Check that the range multiselection by keyboard from the page structure tree works correctly',
+	{
+		tag: '@LPD-36432',
+	},
+	async ({apiHelpers, page, pageEditorPage, site}) => {
+		const firstHeadingId = getRandomString();
+
+		const firstHeading = getFragmentDefinition({
+			id: firstHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const secondHeadingId = getRandomString();
+
+		const secondHeading = getFragmentDefinition({
+			id: secondHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const thirdHeadingId = getRandomString();
+
+		const thirdHeading = getFragmentDefinition({
+			id: thirdHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const fourthHeadingId = getRandomString();
+
+		const fourthHeading = getFragmentDefinition({
+			id: fourthHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const containerId = getRandomString();
+
+		const container = getContainerDefinition({
+			id: containerId,
+			pageElements: [secondHeading, thirdHeading],
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				firstHeading,
+				container,
+				fourthHeading,
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.goToSidebarTab('Browser');
+
+		// Select the first heading inside the container by keyboard
+
+		await page.locator('.page-editor__page-structure').press('Tab');
+		await page.keyboard.press('Tab');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('Enter');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('Enter');
+
+		// Activate the range multiselection
+
+		await page.keyboard.down('Shift');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+
+		// Check that the 3 last headings are selected
+
+		expect(await pageEditorPage.isActive(secondHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(thirdHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(fourthHeadingId)).toBe(true);
+
+		// Select the container, first and second heading without deactivate the range multiselection
+
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+
+		// Check that the container, first and second heading are selected
+
+		expect(await pageEditorPage.isActive(containerId)).toBe(true);
+		expect(await pageEditorPage.isActive(firstHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(secondHeadingId)).toBe(true);
+	}
+);
+
+test(
+	'Check that the range multiselection by keyboard from the layout works correctly',
+	{
+		tag: '@LPD-36432',
+	},
+	async ({apiHelpers, page, pageEditorPage, site}) => {
+		const firstHeadingId = getRandomString();
+
+		const firstHeading = getFragmentDefinition({
+			id: firstHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const secondHeadingId = getRandomString();
+
+		const secondHeading = getFragmentDefinition({
+			id: secondHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const thirdHeadingId = getRandomString();
+
+		const thirdHeading = getFragmentDefinition({
+			id: thirdHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const fourthHeadingId = getRandomString();
+
+		const fourthHeading = getFragmentDefinition({
+			id: fourthHeadingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const containerId = getRandomString();
+
+		const container = getContainerDefinition({
+			id: containerId,
+			pageElements: [secondHeading, thirdHeading],
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				firstHeading,
+				container,
+				fourthHeading,
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.goToSidebarTab('Browser');
+
+		// Select the first heading inside the container by keyboard
+
+		await page.locator('.page-editor__sidebar__resizer').focus();
+
+		await page.keyboard.press('Tab');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('Enter');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('Enter');
+
+		// Activate the range multiselection
+
+		await page.keyboard.down('Shift');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+		await page.keyboard.press('ArrowDown');
+
+		// Check that the 3 last headings are selected
+
+		expect(await pageEditorPage.isActive(secondHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(thirdHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(fourthHeadingId)).toBe(true);
+
+		// Select the container, first and second heading without deactivate the range multiselection
+
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+		await page.keyboard.press('ArrowUp');
+
+		// Check that the container, first and second heading are selected
+
+		expect(await pageEditorPage.isActive(containerId)).toBe(true);
+		expect(await pageEditorPage.isActive(firstHeadingId)).toBe(true);
+		expect(await pageEditorPage.isActive(secondHeadingId)).toBe(true);
+	}
+);
+
+test(
+	'Check that Move Items action from the browser toolbar works correctly',
+	{
+		tag: '@LPD-30901',
+	},
+	async ({apiHelpers, page, pageEditorPage, site}) => {
+		const headingId = getRandomString();
+		const headingDefinition = getFragmentDefinition({
+			id: headingId,
+			key: 'BASIC_COMPONENT-heading',
+		});
+
+		const buttonId = getRandomString();
+		const buttonDefinition = getFragmentDefinition({
+			id: buttonId,
+			key: 'BASIC_COMPONENT-button',
+		});
+
+		const containerDefinition = getContainerDefinition({
+			id: getRandomString(),
+			pageElements: [],
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				buttonDefinition,
+				headingDefinition,
+				containerDefinition,
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		// Go to edit mode of page and select multiple fragments
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.selectFragment(headingId);
+
+		await page.keyboard.down('Shift');
+
+		await pageEditorPage.selectFragment(buttonId);
+
+		await page.keyboard.up('Shift');
+
+		// Move multiple fragments from the browser toolbar
+
+		await pageEditorPage.goToSidebarTab('Browser');
+
+		const actionsButton = page.getByLabel('Actions for Selected Items');
+
+		await actionsButton.press('Enter');
+
+		await page.getByText('Move 2 Items').press('Enter');
+
+		// Check drag preview label
+
+		expect(
+			page.locator('.page-editor__keyboard-movement-preview__content')
+		).toHaveText('2 Items');
+
+		// Move fragments inside the container
+
+		await page.keyboard.press('ArrowDown');
+
+		await page.keyboard.press('ArrowDown');
+
+		await page.keyboard.press('Enter');
+
+		// Check that both elements are active when they have been moved
+
+		expect(await pageEditorPage.isActive(buttonId)).toBe(true);
+
+		expect(await pageEditorPage.isActive(headingId)).toBe(true);
+	}
+);

@@ -10,12 +10,12 @@ import com.liferay.headless.admin.user.client.dto.v1_0.UserAccount;
 import com.liferay.headless.admin.user.client.resource.v1_0.UserAccountResource;
 import com.liferay.headless.commerce.admin.order.client.dto.v1_0.Order;
 import com.liferay.headless.commerce.admin.order.client.pagination.Page;
-import com.liferay.headless.commerce.admin.order.client.pagination.Pagination;
-import com.liferay.headless.commerce.admin.order.client.resource.v1_0.OrderResource;
 import com.liferay.headless.portal.instances.client.dto.v1_0.Admin;
 import com.liferay.headless.portal.instances.client.dto.v1_0.PortalInstance;
 import com.liferay.headless.portal.instances.client.resource.v1_0.PortalInstanceResource;
+import com.liferay.marketplace.constants.MarketplaceConstants;
 import com.liferay.marketplace.service.ConsoleService;
+import com.liferay.marketplace.service.MarketplaceService;
 import com.liferay.notification.rest.client.dto.v1_0.NotificationQueueEntry;
 import com.liferay.notification.rest.client.dto.v1_0.NotificationTemplate;
 import com.liferay.notification.rest.client.resource.v1_0.NotificationQueueEntryResource;
@@ -84,11 +84,14 @@ public class TrialRestController extends BaseRestController {
 
 	@PostMapping("expire/{orderId}")
 	public void postExpire(@PathVariable long orderId) throws Exception {
-		_updateOrder(null, orderId, _ORDER_STATUS_PENDING);
+		_marketplaceService.updateOrder(
+			null, orderId, MarketplaceConstants.ORDER_STATUS_PENDING);
 
-		_updateOrder(null, orderId, _ORDER_STATUS_PROCESSING);
+		_marketplaceService.updateOrder(
+			null, orderId, MarketplaceConstants.ORDER_STATUS_PROCESSING);
 
-		_updateOrder(null, orderId, _ORDER_STATUS_COMPLETED);
+		_marketplaceService.updateOrder(
+			null, orderId, MarketplaceConstants.ORDER_STATUS_COMPLETED);
 
 		delete(orderId);
 
@@ -99,9 +102,7 @@ public class TrialRestController extends BaseRestController {
 
 	@PostMapping("notify-end/{orderId}")
 	public void postNotifyEnd(@PathVariable long orderId) throws Exception {
-		OrderResource orderResource = _getOrderResource();
-
-		Order order = orderResource.getOrder(orderId);
+		Order order = _marketplaceService.getOrder(orderId);
 
 		UserAccountResource userAccountResource = _getUserAccountResource();
 
@@ -133,7 +134,8 @@ public class TrialRestController extends BaseRestController {
 				DateTimeFormatter.ISO_INSTANT
 			));
 
-		_updateOrder(customFields, orderId, order.getOrderStatus());
+		_marketplaceService.updateOrder(
+			customFields, orderId, order.getOrderStatus());
 	}
 
 	@PostMapping("provisioning")
@@ -149,49 +151,30 @@ public class TrialRestController extends BaseRestController {
 			_log.info("Provisioning order " + orderId);
 		}
 
-		JSONObject modelDTOOrderJSONObject = jsonObject.getJSONObject(
-			"modelDTOOrder");
-
-		if (_TRIAL_ACCOUNT_CHECK) {
-			OrderResource orderResource = _getOrderResource();
-
-			Page<Order> ordersPage = orderResource.getOrdersPage(
-				"",
-				"accountId/any(x:(x eq " +
-					modelDTOOrderJSONObject.getString("accountId") +
-						")) and orderTypeExternalReferenceCode eq 'SOLUTIONS7'",
-				Pagination.of(1, 1), "");
-
-			if (ordersPage.getTotalCount() > 1) {
-				_log.error(
-					"Account " +
-						modelDTOOrderJSONObject.getString("accountId") +
-							" already has a provisioned order");
-
-				_updateOrder(null, orderId, _ORDER_STATUS_CANCELLED);
-
-				return;
-			}
-		}
-
 		com.liferay.headless.portal.instances.client.pagination.Page
 			<PortalInstance> portalInstancesPage = _getPortalInstancesPage();
 
 		if (portalInstancesPage.getTotalCount() == _TRIAL_MAX_INSTANCES) {
 			_log.error("Order is on hold");
 
-			_updateOrder(null, orderId, _ORDER_STATUS_ON_HOLD);
+			_marketplaceService.updateOrder(
+				null, orderId, MarketplaceConstants.ORDER_STATUS_ON_HOLD);
 
 			return;
 		}
 
-		if (modelDTOOrderJSONObject.getInt("orderStatus") ==
-				_ORDER_STATUS_OPEN) {
+		JSONObject modelDTOOrderJSONObject = jsonObject.getJSONObject(
+			"modelDTOOrder");
 
-			_updateOrder(null, orderId, _ORDER_STATUS_PENDING);
+		if (modelDTOOrderJSONObject.getInt("orderStatus") ==
+				MarketplaceConstants.ORDER_STATUS_OPEN) {
+
+			_marketplaceService.updateOrder(
+				null, orderId, MarketplaceConstants.ORDER_STATUS_PENDING);
 		}
 
-		_updateOrder(null, orderId, _ORDER_STATUS_PROCESSING);
+		_marketplaceService.updateOrder(
+			null, orderId, MarketplaceConstants.ORDER_STATUS_PROCESSING);
 
 		PortalInstance portalInstance = _postPortalInstance(
 			jwt, modelDTOOrderJSONObject.getString("creatorEmailAddress"),
@@ -208,7 +191,7 @@ public class TrialRestController extends BaseRestController {
 
 			_deletePortalInstance(orderId);
 
-			_updateOrder(
+			_marketplaceService.updateOrder(
 				HashMapBuilder.put(
 					"trial-error", exception.toString()
 				).put(
@@ -220,12 +203,12 @@ public class TrialRestController extends BaseRestController {
 				).put(
 					"trial-virtualhost", portalInstance.getVirtualHost()
 				).build(),
-				orderId, _ORDER_STATUS_CANCELLED);
+				orderId, MarketplaceConstants.ORDER_STATUS_CANCELLED);
 
 			return;
 		}
 
-		_updateOrder(
+		_marketplaceService.updateOrder(
 			HashMapBuilder.put(
 				"trial-end-date",
 				ZonedDateTime.now(
@@ -243,7 +226,7 @@ public class TrialRestController extends BaseRestController {
 			).put(
 				"trial-virtualhost", portalInstance.getVirtualHost()
 			).build(),
-			orderId, _ORDER_STATUS_IN_PROGRESS);
+			orderId, MarketplaceConstants.ORDER_STATUS_IN_PROGRESS);
 
 		_postNotificationQueueEntry(
 			modelDTOOrderJSONObject.getString("creatorEmailAddress"),
@@ -266,9 +249,7 @@ public class TrialRestController extends BaseRestController {
 			@AuthenticationPrincipal Jwt jwt, @PathVariable long orderId)
 		throws Exception {
 
-		OrderResource orderResource = _getOrderResource();
-
-		Order order = orderResource.getOrder(orderId);
+		Order order = _marketplaceService.getOrder(orderId);
 
 		postProvisioning(
 			jwt,
@@ -311,21 +292,6 @@ public class TrialRestController extends BaseRestController {
 		if (_log.isInfoEnabled()) {
 			_log.info("Portal instance deleted for order " + orderId);
 		}
-	}
-
-	private OrderResource _getOrderResource() throws Exception {
-		URL liferayDXPURL = new URL(
-			lxcDXPServerProtocol + "://" + lxcDXPMainDomain);
-
-		return OrderResource.builder(
-		).endpoint(
-			liferayDXPURL
-		).header(
-			HttpHeaders.AUTHORIZATION,
-			_liferayOAuth2AccessTokenManager.getAuthorization(
-				"liferay-marketplace-etc-spring-boot-oauth-application-" +
-					"headless-server")
-		).build();
 	}
 
 	private PortalInstanceResource _getPortalInstanceResource()
@@ -512,38 +478,6 @@ public class TrialRestController extends BaseRestController {
 		return string;
 	}
 
-	private void _updateOrder(
-			Map<String, ?> customFields, long orderId, int orderStatus)
-		throws Exception {
-
-		OrderResource orderResource = _getOrderResource();
-
-		Order order = new Order();
-
-		order.setCustomFields(() -> customFields);
-		order.setOrderStatus(() -> orderStatus);
-
-		orderResource.patchOrder(orderId, order);
-	}
-
-	private static final int _ORDER_STATUS_CANCELLED = 8;
-
-	private static final int _ORDER_STATUS_COMPLETED = 0;
-
-	private static final int _ORDER_STATUS_IN_PROGRESS = 6;
-
-	private static final int _ORDER_STATUS_ON_HOLD = 20;
-
-	private static final int _ORDER_STATUS_OPEN = 2;
-
-	private static final int _ORDER_STATUS_PENDING = 1;
-
-	private static final int _ORDER_STATUS_PROCESSING = 10;
-
-	private static final boolean _TRIAL_ACCOUNT_CHECK = GetterUtil.getBoolean(
-		System.getenv(
-			"LIFERAY_MARKETPLACE_ETC_SPRING_BOOT_TRIAL_ACCOUNT_CHECK"));
-
 	private static final int _TRIAL_MAX_INSTANCES = GetterUtil.getInteger(
 		System.getenv(
 			"LIFERAY_MARKETPLACE_ETC_SPRING_BOOT_TRIAL_MAX_INSTANCES"),
@@ -560,6 +494,9 @@ public class TrialRestController extends BaseRestController {
 
 	@Autowired
 	private LiferayOAuth2AccessTokenManager _liferayOAuth2AccessTokenManager;
+
+	@Autowired
+	private MarketplaceService _marketplaceService;
 
 	@Value("${liferay.marketplace.trial.dxp.domain}")
 	private String _trialDXPDomain;

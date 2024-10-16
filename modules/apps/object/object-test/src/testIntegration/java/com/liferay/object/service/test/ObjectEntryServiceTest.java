@@ -30,12 +30,10 @@ import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.object.tree.Edge;
 import com.liferay.object.tree.Node;
 import com.liferay.object.tree.Tree;
-import com.liferay.object.tree.TreeFactory;
 import com.liferay.object.tree.constants.TreeConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.exception.NoSuchResourceActionException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -65,6 +63,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
@@ -132,17 +131,24 @@ public class ObjectEntryServiceTest {
 			PermissionThreadLocal.getPermissionChecker();
 		_tree = TreeTestUtil.createObjectDefinitionTree(
 			_objectDefinitionLocalService, _objectRelationshipLocalService,
-			_treeFactory);
-		_user = UserTestUtil.addUser();
-
-		ObjectDefinition rootObjectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinition(
-				TestPropsValues.getCompanyId(), "C_A");
+			true,
+			LinkedHashMapBuilder.put(
+				"A", new String[] {"AA", "AB"}
+			).put(
+				"AA", new String[] {"AAA", "AAB"}
+			).put(
+				"AB", new String[0]
+			).put(
+				"AAA", new String[0]
+			).put(
+				"AAB", new String[0]
+			).build());
 
 		_rootObjectDefinition =
-			_objectDefinitionLocalService.publishCustomObjectDefinition(
-				_adminUser.getUserId(),
-				rootObjectDefinition.getObjectDefinitionId());
+			_objectDefinitionLocalService.getObjectDefinition(
+				TestPropsValues.getCompanyId(), "C_A");
+
+		_user = UserTestUtil.addUser();
 	}
 
 	@After
@@ -298,28 +304,6 @@ public class ObjectEntryServiceTest {
 						TestPropsValues.getGroupId(), _adminUser.getUserId())));
 		}
 
-		// Root descendant must not have ADD_OBJECT_ENTRY resource action
-
-		TreeTestUtil.forEachNodeObjectDefinition(
-			_tree.iterator(), _objectDefinitionLocalService,
-			objectDefinition -> {
-				if (objectDefinition.isRootNode()) {
-					return;
-				}
-
-				AssertUtils.assertFailure(
-					NoSuchResourceActionException.class,
-					"com.liferay.object#" +
-						objectDefinition.getObjectDefinitionId() +
-							"#ADD_OBJECT_ENTRY",
-					() -> _resourcePermissionLocalService.addResourcePermission(
-						TestPropsValues.getCompanyId(),
-						objectDefinition.getResourceName(),
-						ResourceConstants.SCOPE_COMPANY,
-						String.valueOf(TestPropsValues.getCompanyId()),
-						role.getRoleId(), ObjectActionKeys.ADD_OBJECT_ENTRY));
-			});
-
 		// User can add an object entry to descendant object definitions
 		// with the update permission
 
@@ -425,9 +409,9 @@ public class ObjectEntryServiceTest {
 		Node objectDefinitionRootNode = _tree.getRootNode();
 
 		Tree objectEntryTree = TreeTestUtil.createObjectEntryTree(
-			"1", _objectEntryLocalService, _objectFieldLocalService,
-			objectDefinitionRootNode.getPrimaryKey(),
-			_objectRelationshipLocalService, _treeFactory);
+			"1", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			objectDefinitionRootNode.getPrimaryKey());
 
 		_setUser(_user);
 
@@ -455,34 +439,12 @@ public class ObjectEntryServiceTest {
 			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
 			ActionKeys.DELETE);
 
-		// Root descendant must not have DELETE resource action
-
-		TreeTestUtil.forEachNodeObjectDefinition(
-			_tree.iterator(TreeConstants.ITERATOR_TYPE_POST_ORDER),
-			_objectDefinitionLocalService,
-			objectDefinition -> {
-				if (objectDefinition.isRootNode()) {
-					return;
-				}
-
-				AssertUtils.assertFailure(
-					NoSuchResourceActionException.class,
-					"com.liferay.object.model.ObjectDefinition#" +
-						objectDefinition.getObjectDefinitionId() + "#DELETE",
-					() -> _resourcePermissionLocalService.addResourcePermission(
-						TestPropsValues.getCompanyId(),
-						objectDefinition.getClassName(),
-						ResourceConstants.SCOPE_COMPANY,
-						String.valueOf(TestPropsValues.getCompanyId()),
-						role.getRoleId(), ActionKeys.DELETE));
-			});
-
 		// Root individual permissions must be inherited
 
 		objectEntryTree = TreeTestUtil.createObjectEntryTree(
-			"1", _objectEntryLocalService, _objectFieldLocalService,
-			objectDefinitionRootNode.getPrimaryKey(),
-			_objectRelationshipLocalService, _treeFactory);
+			"1", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			objectDefinitionRootNode.getPrimaryKey());
 
 		Node objectEntryRootNode = objectEntryTree.getRootNode();
 
@@ -506,9 +468,9 @@ public class ObjectEntryServiceTest {
 		_setUser(_adminUser);
 
 		objectEntryTree = TreeTestUtil.createObjectEntryTree(
-			"1", _objectEntryLocalService, _objectFieldLocalService,
-			_rootObjectDefinition.getRootObjectDefinitionId(),
-			_objectRelationshipLocalService, _treeFactory);
+			"1", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			_rootObjectDefinition.getRootObjectDefinitionId());
 
 		objectEntryRootNode = objectEntryTree.getRootNode();
 
@@ -620,9 +582,9 @@ public class ObjectEntryServiceTest {
 		Node objectDefinitionRootNode = _tree.getRootNode();
 
 		Tree objectEntryTree = TreeTestUtil.createObjectEntryTree(
-			"1", _objectEntryLocalService, _objectFieldLocalService,
-			objectDefinitionRootNode.getPrimaryKey(),
-			_objectRelationshipLocalService, _treeFactory);
+			"1", _objectDefinitionLocalService, _objectEntryLocalService,
+			_objectFieldLocalService, _objectRelationshipLocalService,
+			objectDefinitionRootNode.getPrimaryKey());
 
 		_setUser(_user);
 
@@ -648,28 +610,6 @@ public class ObjectEntryServiceTest {
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
 			ActionKeys.VIEW);
-
-		// Root descendant must not have VIEW resource action
-
-		TreeTestUtil.forEachNodeObjectDefinition(
-			_tree.iterator(TreeConstants.ITERATOR_TYPE_POST_ORDER),
-			_objectDefinitionLocalService,
-			objectDefinition -> {
-				if (objectDefinition.isRootNode()) {
-					return;
-				}
-
-				AssertUtils.assertFailure(
-					NoSuchResourceActionException.class,
-					"com.liferay.object.model.ObjectDefinition#" +
-						objectDefinition.getObjectDefinitionId() + "#VIEW",
-					() -> _resourcePermissionLocalService.addResourcePermission(
-						TestPropsValues.getCompanyId(),
-						objectDefinition.getClassName(),
-						ResourceConstants.SCOPE_COMPANY,
-						String.valueOf(TestPropsValues.getCompanyId()),
-						role.getRoleId(), ActionKeys.VIEW));
-			});
 
 		// Root individual permissions must be inherited
 
@@ -745,7 +685,7 @@ public class ObjectEntryServiceTest {
 				null, TestPropsValues.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				_objectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"relationship", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -1121,10 +1061,6 @@ public class ObjectEntryServiceTest {
 
 	private ObjectDefinition _rootObjectDefinition;
 	private Tree _tree;
-
-	@Inject
-	private TreeFactory _treeFactory;
-
 	private User _user;
 
 	@Inject(type = UserLocalService.class)

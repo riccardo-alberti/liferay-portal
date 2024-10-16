@@ -6,7 +6,6 @@
 package com.liferay.testray.rest.internal.resource.v1_0;
 
 import com.liferay.asset.kernel.exception.NoSuchEntryException;
-import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -20,8 +19,8 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.security.auth.FullNameGenerator;
 import com.liferay.portal.kernel.security.auth.FullNameGeneratorFactory;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -36,6 +35,7 @@ import com.liferay.testray.rest.resource.v1_0.TestrayTestFlowResource;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +60,7 @@ public class TestrayTestFlowResourceImpl
 			String testrayTeamIds, String testrayUserId, Pagination pagination)
 		throws Exception {
 
-		StringBundler sb = new StringBundler(69);
+		StringBundler sb = new StringBundler(65);
 
 		sb.append("select * from ( select count( ");
 		sb.append("cr.r_subtaskToCaseResults_c_subtaskId) as ");
@@ -69,11 +69,9 @@ public class TestrayTestFlowResourceImpl
 		sb.append("userId, null as lastName, null as middleName, null as ");
 		sb.append("uuid_, null as portraitId, ta.c_taskId_ from ");
 		sb.append("O_[%COMPANY_ID%]_CaseResult cr, ");
-		sb.append("O_[%COMPANY_ID%]_CaseResult_x crx, ");
 		sb.append("O_[%COMPANY_ID%]_Component c, O_[%COMPANY_ID%]_Team t, ");
 		sb.append("O_[%COMPANY_ID%]_Task ta, O_[%COMPANY_ID%]_Subtask s  ");
-		sb.append("where cr.c_caseResultId_ = crx.c_caseResultId_ and ");
-		sb.append("cr.r_componentToCaseResult_c_componentId = ");
+		sb.append("where cr.r_componentToCaseResult_c_componentId = ");
 		sb.append("c.c_componentId_ and c.r_teamToComponents_c_teamId = ");
 		sb.append("t.c_teamId_ and cr.r_subtaskToCaseResults_c_subtaskId = ");
 		sb.append("s.c_subtaskId_ and s.dueStatus_ <> 'MERGED' and ");
@@ -138,11 +136,9 @@ public class TestrayTestFlowResourceImpl
 		sb.append("u.userId, u.lastName, u.middleName, u.uuid_, ");
 		sb.append("u.portraitId, ta.c_taskId_ from ");
 		sb.append("O_[%COMPANY_ID%]_CaseResult cr, ");
-		sb.append("O_[%COMPANY_ID%]_CaseResult_x crx, ");
 		sb.append("O_[%COMPANY_ID%]_Component c, O_[%COMPANY_ID%]_Team t, ");
 		sb.append("O_[%COMPANY_ID%]_Task ta, O_[%COMPANY_ID%]_Subtask s, ");
-		sb.append("User_ u where crx.c_caseResultId_ = cr.c_caseResultId_ ");
-		sb.append("and cr.r_componentToCaseResult_c_componentId = ");
+		sb.append("User_ u where cr.r_componentToCaseResult_c_componentId = ");
 		sb.append("c.c_componentId_ and c.r_teamToComponents_c_teamId = ");
 		sb.append("t.c_teamId_ and cr.r_subtaskToCaseResults_c_subtaskId = ");
 		sb.append("s.c_subtaskId_ and s.dueStatus_ <> 'MERGED' and ");
@@ -289,66 +285,13 @@ public class TestrayTestFlowResourceImpl
 
 		Map<String, Serializable> testrayBuild = valuesList.get(0);
 
-		StringBundler sb = new StringBundler(9);
-
-		sb.append("select cr.errors_ , sum(c.priority_) as score from ");
-		sb.append("O_[%COMPANY_ID%]_CaseResult cr, O_[%COMPANY_ID%]_Case c ");
-		sb.append("where cr.errors_ is not null and cr.errors_ != '' and ");
-		sb.append("cr.r_caseToCaseResult_c_caseId = c.c_caseId_ and ");
-		sb.append("cr.r_buildToCaseResult_c_buildId = ? group by cr.errors_ ");
-		sb.append("order by score desc");
-
-		List<Map<String, Object>> values = TestrayUtil.executeQuery(
-			StringUtil.replace(
-				sb.toString(), "[%COMPANY_ID%]",
-				String.valueOf(contextCompany.getCompanyId())),
-			ListUtil.fromArray(
-				GetterUtil.getLong(testrayBuild.get("c_buildId"))));
-
-		objectDefinition = _objectDefinitionLocalService.getObjectDefinition(
-			contextCompany.getCompanyId(), "C_Subtask");
-		int testraySubtasksAmount = 0;
-
-		for (Map<String, Object> value : values) {
-			testraySubtasksAmount++;
-
-			ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
-				contextUser.getUserId(), 0,
-				objectDefinition.getObjectDefinitionId(),
-				HashMapBuilder.<String, Serializable>put(
-					"dueStatus", "OPEN"
-				).put(
-					"errors", String.valueOf(value.get("errors_"))
-				).put(
-					"name", "ST-" + testraySubtasksAmount
-				).put(
-					"number", testraySubtasksAmount
-				).put(
-					"r_taskToSubtasks_c_taskId", testrayTaskId
-				).put(
-					"score", String.valueOf(value.get("score"))
-				).build(),
-				_serviceContextHelper.getServiceContext());
-
-			sb = new StringBundler();
-
-			sb.append("update O_[%COMPANY_ID%]_CaseResult set ");
-			sb.append("r_subtaskToCaseResults_c_subtaskId = ? where ");
-			sb.append("r_buildToCaseResult_c_buildId = ? and errors_ = ?");
-
-			TestrayUtil.executeUpdate(
-				StringUtil.replace(
-					sb.toString(), "[%COMPANY_ID%]",
-					String.valueOf(contextCompany.getCompanyId())),
-				ListUtil.fromArray(
-					objectEntry.getObjectEntryId(),
-					GetterUtil.getLong(testrayBuild.get("c_buildId")),
-					String.valueOf(value.get("errors_"))));
-		}
-
 		TestrayTestFlow testrayTestFlow = new TestrayTestFlow();
 
-		testrayTestFlow.setSubtaskAmount(testraySubtasksAmount);
+		testrayTestFlow.setSubtaskAmount(
+			_testrayManager.createTestraySubtasks(
+				contextCompany.getCompanyId(),
+				GetterUtil.getLong(testrayBuild.get("c_buildId")),
+				testrayTaskId, contextUser.getUserId()));
 
 		return testrayTestFlow;
 	}
@@ -415,6 +358,100 @@ public class TestrayTestFlowResourceImpl
 		return testrayTestFlow;
 	}
 
+	@Override
+	public Page<TestraySubtask> putTestrayTestFlowTestraySubtaskMergePage(
+			TestraySubtask[] testraySubtasks)
+		throws Exception {
+
+		if (testraySubtasks.length < 2) {
+			return Page.of(ListUtil.fromArray(testraySubtasks));
+		}
+
+		List<TestraySubtask> sortedTestraySubtasks = ListUtil.sort(
+			ListUtil.fromArray(testraySubtasks),
+			new Comparator<TestraySubtask>() {
+
+				@Override
+				public int compare(
+					TestraySubtask testraySubtask1,
+					TestraySubtask testraySubtask2) {
+
+					return GetterUtil.getInteger(
+						testraySubtask2.getScore() -
+							testraySubtask1.getScore());
+				}
+
+			});
+
+		TestraySubtask parentTestraySubtask = sortedTestraySubtasks.get(0);
+
+		long totalScore = parentTestraySubtask.getScore();
+
+		for (int i = 1; i < sortedTestraySubtasks.size(); i++) {
+			TestraySubtask testraySubtask = sortedTestraySubtasks.get(i);
+
+			totalScore += testraySubtask.getScore();
+
+			Map<String, Serializable> values =
+				_objectEntryLocalService.getValues(testraySubtask.getId());
+
+			values.put("dueStatus", "MERGED");
+			values.put(
+				"r_mergedToTestraySubtask_c_subtaskId",
+				parentTestraySubtask.getId());
+			values.put("score", 0);
+
+			if (Validator.isNull(values.get("issues"))) {
+				values.put("issues", "");
+			}
+
+			_objectEntryLocalService.updateObjectEntry(
+				contextUser.getUserId(), testraySubtask.getId(), values,
+				new ServiceContext());
+
+			List<Object> params = new ArrayList<>();
+
+			StringBundler sb = new StringBundler(4);
+
+			sb.append("update O_[%COMPANY_ID%]_CaseResult set ");
+			sb.append("r_subtasktocaseresults_c_subtaskid = ? ");
+
+			params.add(parentTestraySubtask.getId());
+
+			if (Validator.isNotNull(parentTestraySubtask.getIssues())) {
+				sb.append(", issues_ = ? ");
+				params.add(parentTestraySubtask.getIssues());
+			}
+
+			sb.append("where r_subtasktocaseresults_c_subtaskid = ?");
+
+			params.add(GetterUtil.getLong(values.get("c_subtaskId")));
+
+			TestrayUtil.executeUpdate(
+				StringUtil.replace(
+					sb.toString(), "[%COMPANY_ID%]",
+					String.valueOf(contextCompany.getCompanyId())),
+				params);
+		}
+
+		Map<String, Serializable> values = _objectEntryLocalService.getValues(
+			parentTestraySubtask.getId());
+
+		values.put("score", totalScore);
+
+		if (Validator.isNull(values.get("issues"))) {
+			values.put("issues", "");
+		}
+
+		_objectEntryLocalService.updateObjectEntry(
+			contextUser.getUserId(), parentTestraySubtask.getId(), values,
+			new ServiceContext());
+
+		EntityCacheUtil.clearCache();
+
+		return Page.of(sortedTestraySubtasks);
+	}
+
 	@Reference(
 		target = "(filter.factory.key=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT + ")"
 	)
@@ -425,9 +462,6 @@ public class TestrayTestFlowResourceImpl
 
 	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
-
-	@Reference
-	private ServiceContextHelper _serviceContextHelper;
 
 	@Reference
 	private TestrayManager _testrayManager;

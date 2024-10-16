@@ -76,8 +76,16 @@ public class PortletRegistryImpl implements PortletRegistry {
 			return portletIds;
 		}
 
+		String html = fragmentEntryLink.getHtml();
+
+		if (!html.contains("@liferay_portlet") &&
+			!html.contains("lfr-widget-")) {
+
+			return portletIds;
+		}
+
 		if (document == null) {
-			document = _getDocument(fragmentEntryLink.getHtml());
+			document = _getDocument(html);
 		}
 
 		for (Element element : document.select("*")) {
@@ -249,7 +257,7 @@ public class PortletRegistryImpl implements PortletRegistry {
 
 	private static final Pattern _liferayPortletRuntimePattern =
 		Pattern.compile(
-			"\\[@liferay_portlet\\[\"runtime\"\\]([\\s\\S]*)?" +
+			"\\[@liferay_portlet(?=\\.runtime|\\[\"runtime\"\\])([\\s\\S]*)?" +
 				"(portletName=\"\\w+\")([\\s\\S]*)?\\/\\]");
 
 	private final Map<String, String> _aliasPortletNames =

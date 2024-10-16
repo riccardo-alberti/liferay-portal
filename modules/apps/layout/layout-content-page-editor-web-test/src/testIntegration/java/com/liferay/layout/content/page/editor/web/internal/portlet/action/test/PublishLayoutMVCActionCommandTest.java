@@ -52,6 +52,7 @@ import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -59,6 +60,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -71,8 +73,11 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 import javax.portlet.PortletPreferences;
 
@@ -99,17 +104,20 @@ public class PublishLayoutMVCActionCommandTest {
 	@Before
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
+
+		_layout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		_draftLayout = _layout.fetchDraftLayout();
+		_segmentsExperienceId =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				_layout.getPlid());
 	}
 
 	@Test
 	public void testDeletedItemPortletPreferencesAreRemovedWhenLayoutIsPublished()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
-
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		FragmentEntryLink fragmentEntryLink = _addPortletToLayout(draftLayout);
+		FragmentEntryLink fragmentEntryLink = _addPortletToLayout();
 
 		JSONObject editableValuesJSONObject = JSONFactoryUtil.createJSONObject(
 			fragmentEntryLink.getEditableValues());
@@ -120,18 +128,18 @@ public class PublishLayoutMVCActionCommandTest {
 			editableValuesJSONObject.getString("instanceId"));
 
 		_assertNotNullPortletPreferences(
-			draftLayout.getPlid(), encodePortletId);
+			_draftLayout.getPlid(), encodePortletId);
 
-		_assertNullPortletPreferences(layout.getPlid(), encodePortletId);
+		_assertNullPortletPreferences(_layout.getPlid(), encodePortletId);
 
-		ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+		ContentLayoutTestUtil.publishLayout(_draftLayout, _layout);
 
 		_assertNotNullPortletPreferences(
-			draftLayout.getPlid(), encodePortletId);
+			_draftLayout.getPlid(), encodePortletId);
 
-		_assertNotNullPortletPreferences(layout.getPlid(), encodePortletId);
+		_assertNotNullPortletPreferences(_layout.getPlid(), encodePortletId);
 
-		LayoutStructure layoutStructure = _getLayoutStructure(draftLayout);
+		LayoutStructure layoutStructure = _getLayoutStructure(_draftLayout);
 
 		LayoutStructureItem portletLayoutStructureItem =
 			layoutStructure.getLayoutStructureItemByFragmentEntryLinkId(
@@ -143,27 +151,21 @@ public class PublishLayoutMVCActionCommandTest {
 
 		_layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructureData(
-				_group.getGroupId(), draftLayout.getPlid(),
-				_segmentsExperienceLocalService.
-					fetchDefaultSegmentsExperienceId(layout.getPlid()),
-				layoutStructure.toString());
+				_group.getGroupId(), _draftLayout.getPlid(),
+				_segmentsExperienceId, layoutStructure.toString());
 
-		ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+		ContentLayoutTestUtil.publishLayout(_draftLayout, _layout);
 
-		_assertNullPortletPreferences(draftLayout.getPlid(), encodePortletId);
+		_assertNullPortletPreferences(_draftLayout.getPlid(), encodePortletId);
 
-		_assertNullPortletPreferences(layout.getPlid(), encodePortletId);
+		_assertNullPortletPreferences(_layout.getPlid(), encodePortletId);
 	}
 
 	@Test
 	public void testDeletedItemsAreRemovedWhenLayoutIsPublished()
 		throws Exception {
 
-		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
-
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		LayoutStructure layoutStructure = _getLayoutStructure(draftLayout);
+		LayoutStructure layoutStructure = _getLayoutStructure(_draftLayout);
 
 		LayoutStructureItem layoutStructureItem1 =
 			layoutStructure.addContainerStyledLayoutStructureItem(
@@ -187,14 +189,12 @@ public class PublishLayoutMVCActionCommandTest {
 
 		_layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructureData(
-				_group.getGroupId(), draftLayout.getPlid(),
-				_segmentsExperienceLocalService.
-					fetchDefaultSegmentsExperienceId(layout.getPlid()),
-				layoutStructure.toString());
+				_group.getGroupId(), _draftLayout.getPlid(),
+				_segmentsExperienceId, layoutStructure.toString());
 
-		ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+		ContentLayoutTestUtil.publishLayout(_draftLayout, _layout);
 
-		layoutStructure = _getLayoutStructure(draftLayout);
+		layoutStructure = _getLayoutStructure(_draftLayout);
 
 		List<DeletedLayoutStructureItem> deletedLayoutStructureItems =
 			layoutStructure.getDeletedLayoutStructureItems();
@@ -216,21 +216,11 @@ public class PublishLayoutMVCActionCommandTest {
 
 	@Test
 	public void testLayoutContentIsIndexedAfterPublishing() throws Exception {
-		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
-
-		Assert.assertFalse(layout.isPublished());
-
-		Layout draftLayout = layout.fetchDraftLayout();
-
-		Assert.assertNotNull(draftLayout);
-
-		long segmentsExperienceId =
-			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
-				draftLayout.getPlid());
+		Assert.assertFalse(_layout.isPublished());
 
 		FragmentEntryLink fragmentEntryLink =
 			ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
-				"{}", draftLayout, segmentsExperienceId);
+				"{}", _draftLayout, _segmentsExperienceId);
 
 		String keywords = fragmentEntryLink.getHtml();
 
@@ -241,11 +231,11 @@ public class PublishLayoutMVCActionCommandTest {
 
 		layoutIndexerFixture.searchNoOne(keywords);
 
-		ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+		ContentLayoutTestUtil.publishLayout(_draftLayout, _layout);
 
-		layout = _layoutLocalService.getLayout(layout.getPlid());
+		_layout = _layoutLocalService.getLayout(_layout.getPlid());
 
-		Assert.assertTrue(layout.isPublished());
+		Assert.assertTrue(_layout.isPublished());
 
 		Locale locale = LocaleUtil.getSiteDefault();
 
@@ -262,7 +252,7 @@ public class PublishLayoutMVCActionCommandTest {
 
 		Assert.assertEquals(
 			document.get(Field.ENTRY_CLASS_PK),
-			String.valueOf(layout.getPlid()));
+			String.valueOf(_layout.getPlid()));
 	}
 
 	@Test
@@ -333,7 +323,8 @@ public class PublishLayoutMVCActionCommandTest {
 	}
 
 	@Test
-	public void testPublishedLayoutFragmentEntryLinkWithFreemarketEmbeddedPortlet()
+	@TestInfo({"LPD-39213", "LPS-202932"})
+	public void testPublishedLayoutFragmentEntryLinkWithFreeMarkerEmbeddedPortlet()
 		throws Exception {
 
 		ServiceContext serviceContext =
@@ -343,39 +334,24 @@ public class PublishLayoutMVCActionCommandTest {
 		try {
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			String html = StringBundler.concat(
-				"<div class=\"fragment_1\">[@liferay_portlet[\"runtime\"]",
-				"portletName=\"com_liferay_journal_content_web_portlet_",
-				"JournalContentPortlet\" instanceId=\"myInstanceId\" ",
-				"persistSettings=false /]</div>");
-
-			Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
-
-			Layout draftLayout = layout.fetchDraftLayout();
-
-			Assert.assertNotNull(draftLayout);
-
-			_addFragmentEntryLinkToLayout(html, draftLayout, serviceContext);
-
-			JournalArticle journalArticle = JournalTestUtil.addJournalArticle(
-				_dataDefinitionResourceFactory, _createDDMFormField(),
-				_ddmFormValuesToFieldsConverter, RandomTestUtil.randomString(),
-				_group.getGroupId(), _journalConverter);
-
-			AssetEntry assetEntry = _assetEntryLocalService.getEntry(
-				JournalArticle.class.getName(),
-				journalArticle.getResourcePrimKey());
-
-			String portletId = PortletIdCodec.encode(
-				JournalContentPortletKeys.JOURNAL_CONTENT, "myInstanceId");
-
-			_setUpPortletPreferences(
-				assetEntry, journalArticle, draftLayout, portletId);
-
-			ContentLayoutTestUtil.publishLayout(draftLayout, layout);
-
-			_assertPortletPreferences(
-				assetEntry, journalArticle, layout, portletId);
+			_assertPublishedLayoutFragmentEntryLinkWithFreeMarkerEmbeddedPortlet(
+				new String[] {
+					StringBundler.concat(
+						"<div class=\"fragment_1\">[@liferay_portlet.runtime ",
+						"portletName=\"com_liferay_journal_content_web_",
+						"portlet_JournalContentPortlet\" ",
+						"instanceId=\"myInstanceId0\" persistSettings=false /]",
+						"</div>"),
+					StringBundler.concat(
+						"<div class=\"fragment_1\">[@liferay_portlet",
+						"[\"runtime\"] portletName=\"com_liferay_journal_",
+						"content_web_portlet_JournalContentPortlet\" ",
+						"instanceId=\"myInstanceId1\" persistSettings=false /]",
+						"</div>")
+				},
+				(index, namespace) -> PortletIdCodec.encode(
+					JournalContentPortletKeys.JOURNAL_CONTENT,
+					"myInstanceId" + index));
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
@@ -383,7 +359,8 @@ public class PublishLayoutMVCActionCommandTest {
 	}
 
 	@Test
-	public void testPublishedLayoutFragmentEntryLinkWithFreemarketEmbeddedPortletAndDynamicInstanceId()
+	@TestInfo({"LPD-39213", "LPS-202932"})
+	public void testPublishedLayoutFragmentEntryLinkWithFreeMarkerEmbeddedPortletAndDynamicInstanceId()
 		throws Exception {
 
 		ServiceContext serviceContext =
@@ -393,50 +370,34 @@ public class PublishLayoutMVCActionCommandTest {
 		try {
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			String html = StringBundler.concat(
-				"<div class=\"fragment_1\">[@liferay_portlet[\"runtime\"]",
-				"portletName=\"com_liferay_journal_content_web_portlet_",
-				"JournalContentPortlet\" instanceId=\"",
-				"fragmentEntryLinkNamespace\" persistSettings=false /]</div>");
-
-			Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
-
-			Layout draftLayout = layout.fetchDraftLayout();
-
-			Assert.assertNotNull(draftLayout);
-
-			JournalArticle journalArticle = JournalTestUtil.addJournalArticle(
-				_dataDefinitionResourceFactory, _createDDMFormField(),
-				_ddmFormValuesToFieldsConverter, RandomTestUtil.randomString(),
-				_group.getGroupId(), _journalConverter);
-
-			AssetEntry assetEntry = _assetEntryLocalService.getEntry(
-				JournalArticle.class.getName(),
-				journalArticle.getResourcePrimKey());
-
-			FragmentEntryLink fragmentEntryLink = _addFragmentEntryLinkToLayout(
-				html, draftLayout, serviceContext);
-
-			String portletId = PortletIdCodec.encode(
-				JournalContentPortletKeys.JOURNAL_CONTENT,
-				fragmentEntryLink.getNamespace());
-
-			_setUpPortletPreferences(
-				assetEntry, journalArticle, draftLayout, portletId);
-
-			ContentLayoutTestUtil.publishLayout(draftLayout, layout);
-
-			_assertPortletPreferences(
-				assetEntry, journalArticle, layout, portletId);
+			_assertPublishedLayoutFragmentEntryLinkWithFreeMarkerEmbeddedPortlet(
+				new String[] {
+					StringBundler.concat(
+						"<div class=\"fragment_1\">[@liferay_portlet.runtime ",
+						"portletName=\"com_liferay_journal_content_web_",
+						"portlet_JournalContentPortlet\" ",
+						"instanceId=\"fragmentEntryLinkNamespace\" ",
+						"persistSettings=false /]</div>"),
+					StringBundler.concat(
+						"<div class=\"fragment_2\">[@liferay_portlet",
+						"[\"runtime\"] portletName=\"com_liferay_journal_",
+						"content_web_portlet_JournalContentPortlet\" ",
+						"instanceId=\"fragmentEntryLinkNamespace\" ",
+						"persistSettings=false /]</div>")
+				},
+				(index, namespace) -> PortletIdCodec.encode(
+					JournalContentPortletKeys.JOURNAL_CONTENT, namespace));
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
 		}
 	}
 
-	private FragmentEntryLink _addFragmentEntryLinkToLayout(
-			String html, Layout layout, ServiceContext serviceContext)
+	private FragmentEntryLink _addFragmentEntryLinkToLayout(String html)
 		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
 
 		FragmentCollection fragmentCollection =
 			_fragmentCollectionLocalService.addFragmentCollection(
@@ -454,22 +415,19 @@ public class PublishLayoutMVCActionCommandTest {
 		return ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 			"{}", fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
 			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
-			fragmentEntry.getJs(), layout, fragmentEntry.getFragmentEntryKey(),
-			fragmentEntry.getType(), null, 0,
-			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
-				layout.getPlid()));
+			fragmentEntry.getJs(), _draftLayout,
+			fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(), null,
+			0, _segmentsExperienceId);
 	}
 
-	private FragmentEntryLink _addPortletToLayout(Layout layout)
-		throws Exception {
-
+	private FragmentEntryLink _addPortletToLayout() throws Exception {
 		List<FragmentEntryLink> originalFragmentEntryLinks =
 			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
-				_group.getGroupId(), layout.getPlid());
+				_group.getGroupId(), _draftLayout.getPlid());
 
 		JSONObject processAddPortletJSONObject =
 			ContentLayoutTestUtil.addPortletToLayout(
-				layout,
+				_draftLayout,
 				LayoutContentPageEditorWebPortletKeys.
 					LAYOUT_CONTENT_PAGE_EDITOR_WEB_TEST_PORTLET);
 
@@ -488,7 +446,7 @@ public class PublishLayoutMVCActionCommandTest {
 
 		List<FragmentEntryLink> actualFragmentEntryLinks =
 			_fragmentEntryLinkLocalService.getFragmentEntryLinksByPlid(
-				_group.getGroupId(), layout.getPlid());
+				_group.getGroupId(), _draftLayout.getPlid());
 
 		Assert.assertEquals(
 			actualFragmentEntryLinks.toString(),
@@ -517,21 +475,63 @@ public class PublishLayoutMVCActionCommandTest {
 	}
 
 	private void _assertPortletPreferences(
-		AssetEntry assetEntry, JournalArticle journalArticle, Layout layout,
-		String portletId) {
+		Layout layout, Map<String, String> map, String portletId) {
 
 		PortletPreferences portletPreferences =
 			_portletPreferencesFactory.getPortletSetup(layout, portletId, null);
 
-		Assert.assertEquals(
-			String.valueOf(journalArticle.getArticleId()),
-			portletPreferences.getValue("articleId", null));
-		Assert.assertEquals(
-			String.valueOf(assetEntry.getEntryId()),
-			portletPreferences.getValue("assetEntryId", null));
-		Assert.assertEquals(
-			String.valueOf(journalArticle.getGroupId()),
-			portletPreferences.getValue("groupId", null));
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			Assert.assertEquals(
+				entry.getValue(),
+				portletPreferences.getValue(entry.getKey(), null));
+		}
+	}
+
+	private void
+			_assertPublishedLayoutFragmentEntryLinkWithFreeMarkerEmbeddedPortlet(
+				String[] htmls,
+				BiFunction<Integer, String, String> portletIdFunction)
+		throws Exception {
+
+		Map<String, Map<String, String>> portletIdsMap = new HashMap<>();
+
+		for (int i = 0; i < htmls.length; i++) {
+			JournalArticle journalArticle = JournalTestUtil.addJournalArticle(
+				_dataDefinitionResourceFactory, _createDDMFormField(),
+				_ddmFormValuesToFieldsConverter, RandomTestUtil.randomString(),
+				_group.getGroupId(), _journalConverter);
+
+			AssetEntry assetEntry = _assetEntryLocalService.getEntry(
+				JournalArticle.class.getName(),
+				journalArticle.getResourcePrimKey());
+
+			Map<String, String> map = HashMapBuilder.put(
+				"articleId", String.valueOf(journalArticle.getArticleId())
+			).put(
+				"assetEntryId", String.valueOf(assetEntry.getEntryId())
+			).put(
+				"groupId", String.valueOf(journalArticle.getGroupId())
+			).build();
+
+			FragmentEntryLink fragmentEntryLink = _addFragmentEntryLinkToLayout(
+				htmls[i]);
+
+			String portletId = portletIdFunction.apply(
+				i, fragmentEntryLink.getNamespace());
+
+			_setUpPortletPreferences(_draftLayout, map, portletId);
+
+			portletIdsMap.put(portletId, map);
+		}
+
+		ContentLayoutTestUtil.publishLayout(_draftLayout, _layout);
+
+		for (Map.Entry<String, Map<String, String>> entry :
+				portletIdsMap.entrySet()) {
+
+			_assertPortletPreferences(
+				_layout, entry.getValue(), entry.getKey());
+		}
 	}
 
 	private DDMFormField _createDDMFormField() {
@@ -577,24 +577,19 @@ public class PublishLayoutMVCActionCommandTest {
 	}
 
 	private void _setUpPortletPreferences(
-			AssetEntry assetEntry, JournalArticle journalArticle, Layout layout,
-			String portletId)
+			Layout layout, Map<String, String> map, String portletId)
 		throws Exception {
 
 		PortletPreferences portletPreferences =
 			_portletPreferencesFactory.getPortletSetup(layout, portletId, null);
 
-		portletPreferences.setValue(
-			"articleId", String.valueOf(journalArticle.getArticleId()));
-		portletPreferences.setValue(
-			"assetEntryId", String.valueOf(assetEntry.getEntryId()));
-		portletPreferences.setValue(
-			"groupId", String.valueOf(journalArticle.getGroupId()));
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			portletPreferences.setValue(entry.getKey(), entry.getValue());
+		}
 
 		portletPreferences.store();
 
-		_assertPortletPreferences(
-			assetEntry, journalArticle, layout, portletId);
+		_assertPortletPreferences(layout, map, portletId);
 	}
 
 	@Inject
@@ -612,6 +607,8 @@ public class PublishLayoutMVCActionCommandTest {
 	@Inject
 	private DDMFormValuesToFieldsConverter _ddmFormValuesToFieldsConverter;
 
+	private Layout _draftLayout;
+
 	@Inject
 	private FragmentCollectionLocalService _fragmentCollectionLocalService;
 
@@ -627,6 +624,8 @@ public class PublishLayoutMVCActionCommandTest {
 	@Inject
 	private JournalConverter _journalConverter;
 
+	private Layout _layout;
+
 	@Inject
 	private LayoutLocalService _layoutLocalService;
 
@@ -639,6 +638,8 @@ public class PublishLayoutMVCActionCommandTest {
 
 	@Inject
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
+
+	private long _segmentsExperienceId;
 
 	@Inject
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;

@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import ClayModal, {useModal} from '@clayui/modal';
-import {FrontendDataSet} from '@liferay/frontend-data-set-web';
 import {createPortletURL, fetch, getPortletId} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
@@ -28,16 +28,12 @@ const PublicationTimeline = ({
 	timelineClassPK,
 	timelineEditURL,
 	timelineItemsURL,
+	viewTimelineHistoryURL,
+	warningIcon,
 }) => {
-	const MAX_DROPDOWN_ITEMS_SHOWN = 6;
+	const MAX_DROPDOWN_ITEMS_SHOWN = 5;
 	const [timelineItems, setTimelineItems] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [showModal, setShowModal] = useState(false);
-
-	/* eslint-disable no-unused-vars */
-	const {observer, onClose} = useModal({
-		onClose: () => setShowModal(false),
-	});
 
 	const createMVCRenderCommandURL = (
 		ctCollectionId,
@@ -77,128 +73,45 @@ const PublicationTimeline = ({
 		);
 	};
 
-	const renderModal = () => {
-		if (!showModal) {
-			return '';
-		}
-
-		return (
-			<ClayModal
-				className="entity-history-modal"
-				observer={observer}
-				size="full-screen"
-				spritemap={spritemap}
-			>
-				<ClayModal.Header>
-					<div className="autofit-row">
-						{Liferay.Language.get('view-all-history')}
-					</div>
-				</ClayModal.Header>
-
-				<ClayModal.Body
-					style={{borderTop: 0, marginTop: 0, paddingTop: 0}}
-				>
-					<FrontendDataSet
-						creationMenu={null}
-						id="PublicationTimelineEntityHistoryTable"
-						items={timelineItems}
-						itemsPerPage={10}
-						namespace={namespace}
-						selectedItemsKey="id"
-						showManagementBar={false}
-						showPagination={true}
-						showSearch={false}
-						views={[
-							{
-								contentRenderer: 'table',
-								label: 'Table',
-								name: 'table',
-								schema: {
-									fields: [
-										{
-											actionId: 'view',
-											contentRenderer: 'actionLink',
-											fieldName: 'name',
-											label: Liferay.Language.get(
-												'publication'
-											),
-											sortable: true,
-										},
-										{
-											contentRenderer: 'status',
-											fieldName: 'status',
-											label: Liferay.Language.get(
-												'status'
-											),
-											sortable: true,
-										},
-										{
-											fieldName: 'ctEntryUser',
-											label: Liferay.Language.get('user'),
-											sortable: true,
-										},
-										{
-											fieldName: 'ctEntryChangeType',
-											label: Liferay.Language.get(
-												'changed'
-											),
-											sortable: true,
-										},
-										{
-											contentRenderer: 'dateTime',
-											fieldName: 'ctEntryDateModified',
-											label: Liferay.Language.get(
-												'last-modified'
-											),
-											sortable: true,
-										},
-									],
-								},
-								thumbnail: 'table',
-							},
-						]}
-					/>
-				</ClayModal.Body>
-
-				<ClayModal.Footer
-					last={
-						<ClayButton
-							aria-label={Liferay.Language.get('done')}
-							displayType="primary"
-							onClick={() => {
-								onClose();
-							}}
-						>
-							{Liferay.Language.get('done')}
-						</ClayButton>
-					}
-				/>
-			</ClayModal>
-		);
-	};
-
 	const renderTimelineItemRow = (timelineItem) => {
 		return (
 			<ClayDropDown.Item key={timelineItem.id}>
 				<ClayLayout.ContentRow className="c-mb-1">
 					<ClayLayout.ContentCol expand>
+						{Number(timelineClassPK) === 0 ? (
+							<div className="text-weight-bold">
+								{timelineItem.title}
+							</div>
+						) : null}
+
 						<div className="align-items-center d-flex">
-							<span className="c-pr-2">{timelineItem.name}</span>
+							<span className="c-pr-2">
+								{timelineItem.ctCollectionName}
+							</span>
+
+							{Liferay.FeatureFlags['LPD-20556'] &&
+							!!warningIcon &&
+							timelineItem.ctCollectionStatus.code ===
+								WORKFLOW_STATUS_DRAFT ? (
+								<ClayIcon
+									className={warningIcon.conflictIconClass}
+									style={{fontSize: 'medium'}}
+									symbol={warningIcon.conflictIconName}
+								/>
+							) : null}
 
 							<WorkflowStatusLabel
-								workflowStatus={timelineItem.status.code}
+								workflowStatus={
+									timelineItem.ctCollectionStatus.code
+								}
 							/>
 						</div>
 
-						<div className="text-secondary">
-							{timelineItem.description}
-						</div>
-
-						<div className="text-secondary">
-							{Liferay.FeatureFlags['LPD-20556']
-								? timelineItem.ctEntryStatusMessage
-								: timelineItem.statusMessage}
-						</div>
+						{timelineItem.statusMessage ? (
+							<div className="text-secondary">
+								{timelineItem.statusMessage}
+							</div>
+						) : null}
 					</ClayLayout.ContentCol>
 
 					<ClayLayout.ContentCol>
@@ -225,7 +138,9 @@ const PublicationTimeline = ({
 											timelineClassNameId={
 												timelineClassNameId
 											}
-											timelineClassPK={timelineClassPK}
+											timelineClassPK={
+												timelineItem.modelClassPK
+											}
 											timelineEditURL={timelineEditURL}
 											timelineItem={timelineItem}
 										/>
@@ -283,34 +198,11 @@ const PublicationTimeline = ({
 			.then((response) => {
 				return response.json();
 			})
-			.then(async (jsonResponse) => {
-				const tempTimelineItems = jsonResponse.items;
-
-				for (let i = 0; i < tempTimelineItems.length; i++) {
-					await fetch(
-						`/o/change-tracking-rest/v1.0/ct-collections/${tempTimelineItems[i].id}/ct-entries/by-model-class-name-id/${timelineClassNameId}/by-model-class-pk/${timelineClassPK}`,
-						{method: 'GET'}
-					)
-						.then((response) => {
-							return response.json();
-						})
-						.then((jsonResponse) => {
-							tempTimelineItems[i].ctEntryChangeType =
-								jsonResponse.changeType;
-							tempTimelineItems[i].ctEntryDateModified =
-								jsonResponse.dateModified;
-							tempTimelineItems[i].ctEntryId = jsonResponse.id;
-							tempTimelineItems[i].ctEntryStatusMessage =
-								jsonResponse.statusMessage;
-							tempTimelineItems[i].ctEntryUser =
-								jsonResponse.ownerName;
-						});
-				}
-
-				setTimelineItems(tempTimelineItems);
+			.then((jsonResponse) => {
+				setTimelineItems(jsonResponse.items);
 				setLoading(false);
 			});
-	}, [timelineClassNameId, timelineClassPK, timelineItems, timelineItemsURL]);
+	}, [timelineItemsURL]);
 
 	if (loading) {
 		return (
@@ -322,19 +214,32 @@ const PublicationTimeline = ({
 	if (timelineItems && !!timelineItems.length) {
 		return (
 			<>
-				{renderModal()}
-
 				<div className="publication-timeline">
 					<ClayDropDown.ItemList className="c-mb-0">
-						{Liferay.FeatureFlags['LPD-20556']
-							? timelineItems
+						{Liferay.FeatureFlags['LPD-20556'] ? (
+							<>
+								{warningIcon ? (
+									<ClayAlert
+										displayType="warning"
+										spritemap={spritemap}
+										title={Liferay.Language.get('warning')}
+									>
+										{Liferay.Language.get(
+											warningIcon.conflictIconLabel
+										)}
+									</ClayAlert>
+								) : null}
+								{timelineItems
 									.slice(0, MAX_DROPDOWN_ITEMS_SHOWN)
 									.map((timelineItem) =>
 										renderTimelineItemRow(timelineItem)
-									)
-							: timelineItems.map((timelineItem) =>
-									renderTimelineItemRow(timelineItem)
-								)}
+									)}
+							</>
+						) : (
+							timelineItems.map((timelineItem) =>
+								renderTimelineItemRow(timelineItem)
+							)
+						)}
 					</ClayDropDown.ItemList>
 
 					{timelineItems.length > MAX_DROPDOWN_ITEMS_SHOWN &&
@@ -345,7 +250,26 @@ const PublicationTimeline = ({
 								className="btn-block"
 								displayType="secondary"
 								onClick={() => {
-									setShowModal(true);
+									Liferay.Util.openModal({
+										buttons: [
+											{
+												label: Liferay.Language.get(
+													'done'
+												),
+												onClick: ({processClose}) => {
+													processClose();
+												},
+											},
+										],
+										id: `${namespace}publication-timeline-history-modal`,
+										iframeBodyCssClass:
+											'entity-history-modal',
+										size: 'full-screen',
+										title: Liferay.Language.get(
+											'view-entity-modification-history'
+										),
+										url: viewTimelineHistoryURL,
+									});
 								}}
 							>
 								{Liferay.Language.get('view-more')}

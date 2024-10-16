@@ -95,12 +95,15 @@ const availableLocales = [
 
 const defaultLanguageId = 'en_US';
 
+const selectedLanguageId = 'en_US';
+
 const props = {
 	activeLanguageIds,
 	availableLocales,
 	defaultLanguageId,
 	onActiveLanguageIdsChange: jest.fn(),
 	onSelectedLanguageIdChange: jest.fn(),
+	selectedLanguageId,
 };
 
 jest.mock(
@@ -167,6 +170,10 @@ describe('TranslationAdminSelector', () => {
 
 	it('renders a dropdown trigger with the selected locale flag icon as content', () => {
 		const {asFragment} = render(<TranslationAdminSelector {...props} />);
+
+		const buttonElement = document.querySelector('button');
+
+		buttonElement.id = '';
 
 		expect(asFragment()).toMatchSnapshot();
 	});
@@ -356,8 +363,6 @@ describe('TranslationAdminSelector', () => {
 	});
 
 	it('renders horizontal selector when the display type is HORIZONTAL', () => {
-		Liferay.FeatureFlags['LPS-114700'] = true;
-
 		render(
 			<TranslationAdminSelector
 				displayType="HORIZONTAL"
@@ -371,8 +376,6 @@ describe('TranslationAdminSelector', () => {
 		);
 
 		expect(horizontalSelector).toBeInTheDocument();
-
-		Liferay.FeatureFlags['LPS-114700'] = false;
 	});
 
 	it('calls onSelectorActiveChange when the trigger is clicked', () => {

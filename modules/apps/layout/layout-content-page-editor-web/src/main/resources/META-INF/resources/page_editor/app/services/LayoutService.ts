@@ -135,24 +135,57 @@ export default {
 		);
 	},
 
-	moveItem({
+	moveItems({
+		itemIds,
+		onNetworkStatus,
+		parentItemIds,
+		positions,
+		segmentsExperienceId,
+	}: {
+		itemIds: string[];
+		onNetworkStatus: OnNetworkStatus;
+		parentItemIds: string[];
+		positions: number[];
+		segmentsExperienceId: string;
+	}) {
+		return draftServiceFetch<LayoutData>(
+			config.moveItemsURL,
+			{
+				body: {
+					itemIds,
+					parentItemIds,
+					positions,
+					segmentsExperienceId,
+				},
+			},
+			onNetworkStatus
+		);
+	},
+
+	moveStepper({
+		fragmentEntryLinkId,
 		itemId,
+		numberOfSteps,
 		onNetworkStatus,
 		parentItemId,
 		position,
 		segmentsExperienceId,
 	}: {
+		fragmentEntryLinkId: FragmentEntryLink['fragmentEntryLinkId'];
 		itemId: string;
+		numberOfSteps: number;
 		onNetworkStatus: OnNetworkStatus;
 		parentItemId: string;
 		position: number;
 		segmentsExperienceId: string;
 	}) {
 		return draftServiceFetch<LayoutData>(
-			config.moveItemURL,
+			config.moveStepperFragmentEntryLinkURL,
 			{
 				body: {
+					fragmentEntryLinkId,
 					itemId,
+					numberOfSteps,
 					parentItemId,
 					position,
 					segmentsExperienceId,

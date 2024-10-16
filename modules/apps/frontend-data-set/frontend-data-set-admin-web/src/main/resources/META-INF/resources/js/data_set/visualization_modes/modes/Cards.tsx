@@ -12,7 +12,7 @@ import {fetch, openModal} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 import '../../../../css/CardsVisualizationMode.scss';
-import FieldSelectModalContent from '../../../components/FieldSelectModalContent';
+import AddDataSourceFieldsModalContent from '../../../components/AddDataSourceFieldsModalContent';
 import {
 	API_URL,
 	DEFAULT_FETCH_HEADERS,
@@ -22,6 +22,7 @@ import openDefaultFailureToast from '../../../utils/openDefaultFailureToast';
 import openDefaultSuccessToast from '../../../utils/openDefaultSuccessToast';
 import {IField, IFieldTreeItem} from '../../../utils/types';
 import {IDataSetSectionProps} from '../../DataSet';
+import AddCustomFieldModalContent from '../components/AddCustomFieldModalContent';
 import FieldAssignmentControls from '../components/FieldAssignmentControls';
 
 interface IFDSCardsSection {
@@ -55,7 +56,7 @@ export default function Cards(props: IDataSetSectionProps) {
 
 	const getFDSCardsSections = async () => {
 		const response = await fetch(
-			`${API_URL.CARDS_SECTIONS}?filter=(${OBJECT_RELATIONSHIP.DATA_SET_CARDS_SECTION_ERC} eq '${dataSet.externalReferenceCode}')`,
+			`${API_URL.CARDS_SECTIONS}?filter=(${OBJECT_RELATIONSHIP.DATA_SET_CARDS_SECTIONS_ERC} eq '${dataSet.externalReferenceCode}')`,
 			{headers: DEFAULT_FETCH_HEADERS}
 		);
 
@@ -175,7 +176,7 @@ export default function Cards(props: IDataSetSectionProps) {
 
 		const response = await fetch(url, {
 			body: JSON.stringify({
-				[OBJECT_RELATIONSHIP.DATA_SET_CARDS_SECTION_ERC]:
+				[OBJECT_RELATIONSHIP.DATA_SET_CARDS_SECTIONS_ERC]:
 					dataSet.externalReferenceCode,
 				fieldName: field.name,
 				name: cardsSection.name,
@@ -302,11 +303,28 @@ function CardsSection({
 }: ICardsSectionProps) {
 	const {field, fieldTreeItems, label} = cardsSection;
 
-	const openSelectFieldModal = () => {
+	const openAddCustomFieldModal = () => {
+		openModal({
+			contentComponent: ({closeModal}: {closeModal: Function}) => (
+				<AddCustomFieldModalContent
+					{...modalProps}
+					closeModal={closeModal}
+					onSaveButtonClick={(selectedField: IField) => {
+						onSelect({
+							closeModal,
+							selectedField,
+						});
+					}}
+				/>
+			),
+		});
+	};
+
+	const openAddDataSourceFieldsModal = () => {
 		openModal({
 			className: 'modal-height-full',
 			contentComponent: ({closeModal}: {closeModal: Function}) => (
-				<FieldSelectModalContent
+				<AddDataSourceFieldsModalContent
 					{...modalProps}
 					closeModal={closeModal}
 					fieldTreeItems={fieldTreeItems}
@@ -354,7 +372,10 @@ function CardsSection({
 							field={field}
 							label={label}
 							onClearSelection={onClearSelection}
-							openSelectFieldModal={openSelectFieldModal}
+							openAddCustomFieldModal={openAddCustomFieldModal}
+							openAddDataSourceFieldsModal={
+								openAddDataSourceFieldsModal
+							}
 						/>
 					</ClayInput.GroupItem>
 				</ClayInput.Group>

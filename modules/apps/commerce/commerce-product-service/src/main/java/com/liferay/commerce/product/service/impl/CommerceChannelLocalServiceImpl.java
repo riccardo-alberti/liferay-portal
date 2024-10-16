@@ -17,7 +17,6 @@ import com.liferay.commerce.product.constants.CommerceChannelAccountEntryRelCons
 import com.liferay.commerce.product.constants.CommerceChannelConstants;
 import com.liferay.commerce.product.exception.CommerceChannelTypeException;
 import com.liferay.commerce.product.exception.DuplicateCommerceChannelAccountEntryIdException;
-import com.liferay.commerce.product.exception.DuplicateCommerceChannelException;
 import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.model.CommerceChannelAccountEntryRelTable;
 import com.liferay.commerce.product.model.CommerceChannelTable;
@@ -97,27 +96,13 @@ public class CommerceChannelLocalServiceImpl
 
 		User user = _userLocalService.getUser(serviceContext.getUserId());
 
-		CommerceChannel commerceChannel = null;
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-		else {
-			commerceChannel =
-				commerceChannelLocalService.fetchByExternalReferenceCode(
-					externalReferenceCode, user.getCompanyId());
-
-			if (commerceChannel != null) {
-				throw new DuplicateCommerceChannelException();
-			}
-		}
-
 		_validateAccountEntry(0, accountEntryId);
 		_validateType(type);
 
 		long commerceChannelId = counterLocalService.increment();
 
-		commerceChannel = commerceChannelPersistence.create(commerceChannelId);
+		CommerceChannel commerceChannel = commerceChannelPersistence.create(
+			commerceChannelId);
 
 		commerceChannel.setExternalReferenceCode(externalReferenceCode);
 		commerceChannel.setCompanyId(user.getCompanyId());
@@ -179,20 +164,18 @@ public class CommerceChannelLocalServiceImpl
 			String commerceCurrencyCode, ServiceContext serviceContext)
 		throws PortalException {
 
+		_validateType(type);
+
 		CommerceChannel commerceChannel = null;
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-		else {
+		if (Validator.isNotNull(externalReferenceCode)) {
 			User user = _userLocalService.getUser(userId);
 
 			commerceChannel =
-				commerceChannelLocalService.fetchByExternalReferenceCode(
-					externalReferenceCode, user.getCompanyId());
+				commerceChannelLocalService.
+					fetchCommerceChannelByExternalReferenceCode(
+						externalReferenceCode, user.getCompanyId());
 		}
-
-		_validateType(type);
 
 		if (commerceChannel == null) {
 			return commerceChannelLocalService.addCommerceChannel(
@@ -263,18 +246,6 @@ public class CommerceChannelLocalServiceImpl
 	}
 
 	@Override
-	public CommerceChannel fetchByExternalReferenceCode(
-		String externalReferenceCode, long companyId) {
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			return null;
-		}
-
-		return commerceChannelPersistence.fetchByERC_C(
-			externalReferenceCode, companyId);
-	}
-
-	@Override
 	public CommerceChannel fetchCommerceChannelByGroupClassPK(long groupId) {
 		Group group = _groupLocalService.fetchGroup(groupId);
 
@@ -342,7 +313,11 @@ public class CommerceChannelLocalServiceImpl
 		throws PortalException {
 
 		CommerceChannel commerceChannel =
-			commerceChannelPersistence.findBySiteGroupId(siteGroupId);
+			commerceChannelPersistence.fetchBySiteGroupId(siteGroupId);
+
+		if (commerceChannel == null) {
+			return 0;
+		}
 
 		Group group = commerceChannelLocalService.getCommerceChannelGroup(
 			commerceChannel.getCommerceChannelId());

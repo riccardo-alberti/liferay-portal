@@ -671,6 +671,8 @@ public class DDMIndexerImpl implements DDMIndexer {
 		else if (value instanceof Object[]) {
 			String[] valuesString = ArrayUtil.toStringArray((Object[])value);
 
+			String[] truncatedValuesString = valuesString;
+
 			String type = field.getType();
 
 			if (type.equals(DDMFormFieldTypeConstants.DATE) ||
@@ -685,23 +687,42 @@ public class DDMIndexerImpl implements DDMIndexer {
 			else if (type.equals(DDMFormFieldTypeConstants.RICH_TEXT)) {
 				List<String> richTextValues = new ArrayList<>(
 					valuesString.length);
+				List<String> truncatedValues = new ArrayList<>(
+					valuesString.length);
 
 				for (String valueString : valuesString) {
-					richTextValues.add(_htmlParser.extractText(valueString));
+					String richTextValue = _htmlParser.extractText(valueString);
+
+					richTextValues.add(richTextValue);
+
+					truncatedValues.add(_truncate(richTextValue));
 				}
 
 				valuesString = richTextValues.toArray(new String[0]);
+				truncatedValuesString = truncatedValues.toArray(new String[0]);
+			}
+			else if (type.equals(DDMFormFieldTypeConstants.TEXT)) {
+				List<String> truncatedValues = new ArrayList<>(
+					valuesString.length);
+
+				for (String valueString : valuesString) {
+					truncatedValues.add(_truncate(valueString));
+				}
+
+				truncatedValuesString = truncatedValues.toArray(new String[0]);
 			}
 
 			if (indexType.equals("keyword")) {
 				document.addKeywordSortable(name, valuesString);
 
-				document.addKeyword(_getSortableFieldName(name), valuesString);
+				document.addKeyword(
+					_getSortableFieldName(name), truncatedValuesString);
 			}
 			else {
 				document.addTextSortable(name, valuesString);
 
-				document.addText(_getSortableFieldName(name), valuesString);
+				document.addText(
+					_getSortableFieldName(name), truncatedValuesString);
 			}
 		}
 		else {
@@ -723,13 +744,11 @@ public class DDMIndexerImpl implements DDMIndexer {
 			}
 			else if (type.equals(DDMFormFieldTypeConstants.SELECT)) {
 				document.addKeyword(
-					_getSortableFieldName(name),
-					ArrayUtil.toStringArray(
-						_jsonFactory.createJSONArray(sortableValueString)));
+					_getFieldName(name), _toStringArray(sortableValue));
 				document.addKeyword(
-					name,
-					ArrayUtil.toStringArray(
-						_jsonFactory.createJSONArray(valueString)));
+					_getSortableFieldName(name),
+					_toStringArray(sortableValueString));
+				document.addKeyword(name, _toStringArray(valueString));
 			}
 			else {
 				if ((type.equals(DDMFormFieldTypeConstants.DATE) ||
@@ -768,14 +787,8 @@ public class DDMIndexerImpl implements DDMIndexer {
 			return;
 		}
 
-		if (sortableValueString.length() >
-				_SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH) {
-
-			sortableValueString = sortableValueString.substring(
-				0, _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH);
-		}
-
-		document.addKeyword(_getSortableFieldName(name), sortableValueString);
+		document.addKeyword(
+			_getSortableFieldName(name), _truncate(sortableValueString));
 	}
 
 	private void _extractIndexableAttribute(
@@ -896,9 +909,13 @@ public class DDMIndexerImpl implements DDMIndexer {
 		return dateValues.toArray(new Date[0]);
 	}
 
+	private String _getFieldName(String name) {
+		return name + "_String";
+	}
+
 	private String _getSortableFieldName(String name) {
 		return com.liferay.portal.kernel.search.Field.getSortableFieldName(
-			name + "_String");
+			_getFieldName(name));
 	}
 
 	private String _getSortableValue(
@@ -939,6 +956,19 @@ public class DDMIndexerImpl implements DDMIndexer {
 		}
 
 		return new Fields();
+	}
+
+	private String[] _toStringArray(Object value) throws PortalException {
+		return ArrayUtil.toStringArray(
+			_jsonFactory.createJSONArray(String.valueOf(value)));
+	}
+
+	private String _truncate(String string) {
+		if (string.length() > _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH) {
+			return string.substring(0, _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH);
+		}
+
+		return string;
 	}
 
 	private static final int _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH =

@@ -79,15 +79,13 @@ const collectionFilter = (collections, searchValue) => {
 		.filter(hasChildren);
 };
 
-const normalizeWidget = (widget) => {
+export function normalizeWidget(widget) {
 	return {
 		data: {
-			instanceable: widget.instanceable,
 			portletId: widget.portletId,
 			portletItemId: widget.portletItemId || null,
-			used: widget.used,
 		},
-		disabled: !widget.instanceable && widget.used,
+		disabled: !widget.instanceable && (widget.used || widget.embedded),
 		highlighted: widget.highlighted,
 		icon: widget.instanceable ? 'square-hole-multi' : 'square-hole',
 		itemId: widget.portletId,
@@ -98,7 +96,7 @@ const normalizeWidget = (widget) => {
 		preview: '',
 		type: LAYOUT_DATA_ITEM_TYPES.fragment,
 	};
-};
+}
 
 const normalizeCollection = (collection) => {
 	const normalizedElement = {

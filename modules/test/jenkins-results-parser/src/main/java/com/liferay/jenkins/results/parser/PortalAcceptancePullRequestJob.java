@@ -95,6 +95,11 @@ public class PortalAcceptancePullRequestJob
 		return _centralMergePullRequest;
 	}
 
+	@Override
+	public boolean isStandaloneBatchEnabled() {
+		return true;
+	}
+
 	protected PortalAcceptancePullRequestJob(
 		BuildProfile buildProfile, String jobName,
 		PortalGitWorkingDirectory portalGitWorkingDirectory,
@@ -116,11 +121,11 @@ public class PortalAcceptancePullRequestJob
 		if (_isRelevantTestSuite() &&
 			!_hasMatchingFiles(_restBuilderFilePathMatchers)) {
 
-			batchNames.remove("rest-builder-jdk8");
+			batchNames.remove("rest-builder");
 		}
 
 		if (_isRelevantTestSuite() && _hasOnlyFilesInDirectory("modules")) {
-			batchNames.remove("semantic-versioning-jdk8");
+			batchNames.remove("semantic-versioning");
 		}
 
 		if (_isRelevantTestSuite() && _hasOnlyFilesInDirectory("portal-web")) {
@@ -156,7 +161,7 @@ public class PortalAcceptancePullRequestJob
 
 		RelevantTestSuite relevantTestSuite = new RelevantTestSuite(this);
 
-		List<TestBatch> testBatches = relevantTestSuite.getTestBatches();
+		List<TestBatch> testBatches = relevantTestSuite.getTestBatches(true);
 
 		recordJobProperties(relevantTestSuite.getTestBatchNamesJobProperties());
 

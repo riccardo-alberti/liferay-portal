@@ -1,6 +1,20 @@
 [
 	{
 		"classNames": [
+			"CPDefinitionLocalService",
+			"CPDefinitionLocalServiceUtil",
+			"CPDefinitionService",
+			"CPDefinitionServiceUtil"
+		],
+		"from": "copyCPDefinition(long paramName, long paramName)",
+		"issueKey": "LPD-7741",
+		"newImports": [
+			"com.liferay.portal.kernel.workflow.WorkflowConstants"
+		],
+		"to": "copyCPDefinition(param#0#, param#1#, WorkflowConstants.STATUS_DRAFT)"
+	},
+	{
+		"classNames": [
 			"Product"
 		],
 		"from": "getConfiguration",
@@ -3200,6 +3214,23 @@
 	},
 	{
 		"classNames": [
+			"CustomFacetPortletPreferences"
+		],
+		"from": "getFederatedSearchKeyOptional",
+		"issueKey": "LPD-31972",
+		"to": "getFederatedSearchKey"
+	},
+	{
+		"classNames": [
+			"Group",
+			"LayoutSet"
+		],
+		"from": "getVirtualHostname",
+		"issueKey": "LPD-31998",
+		"to": "getVirtualHostnames().firstKey"
+	},
+	{
+		"classNames": [
 			"Country"
 		],
 		"from": "getCommerceCountryId",
@@ -3225,6 +3256,15 @@
 			"com.liferay.portal.kernel.security.auth.CompanyThreadLocal"
 		],
 		"to": "addListType(CompanyThreadLocal.getCompanyId(), param#0#, param#1#)"
+	},
+	{
+		"classNames": [
+			"IndexWriterHelper",
+			"IndexWriterHelperUtil"
+		],
+		"from": "deleteEntityDocuments(String paramName, long paramName, String paramName, boolean paramName)",
+		"issueKey": "LPD-35275",
+		"to": "deleteEntityDocuments(param#1#, param#2#, param#3#)"
 	},
 	{
 		"classNames": [
@@ -3273,6 +3313,89 @@
 		"from": "getColumn",
 		"issueKey": "LPD-36261",
 		"to": "fetchColumn"
+	},
+	{
+		"classNames": [
+			"DLAppLocalService",
+			"DLAppService"
+		],
+		"from": "addFileEntry(long paramName, long paramName, long paramName, String paramName, String paramName, byte[] paramName, ServiceContext paramName)",
+		"issueKey": "LPD-36311",
+		"to": "addFileEntry(null, param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, null, null, param#6#)"
+	},
+	{
+		"classNames": [
+			"DDMStructureManager",
+			"DDMStructureManagerUtil"
+		],
+		"from": "getStructure",
+		"issueKey": "LPD-36506",
+		"to": "fetchStructure"
+	},
+	{
+		"classNames": [
+			"RoleLocalService",
+			"RoleLocalServiceUtil"
+		],
+		"from": "loadFetchRole",
+		"issueKey": "LPD-36509",
+		"to": "fetchRole"
+	},
+	{
+		"from": "HtmlUtil.extractText",
+		"issueKey": "LPD-36631",
+		"newImports": [
+			"com.liferay.portal.kernel.util.HtmlParserUtil"
+		],
+		"to": "HtmlParserUtil.extractText",
+		"validExtensions": [
+			"java",
+			"jsp"
+		]
+	},
+	{
+		"classNames": [
+			"DDMFormViewFormInstanceRecordsDisplayContext"
+		],
+		"from": "getFormViewRecordsDisplayContext",
+		"issueKey": "LPD-36646",
+		"to": "getDDMFormViewFormInstanceRecordsDisplayContext"
+	},
+	{
+		"classNames": [
+			"DDMFormViewFormInstanceRecordsDisplayContext"
+		],
+		"from": "getSearch",
+		"issueKey": "LPD-36648",
+		"to": "getSearchContainer"
+	},
+	{
+		"classNames": [
+			"CommercePriceListLocalService",
+			"CommercePriceListLocalServiceUtil"
+		],
+		"from": "fetchByExternalReferenceCode(String paramName, long paramName)",
+		"issueKey": "LPD-37502",
+		"to": "fetchCommercePriceListByExternalReferenceCode(param#0#, param#1#)"
+	},
+	{
+		"classNames": [
+			"CPInstanceLocalService",
+			"CPInstanceLocalServiceUtil",
+			"CPInstanceService",
+			"CPInstanceServiceUtil"
+		],
+		"from": "fetchByExternalReferenceCode(String paramName, long paramName)",
+		"issueKey": "LPD-37502",
+		"to": "fetchCPInstanceByExternalReferenceCode(param#0#, param#1#)"
+	},
+	{
+		"from": "HtmlUtil.getHTML",
+		"issueKey": "LPD-37503",
+		"newImports": [
+			"com.liferay.portal.kernel.util.HtmlUtil_IW"
+		],
+		"to": "HtmlUtil_IW.getInstance"
 	},
 	{
 		"from": "CookieKeys.COMMERCE_CONTINUE_AS_GUEST",
@@ -3446,15 +3569,6 @@
 			"com.liferay.portal.kernel.search.Sort"
 		],
 		"to": "searchVocabularies(param#0#, new long[] {param#1#}, param#2#, new int[0], param#3#, param#4#, new Sort())"
-	},
-	{
-		"from": "HtmlUtil.extractText",
-		"issueKey": "LPS-189929",
-		"newImports": [
-			"com.liferay.portal.kernel.util.HtmlParser"
-		],
-		"newReference": "HtmlParser _htmlParser",
-		"to": "_htmlParser.extractText"
 	},
 	{
 		"classNames": [
@@ -3719,7 +3833,7 @@
 		],
 		"from": "fetchByExternalReferenceCode(long paramName, String paramName)",
 		"issueKey": "LPS-196611",
-		"to": "fetchByExternalReferenceCode(param#1#, param#0#)"
+		"to": "fetchCommercePriceListByExternalReferenceCode(param#1#, param#0#)"
 	},
 	{
 		"from": "AssetCategory::getLeftCategoryId",
@@ -3877,7 +3991,7 @@
 		],
 		"from": "fetchByExternalReferenceCode(long paramName, String paramName)",
 		"issueKey": "LPS-197965",
-		"to": "fetchByExternalReferenceCode(param#1#, param#0#)"
+		"to": "fetchCPInstanceByExternalReferenceCode(param#1#, param#0#)"
 	},
 	{
 		"classNames": [

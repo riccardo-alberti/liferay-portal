@@ -14,6 +14,9 @@ function resolveCartsPath(basePath = '', cartId) {
 	return `${basePath}${VERSION}${CARTS_PATH}/${cartId}`;
 }
 
+function resolveCartsBatchPath(basePath = '') {
+	return `${basePath}${VERSION}${CARTS_PATH}/batch`;
+}
 function resolveChannelsPath(basePath = '', channelId) {
 	return `${basePath}${VERSION}${CHANNELS_PATH}/${channelId}`;
 }
@@ -68,12 +71,32 @@ export default function Cart(basePath) {
 		deleteCartById: (cartId) =>
 			AJAX.DELETE(resolveCartsPath(basePath, cartId)),
 
+		deleteCartsById: (items) =>
+			AJAX.DELETE(resolveCartsBatchPath(basePath), {
+				body: JSON.stringify(items),
+			}),
+
+		executeCartTransitionsById: (cartId, json) =>
+			AJAX.POST(
+				resolveCartsPath(basePath, cartId) + '/cart-transitions',
+				json
+			),
+
 		getCartById: (cartId) => AJAX.GET(resolveCartsPath(basePath, cartId)),
 
 		getCartByIdWithItems: (cartId) =>
 			AJAX.GET(
 				resolveCartsPath(basePath, cartId) + '?nestedFields=cartItems'
 			),
+
+		getCartPaymentMethodsPage: (cartId) =>
+			AJAX.GET(resolveCartsPath(basePath, cartId) + '/payment-methods'),
+
+		getCartShippingMethodsPage: (cartId) =>
+			AJAX.GET(resolveCartsPath(basePath, cartId) + '/shipping-methods'),
+
+		getCartTransitionsById: (cartId) =>
+			AJAX.GET(resolveCartsPath(basePath, cartId) + '/cart-transitions'),
 
 		getCartsByAccountIdAndChannelId: (accountId, channelId, searchParams) =>
 			AJAX.GET(

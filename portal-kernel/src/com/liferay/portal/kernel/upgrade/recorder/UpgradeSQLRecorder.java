@@ -12,6 +12,9 @@ import com.liferay.portal.kernel.dao.jdbc.util.PreparedStatementWrapper;
 import com.liferay.portal.kernel.dao.jdbc.util.StatementWrapper;
 import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -209,30 +212,39 @@ public class UpgradeSQLRecorder {
 			throw sqlException;
 		}
 		finally {
-			String sql = _extractSQL(object);
+			_executeFinally(object, startTime);
+		}
+	}
 
-			if (sql != null) {
-				sql += StringPool.SEMICOLON;
+	private static void _executeFinally(Object object, long startTime) {
+		String sql = _extractSQL(object);
 
-				long duration = System.currentTimeMillis() - startTime;
+		if (sql == null) {
+			return;
+		}
 
-				if (Validator.isBlank(_upgradeProcessClassName)) {
-					_sqlExecutionTimes.put(sql, duration);
-				}
-				else if (DBPartition.isPartitionEnabled()) {
-					_sqlExecutionTimes.put(
-						StringBundler.concat(
-							_upgradeProcessClassName, StringPool.AT,
-							String.valueOf(CompanyThreadLocal.getCompanyId()),
-							StringPool.PIPE, sql),
-						duration);
-				}
-				else {
-					_sqlExecutionTimes.put(
-						_upgradeProcessClassName + StringPool.PIPE + sql,
-						duration);
-				}
-			}
+		sql += StringPool.SEMICOLON;
+
+		long duration = System.currentTimeMillis() - startTime;
+
+		if (duration < _UPGRADE_REPORT_SQL_STATEMENT_THRESHOLD) {
+			return;
+		}
+
+		if (Validator.isBlank(_upgradeProcessClassName)) {
+			_sqlExecutionTimes.put(sql, duration);
+		}
+		else if (DBPartition.isPartitionEnabled()) {
+			_sqlExecutionTimes.put(
+				StringBundler.concat(
+					_upgradeProcessClassName, StringPool.AT,
+					String.valueOf(CompanyThreadLocal.getCompanyId()),
+					StringPool.PIPE, sql),
+				duration);
+		}
+		else {
+			_sqlExecutionTimes.put(
+				_upgradeProcessClassName + StringPool.PIPE + sql, duration);
 		}
 	}
 
@@ -377,6 +389,10 @@ public class UpgradeSQLRecorder {
 
 		};
 	}
+
+	private static final long _UPGRADE_REPORT_SQL_STATEMENT_THRESHOLD =
+		GetterUtil.getLong(
+			PropsUtil.get(PropsKeys.UPGRADE_REPORT_SQL_STATEMENT_THRESHOLD));
 
 	private static boolean _enabled;
 	private static final List<String> _failedSQLs =

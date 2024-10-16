@@ -429,6 +429,10 @@ public class ObjectEntryLocalServiceUtil {
 		return getService().getObjectEntriesCount();
 	}
 
+	public static int getObjectEntriesCount(long objectDefinitionId) {
+		return getService().getObjectEntriesCount(objectDefinitionId);
+	}
+
 	public static long getObjectEntriesCount(
 			long userId, java.util.Date createDate, long objectDefinitionId)
 		throws PortalException {
@@ -641,6 +645,16 @@ public class ObjectEntryLocalServiceUtil {
 	 */
 	public static ObjectEntry updateObjectEntry(ObjectEntry objectEntry) {
 		return getService().updateObjectEntry(objectEntry);
+	}
+
+	public static void updateRootObjectEntryIds(
+			com.liferay.object.model.ObjectDefinition objectDefinition1,
+			com.liferay.object.model.ObjectDefinition objectDefinition2,
+			com.liferay.object.model.ObjectRelationship objectRelationship)
+		throws PortalException {
+
+		getService().updateRootObjectEntryIds(
+			objectDefinition1, objectDefinition2, objectRelationship);
 	}
 
 	public static ObjectEntry updateStatus(

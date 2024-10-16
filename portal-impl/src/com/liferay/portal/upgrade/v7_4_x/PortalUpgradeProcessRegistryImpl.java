@@ -467,6 +467,43 @@ public class PortalUpgradeProcessRegistryImpl
 				}
 
 			});
+
+		upgradeVersionTreeMap.put(
+			new Version(31, 8, 0),
+			new EmailAddressExternalReferenceCodeUpgradeProcess());
+
+		upgradeVersionTreeMap.put(
+			new Version(31, 9, 0),
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[][] getTableAndPrimaryKeyColumnNames() {
+					return new String[][] {{"Website", "websiteId"}};
+				}
+
+			});
+
+		upgradeVersionTreeMap.put(
+			new Version(31, 10, 0),
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[][] getTableAndPrimaryKeyColumnNames() {
+					return new String[][] {{"Repository", "repositoryId"}};
+				}
+
+			});
+
+		upgradeVersionTreeMap.put(
+			new Version(31, 11, 0),
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[][] getTableAndPrimaryKeyColumnNames() {
+					return new String[][] {{"Phone", "phoneId"}};
+				}
+
+			});
 	}
 
 }

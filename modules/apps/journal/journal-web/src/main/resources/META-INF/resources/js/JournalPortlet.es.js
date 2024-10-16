@@ -67,6 +67,9 @@ export default function _JournalPortlet({
 
 	if (!Liferay.FeatureFlags['LPD-15596']) {
 		initializeLock('publishing', {
+			errorIndicator: document.getElementById(
+				`${namespace}lockErrorIndicator`
+			),
 			lockedIndicator: document.getElementById(
 				`${namespace}savingChangesIndicator`
 			),
@@ -177,10 +180,7 @@ export default function _JournalPortlet({
 			`${namespace}titleMapAsXML`
 		);
 
-		if (
-			!titleInputComponent?.getValue(defaultLanguageId) &&
-			!Liferay.FeatureFlags['LPS-114700']
-		) {
+		if (!titleInputComponent?.getValue(defaultLanguageId)) {
 			showAlert(
 				sub(
 					Liferay.Language.get(
@@ -248,7 +248,7 @@ export default function _JournalPortlet({
 				form.submit();
 			}
 		}
-		else if (showErrors && !Liferay.FeatureFlags['LPS-114700']) {
+		else if (showErrors) {
 			showAlert(
 				sub(
 					Liferay.Language.get(
@@ -273,7 +273,10 @@ export default function _JournalPortlet({
 	const handlePublishButtonClick = (event) => {
 		lockHolder.lock?.lock();
 
-		if (Liferay.FeatureFlags['LPD-11228']) {
+		if (
+			Liferay.FeatureFlags['LPD-11228'] &&
+			Liferay.FeatureFlags['LPD-15596']
+		) {
 			return;
 		}
 
@@ -445,10 +448,15 @@ export default function _JournalPortlet({
 
 					articleIdWrapper.classList.remove('hide');
 					displayedArticleId.innerHTML = articleId;
-				}
 
-				formDateInput.value = data.modifiedDate;
-				lockHolder.lock?.unlock();
+					formDateInput.value = data.modifiedDate;
+					lockHolder.lock?.unlock();
+				}
+				else {
+					formDateInput.value = data.modifiedDate;
+					lockHolder.lock?.unlock(true);
+					showAlert(data.errorMessage);
+				}
 			})
 			.catch((error) => {
 				console.error(error);

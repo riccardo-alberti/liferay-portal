@@ -3,20 +3,28 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {openToast} from 'frontend-js-web';
 import React, {useEffect, useRef, useState} from 'react';
 
 import {ITEM_ACTIVATION_ORIGINS} from '../config/constants/itemActivationOrigins';
 import {ITEM_TYPES} from '../config/constants/itemTypes';
 import {
 	BACKSPACE_KEY_CODE,
+	C_KEY_CODE,
 	D_KEY_CODE,
 	H_KEY_CODE,
 	PERIOD_KEY_CODE,
 	R_KEY_CODE,
 	S_KEY_CODE,
+	V_KEY_CODE,
+	X_KEY_CODE,
 	Z_KEY_CODE,
 } from '../config/constants/keyboardCodes';
 import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
+import {
+	useCopiedItemIds,
+	useSetCopiedItemIds,
+} from '../contexts/ClipboardContext';
 import {
 	useActiveItemIds,
 	useActiveItemType,
@@ -32,7 +40,9 @@ import {useDispatch, useSelector} from '../contexts/StoreContext';
 import selectCanUpdatePageStructure from '../selectors/selectCanUpdatePageStructure';
 import deleteItem from '../thunks/deleteItem';
 import duplicateItem from '../thunks/duplicateItem';
+import pasteItem from '../thunks/pasteItem';
 import switchSidebarPanel from '../thunks/switchSidebarPanel';
+import canBeCopied from '../utils/canBeCopied';
 import canBeDuplicated from '../utils/canBeDuplicated';
 import canBeHidden from '../utils/canBeHidden';
 import canBeRemoved from '../utils/canBeRemoved';
@@ -68,17 +78,19 @@ const isWithinIframe = () => {
 export default function ShortcutManager() {
 	const activeItemIds = useActiveItemIds();
 	const activeItemType = useActiveItemType();
-	const dispatch = useDispatch();
 	const canUpdatePageStructure = useSelector(selectCanUpdatePageStructure);
-	const {onRedo, onUndo} = useUndoRedoActions();
+	const copiedItemIds = useCopiedItemIds();
+	const dispatch = useDispatch();
 	const [openSaveModal, setOpenSaveModal] = useState(false);
 	const openShortcutModal = useOpenShorcutModal();
 	const selectItem = useSelectItem();
 	const selectMultipleItems = useSelectMultipleItems();
+	const setCopiedItemIds = useSetCopiedItemIds();
 	const setEditedNodeId = useSetEditedNodeId();
 	const setOpenShorcutModal = useSetOpenShorcutModal();
 	const state = useSelector((state) => state);
 	const sidebarHidden = state.sidebar.hidden;
+	const {onRedo, onUndo} = useUndoRedoActions();
 	const {widgets} = state;
 
 	const selectItems = Liferay.FeatureFlags['LPD-18221']
@@ -102,6 +114,21 @@ export default function ShortcutManager() {
 		(state) => state.selectedViewportSize
 	);
 
+	const copy = () => {
+		setCopiedItemIds(activeItemIds);
+	};
+
+	const cut = () => {
+		setCopiedItemIds(activeItemIds);
+
+		dispatch(
+			deleteItem({
+				itemIds: activeItemIds,
+				selectItems,
+			})
+		);
+	};
+
 	const duplicate = () => {
 		dispatch(
 			duplicateItem({
@@ -109,6 +136,12 @@ export default function ShortcutManager() {
 				selectItems,
 			})
 		);
+	};
+
+	const getParentItemId = () => {
+		const rootItem = layoutData.items[layoutData.rootItems.main];
+
+		return !activeItemIds?.length ? rootItem.itemId : activeItemIds[0];
 	};
 
 	const hideShow = () => {
@@ -127,6 +160,16 @@ export default function ShortcutManager() {
 
 	const hideSidebar = () => {
 		dispatch(switchSidebarPanel({hidden: !sidebarHidden}));
+	};
+
+	const paste = () => {
+		dispatch(
+			pasteItem({
+				copiedItemIds,
+				parentItemId: getParentItemId(),
+				selectItems,
+			})
+		);
 	};
 
 	const remove = () => {
@@ -185,9 +228,65 @@ export default function ShortcutManager() {
 		}
 	};
 
+	function isOnlyOneParentSelected(activeItemIds) {
+		if (activeItemIds?.length > 1) {
+			openToast({
+				message: Liferay.Language.get(
+					'it-is-not-possible-to-paste-on-two-destinations-at-the-same-time'
+				),
+				type: 'danger',
+			});
+
+			return false;
+		}
+
+		return true;
+	}
+
 	const keymapRef = useRef(null);
 
 	keymapRef.current = {
+		...(Liferay.FeatureFlags['LPD-18221'] && {
+			copy: {
+				action: copy,
+				canBeExecuted: () =>
+					canUpdatePageStructure &&
+					activeItemIds.every(
+						(activeItemId) =>
+							!!layoutData.items[activeItemId] &&
+							canBeDuplicated(
+								fragmentEntryLinks,
+								layoutData.items[activeItemId],
+								layoutData,
+								widgets
+							)
+					),
+				isKeyCombination: (event) =>
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === C_KEY_CODE,
+			},
+		}),
+		...(Liferay.FeatureFlags['LPD-18221'] && {
+			cut: {
+				action: cut,
+				canBeExecuted: (event) =>
+					canUpdatePageStructure &&
+					activeItemIds.every(
+						(activeItemId) =>
+							!!layoutData.items[activeItemId] &&
+							canBeRemoved(
+								layoutData.items[activeItemId],
+								layoutData
+							) &&
+							!isInteractiveElement(event.target)
+					),
+				isKeyCombination: (event) =>
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === X_KEY_CODE,
+			},
+		}),
 		duplicate: {
 			action: duplicate,
 			canBeExecuted: () =>
@@ -205,7 +304,9 @@ export default function ShortcutManager() {
 				),
 
 			isKeyCombination: (event) =>
-				isCtrlOrMeta(event) && event.code === D_KEY_CODE,
+				isCtrlOrMeta(event) &&
+				event.altKey &&
+				event.code === D_KEY_CODE,
 		},
 		hideShow: {
 			action: hideShow,
@@ -249,6 +350,40 @@ export default function ShortcutManager() {
 				!isEditingEditableField(),
 			isKeyCombination: (event) => event.shiftKey && event.key === '?',
 		},
+		...(Liferay.FeatureFlags['LPD-18221'] && {
+			paste: {
+				action: paste,
+				canBeExecuted: () =>
+					canUpdatePageStructure &&
+					isOnlyOneParentSelected(activeItemIds) &&
+					!!copiedItemIds.length &&
+					copiedItemIds.every(
+						(copiedItemId) =>
+							!!layoutData.items[copiedItemId] &&
+							!!layoutData.items[getParentItemId()] &&
+							canBeCopied(
+								copiedItemId,
+								fragmentEntryLinks,
+								getParentItemId(),
+								layoutData
+							)
+					) &&
+					copiedItemIds.every(
+						(copiedItemId) =>
+							!!layoutData.items[copiedItemId] &&
+							canBeDuplicated(
+								fragmentEntryLinks,
+								layoutData.items[copiedItemId],
+								layoutData,
+								widgets
+							)
+					),
+				isKeyCombination: (event) =>
+					event.shiftKey &&
+					isCtrlOrMeta(event) &&
+					event.code === V_KEY_CODE,
+			},
+		}),
 		remove: {
 			action: remove,
 			canBeExecuted: (event) =>
@@ -296,7 +431,7 @@ export default function ShortcutManager() {
 				!isInteractiveElement(event.target) &&
 				activeLayoutDataItem,
 			isKeyCombination: (event) =>
-				event.shiftKey && event.altKey && event.key === 'Enter',
+				event.shiftKey && event.key === 'Enter',
 		},
 		undo: {
 			action: undo,

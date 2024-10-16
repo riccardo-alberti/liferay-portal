@@ -4,23 +4,20 @@
  */
 
 import ClayButton from '@clayui/button';
-import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayInput} from '@clayui/form';
-import ClayLabel from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import classNames from 'classnames';
 import {InputLocalized} from 'frontend-js-components-web';
 import {openModal} from 'frontend-js-web';
 import React, {useState} from 'react';
 
-import FieldSelectModalContent from '../../../components/FieldSelectModalContent';
+import AddDataSourceFieldsModalContent from '../../../components/AddDataSourceFieldsModalContent';
 import RequiredMark from '../../../components/RequiredMark';
 import ValidationFeedback from '../../../components/ValidationFeedback';
 import {IField, IFilter} from '../../../utils/types';
 
 interface IConfigurationProps {
 	fieldInUseValidationError: boolean;
-	fieldNames?: string[];
 	fieldValidationError: boolean;
 	fields: IField[];
 	filter?: IFilter;
@@ -36,7 +33,6 @@ interface IConfigurationProps {
 
 function Configuration({
 	fieldInUseValidationError,
-	fieldNames: usedFieldNames,
 	fieldValidationError,
 	fields,
 	filter,
@@ -56,59 +52,11 @@ function Configuration({
 	const nameFormElementId = `${namespace}Name`;
 	const selectedFieldFormElementId = `${namespace}SelectedField`;
 
-	const FieldNameDropdown = ({
-		fields,
-		onItemClick,
-	}: {
-		fields: IField[];
-		onItemClick: Function;
-	}) => {
-		return (
-			<ClayDropDown
-				closeOnClick
-				menuElementAttrs={{
-					className: 'fds-field-name-dropdown-menu',
-				}}
-				trigger={
-					<ClayButton
-						className="form-control form-control-select form-control-select-secondary"
-						displayType="secondary"
-						id={selectedFieldFormElementId}
-					>
-						{selectedField
-							? selectedField.label
-							: Liferay.Language.get('select')}
-					</ClayButton>
-				}
-			>
-				<ClayDropDown.ItemList items={fields} role="listbox">
-					{fields.map((field) => (
-						<ClayDropDown.Item
-							className="align-items-center d-flex justify-content-between"
-							disabled={!!filter}
-							key={field.name}
-							onClick={() => onItemClick(field)}
-							roleItem="option"
-						>
-							{field.label}
-
-							{usedFieldNames?.includes(field.name) && (
-								<ClayLabel displayType="info">
-									{Liferay.Language.get('in-use')}
-								</ClayLabel>
-							)}
-						</ClayDropDown.Item>
-					))}
-				</ClayDropDown.ItemList>
-			</ClayDropDown>
-		);
-	};
-
-	const openSelectFieldModal = () => {
+	const openDataSourceFieldsModal = () => {
 		openModal({
 			className: 'modal-height-full',
 			contentComponent: ({closeModal}: {closeModal: Function}) => (
-				<FieldSelectModalContent
+				<AddDataSourceFieldsModalContent
 					closeModal={closeModal}
 					fieldTreeItems={fields}
 					onSaveButtonClick={({
@@ -176,47 +124,30 @@ function Configuration({
 					<RequiredMark />
 				</label>
 
-				{Liferay.FeatureFlags['LPD-25905'] ? (
-					<ClayInput.Group>
-						<ClayInput.GroupItem>
-							<ClayInput
-								id={selectedFieldFormElementId}
-								placeholder={Liferay.Language.get('select')}
-								readOnly
-								type="text"
-								value={
-									filter
-										? filter?.fieldName
-										: selectedField?.name
-								}
-							/>
-						</ClayInput.GroupItem>
-
-						<ClayInput.GroupItem shrink>
-							<ClayButton
-								disabled={!!filter}
-								displayType="secondary"
-								onClick={openSelectFieldModal}
-								type="submit"
-							>
-								{Liferay.Language.get('select')}
-							</ClayButton>
-						</ClayInput.GroupItem>
-					</ClayInput.Group>
-				) : (
-					<FieldNameDropdown
-						fields={fields}
-						onItemClick={(item: IField) => {
-							const newVal = fields.find((field) => {
-								return field.label === item.label;
-							});
-
-							if (newVal) {
-								onChangeField(newVal);
+				<ClayInput.Group>
+					<ClayInput.GroupItem>
+						<ClayInput
+							disabled
+							id={selectedFieldFormElementId}
+							placeholder={Liferay.Language.get('select')}
+							type="text"
+							value={
+								filter ? filter?.fieldName : selectedField?.name
 							}
-						}}
-					/>
-				)}
+						/>
+					</ClayInput.GroupItem>
+
+					<ClayInput.GroupItem shrink>
+						<ClayButton
+							disabled={!!filter}
+							displayType="secondary"
+							onClick={openDataSourceFieldsModal}
+							type="submit"
+						>
+							{Liferay.Language.get('select')}
+						</ClayButton>
+					</ClayInput.GroupItem>
+				</ClayInput.Group>
 
 				{fieldInUseValidationError && (
 					<ValidationFeedback

@@ -5,6 +5,7 @@
 
 import {Page} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {liferayConfig} from '../liferay.config';
 import {ApiBuilderHelper} from './ApiBuilderHelper';
 import {DataEngineApiHelper} from './DataEngineApiHelper';
@@ -58,6 +59,11 @@ type TDataApiHelpersData = {
 	id: any;
 	type: string;
 };
+
+interface HeadlessClientConfig {
+	BASE: string;
+	HEADERS: Record<string, string>;
+}
 
 interface PostOptions<T> {
 	data?: T;
@@ -193,6 +199,18 @@ export class ApiHelpers {
 		this.searchExperiences = new SearchExperiencesApiHelper(this);
 	}
 
+	async buildRestClient<
+		T extends new (config: HeadlessClientConfig) => InstanceType<T>,
+	>(HeadlessClientClass: T): Promise<InstanceType<T>> {
+		return new HeadlessClientClass({
+			BASE: liferayConfig.environment.baseUrl + '/o',
+			HEADERS: {
+				Cookie: `JSESSIONID=${await this.getJSessionId()};`,
+				...(await this.getCSRFTokenHeader()),
+			},
+		});
+	}
+
 	async postResponse<T>(
 		url: string,
 		{data, failOnStatusCode, headers, multipart}: PostOptions<T> = {}
@@ -297,6 +315,12 @@ export class ApiHelpers {
 		};
 	}
 
+	async getJSessionId() {
+		const cookies = await this.page.context().cookies();
+
+		return cookies.find((cookie) => cookie.name === 'JSESSIONID').value;
+	}
+
 	async getCSRFTokenHeader() {
 		const authToken = await this.page.evaluate(() => Liferay.authToken);
 
@@ -360,10 +384,19 @@ export class DataApiHelpers extends ApiHelpers {
 					);
 
 					break;
-				case 'objectDefinition':
-					await this.objectAdmin.deleteObjectDefinition(item.id);
+				case 'objectDefinition': {
+					const objectAdminRESTClient = await this.buildRestClient(
+						ObjectAdminRestClient
+					);
+
+					await objectAdminRESTClient.objectDefinition.deleteObjectDefinition(
+						{
+							objectDefinitionId: item.id,
+						}
+					);
 
 					break;
+				}
 				case 'option':
 					await this.headlessCommerceAdminCatalog.deleteOption(
 						item.id
@@ -448,12 +481,6 @@ export class DataApiHelpers extends ApiHelpers {
 					);
 
 					break;
-				case 'shipment':
-					await this.headlessCommerceAdminShipment.deleteShipment(
-						item.id
-					);
-
-					break;
 				case 'specification':
 					await this.headlessCommerceAdminCatalog.deleteSpecification(
 						item.id
@@ -482,6 +509,12 @@ export class DataApiHelpers extends ApiHelpers {
 					break;
 				case 'warehouse':
 					await this.headlessCommerceAdminInventoryApiHelper.deleteWarehouse(
+						item.id
+					);
+
+					break;
+				case 'wishList':
+					await this.headlessCommerceDeliveryCatalog.deleteWishList(
 						item.id
 					);
 

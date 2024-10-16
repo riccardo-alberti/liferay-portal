@@ -11,12 +11,12 @@ import filterSelectedItems from './filterSelectedItems';
 
 export default function duplicateItem({itemIds, selectItems = () => {}}) {
 	return (dispatch, getState) => {
-		const {layoutData} = getState();
+		const {layoutData, segmentsExperienceId} = getState();
 
 		FragmentService.duplicateItem({
-			itemIds: filterSelectedItems(itemIds, layoutData),
+			itemIds: filterSelectedItems(itemIds, layoutData.items),
 			onNetworkStatus: dispatch,
-			segmentsExperienceId: getState().segmentsExperienceId,
+			segmentsExperienceId,
 		}).then(
 			({
 				duplicatedFragmentEntryLinks,

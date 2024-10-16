@@ -16,6 +16,7 @@ import getFragmentDefinition from '../layout-content-page-editor-web/utils/getFr
 import getGridDefinition from '../layout-content-page-editor-web/utils/getGridDefinition';
 import getPageDefinition from '../layout-content-page-editor-web/utils/getPageDefinition';
 import getWidgetDefinition from '../layout-content-page-editor-web/utils/getWidgetDefinition';
+import {deleteItems} from './utils/deleteItems';
 
 declare global {
 	interface Window {
@@ -46,6 +47,12 @@ const pageFields: {
 		fieldTitle: 'Text',
 	},
 ];
+
+test.afterEach(async ({formsPage, page}) => {
+	await formsPage.goTo();
+
+	await deleteItems(formsPage, page);
+});
 
 test.describe('Can render forms with multiple pages through page templates', () => {
 	test('check that form with multiple pages are not triggering scroll events', async ({
@@ -94,7 +101,7 @@ test.describe('Can render forms with multiple pages through page templates', () 
 
 		await pageEditorPage.publishPage();
 
-		await formBuilderPage.goToNew();
+		await formBuilderPage.goToNew(site.friendlyUrlPath);
 
 		await expect(formBuilderPage.newFormHeading).toBeVisible();
 

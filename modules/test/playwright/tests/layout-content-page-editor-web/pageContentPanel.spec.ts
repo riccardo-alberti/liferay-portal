@@ -11,8 +11,9 @@ import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {pageManagementSiteTest} from '../../fixtures/pageManagementSiteTest';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
 import {ANIMALS_COLLECTION_NAME} from '../setup/page-management-site/constants';
 import getCollectionDefinition from './utils/getCollectionDefinition';
@@ -51,7 +52,7 @@ const test = mergeTests(
 test(
 	'Page creator can perform actions on collection displayed in collection display via page content panel',
 	{
-		tag: '@LPS-125985',
+		tag: ['@LPS-122204', '@LPS-125985'],
 	},
 	async ({
 		apiHelpers,
@@ -122,6 +123,22 @@ test(
 		).toBeVisible();
 		await expect(page.getByText('Animal 02 - Dogs category')).toBeVisible();
 
+		// Assert edit content action
+
+		const viewItemsFrame = page.frameLocator('iframe[title="View Items"]');
+
+		const row = viewItemsFrame.getByRole('row', {
+			name: 'Animal 01 - Dogs and Cats categories',
+		});
+
+		await clickAndExpectToBeVisible({
+			autoClick: false,
+			target: viewItemsFrame.getByRole('menuitem', {
+				name: 'Edit Content',
+			}),
+			trigger: row.getByLabel('Show Actions', {exact: true}),
+		});
+
 		await page.getByRole('dialog').getByLabel('close').click();
 
 		// Go to page contents panel, click in add items and add a new item
@@ -161,7 +178,7 @@ test(
 			.getByRole('button', {exact: true, name: 'Save'})
 			.click();
 
-		await waitForSuccessAlert(permissionsFrame);
+		await waitForAlert(permissionsFrame);
 
 		await expect(guestActionViewCheckBox).not.toBeChecked();
 	}

@@ -15,8 +15,9 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.tree.Edge;
 import com.liferay.object.tree.Node;
+import com.liferay.object.tree.ObjectDefinitionTreeFactory;
+import com.liferay.object.tree.ObjectEntryTreeFactory;
 import com.liferay.object.tree.Tree;
-import com.liferay.object.tree.TreeFactory;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.function.transform.TransformUtil;
@@ -31,11 +32,13 @@ import java.io.Serializable;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import org.junit.Assert;
 
@@ -75,48 +78,94 @@ public class TreeTestUtil {
 				ObjectRelationship::getObjectRelationshipId));
 	}
 
+	public static void bind(
+			ObjectRelationshipLocalService objectRelationshipLocalService,
+			List<ObjectRelationship> objectRelationships)
+		throws PortalException {
+
+		for (ObjectRelationship objectRelationship : objectRelationships) {
+			objectRelationshipLocalService.updateObjectRelationship(
+				objectRelationship.getExternalReferenceCode(),
+				objectRelationship.getObjectRelationshipId(),
+				objectRelationship.getParameterObjectFieldId(),
+				objectRelationship.getDeletionType(), true,
+				objectRelationship.getLabelMap(), null);
+		}
+	}
+
 	public static Tree createObjectDefinitionTree(
 			ObjectDefinitionLocalService objectDefinitionLocalService,
 			ObjectRelationshipLocalService objectRelationshipLocalService,
-			TreeFactory treeFactory)
+			boolean published, Map<String, String[]> treeMap)
 		throws Exception {
 
-		ObjectDefinition objectDefinitionA =
-			ObjectDefinitionTestUtil.addCustomObjectDefinition("A");
+		for (Map.Entry<String, String[]> entry : treeMap.entrySet()) {
+			ObjectDefinition parentObjectDefinition =
+				objectDefinitionLocalService.fetchObjectDefinition(
+					TestPropsValues.getCompanyId(), "C_" + entry.getKey());
 
-		ObjectDefinition objectDefinitionAA =
-			ObjectDefinitionTestUtil.addCustomObjectDefinition("AA");
+			if (parentObjectDefinition == null) {
+				parentObjectDefinition =
+					ObjectDefinitionTestUtil.addCustomObjectDefinition(
+						entry.getKey());
+			}
 
-		bind(
-			objectDefinitionLocalService,
-			Arrays.asList(
-				ObjectRelationshipTestUtil.addObjectRelationship(
-					objectRelationshipLocalService, objectDefinitionA,
-					objectDefinitionAA),
-				ObjectRelationshipTestUtil.addObjectRelationship(
-					objectRelationshipLocalService, objectDefinitionAA,
-					ObjectDefinitionTestUtil.addCustomObjectDefinition("AAA")),
-				ObjectRelationshipTestUtil.addObjectRelationship(
-					objectRelationshipLocalService, objectDefinitionAA,
-					ObjectDefinitionTestUtil.addCustomObjectDefinition("AAB")),
-				ObjectRelationshipTestUtil.addObjectRelationship(
-					objectRelationshipLocalService, objectDefinitionA,
-					ObjectDefinitionTestUtil.addCustomObjectDefinition("AB"))));
+			if (!parentObjectDefinition.isApproved() && published) {
+				objectDefinitionLocalService.publishCustomObjectDefinition(
+					TestPropsValues.getUserId(),
+					parentObjectDefinition.getObjectDefinitionId());
+			}
 
-		return treeFactory.createObjectDefinitionTree(
-			objectDefinitionA.getObjectDefinitionId());
+			for (String childObjectDefinitionName : entry.getValue()) {
+				ObjectDefinition childObjectDefinition =
+					ObjectDefinitionTestUtil.addCustomObjectDefinition(
+						childObjectDefinitionName);
+
+				if (published) {
+					objectDefinitionLocalService.publishCustomObjectDefinition(
+						TestPropsValues.getUserId(),
+						childObjectDefinition.getObjectDefinitionId());
+				}
+
+				bind(
+					objectRelationshipLocalService,
+					Collections.singletonList(
+						ObjectRelationshipTestUtil.addObjectRelationship(
+							objectRelationshipLocalService,
+							parentObjectDefinition, childObjectDefinition)));
+			}
+		}
+
+		Set<String> keys = treeMap.keySet();
+
+		Iterator<String> iterator = keys.iterator();
+
+		ObjectDefinition rootObjectDefinition =
+			objectDefinitionLocalService.fetchObjectDefinition(
+				TestPropsValues.getCompanyId(), "C_" + iterator.next());
+
+		ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+			new ObjectDefinitionTreeFactory(
+				objectDefinitionLocalService, objectRelationshipLocalService);
+
+		return objectDefinitionTreeFactory.create(
+			rootObjectDefinition.getObjectDefinitionId());
 	}
 
 	public static Tree createObjectEntryTree(
 			String externalReferenceCodeSuffix,
+			ObjectDefinitionLocalService objectDefinitionLocalService,
 			ObjectEntryLocalService objectEntryLocalService,
 			ObjectFieldLocalService objectFieldLocalService,
-			long rootObjectDefinitionId,
 			ObjectRelationshipLocalService objectRelationshipLocalService,
-			TreeFactory treeFactory)
+			long rootObjectDefinitionId)
 		throws PortalException {
 
-		Tree objectDefinitionTree = treeFactory.createObjectDefinitionTree(
+		ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+			new ObjectDefinitionTreeFactory(
+				objectDefinitionLocalService, objectRelationshipLocalService);
+
+		Tree objectDefinitionTree = objectDefinitionTreeFactory.create(
 			rootObjectDefinitionId);
 
 		Iterator<Node> iterator = objectDefinitionTree.iterator();
@@ -172,7 +221,11 @@ public class TreeTestUtil {
 				node.getPrimaryKey(), objectEntry.getObjectEntryId());
 		}
 
-		return treeFactory.createObjectEntryTree(
+		ObjectEntryTreeFactory objectEntryTreeFactory =
+			new ObjectEntryTreeFactory(
+				objectEntryLocalService, objectRelationshipLocalService);
+
+		return objectEntryTreeFactory.create(
 			rootObjectEntry.getObjectEntryId());
 	}
 

@@ -5,6 +5,7 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {apiHelpersTest} from '../../../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {isolatedLayoutTest} from '../../../../fixtures/isolatedLayoutTest';
@@ -19,6 +20,7 @@ const picklistDefaultOptionLabel = 'Default';
 
 const apiHeadlessName = 'FieldType';
 const apiHeadlessURL = `c/${apiHeadlessName.toLocaleLowerCase()}s`;
+const dataSetERCs: string[] = [];
 let dataSetERC: string;
 let dataSetLabel: string;
 let objectDefinition: any;
@@ -44,6 +46,8 @@ test.beforeEach(
 		dataSetLabel = getRandomString();
 		picklistName = getRandomString();
 
+		dataSetERCs.push(dataSetERC);
+
 		await dataSetManagerApiHelpers.createDataSet({
 			erc: dataSetERC,
 			label: dataSetLabel,
@@ -67,36 +71,46 @@ test.beforeEach(
 			});
 		});
 
+		const objectAdminRestClient = await apiHelpers.buildRestClient(
+			ObjectAdminRestClient
+		);
+
 		await test.step('Create a Headless application and populate with filter values', async () => {
 			objectDefinition =
-				await apiHelpers.objectAdmin.postObjectDefinition({
-					enableLocalization: true,
-					label: {
-						en_US: 'Field Type',
-					},
-					modifiable: true,
-					name: apiHeadlessName,
-					objectFields: [
-						{
-							DBType: 'String',
-							businessType: 'Text',
-							indexed: true,
-							indexedAsKeyword: true,
+				await objectAdminRestClient.objectDefinition.postObjectDefinition(
+					{
+						requestBody: {
+							enableLocalization: true,
 							label: {
-								en_US: 'type',
+								en_US: 'Field Type',
 							},
-							localized: true,
-							name: 'type',
-							required: false,
-							state: false,
+							modifiable: true,
+							name: apiHeadlessName,
+							objectFields: [
+								{
+									DBType: 'String',
+									businessType: 'Text',
+									indexed: true,
+									indexedAsKeyword: true,
+									label: {
+										en_US: 'type',
+									},
+									localized: true,
+									name: 'type',
+									required: false,
+									state: false,
+								},
+							],
+							pluralLabel: {en_US: `${apiHeadlessName}s`},
+							scope: 'company',
 						},
-					],
-					pluralLabel: {en_US: `${apiHeadlessName}s`},
-					scope: 'company',
-				});
+					}
+				);
 
-			await apiHelpers.objectAdmin.postObjectDefinitionPublish(
-				objectDefinition.id
+			await objectAdminRestClient.objectDefinition.postObjectDefinitionPublish(
+				{
+					objectDefinitionId: objectDefinition.id,
+				}
 			);
 
 			await apiHelpers.objectEntry.postObjectEntry(
@@ -125,13 +139,23 @@ test.beforeEach(
 
 test.afterEach(
 	async ({apiHelpers, dataSetManagerApiHelpers, picklistApiHelpers}) => {
-		await dataSetManagerApiHelpers.deleteDataSet({erc: dataSetERC});
+		for (const DATA_SET_ERC of dataSetERCs) {
+			await dataSetManagerApiHelpers.deleteDataSet({
+				erc: DATA_SET_ERC,
+			});
+		}
+
+		dataSetERCs.length = 0;
 
 		await picklistApiHelpers.deletePicklist(picklistName);
 
-		await apiHelpers.objectAdmin.deleteObjectDefinition(
-			objectDefinition.id
+		const objectAdminRestClient = await apiHelpers.buildRestClient(
+			ObjectAdminRestClient
 		);
+
+		await objectAdminRestClient.objectDefinition.deleteObjectDefinition({
+			objectDefinitionId: objectDefinition.id,
+		});
 	}
 );
 
@@ -145,16 +169,16 @@ test('Selection filter of type "Object Picklist" is displayed in fragment @LPD-1
 	const filterLabel = getRandomString();
 
 	await test.step('Add a field, so FDS has something to show', async () => {
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'renderer',
 			label_i18n: {en_US: 'Renderer'},
-			name: 'renderer',
 		});
 
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'sortable',
 			label_i18n: {en_US: 'Sortable'},
-			name: 'sortable',
 			renderer: 'boolean',
 		});
 	});
@@ -255,16 +279,16 @@ test('Selection filter of type "Object Picklist" can be configured to use single
 	let selectionFilter;
 
 	await test.step('Add fields, so FDS has something to show', async () => {
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'renderer',
 			label_i18n: {en_US: 'Renderer'},
-			name: 'renderer',
 		});
 
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'sortable',
 			label_i18n: {en_US: 'Sortable'},
-			name: 'sortable',
 			renderer: 'boolean',
 		});
 	});
@@ -420,16 +444,16 @@ test('Selection filter of type "Object Picklist" can be configured to include or
 	let selectionFilter;
 
 	await test.step('Add fields, so FDS has something to show', async () => {
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'renderer',
 			label_i18n: {en_US: 'Renderer'},
-			name: 'renderer',
 		});
 
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'sortable',
 			label_i18n: {en_US: 'Sortable'},
-			name: 'sortable',
 			renderer: 'boolean',
 		});
 	});
@@ -541,24 +565,24 @@ test('Selection filter of type "API REST Application" is displayed in fragment @
 	const filterLabel = getRandomString();
 
 	await test.step('Add fields, so FDS has something to show', async () => {
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'id',
 			label_i18n: {en_US: 'Id'},
-			name: 'id',
 			type: 'integer',
 		});
 
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'type',
 			label_i18n: {en_US: 'Type'},
-			name: 'type',
 			type: 'string',
 		});
 
-		await dataSetManagerApiHelpers.createDataSetField({
+		await dataSetManagerApiHelpers.createDataSetTableSection({
 			dataSetERC,
+			fieldName: 'sortable',
 			label_i18n: {en_US: 'Sortable'},
-			name: 'sortable',
 			type: 'boolean',
 		});
 	});
@@ -727,3 +751,108 @@ test('Selection filter of type "API REST Application" is displayed in fragment @
 		).toBeVisible();
 	});
 });
+
+test(
+	'Selection filter of type "API REST Application" with a composed field name is displayed in the fragment',
+	{tag: '@25905'},
+	async ({dataSetManagerApiHelpers, fdsFragmentPage, layout}) => {
+		const filterLabel = getRandomString();
+		const customDataSetLabel = getRandomString();
+		const customDataSetERC = getRandomString();
+		dataSetERCs.push(customDataSetERC);
+
+		await test.step('Create custom data set of Data Sets', async () => {
+			await dataSetManagerApiHelpers.createDataSet({
+				erc: customDataSetERC,
+				label: customDataSetLabel,
+				restApplication: '/data-set-admin/data-sets',
+				restSchema: 'DataSet',
+			});
+		});
+
+		await test.step('Add some card sections', async () => {
+			await dataSetManagerApiHelpers.createDataSetCardsSection({
+				dataSetERC: customDataSetERC,
+				fieldName: 'label',
+				name: 'title',
+			});
+		});
+
+		await test.step('Create a new "API Rest Application" selection filter for card fields', async () => {
+			await dataSetManagerApiHelpers.createDataSetSelectionFilter({
+				dataSetERC: customDataSetERC,
+				fieldName: 'dataSetToDataSetCardsSections[]fieldName',
+				itemKey: 'fieldName',
+				itemLabel: 'fieldName',
+				label_i18n: {en_US: filterLabel},
+				multiple: true,
+				source: `/o/data-set-admin/cards-sections/`,
+				sourceType: 'API_REST_APPLICATION',
+			});
+		});
+
+		await test.step('Configure Data Set fragment', async () => {
+			await fdsFragmentPage.configureDataSetFragment({
+				dataSetLabel: customDataSetLabel,
+				layout,
+			});
+		});
+
+		await test.step('Check current items in the Frontend Data Set', async () => {
+			await fdsFragmentPage.fdsPaginationResults.scrollIntoViewIfNeeded();
+
+			await expect(
+				fdsFragmentPage.fdsPaginationResults.getByText(
+					'Showing 1 to 2 of 2 entries.'
+				)
+			).toBeVisible();
+		});
+
+		await test.step('Select filter', async () => {
+			await fdsFragmentPage.selectFilter(filterLabel);
+		});
+
+		await test.step('Configure and apply filter', async () => {
+			await expect(
+				fdsFragmentPage.fdsFilterItem.getByRole('checkbox', {
+					name: 'label',
+				})
+			).toBeVisible();
+
+			await fdsFragmentPage.fdsFilterItem
+				.getByRole('checkbox', {name: 'label'})
+				.check();
+			await fdsFragmentPage.fdsFilterItem
+				.getByRole('button', {name: 'Add filter'})
+				.click();
+
+			// Close filter
+
+			await fdsFragmentPage.page.keyboard.press('Escape');
+		});
+
+		await test.step('Check that the filter works', async () => {
+			await fdsFragmentPage.fdsFilterResumeButton.waitFor({
+				state: 'visible',
+			});
+
+			await expect(
+				fdsFragmentPage.page.getByRole('button', {
+					name: `${filterLabel}: label`,
+				})
+			).toBeVisible();
+
+			await fdsFragmentPage.page.locator('.card').first().waitFor();
+
+			const firstCard = fdsFragmentPage.page.locator('.card').first();
+
+			await expect(firstCard.locator('.card-title')).toContainText(
+				customDataSetLabel
+			);
+
+			await expect(
+				fdsFragmentPage.page.getByText('Showing 1 to 1 of 1 entries.')
+			).toBeVisible();
+		});
+	}
+);

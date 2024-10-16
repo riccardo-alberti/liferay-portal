@@ -9,22 +9,30 @@ import path from 'path';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import fillAndClickOutside from '../../../utils/fillAndClickOutside';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
-import {waitForSuccessAlert} from '../../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../../utils/waitForAlert';
 
 export class TemplatesPage {
 	readonly page: Page;
 
 	readonly newButton: Locator;
+	readonly saveButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 
 		this.newButton = page.getByRole('button', {name: 'Add'});
+		this.saveButton = page.getByRole('button', {exact: true, name: 'Save'});
 	}
 
 	async goto(siteUrl?: Site['friendlyUrlPath']) {
 		await this.page.goto(
 			`/group${siteUrl || '/guest'}${PORTLET_URLS.templates}`
+		);
+	}
+
+	async gotoWidgetTemplates(siteUrl?: Site['friendlyUrlPath']) {
+		await this.page.goto(
+			`/group${siteUrl || '/guest'}${PORTLET_URLS.widgetTemplates}`
 		);
 	}
 
@@ -50,7 +58,7 @@ export class TemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Copy'}).click();
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
 	}
 
 	async createInformationTemplate({
@@ -76,7 +84,29 @@ export class TemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Save'}).click();
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
+	}
+
+	async createWidgetTemplate(name: string, type: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				name: type,
+			}),
+			trigger: this.page.getByRole('button', {name: 'New'}),
+		});
+
+		// Wait until the editor is loaded
+
+		await this.page.locator('.ddm_template_editor__App').waitFor();
+
+		await fillAndClickOutside(
+			this.page,
+			this.page.getByPlaceholder('Untitled Template'),
+			name
+		);
+
+		await this.saveTemplate();
 	}
 
 	async deleteInformationTemplate(title: string) {
@@ -84,10 +114,10 @@ export class TemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Delete'}).click();
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
 	}
 
-	async editInformationTemplate(name: string) {
+	async editTemplate(name: string) {
 		await this.page.getByRole('link', {exact: true, name}).click();
 	}
 
@@ -110,14 +140,16 @@ export class TemplatesPage {
 			path.join(dirname, '/dependencies/' + fileName)
 		);
 
-		await waitForSuccessAlert(this.page, `Success:${fileName} Imported`);
+		await waitForAlert(this.page, `Success:${fileName} Imported`);
 	}
 
-	async saveInformationTemplate() {
-		await this.page
-			.getByRole('button', {exact: true, name: 'Save'})
-			.click();
+	async saveTemplate() {
+		await this.saveButton.click();
 
-		await waitForSuccessAlert(this.page);
+		// Wait for the redirection to the templates admin when the template is saved
+
+		await this.page.waitForURL(
+			(url) => !url.href.includes('ddmTemplateId=')
+		);
 	}
 }

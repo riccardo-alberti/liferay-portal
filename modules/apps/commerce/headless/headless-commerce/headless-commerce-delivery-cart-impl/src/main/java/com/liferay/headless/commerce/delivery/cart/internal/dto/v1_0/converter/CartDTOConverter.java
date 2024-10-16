@@ -13,6 +13,8 @@ import com.liferay.commerce.currency.util.CommercePriceFormatter;
 import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderType;
+import com.liferay.commerce.model.CommerceShippingEngine;
+import com.liferay.commerce.model.CommerceShippingMethod;
 import com.liferay.commerce.payment.model.CommercePaymentMethodGroupRel;
 import com.liferay.commerce.payment.service.CommercePaymentMethodGroupRelLocalService;
 import com.liferay.commerce.pricing.constants.CommercePricingConstants;
@@ -21,11 +23,15 @@ import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceOrderItemService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.service.CommerceOrderTypeService;
+import com.liferay.commerce.util.CommerceShippingEngineRegistry;
 import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Address;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Cart;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Status;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Summary;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.model.Country;
+import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.language.LanguageResources;
@@ -64,6 +70,9 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 		CommerceOrder commerceOrder = _commerceOrderService.getCommerceOrder(
 			(Long)dtoConverterContext.getId());
 
+		CommerceShippingMethod commerceShippingMethod =
+			commerceOrder.getCommerceShippingMethod();
+
 		Locale locale = dtoConverterContext.getLocale();
 
 		ResourceBundle resourceBundle = LanguageResources.getResourceBundle(
@@ -74,6 +83,9 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 				setAccount(commerceOrder::getCommerceAccountName);
 				setAccountId(commerceOrder::getCommerceAccountId);
 				setAuthor(commerceOrder::getUserName);
+				setBillingAddress(
+					() -> _toAddress(
+						commerceOrder.getBillingAddress(), locale));
 				setBillingAddressExternalReferenceCode(
 					() -> {
 						CommerceAddress billingCommerceAddress =
@@ -167,6 +179,11 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 								commerceOrder.getPaymentStatus()));
 				setPrintedNote(commerceOrder::getPrintedNote);
 				setPurchaseOrderNumber(commerceOrder::getPurchaseOrderNumber);
+				setRequestedDeliveryDate(
+					commerceOrder::getRequestedDeliveryDate);
+				setShippingAddress(
+					() -> _toAddress(
+						commerceOrder.getShippingAddress(), locale));
 				setShippingAddressExternalReferenceCode(
 					() -> {
 						CommerceAddress shippingCommerceAddress =
@@ -180,6 +197,29 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 							getExternalReferenceCode();
 					});
 				setShippingAddressId(commerceOrder::getShippingAddressId);
+				setShippingMethod(
+					() -> {
+						if (commerceShippingMethod == null) {
+							return null;
+						}
+
+						return commerceShippingMethod.getName(locale);
+					});
+				setShippingOption(
+					() -> {
+						if (commerceShippingMethod == null) {
+							return null;
+						}
+
+						CommerceShippingEngine commerceShippingEngine =
+							_commerceShippingEngineRegistry.
+								getCommerceShippingEngine(
+									commerceShippingMethod.getEngineKey());
+
+						return commerceShippingEngine.
+							getCommerceShippingOptionLabel(
+								commerceOrder.getShippingOptionName(), locale);
+					});
 				setStatus(
 					() -> WorkflowConstants.getStatusLabel(
 						commerceOrder.getStatus()));
@@ -572,6 +612,67 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 				finalTotalDiscountAmount, commerceCurrency, locale));
 	}
 
+	private Address _toAddress(CommerceAddress commerceAddress, Locale locale) {
+		if (commerceAddress == null) {
+			return null;
+		}
+
+		return new Address() {
+			{
+				setCity(commerceAddress::getCity);
+				setCountry(
+					() -> {
+						Country commerceAddressCountry =
+							commerceAddress.getCountry();
+
+						return commerceAddressCountry.getName(locale);
+					});
+				setCountryISOCode(
+					() -> {
+						Country commerceAddressCountry =
+							commerceAddress.getCountry();
+
+						return commerceAddressCountry.getA2();
+					});
+				setDescription(commerceAddress::getDescription);
+				setExternalReferenceCode(
+					commerceAddress::getExternalReferenceCode);
+				setId(commerceAddress::getCommerceAddressId);
+				setLatitude(commerceAddress::getLatitude);
+				setLongitude(commerceAddress::getLongitude);
+				setName(commerceAddress::getName);
+				setPhoneNumber(commerceAddress::getPhoneNumber);
+				setRegion(
+					() -> {
+						Region commerceAddressRegion =
+							commerceAddress.getRegion();
+
+						if (commerceAddressRegion == null) {
+							return null;
+						}
+
+						return commerceAddressRegion.getTitle(
+							_language.getLanguageId(locale));
+					});
+				setRegionISOCode(
+					() -> {
+						Region commerceAddressRegion =
+							commerceAddress.getRegion();
+
+						if (commerceAddressRegion == null) {
+							return null;
+						}
+
+						return commerceAddressRegion.getRegionCode();
+					});
+				setStreet1(commerceAddress::getStreet1);
+				setStreet2(commerceAddress::getStreet2);
+				setStreet3(commerceAddress::getStreet3);
+				setZip(commerceAddress::getZip);
+			}
+		};
+	}
+
 	private Status _toStatus(
 		int orderStatus, String commerceOrderWorkflowStatusLabel,
 		String commerceOrderWorkflowStatusLabelI18n) {
@@ -603,6 +704,9 @@ public class CartDTOConverter implements DTOConverter<CommerceOrder, Cart> {
 
 	@Reference
 	private CommercePriceFormatter _commercePriceFormatter;
+
+	@Reference
+	private CommerceShippingEngineRegistry _commerceShippingEngineRegistry;
 
 	@Reference
 	private Language _language;

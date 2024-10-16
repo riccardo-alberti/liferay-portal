@@ -10,9 +10,13 @@ import {applicationsMenuPageTest} from '../../fixtures/applicationsMenuPageTest'
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pagesAdminPagesTest} from '../../fixtures/pagesAdminPagesTest';
+import {systemSettingsPageTest} from '../../fixtures/systemSettingsPageTest';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import getRandomString from '../../utils/getRandomString';
+import {openFieldset} from '../../utils/openFieldset';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {journalPagesTest} from './fixtures/journalPagesTest';
 import getDataStructureDefinition from './utils/getDataStructureDefinition';
 
@@ -35,7 +39,165 @@ const autoSaveTest = mergeTests(
 	}),
 	isolatedSiteTest,
 	journalPagesTest,
+	loginTest(),
+	pagesAdminPagesTest,
+	systemSettingsPageTest
+);
+
+const autosaveWithoutPermissionsTest = mergeTests(
+	featureFlagsTest({
+		'LPD-11228': true,
+		'LPD-15596': false,
+	}),
+	isolatedSiteTest,
+	journalPagesTest,
 	loginTest()
+);
+
+const autoSaveUndoRedoTest = mergeTests(
+	apiHelpersTest,
+	applicationsMenuPageTest,
+	featureFlagsTest({
+		'LPD-11228': true,
+		'LPD-15596': true,
+		'LPD-36053': true,
+	}),
+	isolatedSiteTest,
+	journalPagesTest,
+	loginTest()
+);
+
+autoSaveTest(
+	'UndoRedo Should not appear when editing default values',
+	{
+		tag: '@LPD-36442',
+	},
+	async ({
+		apiHelpers,
+		journalEditArticlePage,
+		journalEditStructureDefaultValuesPage,
+		site,
+	}) => {
+		const fieldName = 'Text1';
+		const structureName = 'Structure1';
+
+		const dataDefinition = getDataStructureDefinition({
+			defaultLanguageId: 'en_US',
+			fields: [{name: fieldName, repeatable: true}],
+			name: structureName,
+		});
+
+		await apiHelpers.dataEngine.createStructure(site.id, dataDefinition);
+
+		await journalEditStructureDefaultValuesPage.goto({
+			siteUrl: site.friendlyUrlPath,
+			structureName,
+		});
+
+		expect(journalEditArticlePage.undoButton).not.toBeVisible();
+		expect(journalEditArticlePage.redoButton).not.toBeVisible();
+	}
+);
+
+autoSaveTest(
+	'Default Language can be changed when editing default values',
+	{
+		tag: '@LPD-38269',
+	},
+	async ({
+		apiHelpers,
+		journalEditStructureDefaultValuesPage,
+		page,
+		site,
+		systemSettingsPage,
+	}) => {
+		await systemSettingsPage.goToSystemSetting(
+			'Web Content',
+			'Administration'
+		);
+
+		await page.getByLabel('Changeable Default Language').check();
+
+		await page.getByRole('button', {name: /save|update/i}).click();
+
+		await waitForAlert(page);
+
+		const fieldName = 'Text1';
+		const structureName = 'Structure1';
+
+		const dataDefinition = getDataStructureDefinition({
+			defaultLanguageId: 'en_US',
+			fields: [{name: fieldName, repeatable: true}],
+			name: structureName,
+		});
+
+		await apiHelpers.dataEngine.createStructure(site.id, dataDefinition);
+
+		await journalEditStructureDefaultValuesPage.goto({
+			siteUrl: site.friendlyUrlPath,
+			structureName,
+		});
+
+		const defaultLanguageButton = page
+			.getByRole('group', {name: 'Basic Information'})
+			.getByRole('button', {name: 'Change'});
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {
+				name: 'ca_ES',
+			}),
+			trigger: defaultLanguageButton,
+		});
+
+		await page.getByLabel('Select a language, current').click();
+
+		await expect(
+			page.getByRole('option', {name: 'Catalan Language: Default'})
+		).toBeVisible();
+	}
+);
+
+autoSaveUndoRedoTest(
+	'After resetting the fields the user is warned about the missing friendly-url',
+	{
+		tag: '@LPD-34375',
+	},
+	async ({journalEditArticlePage, page, site}) => {
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		await journalEditArticlePage.fillTitle(getRandomString());
+
+		const savedIndicator = await page.locator(
+			'#_com_liferay_journal_web_portlet_JournalPortlet_changesSavedIndicator'
+		);
+
+		await expect(savedIndicator).toBeVisible();
+
+		await journalEditArticlePage.fillTitle(getRandomString());
+
+		await expect(savedIndicator).toBeVisible();
+
+		const historyButton = journalEditArticlePage.historyButton;
+
+		await historyButton.click();
+
+		await page.getByRole('menuitem', {name: 'Undo All'}).click();
+
+		const errorIndicator = await page.locator(
+			'#_com_liferay_journal_web_portlet_JournalPortlet_lockErrorIndicator'
+		);
+
+		await expect(errorIndicator).toBeVisible();
+
+		await journalEditArticlePage.fillTitle(getRandomString());
+
+		await expect(
+			page.getByText(
+				'You must define a friendly URL for the default language.'
+			)
+		).toBeVisible();
+	}
 );
 
 autoSaveTest(
@@ -130,7 +292,8 @@ autoSaveTest(
 		);
 	}
 );
-autoSaveTest(
+
+autoSaveUndoRedoTest(
 	'Translation is removed when using Undo and restored when using Redo',
 	{
 		tag: '@LPD-31072',
@@ -140,14 +303,12 @@ autoSaveTest(
 
 		await journalEditArticlePage.fillTitle(getRandomString());
 
-		const translationButton = page.locator(
-			'[id="_com_liferay_journal_web_portlet_JournalPortlet__com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXMLMenu"]'
-		);
+		const translationButton = page.getByLabel('Select a language, current');
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Not translated into Catalan.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not',
 			}),
 			trigger: translationButton,
 		});
@@ -156,8 +317,8 @@ autoSaveTest(
 
 		await clickAndExpectToBeVisible({
 			autoClick: false,
-			target: page.getByRole('menuitem', {
-				name: 'Translated into Catalan.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Translating 1/2',
 			}),
 			trigger: translationButton,
 		});
@@ -166,8 +327,8 @@ autoSaveTest(
 
 		await clickAndExpectToBeVisible({
 			autoClick: false,
-			target: page.getByRole('menuitem', {
-				name: 'Not translated into Catalan.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not',
 			}),
 			trigger: translationButton,
 		});
@@ -176,14 +337,15 @@ autoSaveTest(
 
 		await clickAndExpectToBeVisible({
 			autoClick: false,
-			target: page.getByRole('menuitem', {
-				name: 'Translated into Catalan.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Translating 1/2',
 			}),
 			trigger: translationButton,
 		});
 	}
 );
-autoSaveTest(
+
+autoSaveUndoRedoTest(
 	'Undo/Redo buttons work with metadata fields',
 	{
 		tag: '@LPD-26863',
@@ -217,7 +379,7 @@ autoSaveTest(
 	}
 );
 
-autoSaveTest(
+autoSaveUndoRedoTest(
 	'Undo/Redo buttons work with content field',
 	{
 		tag: '@LPD-26863',
@@ -273,7 +435,7 @@ autoSaveTest(
 	}
 );
 
-autoSaveTest(
+autoSaveUndoRedoTest(
 	'History button test',
 	{
 		tag: '@LPD-31063',
@@ -311,11 +473,11 @@ autoSaveTest(
 
 		await expect(
 			page.getByRole('menuitem', {name: 'Undo All'})
-		).toBeEnabled();
+		).toHaveClass('dropdown-item');
 
 		await expect(
 			page.getByRole('menuitem', {name: 'Edit Title'})
-		).toBeDisabled();
+		).toHaveClass('dropdown-item active');
 
 		await expect(async () => {
 			await journalEditArticlePage.fillFriendlyURL(friendlyURL);
@@ -324,20 +486,44 @@ autoSaveTest(
 
 			await expect(
 				page.getByRole('menuitem', {name: 'Edit Title'})
-			).toBeEnabled();
+			).toHaveClass('dropdown-item');
 		}).toPass();
 
 		await expect(
 			page.getByRole('menuitem', {name: 'Edit Friendly URL'})
-		).toBeDisabled();
+		).toHaveClass('dropdown-item active');
 
 		const textField = page.getByLabel(textFieldName);
 
 		await fillAndClickOutside(page, textField, text);
 
-		await historyButton.click();
+		const translationButton = page.getByLabel('Select a language, current');
 
-		await page.getByRole('menuitem', {name: 'Undo All'}).click();
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not',
+			}),
+			trigger: translationButton,
+		});
+
+		await expect(async () => {
+			await journalEditArticlePage.fillTitle(getRandomString());
+
+			await historyButton.click();
+
+			await expect(
+				page.getByRole('menuitem', {name: 'Change Language'})
+			).toHaveClass('dropdown-item');
+
+			await page.getByRole('menuitem', {name: 'Undo All'}).click();
+
+			await expect(
+				page.locator(
+					'#_com_liferay_journal_web_portlet_JournalPortlet_lockErrorIndicator'
+				)
+			).toBeVisible();
+		}).toPass();
 
 		await expect(journalEditArticlePage.friendlyURLInput).toBeEmpty();
 
@@ -368,22 +554,6 @@ autoSaveTest(
 	},
 	async ({journalEditArticlePage, journalPage, page, site}) => {
 		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
-
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Publish With Permissions',
-			}),
-			trigger: page.getByRole('button', {
-				name: 'Select and Confirm Publish Settings',
-			}),
-		});
-
-		await expect(
-			page.getByText(
-				'Please enter a valid title for the default language'
-			)
-		).toBeVisible({timeout: 1000});
 
 		const title = getRandomString();
 
@@ -427,9 +597,9 @@ autoSaveTest(
 
 		await journalEditArticlePage.fillTitle(title);
 
-		await expect(
-			journalEditArticlePage.changesSavedIndicator
-		).toBeVisible();
+		await journalEditArticlePage.changesSavedIndicator.waitFor();
+
+		await openFieldset(page, 'Basic Information');
 
 		await expect(page.getByText('1.0')).toBeVisible();
 
@@ -459,6 +629,8 @@ autoSaveTest(
 				journalEditArticlePage.changesSavedIndicator
 			).toBeVisible();
 		}).toPass();
+
+		await openFieldset(page, 'Basic Information');
 
 		await expect(page.getByText('1.1')).toBeVisible();
 
@@ -490,6 +662,8 @@ autoSaveTest(
 
 		await journalEditArticlePage.fillFriendlyURL(getRandomString());
 
+		await page.locator('body').click();
+
 		const errorIndicator = await page.locator(
 			'#_com_liferay_journal_web_portlet_JournalPortlet_lockErrorIndicator'
 		);
@@ -509,5 +683,72 @@ autoSaveTest(
 		await expect(
 			journalEditArticlePage.changesSavedIndicator
 		).toBeVisible();
+	}
+);
+
+autoSaveTest(
+	'Empty option restores in Select from List when using undo/redo',
+	{
+		tag: '@LPD-35631',
+	},
+	async ({apiHelpers, journalEditArticlePage, page, site}) => {
+		const fieldName = 'SelectFromList';
+		const structureName = 'Structure 1';
+
+		const dataDefinition = getDataStructureDefinition({
+			defaultLanguageId: 'en_US',
+			fields: [
+				{
+					fieldType: 'select',
+					name: fieldName,
+					options: {
+						en_US: [
+							{
+								label: 'option1',
+								reference: 'option1',
+								value: 'option1',
+							},
+							{
+								label: 'option2',
+								reference: 'option2',
+								value: 'option2',
+							},
+						],
+					},
+				},
+			],
+			name: structureName,
+		});
+
+		await apiHelpers.dataEngine.createStructure(site.id, dataDefinition);
+
+		await journalEditArticlePage.goto({
+			siteUrl: site.friendlyUrlPath,
+			structureName,
+		});
+
+		await page.getByLabel(fieldName).click();
+
+		await page.getByRole('option', {name: 'option1'}).click();
+
+		await journalEditArticlePage.undoButton.click();
+
+		await expect(page.getByLabel(fieldName)).toHaveText('Choose an Option');
+	}
+);
+
+autosaveWithoutPermissionsTest(
+	'Web Content is published when Feature Flag LPD-11228 is enabled but LPD-15596 is disabled',
+	{
+		tag: '@LPD-37606',
+	},
+	async ({journalEditArticlePage, page, site}) => {
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		const articleTitle = 'Web Content Title';
+
+		journalEditArticlePage.createWCWithBasicPublishButton(articleTitle);
+
+		await expect(page.getByTitle(articleTitle)).toBeVisible();
 	}
 );

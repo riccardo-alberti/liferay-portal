@@ -5,7 +5,7 @@
 
 import {FrameLocator, Locator, Page} from '@playwright/test';
 
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {ApplicationsMenuPage} from '../product-navigation-applications-menu/ApplicationsMenuPage';
 import {searchTableRowByValue} from './commerceDNDTablePage';
 
@@ -63,6 +63,7 @@ export class CommerceAdminChannelDetailsPage {
 	) => Promise<Locator>;
 	readonly sidePanelNestedFrame: (tableName: string) => Promise<FrameLocator>;
 	readonly shippingOptionsTab: (tableName: string) => Promise<Locator>;
+	readonly shippingOptionSettingsTab: (tableName: string) => Promise<Locator>;
 	readonly shippingOptionsTableLink: (
 		shippingOptionName: string,
 		tableName: string
@@ -231,6 +232,11 @@ export class CommerceAdminChannelDetailsPage {
 				name: 'Shipping Options',
 			});
 		};
+		this.shippingOptionSettingsTab = async (tableName: string) => {
+			return (await this.sidePanelFrame(tableName)).getByRole('link', {
+				name: 'Shipping Option Settings',
+			});
+		};
 		this.shippingOptionsTableLink = async (
 			shippingOptionName: string,
 			tableName: string
@@ -268,6 +274,57 @@ export class CommerceAdminChannelDetailsPage {
 		await (await this.closeSidePanelFrame(false, tableName)).click();
 	}
 
+	async addVariableRateShippingOption(name: string) {
+		const tableName = 'Shipping Methods';
+		await (
+			await this.generalCommerceAdminChannelTableLink('Variable Rate')
+		).click();
+		(await this.shippingOptionsTab(tableName)).click();
+		await (await this.sidePanelFrame(tableName))
+			.getByText('Add Shipping Option')
+			.click();
+		await (await this.sidePanelNestedFrame(tableName))
+			.getByLabel('Name')
+			.fill(name);
+		await (await this.sidePanelNestedFrame(tableName))
+			.getByLabel('Key')
+			.fill(name);
+		await (await this.frameSaveButton(true, tableName)).click();
+		await waitForAlert(await this.sidePanelNestedFrame('Shipping Methods'));
+		await (
+			await this.closeSidePanelFrame(true, 'Shipping Methods')
+		).click();
+		await (
+			await this.closeSidePanelFrame(false, 'Shipping Methods')
+		).click();
+	}
+
+	async addVariableRateShippingOptionSetting(
+		optionName: string,
+		subtotalPercentagePrice?: string
+	) {
+		const tableName = 'Shipping Methods';
+		await (
+			await this.generalCommerceAdminChannelTableLink('Variable Rate')
+		).click();
+		(await this.shippingOptionSettingsTab(tableName)).click();
+		await (await this.sidePanelFrame(tableName))
+			.getByText('Add Shipping Option Setting')
+			.click();
+		await (await this.sidePanelNestedFrame(tableName))
+			.getByLabel('Shipping Option')
+			.selectOption(optionName);
+
+		if (subtotalPercentagePrice) {
+			await (await this.sidePanelNestedFrame(tableName))
+				.getByLabel('Subtotal Percentage Price')
+				.fill(subtotalPercentagePrice);
+		}
+
+		await (await this.frameSaveButton(true, tableName)).click();
+		await waitForAlert(await this.sidePanelNestedFrame('Shipping Methods'));
+	}
+
 	async setEntryEligibility(
 		eligibilityOption: string,
 		entryName: string,
@@ -296,7 +353,7 @@ export class CommerceAdminChannelDetailsPage {
 			await (
 				await this.frameSaveButton(isNestedFrame, tableName)
 			).click();
-			await waitForSuccessAlert(await this.sidePanelFrame(tableName));
+			await waitForAlert(await this.sidePanelFrame(tableName));
 			await (
 				await this.closeSidePanelFrame(isNestedFrame, tableName)
 			).click();
@@ -328,9 +385,7 @@ export class CommerceAdminChannelDetailsPage {
 			await (
 				await this.frameSaveButton(isNestedFrame, tableName)
 			).click();
-			await waitForSuccessAlert(
-				await this.sidePanelNestedFrame(tableName)
-			);
+			await waitForAlert(await this.sidePanelNestedFrame(tableName));
 			await (
 				await this.closeSidePanelFrame(isNestedFrame, tableName)
 			).click();

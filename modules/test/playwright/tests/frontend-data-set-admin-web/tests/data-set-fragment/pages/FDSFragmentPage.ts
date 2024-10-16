@@ -107,11 +107,10 @@ export class FDSFragmentPage {
 		await expect(this.selectedDataSetInput).toHaveValue(label);
 	}
 
-	async selectFilter(filterLabel) {
+	async selectFilter(filterLabel: string) {
 		await this.fdsFilterButton.waitFor({state: 'visible'});
-		const filterDropdownId = await this.fdsFilterButton.evaluate((node) =>
-			node.getAttribute('aria-controls')
-		);
+		const filterDropdownId =
+			await this.fdsFilterButton.getAttribute('aria-controls');
 		await this.fdsFilterButton.click();
 		await this.page
 			.locator(`#${filterDropdownId}`)
@@ -195,7 +194,7 @@ export class FDSFragmentPage {
 		});
 
 		await dataSetMenuItem.dragTo(
-			this.page.getByText('Place fragments or widgets here')
+			this.page.getByText('Drag and drop fragments or widgets here.')
 		);
 
 		const fragmentSelectionArea = this.page.getByText(

@@ -14,10 +14,14 @@ import {masterPagesPagesTest} from '../../fixtures/masterPagesPagesTest';
 import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {pageSelectorPagesTest} from '../../fixtures/pageSelectorPagesTest';
 import {pagesAdminPagesTest} from '../../fixtures/pagesAdminPagesTest';
+import {systemSettingsPageTest} from '../../fixtures/systemSettingsPageTest';
+import {liferayConfig} from '../../liferay.config';
 import {checkAccessibility} from '../../utils/checkAccessibility';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
+import performLogin, {performLogout} from '../../utils/performLogin';
 import {selectAndExpectToHaveValue} from '../../utils/selectAndExpectToHaveValue';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {pagesPagesTest} from './fixtures/pagesPagesTest';
 
 const test = mergeTests(
@@ -31,7 +35,8 @@ const test = mergeTests(
 	pageEditorPagesTest,
 	pageSelectorPagesTest,
 	pagesAdminPagesTest,
-	pagesPagesTest
+	pagesPagesTest,
+	systemSettingsPageTest
 );
 
 const deleteClientExtension = async (apiHelpers, clientExtension) => {
@@ -363,6 +368,70 @@ test.describe('Page types configuration', () => {
 });
 
 test.describe('SEO configuration', () => {
+	test('Can disable open graph', async ({
+		apiHelpers,
+		page,
+		pagesAdminPage,
+		site,
+		systemSettingsPage,
+	}) => {
+
+		// Create page
+
+		const pageName = getRandomString();
+
+		await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: pageName,
+		});
+
+		// Disable open graph
+
+		await systemSettingsPage.goToSystemSetting('Pages', 'SEO');
+
+		const openGraphCheckInput = page.getByLabel('Enable Open Graph');
+
+		await openGraphCheckInput.uncheck();
+
+		await page.locator('.btn-primary').click();
+
+		await waitForAlert(page);
+
+		// Assert open graph section is not present
+
+		await pagesAdminPage.goto(site.friendlyUrlPath);
+
+		await pagesAdminPage.clickOnAction('Configure', pageName);
+
+		await expect(
+			page.locator('nav.menubar', {
+				has: page.getByText('Open Graph'),
+			})
+		).not.toBeAttached();
+
+		// Enable open graph
+
+		await systemSettingsPage.goToSystemSetting('Pages', 'SEO');
+
+		await openGraphCheckInput.check();
+
+		await page.locator('.btn-primary').click();
+
+		await waitForAlert(page);
+
+		// Assert open graph section is present
+
+		await pagesAdminPage.goto(site.friendlyUrlPath);
+
+		await pagesAdminPage.clickOnAction('Configure', pageName);
+
+		await expect(
+			page.locator('nav.menubar', {
+				has: page.getByText('Open Graph'),
+			})
+		).toBeAttached();
+	});
+
 	test('Checks page SEO HTML title is not shown in edit mode', async ({
 		apiHelpers,
 		page,
@@ -406,6 +475,371 @@ test.describe('SEO configuration', () => {
 			`${pageName} - ${site.name} - Liferay DXP (Editing)`
 		);
 	});
+
+	test('SEO preview', async ({
+		apiHelpers,
+		page,
+		pageConfigurationPage,
+		pagesAdminPage,
+		site,
+	}) => {
+
+		// Create page and go to SEO
+
+		const pageName = getRandomString();
+
+		await apiHelpers.headlessDelivery.createSitePage({
+			siteId: site.id,
+			title: pageName,
+		});
+
+		await pagesAdminPage.goto(site.friendlyUrlPath);
+		await pageConfigurationPage.goToSection(pageName, 'SEO');
+
+		// Change SEO HTML title and description in default language
+
+		const defaultLanguageHTMLTitle = getRandomString();
+
+		await page.getByLabel('HTML Title').fill(defaultLanguageHTMLTitle);
+
+		const defaultLanguageDescription = getRandomString();
+
+		await page.getByLabel('Description').fill(defaultLanguageDescription);
+
+		// Assert preview
+
+		await expect(page.locator('.preview-seo-title')).toContainText(
+			`${defaultLanguageHTMLTitle} - ${site.name}`
+		);
+
+		await expect(page.locator('.preview-seo-description')).toContainText(
+			defaultLanguageDescription
+		);
+
+		// Switch language
+
+		await page
+			.getByRole('button')
+			.filter({hasText: 'en-US'})
+			.first()
+			.click();
+
+		await page.getByRole('menuitem').filter({hasText: 'es-ES'}).click();
+
+		// Change SEO HTML title and description in spanish
+
+		const spanishLanguageHTMLTitle = getRandomString();
+
+		await page.getByLabel('HTML Title').fill(spanishLanguageHTMLTitle);
+
+		const spanishLanguageDescription = getRandomString();
+
+		await page.getByLabel('Description').fill(spanishLanguageDescription);
+
+		// Assert preview
+
+		await expect(page.locator('.preview-seo-title')).toContainText(
+			`${spanishLanguageHTMLTitle} - ${site.name}`
+		);
+
+		await expect(page.locator('.preview-seo-description')).toContainText(
+			spanishLanguageDescription
+		);
+	});
+
+	test('User can customize canonical url', async ({
+		apiHelpers,
+		page,
+		pageConfigurationPage,
+		pagesAdminPage,
+		site,
+	}) => {
+
+		// Create page
+
+		const pageName = getRandomString();
+
+		await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: pageName,
+		});
+
+		// Assert canonical url
+
+		await performLogout(page);
+
+		await page.goto(`/web${site.friendlyUrlPath}/${pageName}`);
+
+		expect(
+			await page.locator('link[rel="canonical"]').getAttribute('href')
+		).toBe(
+			`${liferayConfig.environment.baseUrl}/web${site.friendlyUrlPath}`
+		);
+
+		await performLogin(page, 'test');
+
+		// Go to SEO
+
+		await pagesAdminPage.goto(site.friendlyUrlPath);
+
+		await pageConfigurationPage.goToSection(pageName, 'SEO');
+
+		// Configure custom canonical url
+
+		await page.getByLabel('Use Custom Canonical URL').check();
+
+		await expect(
+			page.getByText('Due to the customization of the canonical URL')
+		).toBeAttached();
+
+		const canonicalURL = page.getByLabel('Canonical URL', {exact: true});
+
+		await expect(canonicalURL).toHaveValue(
+			`${liferayConfig.environment.baseUrl}/web${site.friendlyUrlPath}`
+		);
+
+		await canonicalURL.fill('http://mycustomizedurl.com/mydesiredurl');
+
+		// Save configuration
+
+		await pageConfigurationPage.save();
+
+		// Assert custom canonical url
+
+		await performLogout(page);
+
+		await page.goto(`/web${site.friendlyUrlPath}/${pageName}`);
+
+		expect(
+			await page.locator('link[rel="canonical"]').getAttribute('href')
+		).toBe('http://mycustomizedurl.com/mydesiredurl');
+	});
+
+	test('User can customize custom meta tags', async ({
+		apiHelpers,
+		page,
+		pageConfigurationPage,
+		pagesAdminPage,
+		site,
+	}) => {
+
+		// Create page
+
+		const pageName = getRandomString();
+
+		await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: pageName,
+		});
+
+		// Configure custom meta tags
+
+		await pagesAdminPage.goto(site.friendlyUrlPath);
+
+		await pageConfigurationPage.goToSection(pageName, 'Custom Meta Tags');
+
+		// Edit custom meta tags
+
+		const property1 = page.getByLabel('Property', {exact: true}).nth(0);
+
+		await property1.waitFor();
+
+		const property1Name = getRandomString();
+
+		await property1.fill(property1Name);
+
+		const content1 = page.getByLabel('Content', {exact: true}).nth(0);
+
+		const content1DefaultValue = getRandomString();
+
+		await content1.fill(content1DefaultValue);
+
+		// Add new custom meta tag
+
+		await page.getByLabel('Add Custom Tags').click();
+
+		// Edit new custom meta tag
+
+		const property2 = page.getByLabel('Property', {exact: true}).nth(1);
+
+		await property2.waitFor();
+
+		const property2Name = getRandomString();
+
+		await property2.fill(property2Name);
+
+		const content2 = page.getByLabel('Content', {exact: true}).nth(1);
+
+		const content2DefaultValue = getRandomString();
+
+		await content2.fill(content2DefaultValue);
+
+		// Switch language
+
+		await page.getByRole('button').filter({hasText: 'en-US'}).click();
+
+		await page.getByRole('link').filter({hasText: 'es-ES'}).click();
+
+		// Translate custom meta tags
+
+		const content1SpanishValue = getRandomString();
+
+		await content1.fill(content1SpanishValue);
+
+		const content2SpanishValue = getRandomString();
+
+		await content2.fill(content2SpanishValue);
+
+		// Save configuration
+
+		await pageConfigurationPage.save();
+
+		// Assert spanish language custom meta tags
+
+		await performLogout(page);
+
+		await page.goto(`/es/web${site.friendlyUrlPath}/${pageName}`);
+
+		await expect(
+			page.locator(
+				`meta[property="${property1Name}"][content="${content1SpanishValue}"]`
+			)
+		).toBeAttached();
+
+		await expect(
+			page.locator(
+				`meta[property="${property2Name}"][content="${content2SpanishValue}"]`
+			)
+		).toBeAttached();
+
+		// Assert default language custom meta tags
+
+		await page.goto(`/en/web${site.friendlyUrlPath}/${pageName}`);
+
+		await expect(
+			page.locator(
+				`meta[property="${property1Name}"][content="${content1DefaultValue}"]`
+			)
+		).toBeAttached();
+
+		await expect(
+			page.locator(
+				`meta[property="${property2Name}"][content="${content2DefaultValue}"]`
+			)
+		).toBeAttached();
+	});
+
+	test(
+		'User can customize open graph tags',
+		{
+			tag: '@LPS-134658',
+		},
+		async ({
+			apiHelpers,
+			page,
+			pageConfigurationPage,
+			pagesAdminPage,
+			site,
+		}) => {
+
+			// Create page
+
+			const pageName = getRandomString();
+
+			await apiHelpers.jsonWebServicesLayout.addLayout({
+				groupId: site.id,
+				title: pageName,
+			});
+
+			// Configure open graph tags
+
+			await pagesAdminPage.goto(site.friendlyUrlPath);
+
+			await pageConfigurationPage.goToSection(pageName, 'Open Graph');
+
+			// Configure image
+
+			const fileChooserPromise = page.waitForEvent('filechooser');
+
+			await page.getByLabel('Select Image', {exact: true}).click();
+
+			const iframe = page.frameLocator('iframe[title="Select Image"]');
+
+			await expect(
+				iframe.getByText('Drag & Drop Your Images or Browse to Upload')
+			).toBeVisible();
+
+			await iframe
+				.getByText('Drag & Drop Your Images or Browse to Upload')
+				.click();
+
+			const fileChooser = await fileChooserPromise;
+
+			await fileChooser.setFiles(
+				path.join(__dirname, '/dependencies/thumbnail.jpg')
+			);
+
+			await iframe
+				.getByRole('button', {exact: true, name: 'Add'})
+				.click();
+
+			// Configure image alt description
+
+			const imageAltDescription = getRandomString();
+
+			await page
+				.getByLabel('Image Alt Description')
+				.fill(imageAltDescription);
+
+			// Configure title
+
+			await page.getByLabel('Use Custom Title').check();
+
+			const title = getRandomString();
+
+			await page.getByPlaceholder('Title', {exact: true}).fill(title);
+
+			// Configure description
+
+			await page.getByLabel('Use Custom Description').check();
+
+			const description = getRandomString();
+
+			await page
+				.getByPlaceholder('Description', {exact: true})
+				.fill(description);
+
+			await pageConfigurationPage.save();
+
+			// Assert open graph tags
+
+			await performLogout(page);
+
+			await page.goto(`/web${site.friendlyUrlPath}/${pageName}`);
+
+			await expect(
+				page.locator(`meta[property="og:title"][content="${title}"]`)
+			).toBeAttached();
+
+			await expect(
+				page.locator(
+					`meta[property="og:description"][content="${description}"]`
+				)
+			).toBeAttached();
+
+			await expect(
+				page.locator(
+					`meta[property="og:image"][content*="thumbnail.jpg"]`
+				)
+			).toBeAttached();
+
+			await expect(
+				page.locator(
+					`meta[property="og:image:alt"][content="${imageAltDescription}"]`
+				)
+			).toBeAttached();
+		}
+	);
 });
 
 test.describe('Utility Page', () => {

@@ -1170,7 +1170,7 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "Publications#MANAGE_PUBLICATIONS_PAGE_TITLE",
-			value1 = "Listas de cambios");
+			value1 = "Publicaciones");
 
 		AssertTextEquals.assertPartialText(
 			key_navItem = "Continua",
@@ -1940,6 +1940,10 @@ definition {
 		}
 
 		PublicationsNavigator.openPublicationsHistory();
+
+		Click(
+			key_name = "Publication",
+			locator1 = "PublicationsChanges#SORT_BUTTON");
 
 		Publications.viewPublicationOrderInHistory(publicationList = "Publication Name 1,Publication Name 2,Publication Name 3,Publication Name 4,Publication Name 5,Publication Name 6,Publication Name 7");
 

@@ -376,7 +376,8 @@ public class DLReferencesExportImportContentProcessor
 		if (((beginPos == 0) && (endPos == content.length())) ||
 			_isCreoleReference(content, beginPos) ||
 			_isHTMLReference(content, beginPos) ||
-			_isJSONReference(content, beginPos)) {
+			_isJSONReference(content, beginPos) ||
+			_isStyleReference(content, beginPos)) {
 
 			return false;
 		}
@@ -455,7 +456,8 @@ public class DLReferencesExportImportContentProcessor
 				(((curBeginPos == 0) && (endPos == content.length())) ||
 				 _isCreoleReference(content, curBeginPos) ||
 				 _isHTMLReference(content, curBeginPos) ||
-				 _isJSONReference(content, curBeginPos))) {
+				 _isJSONReference(content, curBeginPos) ||
+				 _isStyleReference(content, curBeginPos))) {
 
 				return false;
 			}
@@ -512,6 +514,26 @@ public class DLReferencesExportImportContentProcessor
 		}
 
 		return true;
+	}
+
+	private boolean _isStyleReference(String content, int beginPos) {
+		beginPos = _skipWhiteSpacePos(content, beginPos);
+
+		if (content.regionMatches(beginPos - 1, StringPool.APOSTROPHE, 0, 1) ||
+			content.regionMatches(beginPos - 1, StringPool.QUOTE, 0, 1)) {
+
+			beginPos = beginPos - 1;
+		}
+
+		beginPos = _skipWhiteSpacePos(content, beginPos);
+
+		String url = "url(";
+
+		if (content.regionMatches(true, beginPos - url.length(), url, 0, 2)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean _isValidateDLReferences() {
@@ -868,6 +890,18 @@ public class DLReferencesExportImportContentProcessor
 
 		return _fileEntryFriendlyURLResolver.resolveFriendlyURL(
 			group.getGroupId(), friendlyURL);
+	}
+
+	private int _skipWhiteSpacePos(String content, int beginPos) {
+		while (content.regionMatches(beginPos - 1, StringPool.NEW_LINE, 0, 1) ||
+			   content.regionMatches(beginPos - 1, StringPool.RETURN, 0, 1) ||
+			   content.regionMatches(beginPos - 1, StringPool.SPACE, 0, 1) ||
+			   content.regionMatches(beginPos - 1, StringPool.TAB, 0, 1)) {
+
+			beginPos = beginPos - 1;
+		}
+
+		return beginPos;
 	}
 
 	private void _validateDLReferences(long groupId, String content)

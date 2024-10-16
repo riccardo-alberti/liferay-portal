@@ -7,6 +7,7 @@ package com.liferay.on.demand.admin.ticket.generator.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.on.demand.admin.ticket.generator.OnDemandAdminTicketGenerator;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.db.partition.test.util.BaseDBPartitionTestCase;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Ticket;
@@ -37,10 +38,16 @@ public class OnDemandAdminTicketGeneratorDBPartitionTest
 		BaseDBPartitionTestCase.setUpClass();
 
 		BaseDBPartitionTestCase.setUpDBPartitions();
+
+		_originalCompanyId = CompanyThreadLocal.getCompanyId();
+
+		CompanyThreadLocal.setCompanyId(portal.getDefaultCompanyId());
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
+		CompanyThreadLocal.setCompanyId(_originalCompanyId);
+
 		BaseDBPartitionTestCase.tearDownDBPartitions();
 	}
 
@@ -95,17 +102,26 @@ public class OnDemandAdminTicketGeneratorDBPartitionTest
 				return;
 			}
 
-			Ticket ticket = _onDemandAdminTicketGenerator.generate(
-				companyLocalService.getCompany(targetCompanyId), null, user);
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						companyId)) {
 
-			Assert.assertNotNull(ticket);
-			Assert.assertNotEquals(user.getCompanyId(), ticket.getCompanyId());
+				Ticket ticket = _onDemandAdminTicketGenerator.generate(
+					companyLocalService.getCompany(targetCompanyId), null,
+					user);
+
+				Assert.assertNotNull(ticket);
+				Assert.assertNotEquals(
+					user.getCompanyId(), ticket.getCompanyId());
+			}
 		}
 	}
 
 	private void _assertCompanyId(long companyId) {
 		Assert.assertEquals(companyId, (long)CompanyThreadLocal.getCompanyId());
 	}
+
+	private static long _originalCompanyId;
 
 	@Inject
 	private OnDemandAdminTicketGenerator _onDemandAdminTicketGenerator;

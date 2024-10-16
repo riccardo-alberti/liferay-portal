@@ -11,12 +11,16 @@ import CustomerDashboardOutlet from './CustomerDashboardOutlet';
 import Apps from './pages/Apps';
 import App from './pages/Apps/App/App';
 import AppOutlet from './pages/Apps/App/AppOutlet';
+import Provisioning from './pages/Apps/App/CloudProvisioning';
+import CloudProvisioningOutlet from './pages/Apps/App/CloudProvisioning/pages/CloudProvisioningOutlet';
+import EnvironmentSelection from './pages/Apps/App/CloudProvisioning/pages/EnvironmentSelection';
+import CloudProvisioningInstallation from './pages/Apps/App/CloudProvisioning/pages/Installation';
+import ProjectSelection from './pages/Apps/App/CloudProvisioning/pages/ProjectSelection';
 import Download from './pages/Apps/App/Download/Download';
 import CreateLicense from './pages/Apps/App/Licenses/CreateLicense';
 import Licenses from './pages/Apps/App/Licenses/Licenses';
-import Provisioning from './pages/Apps/App/Provisioning/Provisioning';
-import Members from './pages/Members';
 import Solutions from './pages/Solutions';
+import ConnectionTokens from './pages/Solutions/ConnectionTokens';
 import Solution from './pages/Solutions/Solution';
 import SolutionOutlet from './pages/Solutions/SolutionOutlet';
 
@@ -44,13 +48,17 @@ const CustomerDashboardRouter = () => {
 							/>
 						)}
 					</Route>
-					<Route element={<Members />} path="members" />
 					<Route element={<Solutions />} path="solutions" />
 
 					<Route
 						element={<SolutionOutlet />}
 						path="solutions/:orderId"
 					>
+						<Route
+							element={<ConnectionTokens />}
+							path="connection-tokens"
+						/>
+
 						<Route element={<Solution />} index />
 					</Route>
 				</Route>
@@ -59,6 +67,22 @@ const CustomerDashboardRouter = () => {
 					element={<CreateLicense />}
 					path="order/:orderId/create-license"
 				/>
+
+				<Route
+					element={<CloudProvisioningOutlet />}
+					path="order/:orderId/cloud-provisioning/install"
+				>
+					<Route element={<ProjectSelection />} index />
+
+					<Route
+						element={<EnvironmentSelection />}
+						path="environment"
+					/>
+					<Route
+						element={<CloudProvisioningInstallation />}
+						path="installation"
+					/>
+				</Route>
 			</Routes>
 		</HashRouter>
 	);

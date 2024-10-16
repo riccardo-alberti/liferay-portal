@@ -5,14 +5,18 @@
 
 import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 
+import {ObjectField} from '../../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
 
 export class ViewObjectEntriesPage {
 	readonly addObjectEntryButton: Locator;
 	readonly backButton: Locator;
+	readonly deletionConfirmationModal: Locator;
 	readonly deleteFileButton: Locator;
 	readonly duplicateEntryErrorMessage: Locator;
 	readonly editObjectEntryForm: Locator;
+	readonly frontendDatasetActions: Locator;
+	readonly frontendDatasetDeleteAction: Locator;
 	readonly page: Page;
 	readonly richTextIFrame: FrameLocator;
 	readonly richTextInput: Locator;
@@ -31,10 +35,19 @@ export class ViewObjectEntriesPage {
 			.first();
 		this.backButton = page.getByTitle('Back');
 		this.deleteFileButton = page.getByRole('button', {name: 'Delete'});
+		this.deletionConfirmationModal = page
+			.getByRole('dialog')
+			.and(page.getByLabel('Delete Entry'));
 		this.duplicateEntryErrorMessage = page.getByText(
 			'Error:The field values are already in use. Please choose unique values.'
 		);
 		this.editObjectEntryForm = page.locator('[id="editObjectEntry"]');
+		this.frontendDatasetActions = page.getByRole('button', {
+			name: 'Actions',
+		});
+		this.frontendDatasetDeleteAction = page.getByRole('menuitem', {
+			name: 'Delete',
+		});
 		this.page = page;
 		this.richTextIFrame = page
 			.getByRole('application', {
@@ -80,7 +93,7 @@ export class ViewObjectEntriesPage {
 		objectFieldLabel,
 		objectFieldValue,
 	}: {
-		objectFieldBusinessType?: ObjectFieldBusinessTypeName;
+		objectFieldBusinessType?: ObjectField['businessType'];
 		objectFieldLabel?: string;
 		objectFieldValue: string;
 	}) {
@@ -121,13 +134,7 @@ export class ViewObjectEntriesPage {
 			.getByRole('link', {name: 'Provided by Liferay'})
 			.click();
 
-		await this.selectFileIframe
-			.locator(
-				'[id="_com_liferay_item_selector_web_portlet_ItemSelectorPortlet_repositoryEntriesSearchContainer_1"] div'
-			)
-			.filter({hasText: fileName})
-			.first()
-			.click();
+		await this.selectFileIframe.getByText(fileName).dblclick();
 	}
 
 	async selectFileFromDocumentsAndMediaArabic() {

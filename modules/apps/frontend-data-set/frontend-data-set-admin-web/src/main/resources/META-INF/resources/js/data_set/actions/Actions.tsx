@@ -43,8 +43,8 @@ const SECTIONS = {
 };
 
 interface IAction extends IOrderable {
-	[OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTION]?: any;
-	[OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTION]?: any;
+	[OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTIONS]?: any;
+	[OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTIONS]?: any;
 	actions: {
 		delete: {
 			href: string;
@@ -68,6 +68,7 @@ interface IAction extends IOrderable {
 	method?: string;
 	modalSize?: string;
 	permissionKey: string;
+	requestBody?: string;
 	successMessage?: string;
 	successMessage_i18n?: {
 		[key: string]: string;
@@ -141,12 +142,12 @@ const Actions = ({dataSet, namespace, spritemap}: IDataSetSectionProps) => {
 
 		const relationShip =
 			activeTab === 0
-				? OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTION
-				: OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTION;
+				? OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTIONS
+				: OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTIONS;
 		const relationshipID =
 			activeTab === 0
-				? OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTION_ID
-				: OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTION_ID;
+				? OBJECT_RELATIONSHIP.DATA_SET_ITEM_ACTIONS_ID
+				: OBJECT_RELATIONSHIP.DATA_SET_CREATION_ACTIONS_ID;
 
 		const url = `${API_URL.ACTIONS}?filter=(${relationshipID} eq '${dataSet.id}')&nestedFields=${relationShip}&sort=dateCreated:asc`;
 
@@ -174,12 +175,12 @@ const Actions = ({dataSet, namespace, spritemap}: IDataSetSectionProps) => {
 		const storedActions: IAction[] = responseJSON.items;
 
 		const actionTypeOrder =
-			activeTab === 0 ? 'fdsItemActionsOrder' : 'fdsCreationActionsOrder';
+			activeTab === 0 ? 'itemActionsOrder' : 'creationActionsOrder';
 
-		const fdsActionsOrder =
+		const actionsOrder =
 			storedActions?.[0]?.[relationShip]?.[actionTypeOrder];
 
-		setActions(sortItems(storedActions, fdsActionsOrder) as IAction[]);
+		setActions(sortItems(storedActions, actionsOrder) as IAction[]);
 
 		setLoading(false);
 	};
@@ -241,17 +242,10 @@ const Actions = ({dataSet, namespace, spritemap}: IDataSetSectionProps) => {
 	};
 
 	const updateActionsOrder = async ({order}: {order: string}) => {
-		let actionTypeOrder =
-			activeTab === 0 ? 'fdsItemActionsOrder' : 'fdsCreationActionsOrder';
+		const actionTypeOrder =
+			activeTab === 0 ? 'itemActionsOrder' : 'creationActionsOrder';
 
-		let apiURL = API_URL.DATA_SETS;
-
-		if (Liferay.FeatureFlags['LPD-15729']) {
-			actionTypeOrder =
-				activeTab === 0 ? 'itemActionsOrder' : 'creationActionsOrder';
-
-			apiURL = API_URL.DATA_SETS;
-		}
+		const apiURL = API_URL.DATA_SETS;
 
 		const response = await fetch(
 			`${apiURL}/by-external-reference-code/${dataSet.externalReferenceCode}`,

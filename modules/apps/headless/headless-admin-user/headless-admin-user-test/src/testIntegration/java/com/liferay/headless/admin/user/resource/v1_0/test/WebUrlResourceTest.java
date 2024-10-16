@@ -75,8 +75,25 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 		return new WebUrl() {
 			{
 				url = "http://" + RandomTestUtil.randomString() + ".com";
+				urlType = "blog";
 			}
 		};
+	}
+
+	@Override
+	protected WebUrl testDeleteWebUrl_addWebUrl() throws Exception {
+		return _addWebUrl(
+			randomWebUrl(), Contact.class.getName(), _user.getContactId(),
+			ListTypeConstants.CONTACT_WEBSITE);
+	}
+
+	@Override
+	protected WebUrl testDeleteWebUrlByExternalReferenceCode_addWebUrl()
+		throws Exception {
+
+		return _addWebUrl(
+			randomWebUrl(), Contact.class.getName(), _user.getContactId(),
+			ListTypeConstants.CONTACT_WEBSITE);
 	}
 
 	@Override
@@ -191,8 +208,33 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 	}
 
 	@Override
+	protected WebUrl testGetWebUrlByExternalReferenceCode_addWebUrl()
+		throws Exception {
+
+		return _addWebUrl(
+			randomWebUrl(), Contact.class.getName(), _user.getContactId(),
+			ListTypeConstants.CONTACT_WEBSITE);
+	}
+
+	@Override
 	protected WebUrl testGraphQLWebUrl_addWebUrl() throws Exception {
 		return testGetWebUrl_addWebUrl();
+	}
+
+	@Override
+	protected WebUrl testPatchWebUrl_addWebUrl() throws Exception {
+		return _addWebUrl(
+			randomWebUrl(), Contact.class.getName(), _user.getContactId(),
+			ListTypeConstants.CONTACT_WEBSITE);
+	}
+
+	@Override
+	protected WebUrl testPatchWebUrlByExternalReferenceCode_addWebUrl()
+		throws Exception {
+
+		return _addWebUrl(
+			randomWebUrl(), Contact.class.getName(), _user.getContactId(),
+			ListTypeConstants.CONTACT_WEBSITE);
 	}
 
 	private WebUrl _addWebUrl(
@@ -201,8 +243,9 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 
 		return _toWebUrl(
 			WebsiteLocalServiceUtil.addWebsite(
-				_user.getUserId(), className, classPK, webUrl.getUrl(),
-				_getListTypeId(listTypeId), false, new ServiceContext()));
+				RandomTestUtil.randomString(), _user.getUserId(), className,
+				classPK, webUrl.getUrl(), _getListTypeId(listTypeId), false,
+				new ServiceContext()));
 	}
 
 	private long _getListTypeId(String listTypeId) {
@@ -217,6 +260,7 @@ public class WebUrlResourceTest extends BaseWebUrlResourceTestCase {
 	private WebUrl _toWebUrl(Website website) {
 		return new WebUrl() {
 			{
+				externalReferenceCode = website.getExternalReferenceCode();
 				id = website.getWebsiteId();
 				url = website.getUrl();
 			}

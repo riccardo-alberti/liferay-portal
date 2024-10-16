@@ -17,6 +17,7 @@ export class CommerceLayoutsPage {
 	readonly addWidgetLabel: (widgetName: string) => Locator;
 	readonly availableThemesFrame: FrameLocator;
 	readonly backLink: Locator;
+	readonly cancelButton: Locator;
 	readonly catalogLink: Locator;
 	readonly changeCurrentThemeButton: Locator;
 	readonly closeProductMenuButton: Locator;
@@ -33,12 +34,17 @@ export class CommerceLayoutsPage {
 	readonly editMenuItem: Locator;
 	readonly firstFragment: Locator;
 	readonly infoBoxButton: (label: string) => Locator;
+	readonly infoBoxCancelButton: Locator;
 	readonly infoBoxFieldSelect: Locator;
 	readonly infoBoxLabelInput: Locator;
+	readonly infoBoxShippingMethodAlert: Locator;
+	readonly infoBoxShippingMethodSelect: Locator;
 	readonly infoBoxReadOnlyToggle: Locator;
+	readonly infoBoxValue: (name: string) => Locator;
 	readonly inputTextbox: (name: string) => Locator;
 	readonly markAsDefaultMenuItem: Locator;
 	readonly moreActionsButton: Locator;
+	readonly orderActionsButton: (orderActionName: string) => Locator;
 	readonly openProductMenuButton: Locator;
 	readonly page: Page;
 	readonly pagesMenuItem: Locator;
@@ -52,6 +58,7 @@ export class CommerceLayoutsPage {
 	readonly showLabelInput: Locator;
 	readonly siteBuilderMenuItem: Locator;
 	readonly siteHomePageLink: Locator;
+	readonly stepTrackerItem: (name: string) => Locator;
 	readonly widgetPageTemplateButton: Locator;
 
 	constructor(page: Page) {
@@ -81,6 +88,10 @@ export class CommerceLayoutsPage {
 		);
 
 		this.backLink = page.getByRole('link', {exact: true, name: 'Back'});
+		this.cancelButton = page.getByRole('button', {
+			exact: true,
+			name: 'Cancel',
+		});
 		this.catalogLink = page.getByRole('link', {
 			exact: true,
 			name: 'Catalog',
@@ -134,9 +145,16 @@ export class CommerceLayoutsPage {
 		this.firstFragment = page.locator('#page-editor div').nth(2);
 		this.infoBoxButton = (label: string) =>
 			page.getByTestId(label + '-infoBoxButton');
+		this.infoBoxCancelButton = page.getByRole('button', {
+			exact: true,
+			name: 'Cancel',
+		});
 		this.infoBoxFieldSelect = page.getByLabel('Field');
 		this.infoBoxLabelInput = page.getByLabel('Label');
+		this.infoBoxShippingMethodAlert = page.getByText('are no available');
+		this.infoBoxShippingMethodSelect = page.getByLabel('Choose Courier');
 		this.infoBoxReadOnlyToggle = page.getByLabel('Read Only');
+		this.infoBoxValue = (name: string) => page.getByText(name);
 		this.inputTextbox = (name: string) =>
 			page.getByRole('textbox', {exact: true, name});
 		this.markAsDefaultMenuItem = page.getByRole('menuitem', {
@@ -144,6 +162,8 @@ export class CommerceLayoutsPage {
 			name: 'Mark as Default',
 		});
 		this.moreActionsButton = page.getByLabel('More actions');
+		this.orderActionsButton = (orderActionName: string) =>
+			page.getByRole('button', {name: orderActionName});
 		this.openProductMenuButton = page.getByRole('tab', {
 			exact: true,
 			name: 'Open Product Menu',
@@ -173,6 +193,7 @@ export class CommerceLayoutsPage {
 		this.selectOtherItemDropdownItem = page.getByTestId(
 			'selectOtherItemDropdownItem'
 		);
+
 		this.showLabelInput = page.getByLabel('Show Label', {exact: true});
 		this.siteBuilderMenuItem = page
 			.getByTestId('appGroup')
@@ -181,6 +202,8 @@ export class CommerceLayoutsPage {
 			exact: true,
 			name: 'Home',
 		});
+		this.stepTrackerItem = (name: string) =>
+			page.locator('li').filter({hasText: name});
 		this.widgetPageTemplateButton = page
 			.getByTestId('cardPageItemDirectory')
 			.getByRole('button', {
@@ -226,10 +249,45 @@ export class CommerceLayoutsPage {
 			.click();
 	}
 
+	async addWidget(itemName: string, menuName: string = '') {
+		await this.page
+			.getByRole('tab', {
+				exact: true,
+				name: 'Widgets',
+			})
+			.click();
+
+		const source = await this.page.getByRole('menuitem', {
+			name: itemName,
+		});
+
+		if ((await source.isHidden()) && menuName) {
+			await this.page
+				.getByRole('menuitem', {
+					exact: true,
+					name: menuName,
+				})
+				.click();
+		}
+
+		await source.focus();
+		await source.press('Enter');
+		await source.press('Enter');
+	}
+
 	async addWidgetToPage(widgetName: string) {
 		await this.addWidgetButton.click();
 		await this.searchFormInput.fill(widgetName);
 		await this.addWidgetLabel(widgetName).click();
+	}
+
+	async checkValueOrderSummary(nameValue: string, value: string) {
+		await expect(
+			this.page.getByText(nameValue, {exact: true})
+		).toBeVisible();
+		await expect(
+			this.page.locator('span').filter({hasText: value})
+		).toBeVisible();
 	}
 
 	async cleanupSiteInitializerData(
@@ -364,6 +422,34 @@ export class CommerceLayoutsPage {
 						)
 			),
 		]);
+	}
+
+	async expectOrderActionButtons({
+		approveCount = 0,
+		checkoutCount = 0,
+		rejectCount = 0,
+		reorderCount = 0,
+		requestQuoteCount = 0,
+		submitCount = 0,
+	}) {
+		await expect(this.orderActionsButton('Approve')).toHaveCount(
+			approveCount
+		);
+		await expect(this.orderActionsButton('Checkout')).toHaveCount(
+			checkoutCount
+		);
+		await expect(this.orderActionsButton('Reject')).toHaveCount(
+			rejectCount
+		);
+		await expect(this.orderActionsButton('Reorder')).toHaveCount(
+			reorderCount
+		);
+		await expect(this.orderActionsButton('Request Quote')).toHaveCount(
+			requestQuoteCount
+		);
+		await expect(this.orderActionsButton('Submit')).toHaveCount(
+			submitCount
+		);
 	}
 
 	async goto() {

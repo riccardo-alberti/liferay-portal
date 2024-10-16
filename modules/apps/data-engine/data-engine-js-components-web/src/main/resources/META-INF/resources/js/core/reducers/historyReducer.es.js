@@ -23,20 +23,16 @@ export default function historyReducer(state, action) {
 			};
 		case EVENT_TYPES.HISTORY.BLUR:
 			if (state.history.edited) {
-				Liferay.fire('journal:storeState', {fieldName: action.payload});
+				Liferay.fire('journal:storeState', {
+					fieldName:
+						Liferay.Language.get('edit') + ' ' + action.payload,
+				});
 			}
 
 			return {
 				history: {
 					...state.history,
 					edited: false,
-				},
-			};
-		case EVENT_TYPES.HISTORY.EDITED:
-			return {
-				history: {
-					...state.history,
-					edited: true,
 				},
 			};
 		case EVENT_TYPES.HISTORY.GOTO:
@@ -47,6 +43,13 @@ export default function historyReducer(state, action) {
 				history: {
 					...state.history,
 					currentStep: action.step,
+				},
+			};
+		case EVENT_TYPES.HISTORY.MARK:
+			return {
+				history: {
+					...state.history,
+					edited: true,
 				},
 			};
 		case EVENT_TYPES.HISTORY.NEXT:
@@ -75,6 +78,13 @@ export default function historyReducer(state, action) {
 					...state.history,
 					currentStep: 0,
 					steps: [state],
+				},
+			};
+		case EVENT_TYPES.HISTORY.UNMARK:
+			return {
+				history: {
+					...state.history,
+					edited: false,
 				},
 			};
 		default:

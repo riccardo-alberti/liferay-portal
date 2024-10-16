@@ -92,11 +92,16 @@ export default function fieldChange({
 
 		if (Liferay.FeatureFlags['LPD-11228']) {
 			if (
+				fieldInstance.type === 'color' ||
+				fieldInstance.type === 'image' ||
 				fieldInstance.type === 'numeric' ||
-				fieldInstance.type === 'text' ||
-				fieldInstance.type === 'rich_text'
+				fieldInstance.type === 'rich_text' ||
+				fieldInstance.type === 'text'
 			) {
-				dispatch({type: EVENT_TYPES.HISTORY.EDITED});
+				dispatch({type: EVENT_TYPES.HISTORY.MARK});
+			}
+			else {
+				dispatch({type: EVENT_TYPES.HISTORY.UNMARK});
 			}
 		}
 
@@ -182,14 +187,19 @@ export default function fieldChange({
 
 		if (Liferay.FeatureFlags['LPD-11228']) {
 			if (
+				fieldInstance.type !== 'color' &&
+				fieldInstance.type !== 'image' &&
 				fieldInstance.type !== 'numeric' &&
-				fieldInstance.type !== 'text' &&
-				fieldInstance.type !== 'rich_text'
+				fieldInstance.type !== 'rich_text' &&
+				fieldInstance.type !== 'text'
 			) {
 				setTimeout(
 					() =>
 						Liferay.fire('journal:storeState', {
-							fieldName: fieldInstance.label,
+							fieldName:
+								Liferay.Language.get('edit') +
+								' ' +
+								fieldInstance.label,
 						}),
 					0
 				);

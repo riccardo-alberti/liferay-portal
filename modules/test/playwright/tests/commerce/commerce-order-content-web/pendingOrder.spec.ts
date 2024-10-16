@@ -5,6 +5,7 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {applicationsMenuPageTest} from '../../../fixtures/applicationsMenuPageTest';
 import {commercePagesTest} from '../../../fixtures/commercePagesTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
@@ -254,19 +255,25 @@ test('LPD-4174 Sales agent can receive email notifications for new orders placed
 			type: 'email',
 		});
 
+	const objectAdminRestClient = await apiHelpers.buildRestClient(
+		ObjectAdminRestClient
+	);
+
 	const objectAction =
-		await apiHelpers.objectAdmin.postObjectActionByExternalReferenceCode(
-			'L_COMMERCE_ORDER',
+		await objectAdminRestClient.objectAction.postObjectDefinitionByExternalReferenceCodeObjectAction(
 			{
-				active: true,
-				label: {
-					en_US: 'commerceOrderStatusOnChange',
-				},
-				name: 'commerceOrderStatusOnChange',
-				objectActionExecutorKey: 'notification',
-				objectActionTriggerKey: 'liferay/commerce_order_status',
-				parameters: {
-					notificationTemplateId: notificationTemplate.id,
+				externalReferenceCode: 'L_COMMERCE_ORDER',
+				requestBody: {
+					active: true,
+					label: {
+						en_US: 'commerceOrderStatusOnChange',
+					},
+					name: 'commerceOrderStatusOnChange',
+					objectActionExecutorKey: 'notification',
+					objectActionTriggerKey: 'liferay/commerce_order_status',
+					parameters: {
+						notificationTemplateId: notificationTemplate.id,
+					},
 				},
 			}
 		);
@@ -307,7 +314,9 @@ test('LPD-4174 Sales agent can receive email notifications for new orders placed
 			'Sales agent can receive email notifications'
 		);
 
-		await apiHelpers.objectAdmin.deleteObjectAction(objectAction.id);
+		await objectAdminRestClient.objectAction.deleteObjectAction({
+			objectActionId: objectAction.id,
+		});
 
 		const notificationQueueEntry =
 			await apiHelpers.notification.getNotificationQueueEntriesPage(
@@ -850,6 +859,67 @@ test('LPD-3259 As a buyer with approval workflow, when I click review order in m
 	await commerceMiniCartPage.reviewOrderButton.click();
 
 	await expect(pendingOrdersPage.orderItemsTable).toBeVisible();
+});
+
+test('LPD-33783 Pending orders table displays correct fields', async ({
+	apiHelpers,
+	applicationsMenuPage,
+	commerceLayoutsPage,
+	page,
+	pendingOrdersPage,
+}) => {
+	const site = await apiHelpers.headlessSite.createSite({
+		name: 'Pending order',
+	});
+
+	apiHelpers.data.push({id: site.id, type: 'site'});
+
+	const channel = await apiHelpers.headlessCommerceAdminChannel.postChannel({
+		name: 'Pending order Channel',
+		siteGroupId: site.id,
+	});
+
+	const account = await apiHelpers.headlessAdminUser.postAccount({
+		name: getRandomString(),
+		type: 'person',
+	});
+
+	apiHelpers.data.push({id: account.id, type: 'account'});
+
+	await apiHelpers.headlessCommerceAdminOrder.postOrder({
+		accountId: account.id,
+		channelId: channel.id,
+		name: 'order1',
+		orderStatus: '2',
+	});
+
+	await applicationsMenuPage.goToSite('Pending order');
+
+	await commerceLayoutsPage.goToPages(false);
+	await commerceLayoutsPage.createWidgetPage('Pending Orders Page');
+
+	await page.goto(`/web/${site.name}`);
+
+	await pendingOrdersPage.addPendingOrdersWidget();
+
+	await expect(pendingOrdersPage.orderItemsTable).toBeVisible();
+
+	const tableHeaderLabels = [
+		'Order ID',
+		'Name',
+		'Order Type',
+		'ERC',
+		'Purchase Order Number',
+		'Create Date',
+		'Account',
+		'Created By',
+		'Status',
+		'Amount',
+	];
+
+	await expect(await pendingOrdersPage.tableHeaders.innerText()).toEqual(
+		tableHeaderLabels.join('\n')
+	);
 });
 
 test('LPD-3440 As a order manager with buyer approval workflow, I can approve orders on pending orders page', async ({

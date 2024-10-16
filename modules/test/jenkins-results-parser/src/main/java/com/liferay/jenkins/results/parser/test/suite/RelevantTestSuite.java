@@ -12,6 +12,7 @@ import com.liferay.jenkins.results.parser.job.property.JobProperty;
 import com.liferay.jenkins.results.parser.test.batch.TestBatch;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,12 +33,13 @@ public class RelevantTestSuite {
 			portalAcceptancePullRequestJob.getPortalGitWorkingDirectory();
 
 		_modifiedFiles = portalGitWorkingDirectory.getModifiedFilesList();
+		_portalGitWorkingDirectory = portalGitWorkingDirectory;
 
 		_relevantRuleEngine = RelevantRuleEngine.getInstance(
 			portalAcceptancePullRequestJob);
 	}
 
-	public List<TestBatch> getTestBatches() {
+	public List<TestBatch> getTestBatches(boolean validateAllRules) {
 		File baseTestPropertiesFile = new File(
 			_relevantRuleEngine.getBaseDir(), "test.properties");
 
@@ -52,17 +54,29 @@ public class RelevantTestSuite {
 					baseTestPropertiesFile);
 		}
 
+		List<RelevantRule> relevantRules =
+			_relevantRuleEngine.getMatchingRelevantRules(_modifiedFiles);
+
+		Collections.sort(relevantRules);
+
+		try {
+			if (validateAllRules) {
+				RelevantRuleValidation.validate(
+					_portalGitWorkingDirectory.getGitRepositoryName(),
+					_portalGitWorkingDirectory.getUpstreamBranchName());
+			}
+			else {
+				RelevantRuleValidation.validate(relevantRules);
+			}
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
 		List<String> validTestBatchNames = Arrays.asList(
 			testBatchNamesPropertyValue.split(","));
 
 		List<TestBatch> testBatches = new ArrayList<>();
-
-		List<RelevantRule> relevantRules =
-			_relevantRuleEngine.getMatchingRelevantRules(_modifiedFiles);
-
-		RelevantRuleValidation.validate(relevantRules);
-
-		Collections.sort(relevantRules);
 
 		System.out.println(
 			"There are " + relevantRules.size() + " matching relevant rules: " +
@@ -104,6 +118,7 @@ public class RelevantTestSuite {
 	}
 
 	private List<File> _modifiedFiles;
+	private final PortalGitWorkingDirectory _portalGitWorkingDirectory;
 	private final RelevantRuleEngine _relevantRuleEngine;
 	private final Set<JobProperty> _testBatchNamesJobProperties =
 		new HashSet<>();

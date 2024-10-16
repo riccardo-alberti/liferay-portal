@@ -10,11 +10,12 @@ import {waitForLoading} from './loading';
 
 export enum ACPage {
 	assetPage = 'assets',
-	eventAnalysisPage = 'events',
+	eventAnalysisPage = 'event-analysis',
 	individualPage = 'contacts/individuals',
 	segmentPage = 'contacts/segments',
 	sitePage = 'sites',
 	testPage = 'tests',
+	propertiesPage = 'properties',
 }
 
 export async function navigateTo({
@@ -58,5 +59,19 @@ export async function navigateToACPageViaURL({
 }) {
 	await page.goto(
 		`${faroConfig.environment.baseUrl}/workspace/${projectID}/${channelID}/${acPage}`
+	);
+}
+
+export async function navigateToACSettingsViaURL({
+	acPage,
+	page,
+	projectID,
+}: {
+	acPage: ACPage;
+	page: Page;
+	projectID: string;
+}) {
+	await page.goto(
+		`${faroConfig.environment.baseUrl}/workspace/${projectID}/settings/${acPage}`
 	);
 }

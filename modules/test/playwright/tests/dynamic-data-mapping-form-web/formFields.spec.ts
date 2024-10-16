@@ -8,8 +8,15 @@ import {Page, expect, mergeTests} from '@playwright/test';
 import {formsPagesTest} from '../../fixtures/formsPagesTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {getRandomInt} from '../../utils/getRandomInt';
+import {deleteItems} from './utils/deleteItems';
 
 export const test = mergeTests(loginTest(), formsPagesTest);
+
+test.afterEach(async ({formsPage, page}) => {
+	await formsPage.goTo();
+
+	await deleteItems(formsPage, page);
+});
 
 test.describe('Can configure a HTML autocomplete attribute in Date, Numeric and Text field types', () => {
 	test('LPD-12824 HTML autocomplete attribute is rendered and has the configured value limited to 20 non-special characters', async ({
@@ -85,5 +92,53 @@ test.describe('Can configure a HTML autocomplete attribute in Date, Numeric and 
 				newTabPage.getByLabel(data.fieldTitle)
 			).toHaveAttribute('autocomplete', data.expectedValue);
 		}
+
+		await newTabPage.close();
 	});
+});
+
+test('make sure the aria-labelledby reference is present in the captcha form view', async ({
+	formBuilderPage,
+	formBuilderSidePanelPage,
+}) => {
+	await formBuilderPage.goToNew();
+
+	await formBuilderPage.fillFormTitle('Form' + getRandomInt());
+
+	await formBuilderSidePanelPage.addFieldByDoubleClick('Text');
+
+	await formBuilderPage.formSettingsButton.click();
+
+	await formBuilderPage.requireCaptchaToggle.click();
+
+	await formBuilderPage.formSettingsDoneButton.click();
+
+	const newTabPagePromise = new Promise<Page>((resolve) =>
+		formBuilderPage.page.once('popup', resolve)
+	);
+
+	await formBuilderPage.previewButton.click();
+
+	const newTabPage = await newTabPagePromise;
+
+	await newTabPage.waitForLoadState('domcontentloaded');
+
+	const captchaContainer = newTabPage.locator(
+		"[data-field-reference='_CAPTCHA_']"
+	);
+
+	await expect(captchaContainer).toBeVisible();
+
+	const captchaContainerAriaLabelledby =
+		await captchaContainer.getAttribute('aria-labelledby');
+
+	const screenReaderOnlyCaptchaSpan = newTabPage.locator(
+		`span[id='${captchaContainerAriaLabelledby}']`
+	);
+
+	await expect(screenReaderOnlyCaptchaSpan).toHaveClass('sr-only');
+
+	await expect(screenReaderOnlyCaptchaSpan).toContainText('captcha');
+
+	await newTabPage.close();
 });

@@ -84,14 +84,17 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 	@After
 	public void tearDown() throws Exception {
-		if (dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME)) {
-			dropIndex(TEST_CONTROL_TABLE_NAME);
-		}
-
-		dropTable(TEST_TABLE_NAME);
-
 		DBPartitionUtil.forEachCompanyId(
-			companyId -> _counterLocalService.reset(_CLASS_NAME));
+			companyId -> {
+				if (dbInspector.hasIndex(
+						TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME)) {
+
+					dropIndex(TEST_CONTROL_TABLE_NAME);
+				}
+
+				dropTable(TEST_TABLE_NAME);
+				_counterLocalService.reset(_CLASS_NAME);
+			});
 	}
 
 	@Test
@@ -99,14 +102,19 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 		DBPartitionUtil.forEachCompanyId(
 			companyId -> createIndex(TEST_CONTROL_TABLE_NAME));
 
-		Assert.assertTrue(
-			dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
+
+			Assert.assertTrue(
+				dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		}
 	}
 
 	@Test
 	public void testAddIndexControlTableSystemCompany() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 					CompanyConstants.SYSTEM)) {
 
 			createIndex(TEST_CONTROL_TABLE_NAME);
@@ -121,8 +129,13 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 		DBPartitionUtil.forEachCompanyId(
 			companyId -> createUniqueIndex(TEST_CONTROL_TABLE_NAME));
 
-		Assert.assertTrue(
-			dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
+
+			Assert.assertTrue(
+				dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		}
 	}
 
 	@Test
@@ -134,9 +147,15 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 						"alter table ", TEST_CONTROL_TABLE_NAME, " add column ",
 						TEST_CONTROL_TABLE_NEW_COLUMN, " bigint")));
 
-			Assert.assertTrue(
-				dbInspector.hasColumn(
-					TEST_CONTROL_TABLE_NAME, TEST_CONTROL_TABLE_NEW_COLUMN));
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						PortalInstancePool.getDefaultCompanyId())) {
+
+				Assert.assertTrue(
+					dbInspector.hasColumn(
+						TEST_CONTROL_TABLE_NAME,
+						TEST_CONTROL_TABLE_NEW_COLUMN));
+			}
 		}
 		finally {
 			DBPartitionUtil.forEachCompanyId(
@@ -193,14 +212,20 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 		String classNameValue = "";
 		long classNameId = 0;
 
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				"select value, classNameId from ClassName_ order by " +
-					"classNameId asc limit 1; ");
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
 
-			if (resultSet.next()) {
-				classNameValue = resultSet.getString(1);
-				classNameId = resultSet.getLong(2);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select value, classNameId from ClassName_ order by " +
+							"classNameId asc limit 1; ");
+				ResultSet resultSet = preparedStatement.executeQuery()) {
+
+				if (resultSet.next()) {
+					classNameValue = resultSet.getString(1);
+					classNameId = resultSet.getLong(2);
+				}
 			}
 		}
 
@@ -224,8 +249,11 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 	@Test
 	public void testCopyConfiguration() throws Exception {
-		DBPartitionUtil.forEachCompanyId(
-			companyId -> {
+		for (long companyId : COMPANY_IDS) {
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						companyId)) {
+
 				int rowCount = -1;
 
 				try (PreparedStatement preparedStatement =
@@ -238,13 +266,9 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 					}
 				}
 
-				if (PortalInstancePool.getDefaultCompanyId() == companyId) {
-					Assert.assertTrue(rowCount > 0);
-				}
-				else {
-					Assert.assertEquals(0, rowCount);
-				}
-			});
+				Assert.assertEquals(0, rowCount);
+			}
+		}
 	}
 
 	@Test
@@ -262,16 +286,23 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 		String name = "";
 		long resourceActionId = 0;
 
-		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				"select resourceActionId, name, actionId, bitwiseValue from " +
-					"ResourceAction order by resourceActionId asc limit 1;");
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
 
-			if (resultSet.next()) {
-				actionId = resultSet.getString(3);
-				bitwiseValue = resultSet.getLong(4);
-				name = resultSet.getString(2);
-				resourceActionId = resultSet.getLong(1);
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(
+						"select resourceActionId, name, actionId, " +
+							"bitwiseValue from ResourceAction order by " +
+								"resourceActionId asc limit 1;");
+				ResultSet resultSet = preparedStatement.executeQuery()) {
+
+				if (resultSet.next()) {
+					actionId = resultSet.getString(3);
+					bitwiseValue = resultSet.getLong(4);
+					name = resultSet.getString(2);
+					resourceActionId = resultSet.getLong(1);
+				}
 			}
 		}
 
@@ -313,7 +344,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterGetNames() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			_counterLocalService.increment(_CLASS_NAME);
 
@@ -348,7 +380,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterIncrementWithName() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			Assert.assertEquals(
 				1, _counterLocalService.increment(getClass().getName()));
@@ -370,7 +403,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterIncrementWithNameAndSize() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			Assert.assertEquals(
 				10, _counterLocalService.increment(_CLASS_NAME, 10));
@@ -394,7 +428,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterRename() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			try {
 				DBPartitionUtil.forEachCompanyId(
@@ -432,7 +467,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterReset() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			DBPartitionUtil.forEachCompanyId(
 				companyId -> _counterLocalService.increment(_CLASS_NAME));
@@ -456,7 +492,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testCounterResetWithIncrement() throws Exception {
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					COMPANY_IDS[0])) {
 
 			DBPartitionUtil.forEachCompanyId(
 				companyId -> _counterLocalService.increment(_CLASS_NAME));
@@ -479,13 +516,24 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 
 	@Test
 	public void testDropIndexControlTable() throws Exception {
-		createIndex(TEST_CONTROL_TABLE_NAME);
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
+
+			createIndex(TEST_CONTROL_TABLE_NAME);
+		}
 
 		DBPartitionUtil.forEachCompanyId(
 			companyId -> dropIndex(TEST_CONTROL_TABLE_NAME));
 
-		Assert.assertTrue(
-			!dbInspector.hasIndex(TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
+
+			Assert.assertTrue(
+				!dbInspector.hasIndex(
+					TEST_CONTROL_TABLE_NAME, TEST_INDEX_NAME));
+		}
 	}
 
 	@Test

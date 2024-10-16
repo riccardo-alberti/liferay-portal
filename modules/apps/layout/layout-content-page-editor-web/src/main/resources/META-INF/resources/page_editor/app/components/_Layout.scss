@@ -154,13 +154,13 @@ html#{$cadmin-selector} {
 					flex: 1;
 
 					&__border {
-						min-height: $emptyItemMinHeight / 2;
+						min-height: calc($emptyItemMinHeight / 2);
 					}
 				}
 			}
 
 			.page-editor__col {
-				min-height: $emptyItemMinHeight / 2;
+				min-height: calc($emptyItemMinHeight / 2);
 			}
 		}
 
@@ -244,8 +244,13 @@ html#{$cadmin-selector} {
 		}
 
 		&__no-fragments-state {
+			align-items: center;
 			background: $cadmin-primary-l3;
 			border: $dashedBorderWidth dashed $cadmin-primary-l2;
+			border-radius: 8px;
+			// stylelint-disable-next-line property-no-unknown
+			container-type: inline-size;
+			justify-content: center;
 			padding: 15vh 12%;
 
 			&.page-editor__form-unmapped-state {
@@ -263,6 +268,28 @@ html#{$cadmin-selector} {
 				color: $secondary;
 				font-size: 14px;
 				margin: 0;
+			}
+
+			// stylelint-disable-next-line at-rule-no-unknown
+			@container (max-width: 100px) {
+				&__image {
+					display: none;
+				}
+
+				&__message {
+					overflow-wrap: anywhere;
+				}
+			}
+
+			// stylelint-disable-next-line at-rule-no-unknown
+			@container (max-height: 100px) {
+				&__image {
+					display: none;
+				}
+
+				&__message {
+					overflow-wrap: anywhere;
+				}
 			}
 
 			&__title {
@@ -292,7 +319,7 @@ html#{$cadmin-selector} {
 			}
 
 			.page-editor__row.empty .page-editor__col {
-				min-height: $emptyItemMinHeight / 2;
+				min-height: calc($emptyItemMinHeight / 2);
 				min-width: $emptyColumnMinWidth;
 			}
 		}
@@ -345,5 +372,11 @@ html#{$cadmin-selector} {
 		&--active {
 			outline: solid $editablesBorderWidth $cadmin-primary;
 		}
+	}
+
+	.custom-height .page-editor__no-fragments-state {
+		// stylelint-disable-next-line property-no-unknown
+		container-type: size;
+		padding: 0;
 	}
 }

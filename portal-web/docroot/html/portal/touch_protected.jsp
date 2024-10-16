@@ -25,10 +25,10 @@ response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
 		<meta content="0" http-equiv="Expires" />
 		<meta content="1; url=<%= redirect %>" http-equiv="refresh" />
 
-		<link class="lfr-css-file" href="<%= HtmlUtil.escapeAttribute(themeDisplay.getClayCSSURL()) %>" rel="stylesheet" type="text/css" />
+		<aui:link cssClass="lfr-css-file" href="<%= HtmlUtil.escapeAttribute(themeDisplay.getClayCSSURL()) %>" rel="stylesheet" type="text/css" />
 	</head>
 
-	<body onLoad="javascript:location.replace('<%= redirect %>')">
+	<body>
 		<center>
 			<table border="0" cellpadding="0" cellspacing="0" height="100%" width="600">
 				<tr>
@@ -42,5 +42,11 @@ response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
 				</tr>
 			</table>
 		</center>
+
+		<aui:script position="inline">
+			document.body.onload = function() {
+				window.location.replace('<%= redirect %>');
+			}
+		</aui:script>
 	</body>
 </html>

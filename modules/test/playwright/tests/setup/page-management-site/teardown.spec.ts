@@ -5,12 +5,14 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {backendPageTest} from '../../../fixtures/backendPageTest';
 import {ApiHelpers} from '../../../helpers/ApiHelpers';
 import {
 	LEMON_BASKET_OBJECT_ERC,
 	LEMON_OBJECT_ERC,
 	PAGE_MANAGEMENT_SITE_ERC,
+	POTATO_OBJECT_ERC,
 } from './constants';
 
 export const test = mergeTests(backendPageTest);
@@ -20,17 +22,41 @@ test('Teardown: Delete site and data for Page Management tests', async ({
 }) => {
 	const apiHelpers = new ApiHelpers(backendPage);
 
+	const objectAdminRestClient = await apiHelpers.buildRestClient(
+		ObjectAdminRestClient
+	);
+
+	const {id: siteId} = await apiHelpers.headlessSite.getSiteByERC(
+		PAGE_MANAGEMENT_SITE_ERC
+	);
+
+	// Return if site does not exist, this is for cases in which this test is ran independently
+
+	if (!siteId) {
+		return;
+	}
+
 	// Delete object definitions
 
-	for (const ERC of [LEMON_OBJECT_ERC, LEMON_BASKET_OBJECT_ERC]) {
-		const {id} =
-			await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-				ERC
+	for (const ERC of [
+		LEMON_OBJECT_ERC,
+		LEMON_BASKET_OBJECT_ERC,
+		POTATO_OBJECT_ERC,
+	]) {
+		const {id: objectDefinitionId} =
+			await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+				{
+					externalReferenceCode: ERC,
+				}
 			);
 
-		await expect(
-			await apiHelpers.objectAdmin.deleteObjectDefinition(id)
-		).toBeOK();
+		if (objectDefinitionId) {
+			await objectAdminRestClient.objectDefinition.deleteObjectDefinition(
+				{
+					objectDefinitionId,
+				}
+			);
+		}
 	}
 
 	// Delete site
