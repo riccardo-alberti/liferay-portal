@@ -127,6 +127,40 @@ public class DisplayPageLayoutTypeControllerTest {
 	}
 
 	@Test
+	public void testDisplayPageTypeControllerGetFriendlyURLWithFriendlyURLSeparator()
+		throws Exception {
+
+		LayoutTypeController layoutTypeController =
+			LayoutTypeControllerTracker.getLayoutTypeController(
+				LayoutConstants.TYPE_ASSET_DISPLAY);
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.CURRENT_URL, "/w/basic-web-content/-/document_library/");
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY,
+			_getThemeDisplay(
+				StringPool.BLANK, mockHttpServletRequest,
+				TestPropsValues.getUser()));
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryService.addLayoutPageTemplateEntry(
+				null, _group.getGroupId(), 0,
+				_portal.getClassNameId(AssetCategory.class.getName()), 0,
+				RandomTestUtil.randomString(), 0,
+				WorkflowConstants.STATUS_DRAFT, _serviceContext);
+
+		Assert.assertEquals(
+			"/w/basic-web-content",
+			layoutTypeController.getFriendlyURL(
+				mockHttpServletRequest,
+				_layoutLocalService.getLayout(
+					layoutPageTemplateEntry.getPlid())));
+	}
+
+	@Test
 	public void testDisplayPageTypeControllerGetFriendlyURLWithLocale()
 		throws Exception {
 

@@ -16,10 +16,13 @@ import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.util.HtmlParser;
+import com.liferay.portal.kernel.util.HtmlParserUtil;
+import com.liferay.portal.kernel.util.HtmlUtil_IW;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.osgi.service.component.annotations.Reference;
@@ -42,6 +45,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		CookiesConstants.NAME_COMMERCE_CONTINUE_AS_GUEST;
 		CookiesConstants.NAME_ID;
 		CookiesConstants.NAME_USER_UUID;
+		
+		DDMStructureManagerUtil.fetchStructure(123, 123, "test123");
+		_ddmStructureManager.fetchStructure(123, 123, "test123");
 
 		DestinationNames.COMMERCE_BASE_PRICE_LIST;
 		DestinationNames.COMMERCE_ORDER_STATUS;
@@ -64,7 +70,8 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 			commerceOrderItem.getQuantity();
 		}
 
-		_htmlParser.extractText(null);
+		HtmlParserUtil.extractText(null);
+		HtmlUtil_IW.getInstance();
 
 		_http.hasProxyConfig();
 		HttpComponentsUtil.addParameter(null, null, null);
@@ -391,6 +398,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 		PortletDisplayTemplateConstants.DISPLAY_STYLE_PREFIX;
 		PortletDisplayTemplateConstants.ENTRIES;
+		
+		RoleLocalServiceUtil.fetchRole(123, "test123");
+		_roleLocalService.fetchRole(123, "test123");
 
 		ServiceTrackerList<Class<E>> serviceTrackerList = ServiceTrackerListFactory.open(null, null);
 
@@ -707,9 +717,28 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		contact.setSuffixListTypeId();
 	}
 
+	public void method(
+		CustomFacetPortletPreferences customFacetPortletPreferences) {
+
+		customFacetPortletPreferences.getFederatedSearchKey();
+	}
+
+	public void method(
+		DDMFormViewFormInstanceRecordsDisplayContext
+			ddmFormViewFormInstanceRecordsDisplayContext){
+		
+		ddmFormViewFormInstanceRecordsDisplayContext.getDDMFormViewFormInstanceRecordsDisplayContext();
+		ddmFormViewFormInstanceRecordsDisplayContext.getSearchContainer();
+	}
+
 	public void method(DDMStructure ddmStructure, Fields ddmFields) {
 		_journalConverter.getContent(ddmStructure, null);
 		_journalConverter.getContent(ddmStructure, ddmFields, ddmStructure.getGroupId());
+	}
+
+	public void method(Group group, LayoutSet layoutSet) {
+		group.getPrivateLayoutSet().getVirtualHostnames().firstKey();
+		layoutSet.getVirtualHostnames().firstKey();
 	}
 
 	public void method(HttpServletRequest httpServletRequest) {
@@ -882,17 +911,25 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 	}
 
 	public void method(
+		long sourceCPDefinitionId, long groupId, int status) {
+
+		CPDefinitionLocalServiceUtil.copyCPDefinition(null, groupId);
+		CPDefinitionLocalServiceUtil.copyCPDefinition(sourceCPDefinitionId, groupId, WorkflowConstants.STATUS_DRAFT);
+		_cpDefinitionLocalService.copyCPDefinition(sourceCPDefinitionId, groupId, WorkflowConstants.STATUS_DRAFT);
+    }
+
+	public void method(
 		long commerceOrderId, long cpInstanceId, int quantity,
 		int shippedQuantity, String json, CommerceContext commerceContext,
 		ServiceContext serviceContext) {
 
-		CommerceOrderItemLocalServiceUtil.addCommerceOrderItem(commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
-		CommerceOrderItemServiceUtil.addCommerceOrderItem(123, cpInstanceId, 123, shippedQuantity, "test", commerceContext, serviceContext);
-		CommerceOrderItemServiceUtil.addCommerceOrderItem(commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
-
 		_commerceOrderItemLocalService.addCommerceOrderItem(0, commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
+		CommerceOrderItemLocalServiceUtil.addCommerceOrderItem(0, commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
+		CommerceOrderItemLocalServiceUtil.addCommerceOrderItem(123, cpInstanceId, 123, shippedQuantity, "test", commerceContext, serviceContext);
+
+		CommerceOrderItemServiceUtil.addCommerceOrderItem(commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
+		_commerceOrderItemService.addCommerceOrderItem(commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
 		_commerceOrderItemService.addCommerceOrderItem(123, cpInstanceId, 123, shippedQuantity, "test", commerceContext, serviceContext);
-		_commerceOrderItemService.addCommerceOrderItem(0, commerceOrderId, cpInstanceId, json, BigDecimal.valueOf(quantity), cpInstanceId, BigDecimal.valueOf(shippedQuantity), null, commerceContext, serviceContext);
 	}
 
 	public void method(
@@ -933,6 +970,16 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		AssetCategoryLocalServiceUtil.addCategory(123, groupId, parentCategoryId, titleMap, descriptionMap, vocabularyId, categoryProperties, serviceContext);
 		AssetCategoryLocalServiceUtil.addCategory(null, userId, groupId, parentCategoryId, titleMap, descriptionMap, vocabularyId, categoryProperties, serviceContext);
 		_assetCategoryLocalService.addCategory(null, userId, groupId, parentCategoryId, titleMap, descriptionMap, vocabularyId, categoryProperties, serviceContext);
+	}
+
+	public void method(
+		long userId, long repositoryId, long folderId,
+		String sourceFileName, String mimeType, byte[] bytes,
+		ServiceContext serviceContext) {
+		
+		_dlAppLocalService.addFileEntry(123, repositoryId, folderId, sourceFileName, mimeType, bytes, serviceContext);
+		_dlAppLocalService.addFileEntry(null, userId, repositoryId, folderId, sourceFileName, mimeType, bytes, null, null, serviceContext);
+		_dlAppService.addFileEntry(null, userId, repositoryId, folderId, sourceFileName, mimeType, bytes, null, null, serviceContext);
 	}
 
 	public void method(
@@ -1049,22 +1096,22 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(123, "test123");
 		_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
 
-		CommercePriceListLocalServiceUtil.fetchByExternalReferenceCode(externalReferenceCode, companyId);
+		CommercePriceListLocalServiceUtil.fetchCommercePriceListByExternalReferenceCode(externalReferenceCode, companyId);
 		_commercePriceListLocalService.fetchByExternalReferenceCode(123, "test123");
-		_commercePriceListLocalService.fetchByExternalReferenceCode(externalReferenceCode, companyId);
+		_commercePriceListLocalService.fetchCommercePriceListByExternalReferenceCode(externalReferenceCode, companyId);
 
 		_cpDefinitionLocalService.fetchCPDefinitionByCProductExternalReferenceCode(externalReferenceCode, companyId);
 		_cpDefinitionService.fetchCPDefinitionByCProductExternalReferenceCode(123, "test123");
 		_cpDefinitionService.fetchCPDefinitionByCProductExternalReferenceCode(externalReferenceCode, companyId);
 
 		CPInstanceLocalServiceUtil.fetchByExternalReferenceCode(123, "test123");
-		CPInstanceLocalServiceUtil.fetchByExternalReferenceCode(externalReferenceCode, companyId);
+		CPInstanceLocalServiceUtil.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
 		CPInstanceLocalServiceUtil.fetchCPInstanceByExternalReferenceCode(123, "test123");
 		CPInstanceLocalServiceUtil.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
-		CPInstanceServiceUtil.fetchByExternalReferenceCode(externalReferenceCode, companyId);
-		_cpInstanceLocalService.fetchByExternalReferenceCode(externalReferenceCode, companyId);
+		CPInstanceServiceUtil.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
 		_cpInstanceLocalService.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
-		_cpInstanceService.fetchByExternalReferenceCode(externalReferenceCode, companyId);
+		_cpInstanceLocalService.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
+		_cpInstanceService.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
 	}
 
 	public void method(
@@ -1159,6 +1206,18 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		indexableActionableDynamicQuery.setSearchEngineId("test123");
 	}
 
+	public void method(String externalReferenceCode, long companyId) {
+		CommercePriceListLocalServiceUtil.fetchCommercePriceListByExternalReferenceCode(externalReferenceCode, companyId);
+		_commercePriceListLocalService.fetchByExternalReferenceCode("test123", 123);
+		_commercePriceListLocalService.fetchCommercePriceListByExternalReferenceCode(externalReferenceCode, companyId);
+
+		CPInstanceLocalServiceUtil.fetchByExternalReferenceCode("test123", 123);
+		CPInstanceLocalServiceUtil.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
+		CPInstanceServiceUtil.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
+		_cpInstanceLocalService.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
+		_cpInstanceService.fetchCPInstanceByExternalReferenceCode(externalReferenceCode, companyId);
+	}
+
 	public void method(
 		String searchEngineId, long companyId, Collection<Document> documents,
 		boolean commitImmediately) {
@@ -1193,6 +1252,15 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 		AccountGroupRelServiceUtil.addCommerceAccountGroupRel("test123", classPK, 123, serviceContext);
 		_accountGroupRelLocalService.addAccountGroupRel(accountGroupId, className, classPK);
 		_accountGroupRelService.addAccountGroupRel(accountGroupId, className, classPK);
+	}
+
+	public void method(
+		String searchEngineId, long companyId, String className,
+		boolean commitImmediately) {
+
+		IndexWriterHelperUtil.deleteEntityDocuments("test123", companyId, className, commitImmediately);
+		IndexWriterHelperUtil.deleteEntityDocuments(companyId, className, commitImmediately);
+		_indexWriterHelper.deleteEntityDocuments(companyId, className, commitImmediately);
 	}
 
 	public void method(
@@ -1309,6 +1377,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 	private CPInstanceService _cpInstanceService;
 
 	@Reference
+	private DDMStructureManager _ddmStructureManager;
+
+	@Reference
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
@@ -1325,9 +1396,6 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 	@Reference
 	private FDSTableSchemaBuilderFactory _fDSTableSchemaBuilderFactory;
-
-	@Reference
-	private HtmlParser _htmlParser;
 
 	@Reference
 	private Http _http;
@@ -1352,6 +1420,9 @@ public class UpgradeCatchAllCheck implements ConfigurationBeanDeclaration {
 
 	@Reference
 	private PrefsProps _prefsProps;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
 
 	private ServiceTrackerList<Class<E>> _serviceTrackerList;
 

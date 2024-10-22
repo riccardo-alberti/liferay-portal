@@ -22,7 +22,7 @@ import React, {useEffect, useState} from 'react';
 
 import FieldSelectModalContent, {
 	visit,
-} from '../../../components/FieldSelectModalContent';
+} from '../../../components/AddDataSourceFieldsModalContent';
 import OrderableTable from '../../../components/OrderableTable';
 import {
 	API_URL,
@@ -38,11 +38,14 @@ import '../../../../css/TableVisualizationMode.scss';
 
 import ClayAlert from '@clayui/alert';
 import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 
+import RequiredMark from '../../../components/RequiredMark';
+import ValidationFeedback from '../../../components/ValidationFeedback';
 import sortItems from '../../../utils/sortItems';
 import {
 	EFieldType,
-	IFDSField,
+	IDataSetTableSection,
 	IField,
 	IFieldTreeItem,
 } from '../../../utils/types';
@@ -82,9 +85,92 @@ const getRendererLabel = ({
 	}
 };
 
+const NewFieldModalContent = ({
+	closeModal,
+	namespace,
+	onSaveButtonClick,
+}: {
+	closeModal: Function;
+	namespace: string;
+	onSaveButtonClick: Function;
+}) => {
+	const [fieldName, setFieldName] = useState<string>();
+	const [
+		requiredFieldNameValidationError,
+		setRequiredFieldNameValidationError,
+	] = useState<boolean>(false);
+
+	return (
+		<>
+			<ClayModal.Header>
+				{Liferay.Language.get('add-field-manually')}
+			</ClayModal.Header>
+
+			<ClayModal.Body>
+				<ClayForm.Group
+					className={classNames({
+						'has-error': requiredFieldNameValidationError,
+					})}
+				>
+					<label htmlFor={`${namespace}FieldNameInput`}>
+						{Liferay.Language.get('field-name')}
+
+						<RequiredMark />
+					</label>
+
+					<ClayInput
+						id=""
+						onChange={(event) => {
+							setRequiredFieldNameValidationError(false);
+							setFieldName(event.target.value);
+						}}
+						placeholder={Liferay.Language.get('type-field-here')}
+						type="text"
+					/>
+
+					{requiredFieldNameValidationError && (
+						<ValidationFeedback
+							message={Liferay.Language.get(
+								'alert-you-must-enter-a-field-name'
+							)}
+						/>
+					)}
+				</ClayForm.Group>
+			</ClayModal.Body>
+			<ClayModal.Footer
+				last={
+					<ClayButton.Group spaced>
+						<ClayButton
+							displayType="secondary"
+							onClick={() => closeModal()}
+						>
+							{Liferay.Language.get('cancel')}
+						</ClayButton>
+
+						<ClayButton
+							onClick={() => {
+								if (!fieldName) {
+									setRequiredFieldNameValidationError(true);
+								}
+								else {
+									onSaveButtonClick({
+										fieldName,
+									});
+								}
+							}}
+						>
+							{Liferay.Language.get('add')}
+						</ClayButton>
+					</ClayButton.Group>
+				}
+			/>
+		</>
+	);
+};
+
 interface IRendererLabelCellRendererComponentProps {
 	cetRenderers?: IClientExtensionRenderer[];
-	item: IFDSField;
+	item: IDataSetTableSection;
 	query: string;
 }
 
@@ -114,54 +200,53 @@ const RendererLabelCellRendererComponent = ({
 		</span>
 	);
 };
-interface IEditFDSFieldModalContentProps {
-	closeModal: Function;
-	fdsClientExtensionCellRenderers: IClientExtensionRenderer[];
-	fdsField: IFDSField;
-	namespace: string;
-	onSaveButtonClick: Function;
-	sortable: boolean;
-}
 
-const EditFDSFieldModalContent = ({
+const EditTableSectionModalContent = ({
+	cellClientExtensionRenderers,
 	closeModal,
-	fdsClientExtensionCellRenderers,
-	fdsField,
 	namespace,
 	onSaveButtonClick,
 	sortable,
-}: IEditFDSFieldModalContentProps) => {
-	const [selectedFDSFieldRenderer, setSelectedFDSFieldRenderer] = useState(
-		fdsField.renderer ?? 'default'
+	tableSection,
+}: {
+	cellClientExtensionRenderers: IClientExtensionRenderer[];
+	closeModal: Function;
+	namespace: string;
+	onSaveButtonClick: Function;
+	sortable: boolean;
+	tableSection: IDataSetTableSection;
+}) => {
+	const [selectedCellRenderer, setSelectedCellRenderer] = useState(
+		tableSection.renderer ?? 'default'
 	);
-
-	const [fdsFieldSortable, setFSDFieldSortable] = useState<boolean>(
-		fdsField.sortable
+	const [tableSectionSortable, setTableSectionSortable] = useState<boolean>(
+		tableSection.sortable
 	);
 
 	const fdsInternalCellRendererNames = FDS_INTERNAL_CELL_RENDERERS.map(
 		(cellRenderer: IInternalRenderer) => cellRenderer.name
 	);
 
-	const fdsFieldTranslations = fdsField.label_i18n;
+	const tableSectionTranslations = tableSection.label_i18n;
 
-	const [i18nFieldLabels, setI18nFieldLabels] =
-		useState(fdsFieldTranslations);
+	const [i18nFieldLabels, setI18nFieldLabels] = useState(
+		tableSectionTranslations
+	);
 
-	const editFDSField = async () => {
+	const editTableSection = async () => {
 		const body = {
 			label_i18n: i18nFieldLabels,
-			renderer: selectedFDSFieldRenderer,
+			renderer: selectedCellRenderer,
 			rendererType: !fdsInternalCellRendererNames.includes(
-				selectedFDSFieldRenderer
+				selectedCellRenderer
 			)
 				? 'clientExtension'
 				: 'internal',
-			sortable: fdsFieldSortable,
+			sortable: tableSectionSortable,
 		};
 
 		const response = await fetch(
-			`${API_URL.TABLE_SECTIONS}/by-external-reference-code/${fdsField.externalReferenceCode}`,
+			`${API_URL.TABLE_SECTIONS}/by-external-reference-code/${tableSection.externalReferenceCode}`,
 			{
 				body: JSON.stringify(body),
 				headers: DEFAULT_FETCH_HEADERS,
@@ -175,18 +260,18 @@ const EditFDSFieldModalContent = ({
 			return;
 		}
 
-		const editedFDSField = await response.json();
+		const editedTableSection = await response.json();
 
 		closeModal();
 
-		onSaveButtonClick({editedFDSField});
+		onSaveButtonClick({editedTableSection});
 
 		openDefaultSuccessToast();
 	};
 
-	const fdsFieldNameInputId = `${namespace}fdsFieldNameInput`;
-	const fdsFieldLabelInputId = `${namespace}fdsFieldLabelInput`;
-	const fdsFieldRendererSelectId = `${namespace}fdsFieldRendererSelectId`;
+	const tableSectionNameInputId = `${namespace}tableSectionNameInput`;
+	const tableSectionLabelInputId = `${namespace}tableSectionLabelInput`;
+	const tableSectionRendererSelectId = `${namespace}tableSectionRendererSelectId`;
 
 	const options = FDS_INTERNAL_CELL_RENDERERS.map(
 		(renderer: IInternalRenderer) => ({
@@ -196,7 +281,7 @@ const EditFDSFieldModalContent = ({
 	);
 
 	options.push(
-		...fdsClientExtensionCellRenderers.map((item) => ({
+		...cellClientExtensionRenderers.map((item) => ({
 			label: item.name!,
 			value: item.externalReferenceCode!,
 		}))
@@ -214,8 +299,8 @@ const EditFDSFieldModalContent = ({
 		namespace: string;
 		onItemClick: Function;
 	}) => {
-		const fdsClientExtensionCellRenderersERCs =
-			fdsClientExtensionCellRenderers.map(
+		const cellClientExtensionRenderersERCs =
+			cellClientExtensionRenderers.map(
 				(cellRendererCET) => cellRendererCET.externalReferenceCode
 			);
 
@@ -229,13 +314,12 @@ const EditFDSFieldModalContent = ({
 						aria-labelledby={`${namespace}cellRenderersLabel`}
 						className="form-control form-control-select form-control-select-secondary"
 						displayType="secondary"
-						id={fdsFieldRendererSelectId}
+						id={tableSectionRendererSelectId}
 					>
-						{selectedFDSFieldRenderer
+						{selectedCellRenderer
 							? getRendererLabel({
-									cetRenderers:
-										fdsClientExtensionCellRenderers,
-									rendererName: selectedFDSFieldRenderer,
+									cetRenderers: cellClientExtensionRenderers,
+									rendererName: selectedCellRenderer,
 								})
 							: Liferay.Language.get('choose-an-option')}
 					</ClayButton>
@@ -251,7 +335,7 @@ const EditFDSFieldModalContent = ({
 						>
 							{cellRenderer.label}
 
-							{fdsClientExtensionCellRenderersERCs.includes(
+							{cellClientExtensionRenderersERCs.includes(
 								cellRenderer.value
 							) && (
 								<ClayLabel displayType="info">
@@ -270,27 +354,28 @@ const EditFDSFieldModalContent = ({
 			<ClayModal.Header>
 				{Liferay.Util.sub(
 					Liferay.Language.get('edit-x'),
-					fdsField.label_i18n[defaultLanguageId] ?? fdsField.name
+					tableSection.label_i18n[defaultLanguageId] ??
+						tableSection.fieldName
 				)}
 			</ClayModal.Header>
 
 			<ClayModal.Body>
 				<ClayForm.Group>
-					<label htmlFor={fdsFieldNameInputId}>
+					<label htmlFor={tableSectionNameInputId}>
 						{Liferay.Language.get('name')}
 					</label>
 
 					<ClayInput
 						disabled
-						id={fdsFieldNameInputId}
+						id={tableSectionNameInputId}
 						type="text"
-						value={fdsField.name}
+						value={tableSection.fieldName}
 					/>
 				</ClayForm.Group>
 
 				<ClayForm.Group>
 					<InputLocalized
-						id={fdsFieldLabelInputId}
+						id={tableSectionLabelInputId}
 						label={Liferay.Language.get('label')}
 						name="label"
 						onChange={setI18nFieldLabels}
@@ -299,7 +384,7 @@ const EditFDSFieldModalContent = ({
 				</ClayForm.Group>
 
 				<ClayForm.Group>
-					<label htmlFor={fdsFieldRendererSelectId}>
+					<label htmlFor={tableSectionRendererSelectId}>
 						{Liferay.Language.get('renderer')}
 					</label>
 
@@ -307,23 +392,23 @@ const EditFDSFieldModalContent = ({
 						cellRenderers={options}
 						namespace={namespace}
 						onItemClick={(item: string) =>
-							setSelectedFDSFieldRenderer(item)
+							setSelectedCellRenderer(item)
 						}
 					/>
 				</ClayForm.Group>
 
 				<ClayForm.Group>
 					<ClayCheckbox
-						checked={fdsFieldSortable}
+						checked={tableSectionSortable}
 						disabled={!sortable}
 						inline
 						label={Liferay.Language.get('sortable')}
 						onChange={({target: {checked}}) =>
-							setFSDFieldSortable(checked)
+							setTableSectionSortable(checked)
 						}
 					/>
 
-					{fdsField.type !== EFieldType.OBJECT && (
+					{tableSection.type !== EFieldType.OBJECT && (
 						<span
 							className="label-icon lfr-portal-tooltip ml-2"
 							title={Liferay.Language.get(
@@ -339,7 +424,7 @@ const EditFDSFieldModalContent = ({
 			<ClayModal.Footer
 				last={
 					<ClayButton.Group spaced>
-						<ClayButton onClick={() => editFDSField()}>
+						<ClayButton onClick={() => editTableSection()}>
 							{Liferay.Language.get('save')}
 						</ClayButton>
 
@@ -358,20 +443,21 @@ const EditFDSFieldModalContent = ({
 
 function Table(props: IDataSetSectionProps & {title?: string}) {
 	const {
+		cellClientExtensionRenderers,
 		dataSet,
-		fdsClientExtensionCellRenderers,
 		fieldTreeItems,
 		namespace,
-		saveFDSFieldsURL,
+		saveDataSetTableSectionsURL,
 		title,
 	} = props;
 
-	const [fdsFields, setFDSFields] = useState<Array<IFDSField> | null>(null);
+	const [tableSections, setTableSections] =
+		useState<Array<IDataSetTableSection> | null>(null);
 	const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);
 
 	const getFDSFields = async () => {
 		const response = await fetch(
-			`${API_URL.TABLE_SECTIONS}?filter=(${OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTION_ID} eq '${dataSet.id}')&nestedFields=${OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTION}&sort=dateCreated:asc`,
+			`${API_URL.TABLE_SECTIONS}?filter=(${OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTIONS_ID} eq '${dataSet.id}')&nestedFields=${OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTIONS}&sort=dateCreated:asc`,
 			{
 				headers: DEFAULT_FETCH_HEADERS,
 			}
@@ -385,7 +471,7 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 
 		const responseJSON = await response.json();
 
-		const storedFDSFields: IFDSField[] = responseJSON?.items;
+		const storedFDSFields: IDataSetTableSection[] = responseJSON?.items;
 
 		if (!storedFDSFields) {
 			openDefaultFailureToast();
@@ -393,17 +479,22 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 			return null;
 		}
 
-		const fdsFieldsOrder =
+		const tableSectionsOrder =
 
 			// @ts-ignore
 
-			storedFDSFields?.[0]?.[OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTION]
-				?.fdsFieldsOrder;
+			storedFDSFields?.[0]?.[OBJECT_RELATIONSHIP.DATA_SET_TABLE_SECTIONS]
+				?.tableSectionsOrder;
 
-		setFDSFields(sortItems(storedFDSFields, fdsFieldsOrder) as IFDSField[]);
+		setTableSections(
+			sortItems(
+				storedFDSFields,
+				tableSectionsOrder
+			) as IDataSetTableSection[]
+		);
 	};
 
-	const onDeleteButtonClick = ({item}: {item: IFDSField}) => {
+	const onDeleteButtonClick = ({item}: {item: IDataSetTableSection}) => {
 		openModal({
 			bodyHTML: Liferay.Language.get(
 				'are-you-sure-you-want-to-delete-this-field?-fragments-using-it-will-be-affected'
@@ -437,9 +528,10 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 
 						openDefaultSuccessToast();
 
-						setFDSFields(
-							fdsFields?.filter(
-								(fdsField: IFDSField) => fdsField.id !== item.id
+						setTableSections(
+							tableSections?.filter(
+								(tableSection: IDataSetTableSection) =>
+									tableSection.id !== item.id
 							) || []
 						);
 					},
@@ -450,7 +542,7 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 		});
 	};
 
-	const saveFDSFields = async ({
+	const saveDataSetTableColumns = async ({
 		closeModal,
 		fields,
 	}: {
@@ -464,7 +556,6 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 			sortable: boolean;
 			type: string;
 		}> = [];
-		const deletionIds: Array<number> = [];
 
 		fields.forEach((field) => {
 			if (!field.id) {
@@ -476,12 +567,6 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 			}
 		});
 
-		fdsFields?.forEach((fdsField) => {
-			if (!fields.find((field) => field.name === fdsField.name)) {
-				deletionIds.push(fdsField.id);
-			}
-		});
-
 		const formData = new FormData();
 
 		formData.append(
@@ -489,13 +574,9 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 			JSON.stringify(creationData)
 		);
 
-		deletionIds.forEach((id) => {
-			formData.append(`${namespace}deletionIds`, String(id));
-		});
-
 		formData.append(`${namespace}dataSetId`, dataSet.id);
 
-		const response = await fetch(saveFDSFieldsURL, {
+		const response = await fetch(saveDataSetTableSectionsURL, {
 			body: formData,
 			method: 'POST',
 		});
@@ -508,34 +589,20 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 			return;
 		}
 
-		const createdFDSFields: Array<IFDSField> = await response.json();
+		getFDSFields();
 
 		closeModal();
-
-		const newFDSFields: Array<IFDSField> = [];
-
-		fdsFields?.forEach((fdsField) => {
-			if (!deletionIds.includes(fdsField.id)) {
-				newFDSFields.push(fdsField);
-			}
-		});
-
-		createdFDSFields.forEach((fdsField) => {
-			newFDSFields.push(fdsField);
-		});
-
-		setFDSFields(newFDSFields);
 
 		openDefaultSuccessToast();
 	};
 
 	const updateFDSFieldsOrder = async ({
-		fdsFieldsOrder,
+		tableSectionsOrder,
 	}: {
-		fdsFieldsOrder: string;
+		tableSectionsOrder: string;
 	}) => {
 		const body = {
-			fdsFieldsOrder,
+			tableSectionsOrder,
 		};
 
 		const response = await fetch(
@@ -555,15 +622,18 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 
 		const responseJSON = await response.json();
 
-		const storedFDSFieldsOrder = responseJSON?.fdsFieldsOrder;
+		const storedFDSFieldsOrder = responseJSON?.tableSectionsOrder;
 
 		if (
-			fdsFields &&
+			tableSections &&
 			storedFDSFieldsOrder &&
-			storedFDSFieldsOrder === fdsFieldsOrder
+			storedFDSFieldsOrder === tableSectionsOrder
 		) {
-			setFDSFields(
-				sortItems(fdsFields, storedFDSFieldsOrder) as IFDSField[]
+			setTableSections(
+				sortItems(
+					tableSections,
+					storedFDSFieldsOrder
+				) as IDataSetTableSection[]
 			);
 
 			openDefaultSuccessToast();
@@ -579,7 +649,7 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const onCreationButtonClick = () => {
+	const onCreationFromDataSourceButtonClick = () => {
 		openModal({
 			className: 'modal-height-full',
 			contentComponent: ({closeModal}: {closeModal: Function}) => (
@@ -592,14 +662,17 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 					}: {
 						selectedFields: Array<IField>;
 					}) => {
-						saveFDSFields({closeModal, fields: selectedFields});
+						saveDataSetTableColumns({
+							closeModal,
+							fields: selectedFields,
+						});
 					}}
 					saveButtonDisabled={saveButtonDisabled}
 					selectedFields={
-						fdsFields
-							? fdsFields.map((fdsField) => ({
-									id: String(fdsField.id),
-									name: fdsField.name,
+						tableSections
+							? tableSections.map((tableSection) => ({
+									id: String(tableSection.id),
+									name: tableSection.fieldName,
 								}))
 							: []
 					}
@@ -610,39 +683,60 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 		});
 	};
 
-	const onEditButtonClick = ({item}: {item: IFDSField}) => {
+	const onCreationFieldButtonClick = () => {
+		openModal({
+			contentComponent: ({closeModal}: {closeModal: Function}) => (
+				<NewFieldModalContent
+					{...props}
+					closeModal={closeModal}
+					onSaveButtonClick={({fieldName}: {fieldName: string}) => {
+						saveDataSetTableColumns({
+							closeModal,
+							fields: [
+								{name: fieldName, sortable: true},
+							] as IField[],
+						});
+					}}
+				/>
+			),
+			title: Liferay.Language.get('delete-data-set'),
+		});
+	};
+
+	const onEditButtonClick = ({item}: {item: IDataSetTableSection}) => {
 		openModal({
 			className: 'overflow-auto',
 			contentComponent: ({closeModal}: {closeModal: Function}) => (
-				<EditFDSFieldModalContent
+				<EditTableSectionModalContent
+					cellClientExtensionRenderers={cellClientExtensionRenderers}
 					closeModal={closeModal}
-					fdsClientExtensionCellRenderers={
-						fdsClientExtensionCellRenderers
-					}
-					fdsField={item}
 					namespace={namespace}
 					onSaveButtonClick={({
-						editedFDSField,
+						editedTableSection,
 					}: {
-						editedFDSField: IFDSField;
+						editedTableSection: IDataSetTableSection;
 					}) => {
-						setFDSFields(
-							fdsFields?.map((fdsField) => {
-								if (fdsField.name === editedFDSField.name) {
-									return editedFDSField;
+						setTableSections(
+							tableSections?.map((tableSection) => {
+								if (
+									tableSection.fieldName ===
+									editedTableSection.fieldName
+								) {
+									return editedTableSection;
 								}
 
-								return fdsField;
+								return tableSection;
 							}) || null
 						);
 					}}
 					sortable={isSortable(fieldTreeItems, item)}
+					tableSection={item}
 				/>
 			),
 		});
 	};
 
-	return fdsFields ? (
+	return tableSections ? (
 		<ClayLayout.ContentCol className="c-gap-4 table-visualization-mode">
 			<ClayAlert
 				displayType="info"
@@ -669,14 +763,20 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 				]}
 				creationMenuItems={[
 					{
-						label: Liferay.Language.get('add-fields'),
-						onClick: onCreationButtonClick,
+						label: Liferay.Language.get('assign-from-data-source'),
+						onClick: onCreationFromDataSourceButtonClick,
+						symbolLeft: 'fieldset',
+					},
+					{
+						label: Liferay.Language.get('assign-field-manually'),
+						onClick: onCreationFieldButtonClick,
+						symbolLeft: 'custom-field',
 					},
 				]}
 				fields={[
 					{
 						label: Liferay.Language.get('name'),
-						name: 'name',
+						name: 'fieldName',
 					},
 					{
 						label: Liferay.Language.get('label'),
@@ -690,17 +790,14 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 						contentRenderer: {
 							component: ({item, query}) => (
 								<RendererLabelCellRendererComponent
-									cetRenderers={
-										fdsClientExtensionCellRenderers
-									}
+									cetRenderers={cellClientExtensionRenderers}
 									item={item}
 									query={query}
 								/>
 							),
-							textMatch: (item: IFDSField) =>
+							textMatch: (item: IDataSetTableSection) =>
 								getRendererLabel({
-									cetRenderers:
-										fdsClientExtensionCellRenderers,
+									cetRenderers: cellClientExtensionRenderers,
 									rendererName: item.renderer,
 								}),
 						},
@@ -712,7 +809,7 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 						name: 'sortable',
 					},
 				]}
-				items={fdsFields}
+				items={tableSections}
 				noItemsButtonLabel={Liferay.Language.get('add-fields')}
 				noItemsDescription={Liferay.Language.get(
 					'add-fields-to-show-in-your-view'
@@ -720,7 +817,7 @@ function Table(props: IDataSetSectionProps & {title?: string}) {
 				noItemsTitle={Liferay.Language.get('no-fields-added-yet')}
 				onOrderChange={({order}: {order: string}) => {
 					updateFDSFieldsOrder({
-						fdsFieldsOrder: order,
+						tableSectionsOrder: order,
 					});
 				}}
 				title={title}
@@ -741,11 +838,12 @@ export function Fields(props: IDataSetSectionProps) {
 
 function isSortable(
 	fieldTreeItems: Array<IFieldTreeItem>,
-	selectedItem: IFDSField
+	selectedItem: IDataSetTableSection
 ): boolean {
 	let isSortable = false;
+
 	visit(fieldTreeItems, (fieldTreeItem: IFieldTreeItem) => {
-		if (fieldTreeItem.name === selectedItem.name) {
+		if (fieldTreeItem.name === selectedItem.fieldName) {
 			isSortable = fieldTreeItem.sortable || false;
 
 			return;

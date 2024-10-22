@@ -5,12 +5,21 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageViewModePagesTest} from '../../fixtures/pageViewModePagesTest';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
 import {templatesPageTest} from './fixtures/templatesPageTest';
 
-const test = mergeTests(isolatedSiteTest, loginTest(), templatesPageTest);
+const test = mergeTests(
+	apiHelpersTest,
+	isolatedSiteTest,
+	loginTest(),
+	templatesPageTest,
+	pageViewModePagesTest
+);
 
 test(
 	'Add an information template via script file',
@@ -39,11 +48,11 @@ test(
 			'information_template_blogs.ftl'
 		);
 
-		await templatesPage.saveInformationTemplate();
+		await templatesPage.saveTemplate();
 
 		// View the script content is shown in code mirror
 
-		await templatesPage.editInformationTemplate(informationTemplateName);
+		await templatesPage.editTemplate(informationTemplateName);
 
 		await expect(page.locator('.ddm_template_editor__App')).toContainText(
 			'coverImage.getData()'
@@ -155,11 +164,11 @@ test(
 
 		// Save information template
 
-		await templatesPage.saveInformationTemplate();
+		await templatesPage.saveTemplate();
 
 		// View the script content is shown in code mirror
 
-		await templatesPage.editInformationTemplate(informationTemplateName);
+		await templatesPage.editTemplate(informationTemplateName);
 
 		await expect(page.locator('.ddm_template_editor__App')).toContainText(
 			'${JournalArticle_title.getData()}'
@@ -167,5 +176,160 @@ test(
 		await expect(page.locator('.ddm_template_editor__App')).toContainText(
 			'${JournalArticle_description.getData()}'
 		);
+	}
+);
+
+test(
+	'Edit a widget template',
+	{
+		tag: '@LPS-137903',
+	},
+	async ({page, site, templatesPage}) => {
+		const elements = [
+			'Asset Entries*',
+			'Asset Entry',
+			'Asset Publisher Helper',
+			'Current URL',
+			'HTTP Request',
+			'Locale',
+			'Portlet Preferences',
+			'Render Request',
+			'Render Response',
+			'Template ID',
+			'Theme Display',
+		];
+
+		// Go to widget templates administration
+
+		await templatesPage.gotoWidgetTemplates(site.friendlyUrlPath);
+
+		// Create widget template
+
+		const widgetTemplateName = getRandomString();
+
+		await templatesPage.createWidgetTemplate(
+			widgetTemplateName,
+			'Asset Publisher Template'
+		);
+
+		// Edit widget template
+
+		await templatesPage.editTemplate(widgetTemplateName);
+
+		// Assert elements
+
+		for (const element of elements) {
+			await expect(page.getByLabel(element)).toBeVisible();
+		}
+
+		// Check properties tab
+
+		await page.getByLabel('Properties').click();
+
+		// Assert properties
+
+		await expect(page.getByLabel('Template Key')).toBeVisible();
+
+		await expect(page.getByLabel('URL', {exact: true})).toBeVisible();
+
+		await expect(
+			page.getByLabel('WebDAV URL', {exact: true})
+		).toBeVisible();
+
+		await expect(
+			page.getByTitle('small-image-source', {exact: true})
+		).toBeVisible();
+	}
+);
+
+test(
+	'View usages of widget templates',
+	{
+		tag: '@LPS-169118',
+	},
+	async ({apiHelpers, page, site, templatesPage, widgetPagePage}) => {
+
+		// Create a page
+
+		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: getRandomString(),
+		});
+
+		// Go to widget templates administration
+
+		await templatesPage.gotoWidgetTemplates(site.friendlyUrlPath);
+
+		// Create widget template
+
+		const widgetTemplateName = getRandomString();
+
+		await templatesPage.createWidgetTemplate(
+			widgetTemplateName,
+			'Language Selector Template'
+		);
+
+		// Go to page
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
+
+		// Add an language selector widget configured with new widget template
+
+		await widgetPagePage.addPortlet('Language Selector');
+
+		await widgetPagePage.clickOnAction(
+			'Language Selector',
+			'Configuration'
+		);
+
+		const configurationIFrame = page.frameLocator(
+			'iframe[title*="Language Selector"]'
+		);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: configurationIFrame.getByRole('option', {
+				exact: true,
+				name: widgetTemplateName,
+			}),
+			trigger: configurationIFrame.getByLabel('Display Template'),
+		});
+
+		await widgetPagePage.saveAndClose('Language Selector');
+
+		// Assert usages
+
+		await templatesPage.gotoWidgetTemplates(site.friendlyUrlPath);
+
+		await expect(
+			page
+				.locator('tr')
+				.filter({hasText: widgetTemplateName})
+				.locator('.lfr-usages-column')
+		).toHaveText('1');
+
+		// Assert delete message clicking on dropdown delete action
+
+		await templatesPage.clickAction('Delete', widgetTemplateName);
+
+		await expect(
+			page.getByText(
+				'This template is being used in 1 pages. Are you sure you want to delete this? It will be deleted immediately.'
+			)
+		).toBeVisible();
+
+		await page.getByRole('button', {name: 'Cancel'}).click();
+
+		// Assert delete message clicking on management toolbar action
+
+		await page.getByLabel('Select All Items on the Page').check();
+
+		await page.getByRole('button', {name: 'Delete'}).click();
+
+		await expect(
+			page.getByText(
+				'Some of these templates are being used in pages. Are you sure you want to delete this? It will be deleted immediately.'
+			)
+		).toBeVisible();
 	}
 );

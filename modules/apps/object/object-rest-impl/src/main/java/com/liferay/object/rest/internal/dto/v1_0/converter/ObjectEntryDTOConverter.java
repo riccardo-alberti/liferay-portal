@@ -54,7 +54,6 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -221,13 +220,7 @@ public class ObjectEntryDTOConverter
 							AssetTag.NAME_ACCESSOR);
 					});
 				setPermissions(
-					() -> {
-						if (!FeatureFlagManagerUtil.isEnabled("LPD-28799")) {
-							return null;
-						}
-
-						return _toPermissions(objectDefinition, objectEntry);
-					});
+					() -> _toPermissions(objectDefinition, objectEntry));
 				setProperties(
 					() -> _toProperties(
 						dtoConverterContext, objectDefinition, objectEntry));
@@ -484,46 +477,40 @@ public class ObjectEntryDTOConverter
 		fileEntry.setExternalReferenceCode(
 			dlFileEntry::getExternalReferenceCode);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPS-174455")) {
+		fileEntry.setFileBase64(
+			() -> (String)NestedFieldsSupplier.supply(
+				objectFieldName + ".fileBase64",
+				fieldName -> Base64.encode(
+					_file.getBytes(dlFileEntry.getContentStream()))));
+		fileEntry.setFolder(
+			() -> (Folder)NestedFieldsSupplier.supply(
+				objectFieldName + ".folder",
+				fieldName -> {
+					if (!Objects.equals(
+							ObjectFieldSettingConstants.VALUE_DOCS_AND_MEDIA,
+							ObjectFieldSettingUtil.getValue(
+								ObjectFieldSettingConstants.NAME_FILE_SOURCE,
+								objectField))) {
 
-			fileEntry.setFileBase64(
-				() -> (String)NestedFieldsSupplier.supply(
-					objectFieldName + ".fileBase64",
-					fieldName -> Base64.encode(
-						_file.getBytes(dlFileEntry.getContentStream()))));
-			fileEntry.setFolder(
-				() -> (Folder)NestedFieldsSupplier.supply(
-					objectFieldName + ".folder",
-					fieldName -> {
-						if (!Objects.equals(
-								ObjectFieldSettingConstants.
-									VALUE_DOCS_AND_MEDIA,
-								ObjectFieldSettingUtil.getValue(
-									ObjectFieldSettingConstants.
-										NAME_FILE_SOURCE,
-									objectField))) {
+						return null;
+					}
 
-							return null;
-						}
+					Folder folder = new Folder();
 
-						Folder folder = new Folder();
+					folder.setExternalReferenceCode(
+						() -> {
+							if (dlFileEntry.getFolderId() == 0) {
+								return null;
+							}
 
-						folder.setExternalReferenceCode(
-							() -> {
-								if (dlFileEntry.getFolderId() == 0) {
-									return null;
-								}
+							DLFolder dlFolder = dlFileEntry.getFolder();
 
-								DLFolder dlFolder = dlFileEntry.getFolder();
+							return dlFolder.getExternalReferenceCode();
+						});
+					folder.setSiteId(dlFileEntry::getGroupId);
 
-								return dlFolder.getExternalReferenceCode();
-							});
-						folder.setSiteId(dlFileEntry::getGroupId);
-
-						return folder;
-					}));
-		}
+					return folder;
+				}));
 
 		fileEntry.setId(dlFileEntry::getFileEntryId);
 		fileEntry.setLink(

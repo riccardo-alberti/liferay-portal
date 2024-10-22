@@ -6,13 +6,16 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import useSetRef from '../../../common/hooks/useSetRef';
 import {getLayoutDataItemPropTypes} from '../../../prop_types/index';
+import {config} from '../../config';
 import {useActiveStep} from '../../contexts/FormStepContext';
 import {useItemLocalConfig} from '../../contexts/LocalConfigContext';
-import {useSelectorCallback} from '../../contexts/StoreContext';
+import {useSelector, useSelectorCallback} from '../../contexts/StoreContext';
 import getLayoutDataItemTopperUniqueClassName from '../../utils/getLayoutDataItemTopperUniqueClassName';
 import isItemEmpty from '../../utils/isItemEmpty';
 import TopperEmpty from '../topper/TopperEmpty';
+import getParentHeight from './getParentHeight';
 
 const FormStepWithControls = React.forwardRef(({children, item}, ref) => {
 	const isEmpty = useSelectorCallback(
@@ -42,22 +45,38 @@ const FormStepWithControls = React.forwardRef(({children, item}, ref) => {
 
 	const visible = index === activeStep;
 
+	const [setRef, itemElement] = useSetRef(ref);
+
+	const layoutData = useSelector((state) => state.layoutData);
+
 	return (
 		<TopperEmpty
-			className={getLayoutDataItemTopperUniqueClassName(item.itemId)}
+			className={classNames(
+				'page-editor__form-step-topper',
+				getLayoutDataItemTopperUniqueClassName(item.itemId)
+			)}
 			item={item}
+			itemElement={itemElement}
 		>
 			<FormStep
 				className={classNames('page-editor__form-step', {
 					'd-none': !visible && !localConfig.displayAllSteps,
 				})}
-				ref={ref}
+				ref={setRef}
 			>
 				{isEmpty && (
-					<div className="page-editor__no-fragments-state">
+					<div
+						className="d-flex flex-column page-editor__no-fragments-state"
+						style={{height: getParentHeight(item, layoutData)}}
+					>
+						<img
+							className="page-editor__no-fragments-state__image"
+							src={`${config.imagesPath}/drag_and_drop.svg`}
+						/>
+
 						<p className="page-editor__no-fragments-state__message">
 							{Liferay.Language.get(
-								'place-fragments-or-widgets-here'
+								'drag-and-drop-fragments-or-widgets-here'
 							)}
 						</p>
 					</div>

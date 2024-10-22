@@ -20,7 +20,7 @@ String url = (String)request.getAttribute("liferay-ui:input-resource:url");
 
 	inputField.addEventListener(
 		'click',
-		function() {
+		function () {
 			this.setSelectionRange(0, 9999);
 		}
 	);

@@ -137,6 +137,48 @@ public class PlacedOrder implements Serializable {
 	private Supplier<Long> _accountIdSupplier;
 
 	@Schema
+	@Valid
+	public Attachment[] getAttachments() {
+		if (_attachmentsSupplier != null) {
+			attachments = _attachmentsSupplier.get();
+
+			_attachmentsSupplier = null;
+		}
+
+		return attachments;
+	}
+
+	public void setAttachments(Attachment[] attachments) {
+		this.attachments = attachments;
+
+		_attachmentsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setAttachments(
+		UnsafeSupplier<Attachment[], Exception> attachmentsUnsafeSupplier) {
+
+		_attachmentsSupplier = () -> {
+			try {
+				return attachmentsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Attachment[] attachments;
+
+	@JsonIgnore
+	private Supplier<Attachment[]> _attachmentsSupplier;
+
+	@Schema
 	public String getAuthor() {
 		if (_authorSupplier != null) {
 			author = _authorSupplier.get();
@@ -466,6 +508,47 @@ public class PlacedOrder implements Serializable {
 	private Supplier<String> _externalReferenceCodeSupplier;
 
 	@Schema
+	public String getFriendlyURLSeparator() {
+		if (_friendlyURLSeparatorSupplier != null) {
+			friendlyURLSeparator = _friendlyURLSeparatorSupplier.get();
+
+			_friendlyURLSeparatorSupplier = null;
+		}
+
+		return friendlyURLSeparator;
+	}
+
+	public void setFriendlyURLSeparator(String friendlyURLSeparator) {
+		this.friendlyURLSeparator = friendlyURLSeparator;
+
+		_friendlyURLSeparatorSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setFriendlyURLSeparator(
+		UnsafeSupplier<String, Exception> friendlyURLSeparatorUnsafeSupplier) {
+
+		_friendlyURLSeparatorSupplier = () -> {
+			try {
+				return friendlyURLSeparatorUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String friendlyURLSeparator;
+
+	@JsonIgnore
+	private Supplier<String> _friendlyURLSeparatorSupplier;
+
+	@Schema
 	public Long getId() {
 		if (_idSupplier != null) {
 			id = _idSupplier.get();
@@ -666,6 +749,47 @@ public class PlacedOrder implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Status> _orderStatusInfoSupplier;
+
+	@Schema
+	public String getOrderType() {
+		if (_orderTypeSupplier != null) {
+			orderType = _orderTypeSupplier.get();
+
+			_orderTypeSupplier = null;
+		}
+
+		return orderType;
+	}
+
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
+
+		_orderTypeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setOrderType(
+		UnsafeSupplier<String, Exception> orderTypeUnsafeSupplier) {
+
+		_orderTypeSupplier = () -> {
+			try {
+				return orderTypeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String orderType;
+
+	@JsonIgnore
+	private Supplier<String> _orderTypeSupplier;
 
 	@Schema(example = "AB-34098-789-N")
 	public String getOrderTypeExternalReferenceCode() {
@@ -1477,6 +1601,48 @@ public class PlacedOrder implements Serializable {
 
 	@Schema
 	@Valid
+	public Step[] getSteps() {
+		if (_stepsSupplier != null) {
+			steps = _stepsSupplier.get();
+
+			_stepsSupplier = null;
+		}
+
+		return steps;
+	}
+
+	public void setSteps(Step[] steps) {
+		this.steps = steps;
+
+		_stepsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSteps(
+		UnsafeSupplier<Step[], Exception> stepsUnsafeSupplier) {
+
+		_stepsSupplier = () -> {
+			try {
+				return stepsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Step[] steps;
+
+	@JsonIgnore
+	private Supplier<Step[]> _stepsSupplier;
+
+	@Schema
+	@Valid
 	public Summary getSummary() {
 		if (_summarySupplier != null) {
 			summary = _summarySupplier.get();
@@ -1699,6 +1865,28 @@ public class PlacedOrder implements Serializable {
 			sb.append(accountId);
 		}
 
+		Attachment[] attachments = getAttachments();
+
+		if (attachments != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"attachments\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < attachments.length; i++) {
+				sb.append(String.valueOf(attachments[i]));
+
+				if ((i + 1) < attachments.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		String author = getAuthor();
 
 		if (author != null) {
@@ -1829,6 +2017,22 @@ public class PlacedOrder implements Serializable {
 			sb.append("\"");
 		}
 
+		String friendlyURLSeparator = getFriendlyURLSeparator();
+
+		if (friendlyURLSeparator != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyURLSeparator\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(friendlyURLSeparator));
+
+			sb.append("\"");
+		}
+
 		Long id = getId();
 
 		if (id != null) {
@@ -1899,6 +2103,22 @@ public class PlacedOrder implements Serializable {
 			sb.append("\"orderStatusInfo\": ");
 
 			sb.append(String.valueOf(orderStatusInfo));
+		}
+
+		String orderType = getOrderType();
+
+		if (orderType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"orderType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(orderType));
+
+			sb.append("\"");
 		}
 
 		String orderTypeExternalReferenceCode =
@@ -2190,6 +2410,28 @@ public class PlacedOrder implements Serializable {
 			sb.append(_escape(status));
 
 			sb.append("\"");
+		}
+
+		Step[] steps = getSteps();
+
+		if (steps != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"steps\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < steps.length; i++) {
+				sb.append(String.valueOf(steps[i]));
+
+				if ((i + 1) < steps.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
 		}
 
 		Summary summary = getSummary();

@@ -171,7 +171,9 @@ public abstract class BaseCartResourceTestCase {
 		cart.setCouponCode(regex);
 		cart.setCurrencyCode(regex);
 		cart.setExternalReferenceCode(regex);
+		cart.setFriendlyURLSeparator(regex);
 		cart.setName(regex);
+		cart.setOrderType(regex);
 		cart.setOrderTypeExternalReferenceCode(regex);
 		cart.setOrderUUID(regex);
 		cart.setPaymentMethod(regex);
@@ -197,7 +199,9 @@ public abstract class BaseCartResourceTestCase {
 		Assert.assertEquals(regex, cart.getCouponCode());
 		Assert.assertEquals(regex, cart.getCurrencyCode());
 		Assert.assertEquals(regex, cart.getExternalReferenceCode());
+		Assert.assertEquals(regex, cart.getFriendlyURLSeparator());
 		Assert.assertEquals(regex, cart.getName());
+		Assert.assertEquals(regex, cart.getOrderType());
 		Assert.assertEquals(regex, cart.getOrderTypeExternalReferenceCode());
 		Assert.assertEquals(regex, cart.getOrderUUID());
 		Assert.assertEquals(regex, cart.getPaymentMethod());
@@ -1677,6 +1681,14 @@ public abstract class BaseCartResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("attachments", additionalAssertFieldName)) {
+				if (cart.getAttachments() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("author", additionalAssertFieldName)) {
 				if (cart.getAuthor() == null) {
 					valid = false;
@@ -1779,6 +1791,16 @@ public abstract class BaseCartResourceTestCase {
 			}
 
 			if (Objects.equals(
+					"friendlyURLSeparator", additionalAssertFieldName)) {
+
+				if (cart.getFriendlyURLSeparator() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
 					"lastPriceUpdateDate", additionalAssertFieldName)) {
 
 				if (cart.getLastPriceUpdateDate() == null) {
@@ -1814,6 +1836,14 @@ public abstract class BaseCartResourceTestCase {
 
 			if (Objects.equals("orderStatusInfo", additionalAssertFieldName)) {
 				if (cart.getOrderStatusInfo() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("orderType", additionalAssertFieldName)) {
+				if (cart.getOrderType() == null) {
 					valid = false;
 				}
 
@@ -1865,6 +1895,16 @@ public abstract class BaseCartResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"paymentMethodType", additionalAssertFieldName)) {
+
+				if (cart.getPaymentMethodType() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("paymentStatus", additionalAssertFieldName)) {
 				if (cart.getPaymentStatus() == null) {
 					valid = false;
@@ -1905,6 +1945,16 @@ public abstract class BaseCartResourceTestCase {
 					"purchaseOrderNumber", additionalAssertFieldName)) {
 
 				if (cart.getPurchaseOrderNumber() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (cart.getRequestedDeliveryDate() == null) {
 					valid = false;
 				}
 
@@ -1958,6 +2008,14 @@ public abstract class BaseCartResourceTestCase {
 
 			if (Objects.equals("status", additionalAssertFieldName)) {
 				if (cart.getStatus() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("steps", additionalAssertFieldName)) {
+				if (cart.getSteps() == null) {
 					valid = false;
 				}
 
@@ -2134,6 +2192,16 @@ public abstract class BaseCartResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("attachments", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						cart1.getAttachments(), cart2.getAttachments())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("author", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(cart1.getAuthor(), cart2.getAuthor())) {
 					return false;
@@ -2261,6 +2329,19 @@ public abstract class BaseCartResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"friendlyURLSeparator", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						cart1.getFriendlyURLSeparator(),
+						cart2.getFriendlyURLSeparator())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("id", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(cart1.getId(), cart2.getId())) {
 					return false;
@@ -2312,6 +2393,16 @@ public abstract class BaseCartResourceTestCase {
 				if (!Objects.deepEquals(
 						cart1.getOrderStatusInfo(),
 						cart2.getOrderStatusInfo())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("orderType", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						cart1.getOrderType(), cart2.getOrderType())) {
 
 					return false;
 				}
@@ -2376,6 +2467,19 @@ public abstract class BaseCartResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"paymentMethodType", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						cart1.getPaymentMethodType(),
+						cart2.getPaymentMethodType())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("paymentStatus", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						cart1.getPaymentStatus(), cart2.getPaymentStatus())) {
@@ -2428,6 +2532,19 @@ public abstract class BaseCartResourceTestCase {
 				if (!Objects.deepEquals(
 						cart1.getPurchaseOrderNumber(),
 						cart2.getPurchaseOrderNumber())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						cart1.getRequestedDeliveryDate(),
+						cart2.getRequestedDeliveryDate())) {
 
 					return false;
 				}
@@ -2495,6 +2612,14 @@ public abstract class BaseCartResourceTestCase {
 
 			if (Objects.equals("status", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(cart1.getStatus(), cart2.getStatus())) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("steps", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(cart1.getSteps(), cart2.getSteps())) {
 					return false;
 				}
 
@@ -2696,6 +2821,11 @@ public abstract class BaseCartResourceTestCase {
 		}
 
 		if (entityFieldName.equals("accountId")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("attachments")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -2991,6 +3121,52 @@ public abstract class BaseCartResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("friendlyURLSeparator")) {
+			Object object = cart.getFriendlyURLSeparator();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("id")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -3112,6 +3288,52 @@ public abstract class BaseCartResourceTestCase {
 		if (entityFieldName.equals("orderStatusInfo")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("orderType")) {
+			Object object = cart.getOrderType();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("orderTypeExternalReferenceCode")) {
@@ -3303,6 +3525,12 @@ public abstract class BaseCartResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("paymentMethodType")) {
+			sb.append(String.valueOf(cart.getPaymentMethodType()));
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("paymentStatus")) {
 			sb.append(String.valueOf(cart.getPaymentStatus()));
 
@@ -3447,6 +3675,37 @@ public abstract class BaseCartResourceTestCase {
 				sb.append("'");
 				sb.append(value);
 				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("requestedDeliveryDate")) {
+			if (operator.equals("between")) {
+				Date date = cart.getRequestedDeliveryDate();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_dateFormat.format(cart.getRequestedDeliveryDate()));
 			}
 
 			return sb.toString();
@@ -3646,6 +3905,11 @@ public abstract class BaseCartResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("steps")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("summary")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -3725,10 +3989,14 @@ public abstract class BaseCartResourceTestCase {
 					RandomTestUtil.randomString());
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				friendlyURLSeparator = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
 				lastPriceUpdateDate = RandomTestUtil.nextDate();
 				modifiedDate = RandomTestUtil.nextDate();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				orderType = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				orderTypeExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				orderTypeId = RandomTestUtil.randomLong();
@@ -3738,6 +4006,7 @@ public abstract class BaseCartResourceTestCase {
 					RandomTestUtil.randomString());
 				paymentMethodLabel = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				paymentMethodType = RandomTestUtil.randomInt();
 				paymentStatus = RandomTestUtil.randomInt();
 				paymentStatusLabel = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
@@ -3745,6 +4014,7 @@ public abstract class BaseCartResourceTestCase {
 					RandomTestUtil.randomString());
 				purchaseOrderNumber = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				requestedDeliveryDate = RandomTestUtil.nextDate();
 				shippingAddressExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				shippingAddressId = RandomTestUtil.randomLong();

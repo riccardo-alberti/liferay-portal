@@ -7,6 +7,7 @@ package com.liferay.commerce.order.content.web.internal.portlet;
 
 import com.liferay.commerce.constants.CommerceOrderConstants;
 import com.liferay.commerce.constants.CommercePortletKeys;
+import com.liferay.commerce.frontend.helper.CommerceOrderStepTrackerHelper;
 import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.order.CommerceOrderHttpHelper;
 import com.liferay.commerce.order.content.web.internal.display.context.CommerceOrderContentDisplayContext;
@@ -87,7 +88,9 @@ public class CommerceOrderContentPortlet extends MVCPortlet {
 						_commerceOrderImporterTypeRegistry,
 						_commerceOrderNoteService,
 						_commerceOrderPriceCalculation, _commerceOrderService,
-						_commerceOrderStatusRegistry, _commerceOrderTypeService,
+						_commerceOrderStatusRegistry,
+						_commerceOrderStepTrackerHelper,
+						_commerceOrderTypeService,
 						_commercePaymentIntegrationRegistry,
 						_commercePaymentMethodGroupRelServiceService,
 						_commercePaymentMethodRegistry,
@@ -138,6 +141,9 @@ public class CommerceOrderContentPortlet extends MVCPortlet {
 
 	@Reference
 	private CommerceOrderStatusRegistry _commerceOrderStatusRegistry;
+
+	@Reference
+	private CommerceOrderStepTrackerHelper _commerceOrderStepTrackerHelper;
 
 	@Reference
 	private CommerceOrderTypeService _commerceOrderTypeService;

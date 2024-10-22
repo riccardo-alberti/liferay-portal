@@ -20,6 +20,7 @@ import getPageDefinition from './utils/getPageDefinition';
 const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
+		'LPD-18221': true,
 		'LPS-178052': true,
 	}),
 	loginTest(),
@@ -293,4 +294,67 @@ test('Can resize a grid', async ({
 	// Check correct size is applied
 
 	await expect(page.locator('.page-editor__col.col-12')).toBeVisible();
+});
+
+test('Can cut and paste a grid inside a container', async ({
+	apiHelpers,
+	page,
+	pageEditorPage,
+	pageManagementSite,
+}) => {
+
+	// Create a container with a grid inside
+
+	const headingDefinition = getFragmentDefinition({
+		id: getRandomString(),
+		key: 'BASIC_COMPONENT-heading',
+	});
+
+	const gridId = getRandomString();
+
+	const gridDefinition = getGridDefinition({
+		columns: [{pageElements: [headingDefinition], size: 12}],
+		id: gridId,
+	});
+
+	const containerId = getRandomString();
+
+	const container = getContainerDefinition({
+		id: containerId,
+		pageElements: [gridDefinition],
+	});
+
+	// Create page and go to edit mode
+
+	const layout = await apiHelpers.headlessDelivery.createSitePage({
+		pageDefinition: getPageDefinition([container]),
+		siteId: pageManagementSite.id,
+		title: getRandomString(),
+	});
+
+	await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+	// Cut grid and check that it has been pasted inside the container
+
+	const grid = page.locator('[data-name="Grid"]');
+
+	await expect(grid).toBeVisible();
+
+	await pageEditorPage.cutFragment(gridId);
+
+	await expect(grid).not.toBeVisible();
+
+	await pageEditorPage.pasteFragment(containerId);
+
+	await expect(
+		page.locator('[data-name="Container"]').locator('.page-editor__row')
+	).toBeVisible();
+
+	// Only the parent item (Grid) is activated
+
+	const pastedGridId = await pageEditorPage.getFragmentId('Grid');
+	const pastedHeadingId = await pageEditorPage.getFragmentId('Heading');
+
+	expect(await pageEditorPage.isActive(pastedGridId)).toBe(true);
+	expect(await pageEditorPage.isActive(pastedHeadingId)).toBe(false);
 });

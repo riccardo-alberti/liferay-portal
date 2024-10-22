@@ -1477,14 +1477,15 @@ public class UsersAdminUtil {
 
 			if (emailAddressId <= 0) {
 				emailAddress = EmailAddressServiceUtil.addEmailAddress(
-					className, classPK, address, listTypeId, primary,
-					new ServiceContext());
+					emailAddress.getExternalReferenceCode(), className, classPK,
+					address, listTypeId, primary, new ServiceContext());
 
 				emailAddressId = emailAddress.getEmailAddressId();
 			}
 			else {
 				EmailAddressServiceUtil.updateEmailAddress(
-					emailAddressId, address, listTypeId, primary);
+					emailAddress.getExternalReferenceCode(), emailAddressId,
+					address, listTypeId, primary);
 			}
 
 			emailAddressIds.add(emailAddressId);
@@ -1561,6 +1562,7 @@ public class UsersAdminUtil {
 		for (Phone phone : phones) {
 			long phoneId = phone.getPhoneId();
 
+			String externalReferenceCode = phone.getExternalReferenceCode();
 			String number = phone.getNumber();
 			String extension = phone.getExtension();
 			long listTypeId = phone.getListTypeId();
@@ -1568,14 +1570,15 @@ public class UsersAdminUtil {
 
 			if (phoneId <= 0) {
 				phone = PhoneServiceUtil.addPhone(
-					className, classPK, number, extension, listTypeId, primary,
-					new ServiceContext());
+					externalReferenceCode, className, classPK, number,
+					extension, listTypeId, primary, new ServiceContext());
 
 				phoneId = phone.getPhoneId();
 			}
 			else {
 				PhoneServiceUtil.updatePhone(
-					phoneId, number, extension, listTypeId, primary);
+					externalReferenceCode, phoneId, number, extension,
+					listTypeId, primary);
 			}
 
 			phoneIds.add(phoneId);
@@ -1597,22 +1600,22 @@ public class UsersAdminUtil {
 		Set<Long> websiteIds = new HashSet<>();
 
 		for (Website website : websites) {
+			String externalReferenceCode = website.getExternalReferenceCode();
 			long websiteId = website.getWebsiteId();
-
 			String url = website.getUrl();
 			long listTypeId = website.getListTypeId();
 			boolean primary = website.isPrimary();
 
 			if (websiteId <= 0) {
 				website = WebsiteServiceUtil.addWebsite(
-					className, classPK, url, listTypeId, primary,
-					new ServiceContext());
+					externalReferenceCode, className, classPK, url, listTypeId,
+					primary, new ServiceContext());
 
 				websiteId = website.getWebsiteId();
 			}
 			else {
 				WebsiteServiceUtil.updateWebsite(
-					websiteId, url, listTypeId, primary);
+					externalReferenceCode, websiteId, url, listTypeId, primary);
 			}
 
 			websiteIds.add(websiteId);

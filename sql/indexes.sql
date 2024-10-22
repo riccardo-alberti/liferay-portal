@@ -33,6 +33,7 @@ create index IX_112337B8 on AssetEntries_AssetTags (companyId);
 create index IX_B2A61B55 on AssetEntries_AssetTags (tagId);
 
 create unique index IX_7BF8337B on AssetEntry (classNameId, classPK, ctCollectionId);
+create index IX_23280E2 on AssetEntry (classNameId, companyId);
 create index IX_7306C60 on AssetEntry (companyId);
 create index IX_75D42FF9 on AssetEntry (expirationDate);
 create index IX_6418BB52 on AssetEntry (groupId, classNameId, publishDate, expirationDate);
@@ -104,6 +105,7 @@ create index IX_4F40FE5E on DLFileEntryMetadata (fileEntryId);
 create unique index IX_BE290777 on DLFileEntryMetadata (fileVersionId, ctCollectionId, DDMStructureId);
 create index IX_D49AB5D1 on DLFileEntryMetadata (uuid_[$COLUMN_LENGTH:75$]);
 
+create index IX_D2F8189A on DLFileEntryType (companyId);
 create unique index IX_93ED0F06 on DLFileEntryType (groupId, ctCollectionId, dataDefinitionId);
 create unique index IX_8B9CF803 on DLFileEntryType (groupId, ctCollectionId, externalReferenceCode[$COLUMN_LENGTH:75$]);
 create unique index IX_A5C4723D on DLFileEntryType (groupId, ctCollectionId, fileEntryTypeKey[$COLUMN_LENGTH:75$]);
@@ -144,6 +146,7 @@ create index IX_B199E2A6 on DLFolder (status, companyId);
 create index IX_CBC408D8 on DLFolder (uuid_[$COLUMN_LENGTH:75$]);
 
 create index IX_2A2CB130 on EmailAddress (companyId, classNameId, classPK, primary_);
+create unique index IX_B4BA0791 on EmailAddress (companyId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_7B43CD8 on EmailAddress (userId);
 create index IX_D24F3956 on EmailAddress (uuid_[$COLUMN_LENGTH:75$]);
 
@@ -273,6 +276,7 @@ create index IX_CD25266E on PasswordPolicyRel (passwordPolicyId);
 create index IX_326F75BD on PasswordTracker (userId);
 
 create index IX_812CE07A on Phone (companyId, classNameId, classPK, primary_);
+create unique index IX_DC0DF107 on Phone (companyId, externalReferenceCode[$COLUMN_LENGTH:75$], ctCollectionId);
 create index IX_F202B9CE on Phone (userId);
 create index IX_EA6245A0 on Phone (uuid_[$COLUMN_LENGTH:75$]);
 
@@ -329,8 +333,10 @@ create unique index IX_8BD6BCA7 on Release_ (servletContextName[$COLUMN_LENGTH:7
 create index IX_D4C6FBCB on RememberMeToken (expirationDate);
 create index IX_291F58D4 on RememberMeToken (userId);
 
+create unique index IX_1F8735E5 on Repository (groupId, ctCollectionId, externalReferenceCode[$COLUMN_LENGTH:75$]);
 create unique index IX_470608AE on Repository (groupId, ctCollectionId, name[$COLUMN_LENGTH:200$], portletId[$COLUMN_LENGTH:200$]);
-create unique index IX_4009E884 on Repository (uuid_[$COLUMN_LENGTH:75$], groupId, ctCollectionId);
+create unique index IX_E9E7CCD8 on Repository (groupId, uuid_[$COLUMN_LENGTH:75$], ctCollectionId);
+create index IX_74C17B04 on Repository (uuid_[$COLUMN_LENGTH:75$]);
 
 create unique index IX_B43A3F67 on RepositoryEntry (repositoryId, ctCollectionId, mappedId[$COLUMN_LENGTH:255$]);
 create unique index IX_239165C6 on RepositoryEntry (uuid_[$COLUMN_LENGTH:75$], ctCollectionId, groupId);
@@ -360,6 +366,7 @@ create index IX_F542E9BC on SocialActivity (activitySetId);
 create unique index IX_7E6A9AAD on SocialActivity (classNameId, classPK, groupId, userId, type_, receiverUserId, ctCollectionId, createDate);
 create index IX_85370BF4 on SocialActivity (classNameId, classPK, mirrorActivityId);
 create index IX_D0E9029E on SocialActivity (classNameId, classPK, type_);
+create index IX_F885EA9C on SocialActivity (classNameId, companyId);
 create index IX_64B1BC66 on SocialActivity (companyId);
 create index IX_2A2468 on SocialActivity (groupId);
 create index IX_1271F25F on SocialActivity (mirrorActivityId);
@@ -492,6 +499,7 @@ create index IX_774643D1 on VirtualHost (layoutSetId, hostname[$COLUMN_LENGTH:20
 create unique index IX_97DFA146 on WebDAVProps (classNameId, classPK);
 
 create index IX_1AA07A6D on Website (companyId, classNameId, classPK, primary_);
+create unique index IX_36B86556 on Website (companyId, externalReferenceCode[$COLUMN_LENGTH:75$]);
 create index IX_F75690BB on Website (userId);
 create index IX_76F15D13 on Website (uuid_[$COLUMN_LENGTH:75$]);
 

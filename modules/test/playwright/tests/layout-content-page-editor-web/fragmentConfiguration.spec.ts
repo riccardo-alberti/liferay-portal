@@ -14,6 +14,7 @@ import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {pageManagementSiteTest} from '../../fixtures/pageManagementSiteTest';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import getRandomString from '../../utils/getRandomString';
+import getContainerDefinition from './utils/getContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
 import getWidgetDefinition from './utils/getWidgetDefinition';
@@ -62,7 +63,239 @@ const COLOR_PICKER_PALETTES = [
 	},
 ];
 
+test.describe('Editable Configuration', () => {
+	test('Can set a link to a link editable', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		pageManagementSite,
+	}) => {
+
+		// Create a page with a container
+
+		const buttonId1 = getRandomString();
+		const buttonId2 = getRandomString();
+		const buttonId3 = getRandomString();
+
+		const layoutTitle = getRandomString();
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getFragmentDefinition({
+					id: buttonId1,
+					key: 'BASIC_COMPONENT-button',
+				}),
+				getFragmentDefinition({
+					id: buttonId2,
+					key: 'BASIC_COMPONENT-button',
+				}),
+				getFragmentDefinition({
+					id: buttonId3,
+					key: 'BASIC_COMPONENT-button',
+				}),
+			]),
+			siteId: pageManagementSite.id,
+			title: layoutTitle,
+		});
+
+		// Navigate to the page editor
+
+		await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+		// Change the link of the containers
+
+		await pageEditorPage.selectEditable(buttonId1, 'link');
+
+		await page.getByRole('tab', {exact: true, name: 'Link'}).click();
+
+		await pageEditorPage.setLinkConfiguration({
+			type: 'URL',
+			url: 'https://liferay.com',
+		});
+
+		await expect(
+			page.locator(`.lfr-layout-structure-item-${buttonId1} a`)
+		).toHaveAttribute('href', 'https://liferay.com');
+
+		await pageEditorPage.selectEditable(buttonId2, 'link');
+
+		await page.getByRole('tab', {exact: true, name: 'Link'}).click();
+
+		await pageEditorPage.setLinkConfiguration({
+			layoutTitle,
+			type: 'Page',
+		});
+
+		await expect(
+			page.locator(`.lfr-layout-structure-item-${buttonId2} a`)
+		).toHaveAttribute(
+			'href',
+			`/web${pageManagementSite.friendlyUrlPath}/${layoutTitle}`
+		);
+
+		await pageEditorPage.selectEditable(buttonId3, 'link');
+
+		await page.getByRole('tab', {exact: true, name: 'Link'}).click();
+
+		await pageEditorPage.setLinkConfiguration({
+			mappingConfiguration: {
+				mapping: {
+					entity: 'Documents and Media',
+					entry: 'poodle.jpg',
+					entryLocator: page
+						.frameLocator('iframe[title="Select"]')
+						.getByText('poodle.jpg', {exact: false}),
+					field: 'Download URL',
+				},
+			},
+			type: 'Mapped URL',
+		});
+
+		await expect(
+			page.locator(`.lfr-layout-structure-item-${buttonId3} a`)
+		).toHaveAttribute('href', /poodle\.jpg/);
+
+		await pageEditorPage.publishPage();
+
+		// Check that the links are correct in view mode
+
+		await page.goto(
+			`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+		);
+
+		const buttons = page.locator('.component-button a');
+
+		const firstButtonHref = await buttons
+			.first()
+			.evaluate((element) => element.getAttribute('href'));
+
+		expect(firstButtonHref).toContain('https://liferay.com');
+
+		const secondButtonHref = await buttons
+			.nth(1)
+			.evaluate((element) => element.getAttribute('href'));
+
+		expect(secondButtonHref).toContain(
+			`/web${pageManagementSite.friendlyUrlPath}/${layoutTitle}`
+		);
+
+		const thirdButtonHref = await buttons
+			.last()
+			.evaluate((element) => element.getAttribute('href'));
+
+		expect(thirdButtonHref).toContain('poodle.jpg');
+	});
+});
+
 test.describe('Advanced Configuration', () => {
+	test('Checks custom css can be added to a fragment in different viewports', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		site,
+	}) => {
+		const getVariableValue = async (variableName: string) => {
+			return await page.evaluate(
+				(variableName) => {
+					const element = document.createElement('div');
+
+					element.style.backgroundColor = `var(--${variableName})`;
+
+					document.body.appendChild(element);
+
+					const value = getComputedStyle(element).backgroundColor;
+
+					document.body.removeChild(element);
+
+					return value;
+				},
+				[variableName]
+			);
+		};
+
+		// Create a content page with a Container fragment
+
+		const containerId = getRandomString();
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getContainerDefinition({id: containerId}),
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Custom CSS',
+			fragmentId: containerId,
+			tab: 'Advanced',
+			value: '.[$FRAGMENT_CLASS$] { background-color: var(--success); }',
+		});
+
+		expect(
+			await pageEditorPage.getFragmentStyle({
+				fragmentId: containerId,
+				style: 'backgroundColor',
+			})
+		).toBe(await getVariableValue('success'));
+
+		await pageEditorPage.switchViewport('Tablet');
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Custom CSS',
+			fragmentId: containerId,
+			isDesktop: false,
+			tab: 'Advanced',
+			value: '.[$FRAGMENT_CLASS$] { background-color: var(--warning); }',
+		});
+
+		expect(
+			await pageEditorPage.getFragmentStyle({
+				fragmentId: containerId,
+				isDesktop: false,
+				style: 'backgroundColor',
+			})
+		).toBe(await getVariableValue('warning'));
+
+		await pageEditorPage.switchViewport('Landscape Phone');
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Custom CSS',
+			fragmentId: containerId,
+			isDesktop: false,
+			tab: 'Advanced',
+			value: '.[$FRAGMENT_CLASS$] { background-color: var(--danger); }',
+		});
+
+		expect(
+			await pageEditorPage.getFragmentStyle({
+				fragmentId: containerId,
+				isDesktop: false,
+				style: 'backgroundColor',
+			})
+		).toBe(await getVariableValue('danger'));
+
+		await pageEditorPage.switchViewport('Portrait Phone');
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Custom CSS',
+			fragmentId: containerId,
+			isDesktop: false,
+			tab: 'Advanced',
+			value: '.[$FRAGMENT_CLASS$] { background-color: var(--info); }',
+		});
+
+		expect(
+			await pageEditorPage.getFragmentStyle({
+				fragmentId: containerId,
+				isDesktop: false,
+				style: 'backgroundColor',
+			})
+		).toBe(await getVariableValue('info'));
+	});
+
 	test('Add multiple css classes to fragment', async ({
 		apiHelpers,
 		page,
@@ -219,7 +452,7 @@ test.describe('Advanced Configuration', () => {
 		pageManagementSite,
 	}) => {
 
-		// Create a content page with Wem Site's Apple fragment
+		// Create a content page with Page Management Site's Apple fragment
 
 		const fragmentDefinition = getFragmentDefinition({
 			fragmentConfig: {
@@ -250,6 +483,67 @@ test.describe('Advanced Configuration', () => {
 });
 
 test.describe('Styles Configuration', () => {
+	test('Allows selecting a color palette color', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		site,
+	}) => {
+
+		// Create a page with a Separator fragment
+
+		const separatorId = getRandomString();
+
+		const separatorFragment = getFragmentDefinition({
+			id: separatorId,
+			key: 'BASIC_COMPONENT-separator',
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([separatorFragment]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		// Go to the created page
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		// Select the Separator fragment
+
+		await pageEditorPage.selectFragment(separatorId);
+
+		// Select a color in the color palette
+
+		await pageEditorPage.goToConfigurationTab('Styles');
+
+		await page.getByTitle('success', {exact: true}).click();
+
+		await pageEditorPage.waitForChangesSaved();
+
+		// Check that the color is applied
+
+		expect(
+			page
+				.locator('.component-separator hr')
+				.evaluate((element) =>
+					element.classList.contains('border-success')
+				)
+		).toBeTruthy();
+
+		await pageEditorPage.publishPage();
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`);
+
+		expect(
+			page
+				.locator('.component-separator hr')
+				.evaluate((element) =>
+					element.classList.contains('border-success')
+				)
+		).toBeTruthy();
+	});
+
 	test('Allows changing and resetting spacing', async ({
 		apiHelpers,
 		page,

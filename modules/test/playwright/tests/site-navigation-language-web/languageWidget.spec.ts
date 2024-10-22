@@ -13,7 +13,7 @@ import {WidgetPagePage} from '../../pages/layout-admin-web/WidgetPagePage';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {expandSection} from '../../utils/expandSection';
 import getRandomString from '../../utils/getRandomString';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 
 const test = mergeTests(
 	apiHelpersTest,
@@ -45,6 +45,56 @@ const selectCustomTemplate = async (
 	await widgetPagePage.saveAndClose('Language Selector');
 };
 
+test(
+	'Selecting a language redirects to correct page when using Select Box template',
+	{
+		tag: '@LPD-36184',
+	},
+	async ({apiHelpers, page, site, widgetPagePage}) => {
+
+		// Add widget page and navigate to view
+
+		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
+			groupId: site.id,
+			title: getRandomString(),
+		});
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
+
+		// Add language widget and configure select box
+
+		await widgetPagePage.addPortlet('Language Selector');
+
+		await selectCustomTemplate(page, 'Select Box', widgetPagePage);
+
+		// Add account manager widget
+
+		await widgetPagePage.addPortlet('Account Management');
+
+		// Navigate to add new account manager
+
+		await page.getByRole('link', {name: 'Add Account'}).click();
+
+		await expect(
+			page.getByText('Add Account', {exact: true})
+		).toBeVisible();
+
+		// Change language
+
+		await page
+			.locator('select[id*="languageId"]')
+			.selectOption({label: 'español'});
+
+		await page.getByText('Añadir cuenta', {exact: true}).waitFor();
+
+		await page
+			.locator('select[id*="languageId"]')
+			.selectOption({label: 'english'});
+
+		await page.getByText('Add Account', {exact: true}).waitFor();
+	}
+);
+
 test('The user can choose which languages will be available to site via language selector widget', async ({
 	apiHelpers,
 	page,
@@ -71,10 +121,18 @@ test('The user can choose which languages will be available to site via language
 		'iframe[title*="Language Selector"]'
 	);
 
+	// Confirm iframe has loaded by waiting for Display Template select
+
+	await expandSection(
+		configurationIFrame.getByRole('button', {name: 'Display Settings'})
+	);
+
+	await configurationIFrame.getByLabel('Display Template').waitFor();
+
 	// Configure available languages
 
 	await expandSection(
-		configurationIFrame.getByRole('link', {name: 'Languages'})
+		configurationIFrame.getByRole('button', {name: 'Languages'})
 	);
 
 	const leftSelector = configurationIFrame.locator('.left-selector');
@@ -99,7 +157,7 @@ test('The user can choose which languages will be available to site via language
 
 	await configurationIFrame.getByRole('button', {name: 'Save'}).click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		configurationIFrame,
 		'Success:You have successfully updated the setup.'
 	);
@@ -161,13 +219,11 @@ test('The user can choose which languages will be available to site via language
 
 	await selectCustomTemplate(page, 'Select Box', widgetPagePage);
 
-	await expect(
-		page.locator('option[value="en_US"][selected]')
-	).toBeAttached();
+	await expect(page.locator('option[lang="en-US"][selected]')).toBeAttached();
 
-	await expect(page.locator('option[value="de_DE"]')).toBeAttached();
+	await expect(page.locator('option[value*="de_DE"]')).toBeAttached();
 
-	await expect(page.locator('option[value="es_ES"]')).toBeAttached();
+	await expect(page.locator('option[value*="es_ES"]')).toBeAttached();
 
 	// Configure short text template
 

@@ -29,108 +29,10 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-154130. Add a page using gloabl page template, disable inherit changes and check it works. The portlet is named Widget Page Templates on the global site."
-	@priority = 5
-	test AddPageBasedOnGlobalPageTemplate {
-		property portal.acceptance = "true";
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		task ("Add an active page template") {
-			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-				pageTemplateEntryActive = "true",
-				pageTemplateEntryName = "Page Template Name");
-		}
-
-		task ("Add a site and page basing on the created page template") {
-			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
-
-			PagesAdmin.addPage(
-				pageName = "Site Page",
-				pageTemplateName = "Page Template Name");
-		}
-
-		task ("Edit page template and add a blogs widget") {
-			var layoutPrototypeId = JSONLayoutpagetemplate.getLayoutPrototypeId(
-				groupName = "Global",
-				layoutPageTemplateEntryName = "Page Template Name",
-				layoutPageTemplateType = "Widget Page Template");
-
-			Navigator.openSpecificURL(url = "${portalURL}/group/template-${layoutPrototypeId}");
-
-			Portlet.addPG(portletName = "Blogs");
-		}
-
-		task ("Assert blog widget in page basing on page template") {
-			Navigator.gotoSitePage(
-				pageName = "Site Page",
-				siteName = "Site Name");
-
-			Portlet.viewPG(portletName = "Blogs");
-		}
-
-		task ("Disable inherit changes") {
-			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
-
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Configure",
-				pageName = "Site Page");
-
-			PagesAdmin.togglePageTemplateInheritChanges(toggleValue = "disable");
-
-			Button.clickSave();
-		}
-
-		task ("Assert web content display in page basing on page template") {
-			Navigator.openSpecificURL(url = "${portalURL}/group/template-${layoutPrototypeId}");
-
-			Portlet.addPG(portletName = "Web Content Display");
-		}
-
-		task ("Assert no web content display widget in page basing on page template") {
-			Navigator.gotoSitePage(
-				pageName = "Site Page",
-				siteName = "Site Name");
-
-			Portlet.viewNoSpecificPG(portletName = "Web Content Display");
-		}
-	}
-
-	@description = "This is a use case for LPS-54099. Can configure MVC portlets in Page Templates."
-	@priority = 5
-	test EditGlobalPageTemplate {
-		property portal.acceptance = "true";
-
-		task ("Add an active page template") {
-			JSONLayoutpagetemplate.addGlobalPageTemplateEntry(
-				pageTemplateEntryActive = "true",
-				pageTemplateEntryName = "Page Template Name");
-		}
-
-		task ("Add a calebdar widget to page template and configure calendar") {
-			var portalURL = PropsUtil.get("portal.url");
-			var layoutPrototypeId = JSONLayoutpagetemplate.getLayoutPrototypeId(
-				groupName = "Global",
-				layoutPageTemplateEntryName = "Page Template Name",
-				layoutPageTemplateType = "Widget Page Template");
-
-			Navigator.openSpecificURL(url = "${portalURL}/group/template-${layoutPrototypeId}");
-
-			Portlet.addPG(portletName = "Calendar");
-
-			CalendarNavigator.gotoConfiguration();
-
-			CalendarConfiguration.selectWeekStartsOn(weekStartDay = "Saturday");
-
-			CalendarConfiguration.save();
-		}
-	}
-
 	@description = "Export lar with global page templates and check all persist after importing."
 	@priority = 5
 	test ImportLAR {
 		property portal.acceptance = "true";
-		property portal.upstream = "true";
 
 		var portalURL = PropsUtil.get("portal.url");
 
@@ -237,67 +139,6 @@ definition {
 			Portlet.viewSpecificPG(portletName = "Members");
 
 			Portlet.viewSpecificPG(portletName = "Menu Display");
-		}
-	}
-
-	@description = "This is a test for LPS-145264. The changes on widget page template should be propagate to widget page when Inherit Changes is enabled."
-	@priority = 4
-	test PropagateChangesFromWidgetPageTemplate {
-		var portalURL = PropsUtil.get("portal.url");
-
-		task ("Given a page creator has a widget page template") {
-			JSONLayoutpagetemplate.addLayoutPageTemplateCollection(
-				groupName = "Site Name",
-				layoutPageTemplateCollectionName = "Widget Template Collection");
-
-			JSONLayoutpagetemplate.addLayoutPageTemplateEntry(
-				groupName = "Site Name",
-				layoutPageTemplateCollectionName = "Widget Template Collection",
-				layoutPageTemplateEntryName = "Widget Template Name",
-				layoutPageTemplateStatus = "Approved",
-				layoutPageTemplateType = "Widget Page Template");
-
-			var layoutPrototypeId = JSONLayoutpagetemplate.getLayoutPrototypeId(
-				groupName = "Site Name",
-				layoutPageTemplateEntryName = "Widget Template Name",
-				layoutPageTemplateType = "Widget Page Template");
-
-			Navigator.openSpecificURL(url = "${portalURL}/group/template-${layoutPrototypeId}");
-
-			Portlet.addPG(portletName = "Blogs");
-		}
-
-		task ("When the page creator adds a widget page based on template") {
-			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
-
-			PagesAdmin.addPage(
-				collectionName = "Widget Template Collection",
-				pageName = "Test Page Name",
-				pageTemplateName = "Widget Template Name");
-		}
-
-		task ("Then page creator can see Inherit Changes is enabled by default") {
-			AssertChecked.assertCheckedNotVisible(
-				key_toggleSwitchLabel = "Inherit Changes",
-				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
-
-			Alert.viewWarningSpecific(warningMessage = "Some page settings are unavailable because Inherit Changes is enabled. To change these settings, disable Inherit Changes under the General section.");
-		}
-
-		task ("When the page creator adds an Asset Publisher on widget page template") {
-			Navigator.openSpecificURL(url = "${portalURL}/group/template-${layoutPrototypeId}");
-
-			Portlet.addPG(portletName = "Asset Publisher");
-		}
-
-		task ("Then the page creator should see the Asset Publisher is propagated to widget page") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-
-			for (var widgetName : list "Blogs,Asset Publisher") {
-				Portlet.viewSpecificPG(portletName = ${widgetName});
-			}
 		}
 	}
 

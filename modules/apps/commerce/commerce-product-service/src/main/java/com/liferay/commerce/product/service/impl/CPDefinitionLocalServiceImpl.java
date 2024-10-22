@@ -215,10 +215,6 @@ public class CPDefinitionLocalServiceImpl
 				CPDefinitionExpirationDateException.class);
 		}
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		_validate(
 			groupId, ddmStructureKey, metaTitleMap, metaDescriptionMap,
 			metaKeywordsMap, displayDate, expirationDate, productTypeName);
@@ -445,10 +441,7 @@ public class CPDefinitionLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-		else {
+		if (Validator.isNotNull(externalReferenceCode)) {
 			CProduct cProduct =
 				_cProductLocalService.fetchCProductByExternalReferenceCode(
 					externalReferenceCode, serviceContext.getCompanyId());
@@ -766,6 +759,8 @@ public class CPDefinitionLocalServiceImpl
 
 			newCPDefinitionSpecificationOptionValue.setUuid(
 				PortalUUIDUtil.generate());
+			newCPDefinitionSpecificationOptionValue.setExternalReferenceCode(
+				null);
 			newCPDefinitionSpecificationOptionValue.
 				setCPDefinitionSpecificationOptionValueId(
 					counterLocalService.increment());
@@ -1145,9 +1140,16 @@ public class CPDefinitionLocalServiceImpl
 
 			newCPDefinitionSpecificationOptionValue.setUuid(
 				PortalUUIDUtil.generate());
+
+			long cpDefinitionSpecificationOptionValueId =
+				counterLocalService.increment();
+
+			newCPDefinitionSpecificationOptionValue.setExternalReferenceCode(
+				String.valueOf(cpDefinitionSpecificationOptionValueId));
 			newCPDefinitionSpecificationOptionValue.
 				setCPDefinitionSpecificationOptionValueId(
-					counterLocalService.increment());
+					cpDefinitionSpecificationOptionValueId);
+
 			newCPDefinitionSpecificationOptionValue.setCPDefinitionId(
 				newCPDefinitionId);
 

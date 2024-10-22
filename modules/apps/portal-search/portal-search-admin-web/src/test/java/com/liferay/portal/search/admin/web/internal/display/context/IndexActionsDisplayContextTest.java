@@ -27,6 +27,8 @@ import com.liferay.portal.search.index.IndexInformation;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portletmvc4spring.test.mock.web.portlet.MockRenderRequest;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.After;
@@ -77,29 +79,35 @@ public class IndexActionsDisplayContextTest {
 				new MockRenderRequest(), _searchCapabilities);
 
 		indexActionsDisplayContextBuilder.setStatsInformationFactory(
-			getStatsInformationFactory(100.0, 50.0, 80.0));
+			getStatsInformationFactory(16.0, 10.0, 20.0));
 
 		IndexActionsDisplayContext indexActionsDisplayContext =
 			indexActionsDisplayContextBuilder.build();
 
+		Map<String, Object> data = indexActionsDisplayContext.getData();
+
+		Map<String, Object> searchEngineDiskSpace =
+			(Map<String, Object>)data.get("searchEngineDiskSpace");
+
 		Assert.assertEquals(
-			100.0, indexActionsDisplayContext.getAvailableDiskSpace(), 0);
+			16.0, (double)searchEngineDiskSpace.get("availableDiskSpace"), 0);
 		Assert.assertEquals(
-			80.0, indexActionsDisplayContext.getCurrentDiskSpaceUsed(), 0);
+			20.0, (double)searchEngineDiskSpace.get("usedDiskSpace"), 0);
+		Assert.assertFalse(
+			(boolean)searchEngineDiskSpace.get("isLowOnDiskSpace"));
 
 		indexActionsDisplayContextBuilder.setStatsInformationFactory(
-			getStatsInformationFactory(16.0, 10.0, 10.0));
+			getStatsInformationFactory(14.0, 10.0, 20.0));
 
 		indexActionsDisplayContext = indexActionsDisplayContextBuilder.build();
 
-		Assert.assertFalse(indexActionsDisplayContext.isLowOnDiskSpace());
+		data = indexActionsDisplayContext.getData();
 
-		indexActionsDisplayContextBuilder.setStatsInformationFactory(
-			getStatsInformationFactory(14.0, 10.0, 10.0));
+		searchEngineDiskSpace = (Map<String, Object>)data.get(
+			"searchEngineDiskSpace");
 
-		indexActionsDisplayContext = indexActionsDisplayContextBuilder.build();
-
-		Assert.assertTrue(indexActionsDisplayContext.isLowOnDiskSpace());
+		Assert.assertTrue(
+			(boolean)searchEngineDiskSpace.get("isLowOnDiskSpace"));
 	}
 
 	protected StatsInformationFactory getStatsInformationFactory(

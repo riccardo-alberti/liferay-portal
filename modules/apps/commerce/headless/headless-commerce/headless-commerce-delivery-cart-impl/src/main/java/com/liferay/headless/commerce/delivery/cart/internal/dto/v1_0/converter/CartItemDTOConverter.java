@@ -92,6 +92,7 @@ public class CartItemDTOConverter
 
 						return expandoBridge.getAttributes();
 					});
+				setDeliveryGroup(commerceOrderItem::getDeliveryGroup);
 				setErrorMessages(
 					() -> _getErrorMessages(commerceOrderItem, locale));
 				setExternalReferenceCode(
@@ -119,6 +120,8 @@ public class CartItemDTOConverter
 					() -> _getReplacedSkuExternalReferenceCode(
 						commerceOrderItem.getReplacedCPInstanceId()));
 				setReplacedSkuId(commerceOrderItem::getReplacedCPInstanceId);
+				setRequestedDeliveryDate(
+					commerceOrderItem::getRequestedDeliveryDate);
 				setSettings(
 					() -> _getSettings(commerceOrderItem.getCPInstanceId()));
 				setShippingAddressExternalReferenceCode(
@@ -195,6 +198,27 @@ public class CartItemDTOConverter
 					() -> _cpInstanceHelper.getCPInstanceThumbnailSrc(
 						cartItemDTOConverterContext.getAccountId(),
 						commerceOrderItem.getCPInstanceId()));
+				setUnitOfMeasure(
+					() -> {
+						String unitOfMeasureKey =
+							commerceOrderItem.getUnitOfMeasureKey();
+
+						if (Validator.isNull(unitOfMeasureKey)) {
+							return null;
+						}
+
+						CPInstanceUnitOfMeasure cpInstanceUnitOfMeasure =
+							_cpInstanceUnitOfMeasureLocalService.
+								fetchCPInstanceUnitOfMeasure(
+									commerceOrderItem.getCPInstanceId(),
+									unitOfMeasureKey);
+
+						if (cpInstanceUnitOfMeasure == null) {
+							return null;
+						}
+
+						return cpInstanceUnitOfMeasure.getName(locale);
+					});
 			}
 		};
 	}

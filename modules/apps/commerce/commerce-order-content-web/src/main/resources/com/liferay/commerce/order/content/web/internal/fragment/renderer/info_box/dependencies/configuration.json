@@ -36,20 +36,52 @@
 								"value": "accountInfo"
 							},
 							{
+								"label": "billing-address",
+								"value": "billingAddress"
+							},
+							{
 								"label": "channel-name",
 								"value": "channelName"
+							},
+							{
+								"label": "notes",
+								"value": "notes"
 							},
 							{
 								"label": "order-date",
 								"value": "orderDate"
 							},
 							{
+								"label": "order-summary",
+								"value": "orderSummary"
+							},
+							{
 								"label": "order-type",
 								"value": "orderType"
 							},
 							{
+								"label": "payment-method",
+								"value": "paymentMethod"
+							},
+							{
+								"label": "purchase-order-document",
+								"value": "purchaseOrderDocument"
+							},
+							{
 								"label": "purchase-order-number",
 								"value": "purchaseOrderNumber"
+							},
+							{
+								"label": "requested-delivery-date",
+								"value": "requestedDeliveryDate"
+							},
+							{
+								"label": "shipping-address",
+								"value": "shippingAddress"
+							},
+							{
+								"label": "shipping-method",
+								"value": "shippingMethod"
 							}
 						]
 					}

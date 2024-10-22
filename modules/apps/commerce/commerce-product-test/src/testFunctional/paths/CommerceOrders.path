@@ -47,17 +47,17 @@
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_DISCOUNT</td>
-	<td>//div[@class='dnd-td' and contains(.,'${key_productDiscount}')]</td>
+	<td>//*[contains(@class,'dnd-td') and contains(.,'${key_productDiscount}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_ITEM_VALUE</td>
-	<td>//div[@class='dnd-td'][contains(text(),'${key_productItemValue}')]</td>
+	<td>//div[contains(@class,'dnd-td') and contains(normalize-space(text()),'${key_productItemValue}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_NAME</td>
-	<td>//div[@class='dnd-td' and contains(.,'${key_productName}')]</td>
+	<td>//*[contains(@class, 'dnd-td') and contains (.,'${key_productName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -72,22 +72,22 @@
 </tr>
 <tr>
 	<td>ORDER_DETAILS_TOTAL_PRICE</td>
-	<td>//div[@class='dnd-td' and contains(.,'${key_productTotalPrice}')]</td>
+	<td>//*[contains(@class,'dnd-td') and (text()='${key_productTotalPrice}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_QUANTITY</td>
-	<td>//div[@class='dnd-td'][contains(text(),'${key_productQuantity}')]</td>
+	<td>//*[contains(@class,'dnd-td') and (text()='${key_productQuantity}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_SKU</td>
-	<td>//div[@class='dnd-td' and contains(.,'${key_productSku}')]</td>
+	<td>//div[contains(@class, 'dnd-td') and contains(.,'${key_productSku}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ORDER_DETAILS_PRODUCT_LIST_PRICE</td>
-	<td>//div[@class='dnd-td' and contains(.,'${key_productListPrice}')]</td>
+	<td>//*[contains(@class,'dnd-td') and contains(.,'${key_productListPrice}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -157,7 +157,7 @@
 </tr>
 <tr>
 	<td>ORDER_QUANTITY_IN_SHIPMENT_BY_WAREHOUSE</td>
-	<td>//div[contains(text(),'${key_warehouseName}')]//following-sibling::div[@class = 'dnd-td']//following-sibling::div[@class = 'dnd-td']//input[contains(@class, 'form-control')]</td>
+	<td>//div[contains(text(),'${key_warehouseName}')]//following-sibling::div//following-sibling::div//input[contains(@class, 'form-control')]</td>
 	 <td></td>
 </tr>
 <tr>
@@ -197,7 +197,7 @@
 </tr>
 <tr>
 	<td>PENDING_ORDERS_LIST_ORDER_TYPE</td>
-	<td>//div[@class='dnd-tr'][contains(.,'${key_entry}')]/div[@class='dnd-td'][2][contains(.,'${key_orderType}')]</td>
+	<td>//*[contains(@class,'dnd-tr')][contains(.,'${key_entry}')]/div[contains(@class,'dnd-td')][3][contains(.,'${key_orderType}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -237,17 +237,17 @@
 </tr>
 <tr>
 	<td>PLACED_ORDERS_LIST_DATE</td>
-	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_orderId}')]/following::div[4]</td>
+	<td>//div[contains(@class,'table-list-title')]/a[contains(.,'${key_orderId}')]/following::div[5]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PLACED_ORDERS_LIST_ORDER_TYPE</td>
-	<td>//div[@class='dnd-tr'][contains(.,'${key_entry}')]/div[@class='dnd-td'][2][contains(.,'${key_orderType}')]</td>
+	<td>//*[contains(@class,'dnd-tr')][contains(.,'${key_entry}')]/div[contains(@class,'dnd-td')][3][contains(.,'${key_orderType}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PLACED_ORDERS_LIST_STATUS</td>
-	<td>//div[@class='dnd-tr'][contains(.,'${key_entry}')]/div[@class='dnd-td'][8][contains(.,'${key_status}')]</td>
+	<td>//*[contains(@class,'dnd-tr')][contains(.,'${key_entry}')]/div[contains(@class,'dnd-td')][9][contains(.,'${key_status}')]</td>
 	<td></td>
 </tr>
 <tr>

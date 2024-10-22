@@ -5,13 +5,15 @@
 
 import {NetworkStatus} from '@apollo/client';
 import {useEffect, useState} from 'react';
+
 import useGetOrderItems from '../../../../../../../../../../../../common/services/liferay/graphql/order-items/queries/useGetOrderItems';
 
 const PAGE_SIZE = 5;
 const FIRST_PAGE = 1;
 
 export default function useOrderItems(
-	accountSubscriptionExternalReferenceCode
+	accountSubscriptionExternalReferenceCode,
+	pageSize
 ) {
 	const [activePage, setActivePage] = useState(FIRST_PAGE);
 
@@ -19,7 +21,7 @@ export default function useOrderItems(
 		filter: `customFields/accountSubscriptionERC eq '${accountSubscriptionExternalReferenceCode}'`,
 		notifyOnNetworkStatusChange: true,
 		page: activePage,
-		pageSize: PAGE_SIZE,
+		pageSize: pageSize ?? PAGE_SIZE,
 	});
 
 	useEffect(() => {
@@ -34,7 +36,7 @@ export default function useOrderItems(
 
 	return [
 		{activePage, setActivePage},
-		PAGE_SIZE,
+		pageSize ?? PAGE_SIZE,
 		{data, loading: networkStatus === NetworkStatus.loading},
 	];
 }

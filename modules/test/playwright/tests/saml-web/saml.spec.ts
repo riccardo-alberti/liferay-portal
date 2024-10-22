@@ -31,7 +31,7 @@ import {getRandomInt} from '../../utils/getRandomInt';
 import getRandomString from '../../utils/getRandomString';
 import performLogin, {performLogout} from '../../utils/performLogin';
 import {reloadUntilVisible} from '../../utils/reloadUntilVisible';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {
 	TIdentityProvider,
 	configureIdentityProvider,
@@ -851,6 +851,195 @@ test('Verify a Message context is not authenticated when Require Authn Request S
 	await updateRuntimeMetadataRefreshInterval(localhostAdminPage, '4');
 });
 
+test('Verify Custom Fields can be used for user matching in SAML, see LPS-128600 and LPD-34973', async ({
+	browser,
+	searchAdminPage,
+}) => {
+	const idpAdminPage = await configureVirtualInstanceForSaml(
+		browser,
+		DEFAULT_IDP_NAME,
+		'Identity Provider'
+	);
+
+	const spAdminPage = await configureVirtualInstanceForSaml(
+		browser,
+		DEFAULT_SP_NAME,
+		'Service Provider'
+	);
+
+	await connectSpAndIdp(
+		idpAdminPage,
+		DEFAULT_IDP_NAME,
+		spAdminPage,
+		DEFAULT_SP_NAME
+	);
+
+	// Create Custom Field for SP instance only
+
+	const customFieldName = 'CustomField' + getRandomInt();
+
+	const fieldValues: TInputField = {
+		startingValue: 'spStartingValue',
+	};
+
+	const customField: TCustomField = {
+		fieldName: customFieldName,
+		fieldType: 'inputField',
+		fieldValues,
+		resource: 'User',
+	};
+
+	await createCustomField(spAdminPage, customField);
+
+	// Edit IdP Connection to include User Custom Field attribute mapping
+
+	const attributeMappings: AttributeMapping[] = [
+		{
+			attributeMappingType: 'User Custom Fields',
+			samlAttribute: customFieldName,
+			useToMatchUsers: true,
+			userFieldExpression: customFieldName,
+		},
+	];
+
+	const idpConnection: TIdpConnection = {
+		attributeMappings,
+		entityId: DEFAULT_IDP_NAME,
+		idpDomain: `http://${DEFAULT_IDP_NAME}:8080`,
+		idpName: DEFAULT_IDP_NAME,
+		spName: DEFAULT_SP_NAME,
+		userResolution: 'attribute',
+		...DEFAULT_IDP_CONNECTION_VALUES,
+	};
+
+	await editIdentityProviderConnection(spAdminPage, idpConnection);
+
+	// Create a user on the IdP instance
+
+	const userAccount = await createUser(idpAdminPage, DEFAULT_IDP_NAME);
+
+	// Perform Sp initiated SSO with the new user and verify unsuccessful
+
+	let spInstancePage = await performSpInitiatedSSO(
+		browser,
+		userAccount.emailAddress,
+		DEFAULT_SP_URL,
+		false
+	);
+
+	await expect(
+		await spInstancePage.getByText(
+			`Your user ${userAccount.emailAddress} could not be logged in`
+		)
+	).toBeVisible();
+
+	// Add custom field into IdP instance
+
+	fieldValues.startingValue = 'idpStartingValue';
+
+	customField.fieldValues = fieldValues;
+
+	await createCustomField(idpAdminPage, customField);
+
+	// Update SP Connection to include custom field in attribute list
+
+	const spConnection: TSpConnection = {
+		entityId: DEFAULT_SP_NAME,
+		idpName: DEFAULT_IDP_NAME,
+		spDomain: `http://${DEFAULT_SP_NAME}:8080`,
+		spName: DEFAULT_SP_NAME,
+		...DEFAULT_SP_CONNECTION_VALUES,
+	};
+
+	spConnection.attributes =
+		spConnection.attributes + `\nexpando:${customFieldName}`;
+
+	await editServiceProviderConnection(idpAdminPage, spConnection);
+
+	// Reattempt SP initiated SSO by just clicking the Sign In link
+
+	await spInstancePage
+		.getByRole('button', {
+			name: 'Sign In',
+		})
+		.click();
+
+	await spInstancePage.waitForTimeout(8000);
+
+	// Verify redirected back to SP
+
+	expect(await spInstancePage.url()).toContain(DEFAULT_SP_URL);
+
+	// Verify user has been imported to SP and logged in
+
+	await expect(
+		await spInstancePage.getByTitle('User Profile Menu')
+	).toBeVisible({timeout: 30 * 1000});
+
+	// Perform SP initiated SLO
+
+	await performLogout(spInstancePage);
+
+	// Change the value of the user's custom field in the IdP Instance
+
+	let usersAndOrganizationsPage = await new UsersAndOrganizationsPage(
+		idpAdminPage
+	);
+
+	await usersAndOrganizationsPage.goToUsers(false);
+
+	await (
+		await usersAndOrganizationsPage.usersTableRowLink(
+			userAccount.alternateName
+		)
+	).click();
+
+	let editUserPage = await new EditUserPage(idpAdminPage);
+
+	await (await editUserPage.customField(customFieldName)).fill('newValue');
+
+	await editUserPage.saveButton.click();
+
+	// Perform SP initiated SSO
+
+	spInstancePage = await performSpInitiatedSSO(
+		browser,
+		userAccount.emailAddress,
+		DEFAULT_SP_URL,
+		true
+	);
+
+	// Perform reindex on User object
+
+	await searchAdminPage.goto();
+
+	await searchAdminPage.goToIndexActionsTab();
+
+	await searchAdminPage.reindexIndexActionsItem('User');
+
+	await searchAdminPage.page.waitForTimeout(8000);
+
+	// Verify user's custom field value has been updated in the SP instance
+
+	usersAndOrganizationsPage = await new UsersAndOrganizationsPage(
+		spAdminPage
+	);
+
+	await usersAndOrganizationsPage.goToUsers(false);
+
+	await (
+		await usersAndOrganizationsPage.usersTableRowLink(
+			userAccount.alternateName
+		)
+	).click();
+
+	editUserPage = await new EditUserPage(spAdminPage);
+
+	await expect(await editUserPage.customField(customFieldName)).toHaveValue(
+		'newValue'
+	);
+});
+
 test('Verify IdP initiated SLO also logs out of authenticated SP when Require Authn Request Signature and Sign Metadata are enabled.  See LPS-128578.', async ({
 	browser,
 }) => {
@@ -1131,7 +1320,7 @@ test('Verify SSO login and logout mechanism works the same when having multiple 
 
 	await siteSettingsPage.page.getByRole('button', {name: 'Save'}).click();
 
-	await waitForSuccessAlert(siteSettingsPage.page);
+	await waitForAlert(siteSettingsPage.page);
 
 	await secondarySpAdminPage.goto(`/web/${site2Name}`);
 
@@ -1149,7 +1338,7 @@ test('Verify SSO login and logout mechanism works the same when having multiple 
 
 	await siteSettingsPage.page.getByRole('button', {name: 'Save'}).click();
 
-	await waitForSuccessAlert(siteSettingsPage.page);
+	await waitForAlert(siteSettingsPage.page);
 
 	// Create users for both IdP virtual instances
 
@@ -1417,7 +1606,7 @@ test('Verify the SAML configuration is not applied to the sites when ACS is disa
 
 	await siteSettingsPage.page.getByRole('button', {name: 'Save'}).click();
 
-	await waitForSuccessAlert(siteSettingsPage.page);
+	await waitForAlert(siteSettingsPage.page);
 
 	// Create IdP user
 

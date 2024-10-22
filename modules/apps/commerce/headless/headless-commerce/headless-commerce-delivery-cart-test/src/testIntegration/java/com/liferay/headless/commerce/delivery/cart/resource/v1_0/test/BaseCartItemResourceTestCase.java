@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -163,6 +164,7 @@ public abstract class BaseCartItemResourceTestCase {
 		CartItem cartItem = randomCartItem();
 
 		cartItem.setAdaptiveMediaImageHTMLTag(regex);
+		cartItem.setDeliveryGroup(regex);
 		cartItem.setExternalReferenceCode(regex);
 		cartItem.setName(regex);
 		cartItem.setOptions(regex);
@@ -171,6 +173,7 @@ public abstract class BaseCartItemResourceTestCase {
 		cartItem.setShippingAddressExternalReferenceCode(regex);
 		cartItem.setSku(regex);
 		cartItem.setThumbnail(regex);
+		cartItem.setUnitOfMeasure(regex);
 
 		String json = CartItemSerDes.toJSON(cartItem);
 
@@ -179,6 +182,7 @@ public abstract class BaseCartItemResourceTestCase {
 		cartItem = CartItemSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, cartItem.getAdaptiveMediaImageHTMLTag());
+		Assert.assertEquals(regex, cartItem.getDeliveryGroup());
 		Assert.assertEquals(regex, cartItem.getExternalReferenceCode());
 		Assert.assertEquals(regex, cartItem.getName());
 		Assert.assertEquals(regex, cartItem.getOptions());
@@ -189,6 +193,7 @@ public abstract class BaseCartItemResourceTestCase {
 			regex, cartItem.getShippingAddressExternalReferenceCode());
 		Assert.assertEquals(regex, cartItem.getSku());
 		Assert.assertEquals(regex, cartItem.getThumbnail());
+		Assert.assertEquals(regex, cartItem.getUnitOfMeasure());
 	}
 
 	@Test
@@ -1231,6 +1236,14 @@ public abstract class BaseCartItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("deliveryGroup", additionalAssertFieldName)) {
+				if (cartItem.getDeliveryGroup() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("errorMessages", additionalAssertFieldName)) {
 				if (cartItem.getErrorMessages() == null) {
 					valid = false;
@@ -1332,6 +1345,16 @@ public abstract class BaseCartItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (cartItem.getRequestedDeliveryDate() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("settings", additionalAssertFieldName)) {
 				if (cartItem.getSettings() == null) {
 					valid = false;
@@ -1405,6 +1428,14 @@ public abstract class BaseCartItemResourceTestCase {
 
 			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
 				if (cartItem.getThumbnail() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unitOfMeasure", additionalAssertFieldName)) {
+				if (cartItem.getUnitOfMeasure() == null) {
 					valid = false;
 				}
 
@@ -1569,6 +1600,17 @@ public abstract class BaseCartItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("deliveryGroup", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						cartItem1.getDeliveryGroup(),
+						cartItem2.getDeliveryGroup())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("errorMessages", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						cartItem1.getErrorMessages(),
@@ -1709,6 +1751,19 @@ public abstract class BaseCartItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						cartItem1.getRequestedDeliveryDate(),
+						cartItem2.getRequestedDeliveryDate())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("settings", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						cartItem1.getSettings(), cartItem2.getSettings())) {
@@ -1802,6 +1857,17 @@ public abstract class BaseCartItemResourceTestCase {
 			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						cartItem1.getThumbnail(), cartItem2.getThumbnail())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unitOfMeasure", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						cartItem1.getUnitOfMeasure(),
+						cartItem2.getUnitOfMeasure())) {
 
 					return false;
 				}
@@ -1980,6 +2046,52 @@ public abstract class BaseCartItemResourceTestCase {
 		if (entityFieldName.equals("customFields")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("deliveryGroup")) {
+			Object object = cartItem.getDeliveryGroup();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("errorMessages")) {
@@ -2252,6 +2364,38 @@ public abstract class BaseCartItemResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("requestedDeliveryDate")) {
+			if (operator.equals("between")) {
+				Date date = cartItem.getRequestedDeliveryDate();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(
+					_dateFormat.format(cartItem.getRequestedDeliveryDate()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("settings")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -2420,6 +2564,52 @@ public abstract class BaseCartItemResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("unitOfMeasure")) {
+			Object object = cartItem.getUnitOfMeasure();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("valid")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -2472,6 +2662,8 @@ public abstract class BaseCartItemResourceTestCase {
 			{
 				adaptiveMediaImageHTMLTag = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				deliveryGroup = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
@@ -2484,6 +2676,7 @@ public abstract class BaseCartItemResourceTestCase {
 				replacedSkuExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				replacedSkuId = RandomTestUtil.randomLong();
+				requestedDeliveryDate = RandomTestUtil.nextDate();
 				shippingAddressExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				shippingAddressId = RandomTestUtil.randomLong();
@@ -2491,6 +2684,8 @@ public abstract class BaseCartItemResourceTestCase {
 				skuId = RandomTestUtil.randomLong();
 				subscription = RandomTestUtil.randomBoolean();
 				thumbnail = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				unitOfMeasure = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				valid = RandomTestUtil.randomBoolean();
 			}

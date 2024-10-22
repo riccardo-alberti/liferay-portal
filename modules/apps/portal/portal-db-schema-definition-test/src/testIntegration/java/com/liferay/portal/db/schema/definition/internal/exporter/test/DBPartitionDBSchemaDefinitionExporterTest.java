@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.AssumeTestRule;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
@@ -39,6 +40,7 @@ import javax.sql.DataSource;
 
 import org.apache.felix.cm.PersistenceManager;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -73,7 +75,7 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 		_company = CompanyTestUtil.addCompany();
 
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 					_company.getCompanyId())) {
 
 			User adminUser = UserTestUtil.getAdminUser(_company.getCompanyId());
@@ -91,6 +93,15 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 				ObjectRelationshipLocalServiceUtil.getService(),
 				_objectDBPartitionDefinition1, _objectDBPartitionDefinition2,
 				adminUser.getUserId());
+		}
+	}
+
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+		tearDownClassBaseDBSchemaDefinitionExporterTestCase();
+
+		if (_company != null) {
+			_companyLocalService.deleteCompany(_company);
 		}
 	}
 
@@ -190,8 +201,22 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 				"Virtual instance " + _company.getCompanyId() +
 					" missing tables:\n"));
 		Assert.assertTrue(
+			reportContent.contains(
+				"Virtual instance " + _company.getCompanyId() +
+					" missing views:\n") ||
 			reportContent.endsWith(
 				"Virtual instance " + _company.getCompanyId() +
+					" missing views:"));
+		Assert.assertTrue(
+			reportContent.contains(
+				"Virtual instance " + TestPropsValues.getCompanyId() +
+					" missing tables:\n"));
+		Assert.assertTrue(
+			reportContent.contains(
+				"Virtual instance " + TestPropsValues.getCompanyId() +
+					" missing views:\n") ||
+			reportContent.endsWith(
+				"Virtual instance " + TestPropsValues.getCompanyId() +
 					" missing views:"));
 	}
 
@@ -199,8 +224,13 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 	public void testExportImportReportWithMissingTable() throws Exception {
 		DB db = DBManagerUtil.getDB();
 
+		String defaultPartitionName = DBPartitionUtil.getPartitionName(
+			PortalInstancePool.getDefaultCompanyId());
+
 		try {
-			db.runSQL("create table TestTable (testColumn bigint primary key)");
+			db.runSQL(
+				"create table " + defaultPartitionName +
+					".TestTable (testColumn bigint primary key)");
 			db.runSQL(
 				"create table " +
 					DBPartitionUtil.getPartitionName(_company.getCompanyId()) +
@@ -210,8 +240,8 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 
 			Assert.assertTrue(
 				reportContent.contains(
-					"Default virtual instance missing tables: " +
-						StringUtil.toLowerCase("TestTable")));
+					"Default virtual instance missing tables: testtable"));
+
 			Assert.assertTrue(
 				reportContent.contains(
 					StringBundler.concat(
@@ -220,7 +250,8 @@ public class DBPartitionDBSchemaDefinitionExporterTest
 						StringUtil.toLowerCase("TestTable2"))));
 		}
 		finally {
-			db.runSQL("DROP_TABLE_IF_EXISTS(TestTable)");
+			db.runSQL(
+				"DROP_TABLE_IF_EXISTS(" + defaultPartitionName + ".TestTable)");
 			db.runSQL(
 				"DROP_TABLE_IF_EXISTS(" +
 					DBPartitionUtil.getPartitionName(_company.getCompanyId()) +

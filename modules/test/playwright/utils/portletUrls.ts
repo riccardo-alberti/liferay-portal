@@ -8,10 +8,13 @@ export const PORTLET_URLS = {
 		'/~/control_panel/manage?p_p_id=com_liferay_asset_list_web_portlet_AssetListPortlet',
 	contentDashboard:
 		'/~/control_panel/manage?p_p_id=com_liferay_content_dashboard_web_portlet_ContentDashboardAdminPortlet',
+	depotAdmin:
+		'/~/control_panel/manage?p_p_id=com_liferay_depot_web_portlet_DepotAdminPortlet',
 	displayPageTemplates:
 		'/~/control_panel/manage?p_p_id=com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet&_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_tabs1=display-page-templates',
 	documentLibrary:
 		'/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet',
+	forms: '/~/control_panel/manage?p_p_id=com_liferay_dynamic_data_mapping_form_web_portlet_DDMFormAdminPortlet',
 	fragments: '/~/control_panel/manage/-/fragments/fragment_collections',
 	journal:
 		'/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet',
@@ -25,6 +28,8 @@ export const PORTLET_URLS = {
 		'/~/control_panel/manage?p_p_id=com_liferay_portal_language_override_web_internal_portlet_PLOPortlet',
 	lockedItems:
 		'/~/control_panel/manage?p_p_id=com_liferay_locked_items_web_internal_portlet_LockedItemsPortlet',
+	lockedPages:
+		'/~/control_panel/manage?p_p_id=com_liferay_layout_locked_layouts_web_internal_portlet_LockedLayoutsPortlet',
 	masterPages:
 		'/~/control_panel/manage?p_p_id=com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet&_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_tabs1=master-layouts',
 	messageBoardsAdmin:
@@ -57,6 +62,8 @@ export const PORTLET_URLS = {
 	staging:
 		'/~/control_panel/manage?p_p_id=com_liferay_staging_processes_web_portlet_StagingProcessesPortlet',
 	styleBooks: '/~/control_panel/manage/-/style_books/style_books',
+	systemFeatureFlagDeveloper:
+		'/group/control_panel/manage?p_p_id=com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_mvcRenderCommandName=%2Fconfiguration_admin%2Fview_configuration_screen&_com_liferay_configuration_admin_web_portlet_SystemSettingsPortlet_configurationScreenKey=feature.flag.3.dev.system',
 	tagsAdmin: '/~/control_panel/manage/-/tags_admin/tags',
 	teams: '/~/control_panel/manage/-/site_teams/teams',
 	templates:
@@ -65,6 +72,8 @@ export const PORTLET_URLS = {
 		'/~/control_panel/manage?p_p_id=com_liferay_layout_admin_web_portlet_GroupPagesPortlet&_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_tabs1=utility-pages',
 	widgetPageTemplates:
 		'/group/global/~/control_panel/manage?p_p_id=com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet&_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_tabs1=page-templates',
+	widgetTemplates:
+		'/~/control_panel/manage?p_p_id=com_liferay_template_web_internal_portlet_TemplatePortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_template_web_internal_portlet_TemplatePortlet_tabs1=widget-templates',
 	wikiAdmin:
 		'/~/control_panel/manage?p_p_id=com_liferay_wiki_web_portlet_WikiAdminPortlet',
 	workflow:

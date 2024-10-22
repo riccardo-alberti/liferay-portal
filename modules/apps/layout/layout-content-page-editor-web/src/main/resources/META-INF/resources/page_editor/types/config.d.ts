@@ -99,6 +99,7 @@ export interface Config {
 	deleteRuleURL: string;
 	deleteSegmentsExperienceURL: string;
 	discardDraftURL: string;
+	copyItemsURL: string;
 	duplicateItemURL: string;
 	duplicateSegmentsExperienceURL: string;
 	editFragmentEntryLinkCommentURL: string;
@@ -169,7 +170,8 @@ export interface Config {
 		name: string;
 	}>;
 	masterUsed: boolean;
-	moveItemURL: string;
+	moveItemsURL: string;
+	moveStepperFragmentEntryLinkURL: string;
 	paddingOptions: Array<{
 		label: string;
 		value: string;

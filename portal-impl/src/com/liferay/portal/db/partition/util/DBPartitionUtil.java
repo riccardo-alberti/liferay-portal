@@ -76,7 +76,12 @@ public class DBPartitionUtil {
 			return false;
 		}
 
-		_addDBPartition(companyId);
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_defaultCompanyId)) {
+
+			_addDBPartition(companyId);
+		}
 
 		return _companyIds.add(companyId);
 	}
@@ -117,7 +122,12 @@ public class DBPartitionUtil {
 			return false;
 		}
 
-		_extractDBPartition(companyId);
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_defaultCompanyId)) {
+
+			_extractDBPartition(companyId);
+		}
 
 		return _companyIds.remove(companyId);
 	}
@@ -237,7 +247,12 @@ public class DBPartitionUtil {
 			return false;
 		}
 
-		_dropDBPartition(companyId);
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					_defaultCompanyId)) {
+
+			_dropDBPartition(companyId);
+		}
 
 		return _companyIds.remove(companyId);
 	}
@@ -358,8 +373,10 @@ public class DBPartitionUtil {
 			DBInspector dbInspector = new DBInspector(connection);
 
 			try (ResultSet resultSet = databaseMetaData.getTables(
-					dbInspector.getCatalog(), dbInspector.getSchema(), null,
-					new String[] {"TABLE"});
+					_dbPartitionDB.getCatalog(
+						connection, _defaultPartitionName),
+					_dbPartitionDB.getSchema(connection, _defaultPartitionName),
+					null, new String[] {"TABLE"});
 				Statement statement = connection.createStatement()) {
 
 				while (resultSet.next()) {
@@ -1241,6 +1258,18 @@ public class DBPartitionUtil {
 		throws Exception {
 
 		String partitionName = getPartitionName(companyId);
+
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(companyId)) {
+
+			if (!dbInspector.hasTable(tableName)) {
+				statement.executeUpdate(
+					_dbPartitionDB.getCreateViewSQL(
+						_defaultPartitionName, partitionName, tableName));
+
+				return;
+			}
+		}
 
 		if (dbInspector.hasColumn(tableName, "companyId")) {
 			_moveCompanyData(

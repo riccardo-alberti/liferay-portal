@@ -440,8 +440,6 @@ definition {
 			webContentContent = ${webContentContent},
 			webContentTitle = ${webContentTitle});
 
-		Panel.expandPanel(panel = "Friendly URL");
-
 		Type(
 			inputFieldId = "friendlyURL",
 			locator1 = "TextInput#INPUT_ID",
@@ -1368,8 +1366,6 @@ definition {
 
 	@summary = "Default summary"
 	macro editFriendlyURL(webContentFriendlyURL = null) {
-		Panel.expandPanel(panel = "Friendly URL");
-
 		Type(
 			inputFieldId = "friendlyURL",
 			locator1 = "TextInput#INPUT_ID",
@@ -1497,7 +1493,9 @@ definition {
 		WebContentNavigator.gotoEditCP(webContentTitle = ${webContentTitle});
 
 		if (isSet(locale)) {
-			PortletEntry.changeLocale(locale = ${locale});
+			PortletEntry.changeLocale(
+				locale = ${locale},
+				translated = "true");
 		}
 
 		WebContent.addWithStructureCP(
@@ -2086,7 +2084,7 @@ definition {
 
 	@summary = "Default summary"
 	macro viewAvailableLanguages(availableLanguageList = null, unavailableLanguageList = null) {
-		Click(locator1 = "Button#LOCALIZATION_GENERIC");
+		Click(locator1 = "Button#LOCALIZATION_TRANSLATED");
 
 		for (var availableLanguage : list ${availableLanguageList}) {
 			AssertElementPresent(
@@ -2383,8 +2381,6 @@ definition {
 
 	@summary = "Default summary"
 	macro viewFriendlyURLCP(friendlyURL = null) {
-		Panel.expandPanel(panel = "Friendly URL");
-
 		AssertTextEquals(
 			inputFieldId = "friendlyURL",
 			locator1 = "TextInput#INPUT_ID",
@@ -2762,7 +2758,7 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro viewWithStructureCP(webContentLocaleFieldLabel = null, webContentTitleEscapeCharacter = null, webContentUpload = null, description = null, webContentImageDescription = null, webContentLinkToPage = null, webContentText = null, webContentGrid = null, webContentImage = null, row = null, webContentSelectFromList = null, webContentSingleSelection = null, skipGotoEditCp = null, webContentColor = null, webContentDate = null, webContentWebContent = null, webContentNumeric = null, webContentBoolean = null, webContentTitle = null, webContentRichText = null, webContentTitleTranslated = null, location = null, webContentMultipleSelection = null, fieldType = null) {
+	macro viewWithStructureCP(webContentLocaleFieldLabel = null, webContentTitleEscapeCharacter = null, webContentUpload = null, description = null, webContentImageDescription = null, webContentLinkToPage = null, webContentText = null, webContentGrid = null, webContentImage = null, row = null, webContentSelectFromList = null, webContentSingleSelection = null, skipGotoEditCp = null, webContentColor = null, webContentDate = null, webContentWebContent = null, webContentNumeric = null, webContentBoolean = null, webContentTitle = null, webContentRichText = null, webContentTitleTranslated = null, location = null, webContentMultipleSelection = null, fieldType = null, translated = null) {
 		if (!(isSet(predefinedValue))) {
 			if (${skipGotoEditCp} != "true") {
 				LexiconEntry.changeDisplayStyle(displayStyle = "list");
@@ -2775,7 +2771,16 @@ definition {
 			}
 
 			if (isSet(webContentLocaleFieldLabel)) {
-				PortletEntry.changeLocale(locale = ${webContentLocaleFieldLabel});
+				if (isSet(translated)) {
+					PortletEntry.changeLocale(
+						locale = ${webContentLocaleFieldLabel},
+						translated = ${translated});
+				}
+				else {
+					PortletEntry.changeLocale(
+						locale = ${webContentLocaleFieldLabel},
+						translated = "true");
+				}
 			}
 
 			if (isSet(webContentTitleTranslated)) {

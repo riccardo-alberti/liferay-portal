@@ -7,7 +7,9 @@ import {
 	FragmentEntryLink,
 	FragmentEntryLinkMap,
 } from '../../../app/actions/addFragmentEntryLinks';
+import {WidgetSet} from '../../../app/actions/updateWidgets';
 import {FormLayoutDataItem} from '../../../types/layout_data/FormLayoutDataItem';
+import {FragmentLayoutDataItem} from '../../../types/layout_data/FragmentLayoutDataItem';
 import {
 	LayoutData,
 	LayoutDataItem,
@@ -17,6 +19,9 @@ import {LAYOUT_DATA_ITEM_TYPES} from '../../config/constants/layoutDataItemTypes
 import {getStepperChild} from '../../utils/getStepperChild';
 import {formIsMapped} from '../formIsMapped';
 import {getFormParent} from '../getFormParent';
+import getItemWidget from '../getItemWidget';
+import getWidget from '../getWidget';
+import {hasCollectionParent} from '../hasCollectionParent';
 import {hasFormStepParent} from '../hasFormStepParent';
 import {isMultistepForm} from '../isMultistepForm';
 import {isUnmappedCollection} from '../isUnmappedCollection';
@@ -25,6 +30,7 @@ type DragAndDropItem = LayoutDataItem & {
 	fieldTypes: FragmentEntryLink['fieldTypes'];
 	fragmentEntryType: FragmentEntryLink['fragmentEntryType'];
 	isWidget: boolean;
+	portletId?: string;
 };
 
 const LAYOUT_DATA_CHECK_ALLOWED_CHILDREN = {
@@ -108,20 +114,21 @@ const LAYOUT_DATA_CHECK_ALLOWED_CHILDREN = {
 export default function checkAllowedChild(
 	child: DragAndDropItem,
 	parent: DragAndDropItem,
-	layoutDataRef: React.RefObject<LayoutData>,
-	fragmentEntryLinksRef: React.RefObject<FragmentEntryLinkMap>
+	layoutData: LayoutData,
+	fragmentEntryLinks: FragmentEntryLinkMap,
+	getWidgets: () => WidgetSet[]
 ) {
 	if (isUnmappedCollection(parent) || isUnmappedForm(parent)) {
 		return false;
 	}
 
 	const isStepper = child.fieldTypes?.includes('stepper');
-	const formParent = getFormParent(parent, layoutDataRef.current);
+	const formParent = getFormParent(parent, layoutData);
 
 	if (
 		!isStepper &&
 		isMultistepForm(formParent) &&
-		!hasFormStepParent(parent, layoutDataRef.current)
+		!hasFormStepParent(parent, layoutData)
 	) {
 		return false;
 	}
@@ -134,8 +141,8 @@ export default function checkAllowedChild(
 
 			const existingStepper = getStepperChild(
 				parent,
-				layoutDataRef.current,
-				fragmentEntryLinksRef.current
+				layoutData,
+				fragmentEntryLinks
 			);
 
 			if (existingStepper && existingStepper.itemId !== child.itemId) {
@@ -152,6 +159,22 @@ export default function checkAllowedChild(
 
 			if (formParent && child.isWidget) {
 				return false;
+			}
+
+			if (hasCollectionParent(parent, layoutData) && child.isWidget) {
+				const childItem = layoutData.items[child.itemId];
+
+				const widgets = getWidgets();
+
+				const widget = child.portletId
+					? getWidget(widgets, child.portletId)
+					: getItemWidget(
+							childItem as FragmentLayoutDataItem,
+							fragmentEntryLinks,
+							widgets
+						);
+
+				return widget?.instanceable;
 			}
 		}
 	}

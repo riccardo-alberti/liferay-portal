@@ -49,7 +49,7 @@ public class ShippingMethodResourceImpl extends BaseShippingMethodResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -141,6 +141,7 @@ public class ShippingMethodResourceImpl extends BaseShippingMethodResourceImpl {
 				setDescription(
 					() -> commerceShippingMethod.getDescription(
 						contextAcceptLanguage.getPreferredLocale()));
+				setEngineKey(commerceShippingMethod::getEngineKey);
 				setId(commerceShippingMethod::getCommerceShippingMethodId);
 				setName(
 					() -> commerceShippingMethod.getName(

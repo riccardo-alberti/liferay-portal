@@ -5,28 +5,1262 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
+import {displayPageTemplatesPagesTest} from '../../fixtures/displayPageTemplatesPagesTest';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {objectPagesTest} from '../../fixtures/objectPagesTest';
 import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {pageManagementSiteTest} from '../../fixtures/pageManagementSiteTest';
+import {clickAndExpectToBeHidden} from '../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
-import {LEMON_OBJECT_ERC} from '../setup/page-management-site/constants';
+import {waitForAlert} from '../../utils/waitForAlert';
+import {
+	LEMON_OBJECT_ERC,
+	POTATO_OBJECT_ERC,
+} from '../setup/page-management-site/constants';
+import {deleteObjectEntries} from '../setup/page-management-site/utils/deleteObjectEntries';
+import {gotoObjectEntries} from '../setup/page-management-site/utils/gotoObjectEntries';
 import getFormContainerDefinition from './utils/getFormContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getPageDefinition from './utils/getPageDefinition';
+import getWidgetDefinition from './utils/getWidgetDefinition';
 
 const test = mergeTests(
 	apiHelpersTest,
+	displayPageTemplatesPagesTest,
 	featureFlagsTest({
 		'LPD-10727': true,
 		'LPS-178052': true,
 	}),
 	loginTest(),
+	objectPagesTest,
 	pageEditorPagesTest,
 	pageManagementSiteTest
 );
+
+test.describe('Form Configuration', () => {
+	test(
+		'Show success message only one time',
+		{
+			tag: '@LPD-37435',
+		},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment and a widget
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const widgetId = getRandomString();
+
+			const widgetDefinition = getWidgetDefinition({
+				id: widgetId,
+				widgetName:
+					'com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet',
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([
+					formDefinition,
+					widgetDefinition,
+				]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and change form configuration
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon Size',
+				'Lemon Basket to Lemons',
+			]);
+
+			await pageEditorPage.selectFragment(formId);
+
+			await page
+				.getByLabel('Success Action', {exact: true})
+				.selectOption({label: 'Stay in Page'});
+
+			await page
+				.getByLabel('Show Notification After Submit', {exact: true})
+				.check();
+
+			await page
+				.getByLabel('Success Notification Text', {exact: true})
+				.fill('Request received correctly');
+
+			await pageEditorPage.publishPage();
+
+			// Go to view mode and check picklist values
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			// Submit form
+
+			await page.getByRole('button', {name: 'Submit'}).click();
+
+			// Wait for the first alert
+
+			await page.getByText('Request received correctly').waitFor();
+
+			// Verify that the first alert disappears without any more alerts being displayed
+
+			let moreAlertsAppear = false;
+			let firstAlertDisappears = false;
+
+			await expect(async () => {
+				const alerts = await page
+					.getByText('Request received correctly')
+					.all();
+
+				if (alerts.length > 1) {
+					moreAlertsAppear = true;
+				}
+				else if (!alerts.length) {
+					firstAlertDisappears = true;
+				}
+
+				expect(firstAlertDisappears).toBe(true);
+				expect(moreAlertsAppear).toBe(false);
+			}).toPass();
+
+			// Delete Lemon entry
+
+			await deleteObjectEntries({
+				entityName: 'Lemons',
+				page,
+				siteUrl: pageManagementSite.friendlyUrlPath,
+			});
+		}
+	);
+});
+
+test.describe('Captcha Fragment', () => {
+	test(
+		'The user could see an error message when submit a form with wrong captcha verification code',
+		{
+			tag: ['@LPS-151402', '@LPS-155168'],
+		},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a form fragment with a captcha fragment
+
+			const {id: objectDefinitionId} =
+				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
+					LEMON_OBJECT_ERC
+				);
+
+			const captchaDefinition = getFragmentDefinition({
+				id: getRandomString(),
+				key: 'INPUTS-captcha',
+			});
+
+			const submitFragmentDefinition = getFragmentDefinition({
+				id: getRandomString(),
+				key: 'INPUTS-submit-button',
+			});
+
+			const formDefinition = getFormContainerDefinition({
+				id: getRandomString(),
+				objectDefinitionId,
+				pageElements: [captchaDefinition, submitFragmentDefinition],
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and assert captcha is disabled
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await expect(page.locator('.form-input-captcha')).toHaveAttribute(
+				'disabled'
+			);
+
+			// Go to view mode and assert error message with wrong captcha verification code when submit the form
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			await page.getByText('Submit', {exact: true}).click();
+
+			await expect(
+				page.getByText('CAPTCHA verification failed. Please try again.')
+			).toBeVisible();
+		}
+	);
+});
+
+test.describe('Numeric input field', () => {
+	test('Check the numeric input configuration', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		pageManagementSite,
+	}) => {
+
+		// Create a page with a Form fragment
+
+		const formId = getRandomString();
+
+		const formDefinition = getFormContainerDefinition({
+			id: formId,
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([formDefinition]),
+			siteId: pageManagementSite.id,
+			title: getRandomString(),
+		});
+
+		// Go to edit mode and map the form to Lemon object, specifically to the "Lemon Weight" field
+
+		await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+		await pageEditorPage.mapFormFragment(formId, 'Lemon', ['Lemon Weight']);
+
+		// Check Mark as Required field
+
+		const numericInputId = await pageEditorPage.getFragmentId('Numeric');
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Mark as Required',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: true,
+		});
+
+		const requireIcon = page
+			.locator('label')
+			.filter({hasText: 'Lemon Weight'})
+			.locator('svg.reference-mark');
+
+		await expect(requireIcon).toBeAttached();
+
+		// Check Label and Show Label fields
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Label',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: 'Lemon weight in grams',
+		});
+
+		const label = page
+			.locator('label')
+			.filter({hasText: 'Lemon weight in grams'});
+
+		await expect(label).not.toHaveClass(/sr-only/);
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Show Label',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: false,
+		});
+
+		await expect(label).toHaveClass(/sr-only/);
+
+		// Check Help Text and Show Help Text fields
+
+		const helpText = page.getByText('Add your help text here.', {
+			exact: true,
+		});
+
+		await expect(helpText).not.toBeAttached();
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Show Help Text',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: true,
+		});
+
+		await expect(helpText).toBeVisible();
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Help Text',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: 'The lemon weight must be in grams',
+		});
+
+		await expect(
+			page.getByText('The lemon weight must be in grams')
+		).toBeVisible();
+
+		// Check Placeholder field
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Placeholder',
+			fragmentId: numericInputId,
+			tab: 'General',
+			value: 'Lemon weight in grams',
+		});
+
+		await expect(
+			page.getByPlaceholder('Lemon weight in grams')
+		).toBeVisible();
+	});
+
+	test('Check the numeric input error', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		pageManagementSite,
+	}) => {
+
+		// Create a page with a Form fragment
+
+		const formId = getRandomString();
+
+		const formDefinition = getFormContainerDefinition({
+			id: formId,
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([formDefinition]),
+			siteId: pageManagementSite.id,
+			title: getRandomString(),
+		});
+
+		// Go to edit mode and map the form to Lemon object, specifically to the "Lemon Weight" field
+
+		await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+		await pageEditorPage.mapFormFragment(formId, 'Lemon', ['Lemon Weight']);
+
+		await pageEditorPage.publishPage();
+
+		// Go to view mode and check that the input type is numeric and has the attributes max and min
+
+		await page.goto(
+			`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+		);
+
+		const lemonWeightInput = page.getByLabel('Lemon Weight');
+
+		expect(lemonWeightInput).toHaveAttribute('type', 'number');
+		expect(lemonWeightInput).toHaveAttribute('max');
+		expect(lemonWeightInput).toHaveAttribute('min');
+
+		// Submit the form with a wrong value
+
+		await lemonWeightInput.fill('-1');
+
+		await page.getByText('Submit', {exact: true}).click();
+
+		await expect(
+			page.getByText('The lemon weight must be greater than 0')
+		).toBeVisible();
+
+		// Submit the form with a correct value
+
+		await lemonWeightInput.fill('10');
+
+		await page.getByText('Submit', {exact: true}).click();
+
+		await expect(
+			page.getByText(
+				'Thank you. Your information was successfully received.'
+			)
+		).toBeVisible();
+
+		await deleteObjectEntries({
+			entityName: 'Lemons',
+			page,
+			siteUrl: pageManagementSite.friendlyUrlPath,
+		});
+	});
+});
+
+test.describe('Text input field', () => {
+	test(
+		'Check the Text input configuration',
+		{tag: '@LPS-149725'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Lemon object, specifically to the "Lemon Size" field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon Size',
+			]);
+
+			// Check Mark as Required field
+
+			const inputId = await pageEditorPage.getFragmentId('Text');
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Mark as Required',
+				fragmentId: inputId,
+				tab: 'General',
+				value: true,
+			});
+
+			const requireIcon = page
+				.locator('label')
+				.filter({hasText: 'Lemon Size'})
+				.locator('svg.reference-mark');
+
+			await expect(requireIcon).toBeAttached();
+
+			// Check Label and Show Label fields
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Label',
+				fragmentId: inputId,
+				tab: 'General',
+				value: 'Lemon size in cm',
+			});
+
+			const label = page
+				.locator('label')
+				.filter({hasText: 'Lemon size in cm'});
+
+			await expect(label).not.toHaveClass(/sr-only/);
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Label',
+				fragmentId: inputId,
+				tab: 'General',
+				value: false,
+			});
+
+			await expect(label).toHaveClass(/sr-only/);
+
+			// Check Help Text and Show Help Text fields
+
+			const helpText = page.getByText('Add your help text here.', {
+				exact: true,
+			});
+
+			await expect(helpText).not.toBeAttached();
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Help Text',
+				fragmentId: inputId,
+				tab: 'General',
+				value: true,
+			});
+
+			await expect(helpText).toBeVisible();
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Help Text',
+				fragmentId: inputId,
+				tab: 'General',
+				value: 'The lemon size must be in cm',
+			});
+
+			await expect(
+				page.getByText('The lemon size must be in cm')
+			).toBeVisible();
+
+			// Check Placeholder field
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Placeholder',
+				fragmentId: inputId,
+				tab: 'General',
+				value: 'Type the lemon size',
+			});
+
+			await expect(
+				page.getByPlaceholder('Type the lemon size')
+			).toBeVisible();
+
+			// Show characters count
+
+			const characterText = page.getByText('0 / 280');
+
+			await expect(characterText).toHaveClass(/sr-only/);
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Characters Count',
+				fragmentId: inputId,
+				tab: 'General',
+				value: true,
+			});
+
+			await expect(characterText).not.toHaveClass(/sr-only/);
+		}
+	);
+
+	test(
+		'An error is shown when the number of input characters is exceeded',
+		{tag: ['@LPS-149725', '@LPS-173849']},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Lemon object, specifically to the "Lemon Size" field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon Size',
+			]);
+
+			// Publish and go to view mode
+
+			await pageEditorPage.publishPage();
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			// Type 290 characters and check that the input error is shown
+
+			const inputError = page.getByText(
+				'Maximum Number of Characters Exceeded: 290 / 280'
+			);
+
+			const formError = page.getByText(
+				'Value exceeds maximum length of 280 for field Lemon Size.'
+			);
+
+			await page.getByLabel('Lemon Size').click();
+
+			await page.keyboard.type('a'.repeat(290));
+
+			await expect(inputError).toBeVisible();
+
+			await expect(formError).not.toBeVisible();
+
+			// Submit the form and check that the form error is shown as an alert
+
+			await page.getByText('Submit', {exact: true}).click();
+
+			await expect(formError).toBeVisible();
+
+			await expect(formError).toHaveClass(/alert/);
+		}
+	);
+
+	test(
+		'Check that the input is a required field by default',
+		{tag: '@LPS-151400'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Potato object, specifically to the "Potato Origin" field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Potato', [
+				'Potato Origin',
+			]);
+
+			// Select the input fragment and check that it is a required field
+
+			const inputId = await pageEditorPage.getFragmentId('Text');
+
+			await pageEditorPage.selectFragment(inputId);
+
+			const selectedOption = page
+				.getByLabel('Field', {exact: true})
+				.getByRole('option', {selected: true});
+
+			await expect(selectedOption).toContainText('Potato Origin*');
+
+			await expect(
+				page.getByLabel('Mark as Required', {exact: true})
+			).toBeDisabled();
+
+			// Publish and check that the input has the attribute required
+
+			await pageEditorPage.publishPage();
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			await expect(page.getByLabel('Potato Origin')).toHaveAttribute(
+				'required'
+			);
+		}
+	);
+});
+
+test.describe('Submit button', () => {
+	test(
+		"Cannot save a value as draft in the object when 'Allow Users to Save Entries as Draft' option is not enabled",
+		{tag: '@LPS-191474'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a Content page with a form
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Lemon Weight field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon Weight',
+			]);
+
+			// Change the "Submitted Entry Status" configuration to Draft
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Submitted Entry Status',
+				fragmentId: await pageEditorPage.getFragmentId('Form Button'),
+				tab: 'General',
+				value: 'Draft',
+			});
+
+			// Publish with a draft submit button
+
+			await page.getByLabel('Publish', {exact: true}).click();
+
+			expect(
+				page.getByText(
+					'form does not allow creating entries as draft. Review the button configuration and set it to approved to generate valid entries.'
+				)
+			).toBeVisible();
+
+			await page
+				.locator('.modal')
+				.getByText('Publish', {exact: true})
+				.click();
+
+			await waitForAlert(
+				page,
+				'Success:The page was published successfully.'
+			);
+
+			// Go to view mode and check that the value cannot be saved
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			await page.getByLabel('Lemon Weight').fill('200');
+
+			await page.getByText('Submit', {exact: true}).click();
+
+			await expect(
+				page.getByText(
+					'An error occurred while sending the form information.'
+				)
+			).toBeVisible();
+		}
+	);
+
+	test(
+		'It is not possible to change an object from approved status to draft status',
+		{tag: '@LPS-191474'},
+		async ({
+			apiHelpers,
+			displayPageTemplatesPage,
+			objectDetailsPage,
+			page,
+			pageEditorPage,
+			pageManagementSite,
+		}) => {
+			const checkObjectEntry = async (value: string, status: string) => {
+
+				// Go to entity
+
+				await gotoObjectEntries({
+					entityName: 'Lemons',
+					page,
+					siteUrl: pageManagementSite.friendlyUrlPath,
+				});
+
+				// Check the status of the object entry
+
+				const row = page.locator('.dnd-tr').filter({hasText: value});
+
+				await expect(row).toContainText(status);
+			};
+
+			await test.step('Set the "Allow Users to Save Entries as Draft" configuration of the Lemon object to true', async () => {
+				await objectDetailsPage.goto('Lemon');
+
+				await objectDetailsPage.updateConfiguration({
+					fieldLabel: 'Allow Users to Save Entries as Draft',
+					value: true,
+				});
+			});
+
+			const displayPageTemplateName = getRandomString();
+
+			await test.step('Create a Display Page Template with a Form container mapped to Lemon object and two buttons, one to save as Draft and other to save as Approved', async () => {
+
+				// Create a Display page for the Lemon object
+
+				await displayPageTemplatesPage.goto(
+					pageManagementSite.friendlyUrlPath
+				);
+
+				await displayPageTemplatesPage.createTemplate({
+					contentType: 'Lemon',
+					name: displayPageTemplateName,
+				});
+
+				await displayPageTemplatesPage.editTemplate(
+					displayPageTemplateName
+				);
+
+				// Add a Form Container and map it to Lemon Weight field
+
+				await pageEditorPage.addFragment(
+					'Form Components',
+					'Form Container'
+				);
+
+				const fragmentId =
+					await pageEditorPage.getFragmentId('Form Container');
+
+				await pageEditorPage.mapFormFragment(
+					fragmentId,
+					'Lemon (Default)',
+					['Lemon Weight']
+				);
+
+				// Add another submit button with the "Submitted Entry Status" configuration as Draft
+
+				const dptSubmitButtonId =
+					await pageEditorPage.getFragmentId('Form Button');
+
+				await pageEditorPage.clickFragmentOption(
+					dptSubmitButtonId,
+					'Duplicate'
+				);
+
+				await pageEditorPage.editTextEditable(
+					dptSubmitButtonId,
+					'submit-button-text',
+					'Submit as draft'
+				);
+
+				await pageEditorPage.changeFragmentConfiguration({
+					fieldLabel: 'Submitted Entry Status',
+					fragmentId: dptSubmitButtonId,
+					tab: 'General',
+					value: 'Draft',
+				});
+
+				await displayPageTemplatesPage.publishTemplate();
+			});
+
+			const headingId = getRandomString();
+			const formId = getRandomString();
+			let layout = null;
+
+			await test.step('Create a Content page with a Form fragment mapped to Lemon object with a draft Submit Button and a Heading fragment', async () => {
+
+				// Create a Content page
+
+				const formDefinition = getFormContainerDefinition({
+					id: formId,
+				});
+
+				const headingDefinition = getFragmentDefinition({
+					id: headingId,
+					key: 'BASIC_COMPONENT-heading',
+				});
+
+				layout = await apiHelpers.headlessDelivery.createSitePage({
+					pageDefinition: getPageDefinition([
+						formDefinition,
+						headingDefinition,
+					]),
+					siteId: pageManagementSite.id,
+					title: getRandomString(),
+				});
+
+				// Go to edit mode
+
+				await pageEditorPage.goto(
+					layout,
+					pageManagementSite.friendlyUrlPath
+				);
+
+				// Map the form to Lemon Weight field
+
+				await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+					'Lemon Weight',
+				]);
+
+				// Change the "Submitted Entry Status" configuration to Draft
+
+				const submitButtonId =
+					await pageEditorPage.getFragmentId('Form Button');
+
+				await pageEditorPage.editTextEditable(
+					submitButtonId,
+					'submit-button-text',
+					'Submit as draft'
+				);
+
+				await pageEditorPage.changeFragmentConfiguration({
+					fieldLabel: 'Submitted Entry Status',
+					fragmentId: submitButtonId,
+					tab: 'General',
+					value: 'Draft',
+				});
+
+				await pageEditorPage.publishPage();
+			});
+
+			let input = null;
+			let submitDraftButton = null;
+
+			await test.step('Go to view mode and save the Lemon Weight field value as draft', async () => {
+				await page.goto(
+					`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+				);
+
+				input = page.getByLabel('Lemon Weight');
+
+				submitDraftButton = page.getByText('Submit as draft', {
+					exact: true,
+				});
+
+				await input.fill('100');
+
+				await submitDraftButton.click();
+
+				await page
+					.getByText(
+						'Thank you. Your information was successfully received.'
+					)
+					.waitFor();
+
+				// Check the saved value
+
+				await checkObjectEntry('100', 'Draft');
+			});
+
+			await test.step('Go to edit mode and map the Heading to the draft entry number and select the DPT created before as Field', async () => {
+				await pageEditorPage.goto(
+					layout,
+					pageManagementSite.friendlyUrlPath
+				);
+
+				await pageEditorPage.changeEditableConfiguration({
+					editableId: 'element-text',
+					fieldLabel: 'Link',
+					fragmentId: headingId,
+					tab: 'Link',
+					value: 'Mapped URL',
+				});
+
+				await pageEditorPage.openMappingSelector();
+
+				const iframe = page.frameLocator('iframe[title="Select"]');
+
+				await iframe.getByPlaceholder('Search').waitFor();
+
+				await iframe.getByText('Lemons', {exact: true}).click();
+
+				await clickAndExpectToBeHidden({
+					target: iframe.locator('.lfr-item-viewer'),
+					trigger: iframe
+						.locator('.item-selector-list-row .entry')
+						.first(),
+				});
+
+				await pageEditorPage.changeConfiguration({
+					fieldLabel: 'Field',
+					tab: 'Link',
+					value: displayPageTemplateName,
+				});
+
+				await pageEditorPage.publishPage();
+			});
+
+			const headingFragment = page.getByText('Heading Example', {
+				exact: true,
+			});
+
+			await test.step('Go to view mode, click in the Heading and save the field value as Draft', async () => {
+				await page.goto(
+					`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+				);
+
+				await headingFragment.click();
+
+				await expect(headingFragment).not.toBeAttached();
+
+				// Set new value and submit as draft
+
+				await input.fill('200');
+
+				await submitDraftButton.click();
+
+				await page
+					.getByText(
+						'Thank you. Your information was successfully received.'
+					)
+					.waitFor();
+
+				// Check the saved value
+
+				await checkObjectEntry('200', 'Draft');
+			});
+
+			await test.step('Go to view mode, click in the Heading and save the field value as Approved', async () => {
+				await page.goto(
+					`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+				);
+
+				await headingFragment.click();
+
+				await expect(headingFragment).not.toBeAttached();
+
+				// Set new value and submit as approved
+
+				await input.fill('300');
+
+				await page.getByText('Submit', {exact: true}).click();
+
+				await page
+					.getByText(
+						'Thank you. Your information was successfully received.'
+					)
+					.waitFor();
+
+				// Check the saved value
+
+				await checkObjectEntry('300', 'Approved');
+			});
+
+			await test.step('Go to view mode, click in the Heading and try to save the field value as Draft again', async () => {
+				await page.goto(
+					`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+				);
+
+				await headingFragment.click();
+
+				await expect(headingFragment).not.toBeAttached();
+
+				// Set new value and submit as draft
+
+				await input.fill('400');
+
+				await submitDraftButton.click();
+
+				await expect(
+					page.getByText(
+						'An error occurred while sending the form information.'
+					)
+				).toBeVisible();
+
+				// Check the saved value
+
+				await checkObjectEntry('300', 'Approved');
+			});
+
+			// Delete previously created object entries
+
+			await deleteObjectEntries({
+				entityName: 'Lemons',
+				page,
+				siteUrl: pageManagementSite.friendlyUrlPath,
+			});
+		}
+	);
+});
+
+test.describe('Textarea input field', () => {
+	test(
+		'Check the Textarea input configuration',
+		{tag: '@LPS-170206'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Lemon object, specifically to the "Lemon History" field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon History',
+			]);
+
+			const textareaInput = page.getByLabel('Lemon History', {
+				exact: true,
+			});
+
+			// Check the role of the input is textbox
+
+			await expect(textareaInput).toHaveRole('textbox');
+
+			// Check Number of Lines config
+
+			await expect(textareaInput).toHaveAttribute('rows', '5');
+
+			await pageEditorPage.selectFragment(formId);
+
+			const textareaInputId =
+				await pageEditorPage.getFragmentId('Textarea');
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Number of Lines',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: '2',
+			});
+
+			await expect(textareaInput).toHaveAttribute('rows', '2');
+
+			// Check Mark as Required field
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Mark as Required',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: true,
+			});
+
+			const requireIcon = page
+				.locator('label')
+				.filter({hasText: 'Lemon History'})
+				.locator('svg.reference-mark');
+
+			await expect(requireIcon).toBeAttached();
+
+			// Check Label and Show Label fields
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Label',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: 'Describe the history of the lemon',
+			});
+
+			const label = page
+				.locator('label')
+				.filter({hasText: 'Describe the history of the lemon'});
+
+			await expect(label).not.toHaveClass(/sr-only/);
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Label',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: false,
+			});
+
+			await expect(label).toHaveClass(/sr-only/);
+
+			// Check Help Text and Show Help Text fields
+
+			const helpText = page.getByText('Add your help text here.', {
+				exact: true,
+			});
+
+			await expect(helpText).not.toBeAttached();
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Help Text',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: true,
+			});
+
+			await expect(helpText).toBeVisible();
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Help Text',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: 'Brief description of the lemon history',
+			});
+
+			await expect(
+				page.getByText('Brief description of the lemon history')
+			).toBeVisible();
+
+			// Check Placeholder field
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Placeholder',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: 'Type the lemon history',
+			});
+
+			await expect(
+				page.getByPlaceholder('Type the lemon history')
+			).toBeVisible();
+
+			// Show characters count
+
+			const characterText = page.getByText('0 / 300');
+
+			await expect(characterText).toHaveClass(/sr-only/);
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Show Characters Count',
+				fragmentId: textareaInputId,
+				tab: 'General',
+				value: true,
+			});
+
+			await expect(characterText).not.toHaveClass(/sr-only/);
+		}
+	);
+
+	test(
+		'Check the Textarea input errors',
+		{tag: ['@LPS-170206', '@LPS-173849', '@LPS-182728']},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with a Form fragment
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode and map the form to Lemon object, specifically to the "Lemon History" field
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.mapFormFragment(formId, 'Lemon', [
+				'Lemon History',
+			]);
+
+			// Publish and go to view mode
+
+			await pageEditorPage.publishPage();
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			// Type 310 characters and check that the input error is shown
+
+			const inputError = page.getByText(
+				'Maximum Number of Characters Exceeded: 310 / 300'
+			);
+
+			await page.getByLabel('Lemon History').click();
+
+			await page.keyboard.type('a'.repeat(310));
+
+			await expect(inputError).toBeVisible();
+
+			// Submit the form and check that the error is still visible
+
+			await page.getByText('Submit', {exact: true}).click();
+
+			await expect(inputError).toBeVisible();
+		}
+	);
+});
 
 test.describe('Picklist input field', () => {
 	test('Shows correct options in picklist field selected as title in related object', async ({
@@ -246,9 +1480,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a page with a Form fragment with a Stepper fragment
@@ -322,9 +1562,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a page with a form container
@@ -415,9 +1661,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Definition for the Stepper fragment
@@ -487,9 +1739,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a form with two steps and two form buttons
@@ -499,11 +1757,10 @@ test.describe('Multistep', () => {
 				key: 'BASIC_COMPONENT-heading',
 			});
 
+			const formButtonNextId = getRandomString();
+
 			const formButtonNext = getFragmentDefinition({
-				fragmentConfig: {
-					type: 'next',
-				},
-				id: getRandomString(),
+				id: formButtonNextId,
 				key: 'INPUTS-submit-button',
 			});
 
@@ -520,12 +1777,17 @@ test.describe('Multistep', () => {
 				key: 'INPUTS-submit-button',
 			});
 
+			const formButtonSubmit = getFragmentDefinition({
+				id: getRandomString(),
+				key: 'INPUTS-submit-button',
+			});
+
 			const formDefinition = getFormContainerDefinition({
 				id: getRandomString(),
 				objectDefinitionId,
 				steps: [
 					[headingDefinition, formButtonNext],
-					[buttonDefinition, formButtonPrevious],
+					[buttonDefinition, formButtonPrevious, formButtonSubmit],
 				],
 			});
 
@@ -571,19 +1833,32 @@ test.describe('Multistep', () => {
 				await expect(button).not.toBeVisible();
 			};
 
-			// Check in view mode
-
-			await page.goto(
-				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
-			);
-
-			await checkFormButtonsBehavior();
-
 			// Check in edit mode
 
 			await pageEditorPage.goto(
 				layout,
 				pageManagementSite.friendlyUrlPath
+			);
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Type',
+				fragmentId: formButtonNextId,
+				tab: 'General',
+				value: 'Next',
+			});
+
+			await expect(
+				page.locator('.component-button').getByText('Next')
+			).toBeVisible();
+
+			await checkFormButtonsBehavior();
+
+			await pageEditorPage.publishPage();
+
+			// Check in view mode
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
 			);
 
 			await checkFormButtonsBehavior();
@@ -597,9 +1872,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Definition for the Steppers fragment
@@ -689,9 +1970,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a form with a Stepper
@@ -725,7 +2012,7 @@ test.describe('Multistep', () => {
 				pageManagementSite.friendlyUrlPath
 			);
 
-			// Check changing number of stepps in Form affects the Stepper
+			// Check changing number of steps in Form affects the Stepper
 
 			await pageEditorPage.changeFragmentConfiguration({
 				fieldLabel: 'Number of Steps',
@@ -753,9 +2040,15 @@ test.describe('Multistep', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a page with a Form fragment
@@ -820,12 +2113,10 @@ test.describe('Multistep', () => {
 			await expect(page.locator('.multi-step-nav')).not.toBeVisible();
 		}
 	);
-});
 
-test.describe('Form errors', () => {
 	test(
-		'Show an error when there is no Submit Button',
-		{tag: '@LPS-151754'},
+		'Undoing the action of moving a stepper from a multistep to a simple form changes the form type to simple again',
+		{tag: '@LPD-10727'},
 		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
 
 			// Get the id of Lemon object from the site initializer
@@ -833,6 +2124,477 @@ test.describe('Form errors', () => {
 			const {id: objectDefinitionId} =
 				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
 					LEMON_OBJECT_ERC
+				);
+
+			// Create a page containing a multistep form with a stepper and a simple form
+
+			const stepperId = getRandomString();
+
+			const stepperFragment = getFragmentDefinition({
+				id: stepperId,
+				key: 'INPUTS-stepper',
+			});
+
+			const firstFormId = getRandomString();
+
+			const firstFormDefinition = getFormContainerDefinition({
+				id: firstFormId,
+				objectDefinitionId,
+				pageElements: [stepperFragment],
+				steps: [[]],
+			});
+
+			const secondFormId = getRandomString();
+
+			const secondFormDefinition = getFormContainerDefinition({
+				id: secondFormId,
+				objectDefinitionId,
+				pageElements: [],
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([
+					firstFormDefinition,
+					secondFormDefinition,
+				]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			// Move the stepper to the second form
+
+			await pageEditorPage.goToSidebarTab('Browser');
+
+			await pageEditorPage.selectFragment(stepperId);
+
+			await pageEditorPage.dragTreeNode({
+				source: {label: 'Stepper'},
+				target: {label: 'Form Container', nth: 1},
+			});
+
+			await page
+				.locator('.modal-title', {hasText: 'Convert to Multistep Form'})
+				.waitFor();
+
+			await page.locator('.modal-footer').getByText('Continue').click();
+
+			await pageEditorPage.waitForChangesSaved();
+
+			// Check type changed to Multistep
+
+			await pageEditorPage.selectFragment(secondFormId);
+
+			await expect(
+				page.getByLabel('Form Type', {exact: true})
+			).toHaveValue('multistep');
+
+			// Undo the action
+
+			await pageEditorPage.undoButton.click();
+
+			await pageEditorPage.waitForChangesSaved();
+
+			// Check Stepper disappeared and type changed to Simple again
+
+			await expect(
+				page.getByLabel('Form Type', {exact: true})
+			).toHaveValue('simple');
+
+			const secondForm = page
+				.locator('.page-editor__form .page-editor__container')
+				.last();
+
+			await expect(
+				secondForm.locator('.multi-step-nav')
+			).not.toBeVisible();
+		}
+	);
+
+	test(
+		'Correctly handle multistep form errors in view mode',
+		{tag: '@LPD-10727'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Get the id of Potato object from the site initializer
+
+			const {id: objectDefinitionId} =
+				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
+					POTATO_OBJECT_ERC
+				);
+
+			// Create a form with three steps and a stepper
+
+			const stepperId = getRandomString();
+
+			const stepperFragment = getFragmentDefinition({
+				fragmentConfig: {
+					numberOfSteps: 3,
+				},
+				id: stepperId,
+				key: 'INPUTS-stepper',
+			});
+
+			const textInputId = getRandomString();
+
+			const textInputFragment = getFragmentDefinition({
+				id: textInputId,
+				key: 'INPUTS-text-input',
+			});
+
+			const submitButtonFragment = getFragmentDefinition({
+				fragmentConfig: {
+					type: 'submit',
+				},
+				id: getRandomString(),
+				key: 'INPUTS-submit-button',
+			});
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+				objectDefinitionId,
+				pageElements: [stepperFragment],
+				steps: [[], [textInputFragment], [submitButtonFragment]],
+			});
+
+			// Create page and go to edit mode
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			// Map text input fragment to Potato Origin field
+
+			await page.locator('[data-multi-step-icon="2"]').click();
+
+			await pageEditorPage.selectFragment(textInputId);
+
+			await page.getByLabel('Field', {exact: true}).waitFor();
+
+			await page
+				.getByLabel('Field', {exact: true})
+				.selectOption('Potato Origin*');
+
+			// Publish
+
+			await clickAndExpectToBeVisible({
+				target: page.locator('.modal-title', {hasText: 'Form Errors'}),
+				timeout: 3000,
+				trigger: pageEditorPage.publishButton,
+			});
+
+			await page.locator('.modal-footer').getByText('Publish').click();
+
+			await waitForAlert(
+				page,
+				'Success:The page was published successfully.'
+			);
+
+			// Go to view mode
+
+			await page.goto(
+				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			// Create function to submit form
+
+			const submitForm = async () => {
+				await expect(async () => {
+					await page.locator('[data-multi-step-icon="2"]').click();
+
+					const submitButton = page.getByRole('button', {
+						name: 'Submit',
+					});
+
+					await page.locator('[data-multi-step-icon="3"]').click();
+
+					await expect(submitButton).toBeVisible({timeout: 100});
+
+					await submitButton.click();
+				}).toPass();
+			};
+
+			// Try to submit and check it takes to step 2 because field is required
+
+			const field = page.getByLabel('Potato Origin');
+
+			await submitForm();
+
+			await field.waitFor();
+
+			// Fill field with incorrect value, submit and check it shows error
+
+			await field.fill('Madrid');
+
+			await submitForm();
+
+			await page
+				.getByText('Potato Origin should be Canary Islands')
+				.waitFor();
+
+			// Fill field with correct value, submit and check it submits
+
+			await page.getByLabel('Potato Origin').fill('Canary Islands');
+
+			await submitForm();
+
+			await expect(
+				page.getByText('Your information was successfully received')
+			).toBeVisible();
+		}
+	);
+
+	test(
+		'The last step is selected when the active one is removed',
+		{tag: '@LPD-38514'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Get the id of Lemon object from the site initializer
+
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
+			const {id: objectDefinitionId} =
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
+				);
+
+			// Create a form with a Stepper
+
+			const stepperId = getRandomString();
+
+			const stepperFragment = getFragmentDefinition({
+				fragmentConfig: {
+					numberOfSteps: 3,
+				},
+				id: stepperId,
+				key: 'INPUTS-stepper',
+			});
+
+			const headingDefinition = getFragmentDefinition({
+				id: getRandomString(),
+				key: 'BASIC_COMPONENT-heading',
+			});
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+				objectDefinitionId,
+				pageElements: [stepperFragment],
+				steps: [[], [headingDefinition], []],
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			// Go to edit mode of page and select third step
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			await page.locator('.multi-step-indicator').nth(2).click();
+
+			await expect(page.getByText('Heading Example')).not.toBeVisible();
+
+			// Change the number of steps to 2 and check step 2 is selected
+
+			await pageEditorPage.changeFragmentConfiguration({
+				fieldLabel: 'Number of Steps',
+				fragmentId: formId,
+				tab: 'General',
+				value: '2',
+			});
+
+			await expect(page.getByText('Heading Example')).toBeVisible();
+		}
+	);
+});
+
+test.describe('Edit mode language changes', () => {
+	test('Input fragments show correct label, help text and placeholder when switching language', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		pageManagementSite,
+	}) => {
+
+		// Create a page with a Form fragment
+
+		const formId = getRandomString();
+
+		const formDefinition = getFormContainerDefinition({
+			id: formId,
+		});
+
+		const languageSelectorDefinition = getWidgetDefinition({
+			id: getRandomString(),
+			widgetName:
+				'com_liferay_site_navigation_language_web_portlet_SiteNavigationLanguagePortlet',
+		});
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				formDefinition,
+				languageSelectorDefinition,
+			]),
+			siteId: pageManagementSite.id,
+			title: getRandomString(),
+		});
+
+		// Go to edit mode
+
+		await pageEditorPage.goto(layout, pageManagementSite.friendlyUrlPath);
+
+		await pageEditorPage.mapFormFragment(formId, 'Lemon', ['Lemon Size']);
+
+		const fragmentId = await pageEditorPage.getFragmentId('Text');
+
+		// Add translations to label, help text and placeholder
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Label',
+			fragmentId,
+			tab: 'General',
+			value: 'English Label',
+		});
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Help Text',
+			fragmentId,
+			tab: 'General',
+			value: 'English Help Text',
+		});
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Placeholder',
+			fragmentId,
+			tab: 'General',
+			value: 'English Placeholder',
+		});
+
+		await pageEditorPage.switchLanguage('es-ES');
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Label',
+			fragmentId,
+			tab: 'General',
+			value: 'Spanish Label',
+		});
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Show Help Text',
+			fragmentId,
+			tab: 'General',
+			value: true,
+		});
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Help Text',
+			fragmentId,
+			tab: 'General',
+			value: 'Spanish Help Text',
+		});
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Placeholder',
+			fragmentId,
+			tab: 'General',
+			value: 'Spanish Placeholder',
+		});
+
+		// Check that the translations are correctly displayed
+
+		await pageEditorPage.switchLanguage('en-US');
+
+		const englishLabel = page.getByLabel('English Label');
+		const englishHelpText = page.getByText('English Help Text');
+		const englishPlaceholder = page.getByPlaceholder('English Placeholder');
+
+		const spanishLabel = page.getByLabel('Spanish Label');
+		const spanishHelpText = page.getByText('Spanish Help Text');
+		const spanishPlaceholder = page.getByPlaceholder('Spanish Placeholder');
+
+		await expect(englishLabel).toBeVisible();
+		await expect(englishHelpText).toBeVisible();
+		await expect(englishPlaceholder).toBeVisible();
+
+		await pageEditorPage.switchLanguage('es-ES');
+
+		await expect(spanishLabel).toBeVisible();
+		await expect(spanishHelpText).toBeVisible();
+		await expect(spanishPlaceholder).toBeVisible();
+
+		// Check the translations in the view mode
+
+		await pageEditorPage.publishPage();
+
+		await page.goto(
+			`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
+		);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'español-España'}),
+			trigger: page.getByTitle('Select a Language', {exact: true}),
+		});
+
+		await expect(spanishLabel).toBeVisible();
+		await expect(spanishHelpText).toBeVisible();
+		await expect(spanishPlaceholder).toBeVisible();
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'english-United States'}),
+			trigger: page.getByTitle('Seleccionar un idioma', {exact: true}),
+		});
+
+		await expect(englishLabel).toBeVisible();
+		await expect(englishHelpText).toBeVisible();
+		await expect(englishPlaceholder).toBeVisible();
+	});
+});
+
+test.describe('Edit mode form errors', () => {
+	test(
+		'Show an error when there is no Submit Button',
+		{tag: '@LPS-151754'},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Get the id of Lemon object from the site initializer
+
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
+			const {id: objectDefinitionId} =
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a page with a Form fragment
@@ -875,9 +2637,15 @@ test.describe('Form errors', () => {
 
 			// Get the id of Lemon object from the site initializer
 
+			const objectAdminRestClient = await apiHelpers.buildRestClient(
+				ObjectAdminRestClient
+			);
+
 			const {id: objectDefinitionId} =
-				await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-					LEMON_OBJECT_ERC
+				await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+					{
+						externalReferenceCode: LEMON_OBJECT_ERC,
+					}
 				);
 
 			// Create a forms with three steps, forcing errors

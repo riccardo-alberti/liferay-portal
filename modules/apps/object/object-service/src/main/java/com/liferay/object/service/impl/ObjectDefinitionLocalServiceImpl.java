@@ -15,6 +15,7 @@ import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
+import com.liferay.object.definition.util.ObjectDefinitionThreadLocal;
 import com.liferay.object.definition.util.ObjectDefinitionUtil;
 import com.liferay.object.deployer.InactiveObjectDefinitionDeployer;
 import com.liferay.object.deployer.ObjectDefinitionDeployer;
@@ -80,8 +81,8 @@ import com.liferay.object.service.persistence.ObjectRelationshipPersistence;
 import com.liferay.object.system.SystemObjectDefinitionManager;
 import com.liferay.object.tree.Edge;
 import com.liferay.object.tree.Node;
+import com.liferay.object.tree.ObjectDefinitionTreeFactory;
 import com.liferay.object.tree.Tree;
-import com.liferay.object.tree.TreeFactory;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.Table;
@@ -92,13 +93,17 @@ import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
 import com.liferay.portal.kernel.cluster.ClusterRequest;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnection;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.mass.delete.MassDeleteCacheThreadLocal;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -118,6 +123,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
+import com.liferay.portal.kernel.service.persistence.ResourcePermissionPersistence;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -138,14 +144,19 @@ import com.liferay.portal.search.spi.model.query.contributor.ModelPreFilterContr
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
+import java.sql.PreparedStatement;
+
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -191,7 +202,7 @@ public class ObjectDefinitionLocalServiceImpl
 	@Override
 	public ObjectDefinition addObjectDefinition(
 			String externalReferenceCode, long userId, long objectFolderId,
-			long rootObjectDefinitionId, boolean modifiable, boolean system)
+			boolean modifiable, boolean system)
 		throws PortalException {
 
 		_validateExternalReferenceCode(
@@ -210,7 +221,6 @@ public class ObjectDefinitionLocalServiceImpl
 		objectDefinition.setObjectFolderId(
 			_getObjectFolderId(user.getCompanyId(), objectFolderId));
 
-		objectDefinition.setRootObjectDefinitionId(rootObjectDefinitionId);
 		objectDefinition.setActive(false);
 		objectDefinition.setLabel(externalReferenceCode);
 		objectDefinition.setModifiable(modifiable);
@@ -409,12 +419,13 @@ public class ObjectDefinitionLocalServiceImpl
 				continue;
 			}
 
-			_objectRelationshipLocalService.updateObjectRelationship(
-				objectRelationship.getExternalReferenceCode(),
-				objectRelationship.getObjectRelationshipId(),
-				objectRelationship.getParameterObjectFieldId(),
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, true,
-				objectRelationship.getLabelMap(), null);
+			objectRelationship.setDeletionType(
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE);
+			objectRelationship.setEdge(true);
+
+			objectRelationship =
+				_objectRelationshipLocalService.updateObjectRelationship(
+					objectRelationship);
 
 			ObjectDefinition objectDefinition1 =
 				objectDefinitionLocalService.getObjectDefinition(
@@ -502,12 +513,83 @@ public class ObjectDefinitionLocalServiceImpl
 		if (!objectDefinition.isUnmodifiableSystemObject()) {
 			_deleteObjectDefinitionPLOEntries(objectDefinition);
 
-			List<ObjectEntry> objectEntries =
-				_objectEntryPersistence.findByObjectDefinitionId(
-					objectDefinition.getObjectDefinitionId());
+			ActionableDynamicQuery actionableDynamicQuery =
+				new DefaultActionableDynamicQuery() {
 
-			for (ObjectEntry objectEntry : objectEntries) {
-				_objectEntryLocalService.deleteObjectEntry(objectEntry);
+					@Override
+					protected void intervalCompleted(
+							long startPrimaryKey, long endPrimaryKey)
+						throws PortalException {
+
+						Session portletSession =
+							_objectEntryPersistence.openSession();
+
+						portletSession.flush();
+
+						portletSession.clear();
+
+						Session portalSession =
+							_resourcePermissionPersistence.openSession();
+
+						portalSession.flush();
+
+						portalSession.clear();
+					}
+
+				};
+
+			actionableDynamicQuery.setAddCriteriaMethod(
+				dynamicQuery -> {
+					Property nameProperty = PropertyFactoryUtil.forName(
+						"objectDefinitionId");
+
+					dynamicQuery.add(
+						nameProperty.eq(
+							objectDefinition.getObjectDefinitionId()));
+				});
+			actionableDynamicQuery.setBaseLocalService(
+				_objectEntryLocalService);
+			actionableDynamicQuery.setClassLoader(getClassLoader());
+			actionableDynamicQuery.setModelClass(ObjectEntry.class);
+
+			AtomicBoolean deletedMarker = new AtomicBoolean();
+
+			actionableDynamicQuery.setPerformActionMethod(
+				(ObjectEntry objectEntry) -> {
+					deletedMarker.set(true);
+
+					_objectEntryLocalService.deleteObjectEntry(objectEntry);
+				});
+
+			actionableDynamicQuery.setPrimaryKeyPropertyName("objectEntryId");
+
+			try (SafeCloseable safeCloseable =
+					ObjectDefinitionThreadLocal.
+						setDeleteObjectDefinitionIdWithSafeCloseable(
+							objectDefinition.getObjectDefinitionId())) {
+
+				actionableDynamicQuery.performActions();
+
+				if (deletedMarker.get()) {
+					_resourcePermissionLocalService.deleteResourcePermissions(
+						objectDefinition.getCompanyId(),
+						objectDefinition.getClassName(),
+						ResourceConstants.SCOPE_INDIVIDUAL);
+
+					_assetEntryLocalService.deleteEntries(
+						objectDefinition.getCompanyId(),
+						objectDefinition.getClassName());
+
+					_deleteFromTable(objectDefinition.getDBTableName());
+
+					_deleteFromTable(
+						objectDefinition.getExtensionDBTableName());
+
+					if (objectDefinition.isEnableLocalization()) {
+						_deleteFromTable(
+							objectDefinition.getLocalizationDBTableName());
+					}
+				}
 			}
 		}
 
@@ -543,8 +625,6 @@ public class ObjectDefinitionLocalServiceImpl
 		_objectViewLocalService.deleteObjectViews(
 			objectDefinition.getObjectDefinitionId());
 
-		objectDefinitionPersistence.remove(objectDefinition);
-
 		_resourceLocalService.deleteResource(
 			objectDefinition.getCompanyId(), ObjectDefinition.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
@@ -559,8 +639,11 @@ public class ObjectDefinitionLocalServiceImpl
 
 				ObjectDefinitionResourcePermissionUtil.removeResourceActions(
 					_objectActionLocalService, objectDefinition,
-					objectDefinitionPersistence, _resourceActions,
-					_treeFactory);
+					objectDefinitionPersistence,
+					new ObjectDefinitionTreeFactory(
+						objectDefinitionLocalService,
+						_objectRelationshipLocalService),
+					_resourceActions);
 			}
 			catch (Exception exception) {
 				throw new PortalException(exception);
@@ -577,6 +660,17 @@ public class ObjectDefinitionLocalServiceImpl
 
 			_registerTransactionCallbackForCluster(
 				_undeployObjectDefinitionMethodKey, objectDefinition);
+		}
+
+		objectDefinitionPersistence.remove(objectDefinition);
+
+		Set<String> names = MassDeleteCacheThreadLocal.getMassDeleteCache(
+			ResourcePermissionLocalService.class.getName(), HashSet::new);
+
+		if (names != null) {
+			for (String name : names) {
+				_resourcePermissionLocalService.deleteResourcePermissions(name);
+			}
 		}
 
 		return objectDefinition;
@@ -600,7 +694,7 @@ public class ObjectDefinitionLocalServiceImpl
 				entry.getValue();
 
 			try (SafeCloseable safeCloseable =
-					CompanyThreadLocal.setWithSafeCloseable(
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 						objectDefinition.getCompanyId())) {
 
 				serviceRegistrationsMap.computeIfAbsent(
@@ -846,28 +940,7 @@ public class ObjectDefinitionLocalServiceImpl
 				"Unmodifiable system object definition cannot be published");
 		}
 
-		if (objectDefinition.getRootObjectDefinitionId() == 0) {
-			return _publishObjectDefinition(userId, objectDefinition);
-		}
-
-		if (objectDefinition.isRootDescendantNode()) {
-			throw new ObjectDefinitionStatusException(
-				"Nonroot object definitions within a hierarchical structure " +
-					"are ineligible for publication");
-		}
-
-		Tree tree = _treeFactory.createObjectDefinitionTree(objectDefinitionId);
-
-		Iterator<Node> iterator = tree.iterator();
-
-		while (iterator.hasNext()) {
-			Node node = iterator.next();
-
-			_publishObjectDefinition(
-				userId, getObjectDefinition(node.getPrimaryKey()));
-		}
-
-		return getObjectDefinition(objectDefinitionId);
+		return _publishObjectDefinition(userId, objectDefinition);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -909,7 +982,7 @@ public class ObjectDefinitionLocalServiceImpl
 				_objectRelationshipLocalService, _objectScopeProviderRegistry,
 				_objectViewLocalService, _organizationLocalService,
 				_ploEntryLocalService, _portal, _portletLocalService,
-				_resourceActions, _treeFactory, _userLocalService,
+				_resourceActions, _userLocalService,
 				_resourcePermissionLocalService,
 				_workflowStatusModelPreFilterContributor,
 				_userGroupRoleLocalService);
@@ -1016,7 +1089,11 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinitionLocalService.getObjectDefinition(
 				objectDefinitionId);
 
-		Tree tree = _treeFactory.createObjectDefinitionTree(
+		ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+			new ObjectDefinitionTreeFactory(
+				objectDefinitionLocalService, _objectRelationshipLocalService);
+
+		Tree tree = objectDefinitionTreeFactory.create(
 			objectDefinition.getObjectDefinitionId());
 
 		Iterator<Node> iterator = tree.iterator(
@@ -1041,12 +1118,10 @@ public class ObjectDefinitionLocalServiceImpl
 				_objectRelationshipLocalService.getObjectRelationship(
 					edge.getObjectRelationshipId());
 
+			objectRelationship.setEdge(false);
+
 			_objectRelationshipLocalService.updateObjectRelationship(
-				objectRelationship.getExternalReferenceCode(),
-				objectRelationship.getObjectRelationshipId(),
-				objectRelationship.getParameterObjectFieldId(),
-				objectRelationship.getDeletionType(), false,
-				objectRelationship.getLabelMap(), null);
+				objectRelationship);
 		}
 	}
 
@@ -1661,6 +1736,27 @@ public class ObjectDefinitionLocalServiceImpl
 		}
 	}
 
+	private void _deleteFromTable(String dbTableName) throws PortalException {
+		Session session = objectDefinitionPersistence.openSession();
+
+		try {
+			session.apply(
+				connection -> {
+					try (PreparedStatement preparedStatement =
+							connection.prepareStatement(
+								"delete from " + dbTableName)) {
+
+						preparedStatement.executeUpdate();
+					}
+				});
+		}
+		finally {
+			objectDefinitionPersistence.closeSession(session);
+		}
+
+		FinderCacheUtil.clearDSLQueryCache(dbTableName);
+	}
+
 	private void _deleteObjectDefinitionPLOEntries(
 		ObjectDefinition objectDefinition) {
 
@@ -1769,7 +1865,15 @@ public class ObjectDefinitionLocalServiceImpl
 			return pkObjectFieldName;
 		}
 
-		return pkObjectFieldName = "c_" + pkObjectFieldName;
+		if (modifiable && system) {
+			String prefix =
+				ObjectDefinitionConstants.
+					EXTERNAL_REFERENCE_CODE_PREFIX_SYSTEM_OBJECT_DEFINITION;
+
+			return StringUtil.toLowerCase(prefix) + pkObjectFieldName;
+		}
+
+		return "c_" + pkObjectFieldName;
 	}
 
 	private boolean _hasObjectField(
@@ -1857,6 +1961,10 @@ public class ObjectDefinitionLocalServiceImpl
 
 		objectDefinition = objectDefinitionPersistence.update(objectDefinition);
 
+		objectDefinition = _updateNodeObjectDefinition(objectDefinition);
+
+		_updateDescendantNodeObjectDefinitions(objectDefinition);
+
 		_createLocalizationTable(
 			DynamicObjectDefinitionLocalizationTableFactory.create(
 				objectDefinition, _objectFieldLocalService));
@@ -1903,6 +2011,126 @@ public class ObjectDefinitionLocalServiceImpl
 					return null;
 				});
 		}
+	}
+
+	private void _updateDescendantNodeObjectDefinitions(
+			ObjectDefinition objectDefinition1)
+		throws PortalException {
+
+		List<ObjectRelationship> objectRelationships =
+			_objectRelationshipPersistence.findByODI1_E(
+				objectDefinition1.getObjectDefinitionId(), true);
+
+		if (objectRelationships.isEmpty()) {
+			return;
+		}
+
+		deployObjectDefinition(objectDefinition1);
+
+		boolean containsDraftDescendantNodeObjectDefinitions = false;
+		ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+			new ObjectDefinitionTreeFactory(
+				objectDefinitionLocalService, _objectRelationshipLocalService);
+
+		for (ObjectRelationship objectRelationship : objectRelationships) {
+			ObjectDefinition objectDefinition2 =
+				objectDefinitionPersistence.findByPrimaryKey(
+					objectRelationship.getObjectDefinitionId2());
+
+			if (!objectDefinition2.isApproved()) {
+				containsDraftDescendantNodeObjectDefinitions = true;
+
+				continue;
+			}
+
+			Tree tree = objectDefinitionTreeFactory.create(
+				objectRelationship.getObjectDefinitionId2());
+
+			Iterator<Node> iterator = tree.iterator();
+
+			while (iterator.hasNext()) {
+				Node node = iterator.next();
+
+				ObjectDefinition nodeObjectDefinition =
+					objectDefinitionLocalService.getObjectDefinition(
+						node.getPrimaryKey());
+
+				String previousRESTContextPath =
+					nodeObjectDefinition.getRESTContextPath();
+
+				nodeObjectDefinition.setRootObjectDefinitionId(
+					objectDefinition1.getRootObjectDefinitionId());
+				nodeObjectDefinition.setPortlet(false);
+
+				nodeObjectDefinition = objectDefinitionPersistence.update(
+					nodeObjectDefinition);
+
+				nodeObjectDefinition.setPreviousRESTContextPath(
+					previousRESTContextPath);
+
+				deployObjectDefinition(nodeObjectDefinition);
+			}
+		}
+
+		if (containsDraftDescendantNodeObjectDefinitions) {
+			Tree tree = objectDefinitionTreeFactory.create(
+				false, objectDefinition1.getObjectDefinitionId());
+
+			Node rootNode = tree.getRootNode();
+
+			for (Node childNode : rootNode.getChildNodes()) {
+				Iterator<Node> iterator = tree.iterator(
+					childNode.getPrimaryKey());
+
+				while (iterator.hasNext()) {
+					Node node = iterator.next();
+
+					ObjectDefinition nodeObjectDefinition =
+						objectDefinitionLocalService.getObjectDefinition(
+							node.getPrimaryKey());
+
+					nodeObjectDefinition.setRootObjectDefinitionId(
+						childNode.getPrimaryKey());
+
+					objectDefinitionPersistence.update(nodeObjectDefinition);
+				}
+			}
+		}
+	}
+
+	private ObjectDefinition _updateNodeObjectDefinition(
+			ObjectDefinition objectDefinition2)
+		throws PortalException {
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipPersistence.fetchByODI2_E(
+				objectDefinition2.getObjectDefinitionId(), true);
+
+		if (objectRelationship == null) {
+			return objectDefinition2;
+		}
+
+		ObjectDefinition objectDefinition1 =
+			objectDefinitionLocalService.getObjectDefinition(
+				objectRelationship.getObjectDefinitionId1());
+
+		String previousRESTContextPath = objectDefinition2.getRESTContextPath();
+
+		if (objectDefinition1.isApproved()) {
+			objectDefinition2.setRootObjectDefinitionId(
+				objectDefinition1.getRootObjectDefinitionId());
+		}
+		else {
+			objectDefinition2.setRootObjectDefinitionId(
+				objectDefinition2.getObjectDefinitionId());
+		}
+
+		objectDefinition2 = objectDefinitionPersistence.update(
+			objectDefinition2);
+
+		objectDefinition2.setPreviousRESTContextPath(previousRESTContextPath);
+
+		return objectDefinition2;
 	}
 
 	private ObjectDefinition _updateObjectDefinition(
@@ -2562,13 +2790,13 @@ public class ObjectDefinitionLocalServiceImpl
 	@Reference
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
+	@Reference
+	private ResourcePermissionPersistence _resourcePermissionPersistence;
+
 	private final Map
 		<ObjectDefinitionDeployer, Map<Long, List<ServiceRegistration<?>>>>
 			_serviceRegistrationsMaps = Collections.synchronizedMap(
 				new LinkedHashMap<>());
-
-	@Reference
-	private TreeFactory _treeFactory;
 
 	@Reference
 	private UserGroupRoleLocalService _userGroupRoleLocalService;

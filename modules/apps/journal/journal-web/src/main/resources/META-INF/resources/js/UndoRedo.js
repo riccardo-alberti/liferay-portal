@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {Align} from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
 import React, {useCallback, useEffect, useState} from 'react';
 
 const META_FIELD_NAMES = {
@@ -42,16 +43,25 @@ export default function UndoRedo({
 					initialFields[`${META_FIELD_NAMES.description}`][
 						`${initialDefaultLanguageId}`
 					] || '',
+				descriptionTranslatedLanguages: Object.keys(
+					initialFields[`${META_FIELD_NAMES.description}`]
+				),
 				friendlyURLInputValue:
 					initialFields[`${META_FIELD_NAMES.friendlyURL}`][
 						`${initialDefaultLanguageId}`
 					] || '',
+				friendlyURLTranslatedLanguages: Object.keys(
+					initialFields[`${META_FIELD_NAMES.friendlyURL}`]
+				),
 				name: 'Reset',
 				selectedLanguageId: languageId,
 				titleInputValue:
 					initialFields[`${META_FIELD_NAMES.title}`][
 						`${initialDefaultLanguageId}`
 					] || '',
+				titleTranslatedLanguages: Object.keys(
+					initialFields[`${META_FIELD_NAMES.title}`]
+				),
 			},
 		],
 		selectedLanguageId: languageId,
@@ -83,11 +93,10 @@ export default function UndoRedo({
 	const handleUndo = (newStep) => {
 		const nextStep = history[newStep];
 
-		if (nextStep.selectedLanguageId !== selectedLanguageId) {
-			const selectedLanguageIdInput = document.getElementById(
-				`${portletNamespace}languageId`
-			);
-
+		const selectedLanguageIdInput = document.getElementById(
+			`${portletNamespace}languageId`
+		);
+		if (nextStep.selectedLanguageId !== selectedLanguageIdInput.value) {
 			descriptionInputComponent
 				.get('translatedLanguages')
 				.values()
@@ -100,7 +109,7 @@ export default function UndoRedo({
 							.remove(lang);
 						descriptionInputComponent.removeInputLanguage(lang);
 						descriptionInputComponent._updateTranslationStatus(
-							selectedLanguageId
+							selectedLanguageIdInput.value
 						);
 					}
 				});
@@ -117,7 +126,7 @@ export default function UndoRedo({
 							.remove(lang);
 						friendlyURLInputComponent.removeInputLanguage(lang);
 						friendlyURLInputComponent._updateTranslationStatus(
-							selectedLanguageId
+							selectedLanguageIdInput.value
 						);
 					}
 				});
@@ -132,26 +141,33 @@ export default function UndoRedo({
 							.remove(lang);
 						titleInputComponent.removeInputLanguage(lang);
 						titleInputComponent._updateTranslationStatus(
-							selectedLanguageId
+							selectedLanguageIdInput.value
 						);
 					}
 				});
 			titleInputComponent.selectFlag(nextStep.selectedLanguageId);
 
 			selectedLanguageIdInput.value = nextStep.selectedLanguageId;
+
+			Liferay.fire('journal:updateSelectedLanguage', {
+				item: document.querySelector(
+					`[data-languageid="${nextStep.selectedLanguageId}"][data-value="${nextStep.selectedLanguageId}"]`
+				),
+			});
 		}
 
 		updateMetadataFields(nextStep, newStep);
+		Liferay.fire('inputLocalized:updateTranslationStatus');
 	};
 
 	const handleRedo = (newStep) => {
 		const nextStep = history[newStep];
 
-		if (nextStep.selectedLanguageId !== selectedLanguageId) {
-			const selectedLanguageIdInput = document.getElementById(
-				`${portletNamespace}languageId`
-			);
+		const selectedLanguageIdInput = document.getElementById(
+			`${portletNamespace}languageId`
+		);
 
+		if (nextStep.selectedLanguageId !== selectedLanguageIdInput.value) {
 			selectedLanguageIdInput.value = nextStep.selectedLanguageId;
 
 			nextStep.descriptionTranslatedLanguages.map((lang) => {
@@ -193,9 +209,16 @@ export default function UndoRedo({
 				}
 			});
 			titleInputComponent.selectFlag(nextStep.selectedLanguageId);
+
+			Liferay.fire('journal:updateSelectedLanguage', {
+				item: document.querySelector(
+					`[data-languageid="${nextStep.selectedLanguageId}"][data-value="${nextStep.selectedLanguageId}"]`
+				),
+			});
 		}
 
 		updateMetadataFields(nextStep, newStep);
+		Liferay.fire('inputLocalized:updateTranslationStatus');
 	};
 
 	const handleStoreState = useCallback(
@@ -210,20 +233,23 @@ export default function UndoRedo({
 
 			const newHistory = {
 				defaultLanguageId: defaultLanguageIdInput.value,
-				descriptionInputValue:
-					descriptionInputComponent.getValue(selectedLanguageId),
+				descriptionInputValue: descriptionInputComponent.getValue(
+					selectedLanguageIdInput.value
+				),
 				descriptionTranslatedLanguages: descriptionInputComponent
 					.get('translatedLanguages')
 					.values(),
-				friendlyURLInputValue:
-					friendlyURLInputComponent.getValue(selectedLanguageId),
+				friendlyURLInputValue: friendlyURLInputComponent.getValue(
+					selectedLanguageIdInput.value
+				),
 				friendlyURLTranslatedLanguages: friendlyURLInputComponent
 					.get('translatedLanguages')
 					.values(),
 				name: fieldName,
 				selectedLanguageId: selectedLanguageIdInput.value,
-				titleInputValue:
-					titleInputComponent.getValue(selectedLanguageId),
+				titleInputValue: titleInputComponent.getValue(
+					selectedLanguageIdInput.value
+				),
 				titleTranslatedLanguages: titleInputComponent
 					.get('translatedLanguages')
 					.values(),
@@ -241,7 +267,6 @@ export default function UndoRedo({
 			friendlyURLInputComponent,
 			history,
 			portletNamespace,
-			selectedLanguageId,
 			step,
 			titleInputComponent,
 		]
@@ -328,7 +353,6 @@ export default function UndoRedo({
 
 	const localeChangeHandler = useCallback(
 		(event) => {
-			const fieldName = 'Locale Change';
 			const selectedLanguageId = event.item.getAttribute('data-value');
 			const selectedLanguageIdInput = document.getElementById(
 				`${portletNamespace}languageId`
@@ -336,7 +360,9 @@ export default function UndoRedo({
 
 			selectedLanguageIdInput.value = selectedLanguageId;
 
-			Liferay.fire('journal:storeState', {fieldName});
+			Liferay.fire('journal:storeState', {
+				fieldName: Liferay.Language.get('change-language'),
+			});
 		},
 		[portletNamespace]
 	);
@@ -417,104 +443,167 @@ export default function UndoRedo({
 
 	return (
 		<div className="d-flex">
-			<ClayButtonWithIcon
-				aria-label={Liferay.Language.get('undo')}
-				className="btn-monospaced"
-				disabled={step <= 0}
-				displayType="secondary"
-				onClick={() => {
-					Liferay.fire('journal:undo');
-					handleUndo(step - 1);
-				}}
-				size="sm"
-				symbol="undo"
-				title={Liferay.Language.get('undo')}
-			/>
-
-			<ClayButtonWithIcon
-				aria-label={Liferay.Language.get('redo')}
-				className="btn-monospaced"
-				disabled={!history.length || step === history.length - 1}
-				displayType="secondary"
-				onClick={() => {
-					Liferay.fire('journal:redo');
-					handleRedo(step + 1);
-				}}
-				size="sm"
-				symbol="redo"
-				title={Liferay.Language.get('redo')}
-			/>
-
-			<ClayDropDown
-				active={active}
-				alignmentPosition={Align.BottomRight}
-				className="ml-2"
-				onActiveChange={setActive}
-				trigger={
+			{Liferay.FeatureFlags['LPD-36053'] ? (
+				<>
 					<ClayButtonWithIcon
-						aria-label={Liferay.Language.get('history')}
-						aria-pressed={active}
-						disabled={history.length <= 1}
-						displayType="secondary"
-						size="sm"
-						symbol="time"
-						title={Liferay.Language.get('history')}
-					/>
-				}
-			>
-				<ClayDropDown.ItemList>
-					{history
-						.map((item, index) => {
-							return (
-								index > 0 && (
-									<ClayDropDown.Item
-										disabled={step === index}
-										key={index}
-										onClick={() => {
-											if (index < step) {
-												handleUndo(index);
-											}
-											else {
-												handleRedo(index);
-											}
-
-											Liferay.fire('journal:goto', {
-												step: index,
-											});
-
-											setActive(false);
-										}}
-										symbolRight={
-											step === index ? 'check' : ''
-										}
-									>
-										{Liferay.Language.get('edit')}{' '}
-
-										{METADATA_FIELD_NAME_HISTORY[
-											item.name
-										] || item.name}
-									</ClayDropDown.Item>
-								)
-							);
-						})
-						.reverse()}
-
-					<ClayDropDown.Divider />
-
-					<ClayDropDown.Item
+						aria-label={Liferay.Language.get('undo')}
+						className="btn-monospaced"
 						disabled={step <= 0}
+						displayType="secondary"
 						onClick={() => {
-							handleUndo(0);
-							Liferay.fire('journal:goto', {
-								step: 0,
-							});
-							setActive(false);
+							Liferay.fire('journal:undo');
+							handleUndo(step - 1);
 						}}
+						size="sm"
+						symbol="undo"
+						title={Liferay.Language.get('undo')}
+					/>
+
+					<ClayButtonWithIcon
+						aria-label={Liferay.Language.get('redo')}
+						className="btn-monospaced"
+						disabled={
+							!history.length || step === history.length - 1
+						}
+						displayType="secondary"
+						onClick={() => {
+							Liferay.fire('journal:redo');
+							handleRedo(step + 1);
+						}}
+						size="sm"
+						symbol="redo"
+						title={Liferay.Language.get('redo')}
+					/>
+
+					<ClayDropDown
+						active={active}
+						alignmentPosition={Align.BottomLeft}
+						className="ml-2"
+						onActiveChange={setActive}
+						trigger={
+							<ClayButton
+								aria-label={Liferay.Language.get('history')}
+								aria-pressed={active}
+								className="px-2"
+								disabled={history.length <= 1}
+								displayType="secondary"
+								size="sm"
+								title={Liferay.Language.get('history')}
+							>
+								<span className="inline-item inline-item-before">
+									<ClayIcon symbol="time" />
+								</span>
+
+								<span className="inline-item">
+									<ClayIcon symbol="caret-bottom" />
+								</span>
+							</ClayButton>
+						}
 					>
-						{Liferay.Language.get('undo-all')}
-					</ClayDropDown.Item>
-				</ClayDropDown.ItemList>
-			</ClayDropDown>
+						<ClayDropDown.ItemList>
+							{history
+								.map((item, index) => {
+									return (
+										index > 0 && (
+											<ClayDropDown.Item
+												active={step === index}
+												key={index}
+												onClick={() => {
+													if (index === step) {
+														return;
+													}
+
+													Liferay.fire(
+														'journal:goto',
+														{
+															step: index,
+														}
+													);
+
+													if (index < step) {
+														let i = step;
+														while (i > index) {
+															i--;
+															handleUndo(i);
+														}
+													}
+													else {
+														let i = step;
+														while (i < index) {
+															i++;
+															handleRedo(i);
+														}
+													}
+
+													setActive(false);
+												}}
+												symbolLeft={
+													step === index
+														? 'check'
+														: ''
+												}
+											>
+												<span className="ml-4 px-1">
+													{METADATA_FIELD_NAME_HISTORY[
+														item.name
+													] || item.name}
+												</span>
+											</ClayDropDown.Item>
+										)
+									);
+								})
+								.reverse()}
+
+							<ClayDropDown.Divider />
+
+							<ClayDropDown.Item
+								active={step === 0}
+								onClick={() => {
+									if (step === 0) {
+										return;
+									}
+
+									Liferay.fire('journal:goto', {
+										step: 0,
+									});
+
+									let i = step;
+									while (i > 0) {
+										i--;
+										handleUndo(i);
+									}
+
+									setActive(false);
+								}}
+							>
+								<span className="ml-4 px-1">
+									{Liferay.Language.get('undo-all')}
+								</span>
+							</ClayDropDown.Item>
+						</ClayDropDown.ItemList>
+					</ClayDropDown>
+				</>
+			) : (
+				<ClayButtonWithIcon
+					aria-label={Liferay.Language.get('undo-all')}
+					className="btn-monospaced"
+					disabled={step === 0}
+					displayType="secondary"
+					onClick={() => {
+						Liferay.fire('journal:goto', {
+							step: 0,
+						});
+						let i = step;
+						while (i > 0) {
+							i--;
+							handleUndo(i);
+						}
+					}}
+					size="sm"
+					symbol="time"
+					title={Liferay.Language.get('undo-all')}
+				/>
+			)}
 		</div>
 	);
 }

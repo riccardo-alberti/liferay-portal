@@ -5,13 +5,17 @@
 
 import {Page, expect, mergeTests} from '@playwright/test';
 
+import {
+	ObjectAdminRestClient,
+	ObjectDefinition,
+} from '../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {accountSettingsPagesTest} from '../../fixtures/accountSettingsPagesTest';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {formsPagesTest} from '../../fixtures/formsPagesTest';
 import {listTypeDefinitionsPagesTest} from '../../fixtures/listTypeDefinitionsPagesTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {objectPagesTest} from '../../fixtures/objectPagesTest';
-import {siteSettingsPageTests} from '../../fixtures/siteSettingsPagesTest';
+import {siteSettingsPagesTest} from '../../fixtures/siteSettingsPagesTest';
 import {getRandomInt} from '../../utils/getRandomInt';
 
 export const test = mergeTests(
@@ -21,7 +25,7 @@ export const test = mergeTests(
 	listTypeDefinitionsPagesTest,
 	loginTest(),
 	objectPagesTest,
-	siteSettingsPageTests
+	siteSettingsPagesTest
 );
 
 let customDefaultSiteLanguage: string;
@@ -42,10 +46,17 @@ test.afterEach(
 		apiHelpers,
 		page,
 		siteSettingsLocalizationPage,
+		siteSettingsPage,
 	}) => {
+		const objectAdminRestClient = await apiHelpers.buildRestClient(
+			ObjectAdminRestClient
+		);
+
 		for (const objectDefinition of createdEntities.objectDefinitions) {
-			await apiHelpers.objectAdmin.deleteObjectDefinition(
-				objectDefinition.id
+			await objectAdminRestClient.objectDefinition.deleteObjectDefinition(
+				{
+					objectDefinitionId: objectDefinition.id,
+				}
 			);
 		}
 
@@ -83,7 +94,7 @@ test.afterEach(
 			await page.goto('/');
 			await siteSettingsLocalizationPage.goto();
 			await siteSettingsLocalizationPage.selectDefaultLanguageOption();
-			await siteSettingsLocalizationPage.saveConfiguration();
+			await siteSettingsPage.saveConfiguration();
 			customDefaultSiteLanguage = '';
 		}
 	}

@@ -130,11 +130,7 @@ function useBreadcrumbItems() {
 							: DROP_ZONE_BASE_LABEL,
 					});
 				}
-				else if (
-					layoutDataItem.type !== LAYOUT_DATA_ITEM_TYPES.column &&
-					layoutDataItem.type !==
-						LAYOUT_DATA_ITEM_TYPES.collectionItem
-				) {
+				else {
 					items.push({
 						label: selectLayoutDataItemLabel(state, layoutDataItem),
 						onClick: () =>
@@ -193,10 +189,6 @@ function useBreadcrumbItems() {
 
 function useEllipsisBuffer(breacrumbItems, containerRef) {
 	const [ellipsisBuffer, setEllipsisBuffer] = useState(0);
-
-	useEffect(() => {
-		setEllipsisBuffer(0);
-	}, [breacrumbItems]);
 
 	useEffect(() => {
 		const containerElement = containerRef.current;

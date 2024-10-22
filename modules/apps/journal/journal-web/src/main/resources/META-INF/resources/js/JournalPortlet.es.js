@@ -67,6 +67,9 @@ export default function _JournalPortlet({
 
 	if (!Liferay.FeatureFlags['LPD-15596']) {
 		initializeLock('publishing', {
+			errorIndicator: document.getElementById(
+				`${namespace}lockErrorIndicator`
+			),
 			lockedIndicator: document.getElementById(
 				`${namespace}savingChangesIndicator`
 			),
@@ -161,8 +164,6 @@ export default function _JournalPortlet({
 	};
 
 	const handleDDMFormError = (event) => {
-		lockHolder.lock?.unlock(true);
-
 		if (event.error?.statusCode) {
 			showAlert(event.error.message);
 		}
@@ -177,10 +178,7 @@ export default function _JournalPortlet({
 			`${namespace}titleMapAsXML`
 		);
 
-		if (
-			!titleInputComponent?.getValue(defaultLanguageId) &&
-			!Liferay.FeatureFlags['LPS-114700']
-		) {
+		if (!titleInputComponent?.getValue(defaultLanguageId)) {
 			showAlert(
 				sub(
 					Liferay.Language.get(
@@ -225,30 +223,32 @@ export default function _JournalPortlet({
 			availableLocalesInput.value = availableLocales;
 
 			if (autoSaveDraftEnabled && !redirectOnSave) {
-				Liferay.componentReady(`${namespace}dataEngineLayoutRenderer`)
-					.then((dataEngineLayoutRenderer) => {
-						const dataEngineLayoutRendererRef =
-							dataEngineLayoutRenderer?.reactComponentRef;
+				if (showErrors) {
+					Liferay.componentReady(
+						`${namespace}dataEngineLayoutRenderer`
+					)
+						.then((dataEngineLayoutRenderer) => {
+							const dataEngineLayoutRendererRef =
+								dataEngineLayoutRenderer?.reactComponentRef;
 
-						return dataEngineLayoutRendererRef.current.validate();
-					})
-					.then((validForm) => {
-						if (validForm) {
-							removeAlert();
-							submitAsyncForm(form, {redirectOnSave});
-						}
-						else {
-							Liferay.fire('ddmFormError', {
-								formWrapperId: formId,
-							});
-						}
-					});
+							return dataEngineLayoutRendererRef.current.validate();
+						})
+						.then((validForm) => {
+							if (validForm) {
+								removeAlert();
+								submitAsyncForm(form, {redirectOnSave});
+							}
+						});
+				}
+				else {
+					submitAsyncForm(form, {redirectOnSave});
+				}
 			}
 			else {
 				form.submit();
 			}
 		}
-		else if (showErrors && !Liferay.FeatureFlags['LPS-114700']) {
+		else if (showErrors) {
 			showAlert(
 				sub(
 					Liferay.Language.get(
@@ -263,9 +263,13 @@ export default function _JournalPortlet({
 			lockHolder.lock?.unlock(true);
 		}
 		else {
-			Liferay.Form.get(formId).formValidator.validate();
-			validateRequiredDDMFields();
-
+			showAlert(
+				Liferay.Language.get(
+					'please-complete-all-mandatory-fields-to-enable-autosave'
+				),
+				Liferay.Language.get('info'),
+				'info'
+			);
 			lockHolder.lock?.unlock(true);
 		}
 	};
@@ -273,7 +277,10 @@ export default function _JournalPortlet({
 	const handlePublishButtonClick = (event) => {
 		lockHolder.lock?.lock();
 
-		if (Liferay.FeatureFlags['LPD-11228']) {
+		if (
+			Liferay.FeatureFlags['LPD-11228'] &&
+			Liferay.FeatureFlags['LPD-15596']
+		) {
 			return;
 		}
 
@@ -445,10 +452,22 @@ export default function _JournalPortlet({
 
 					articleIdWrapper.classList.remove('hide');
 					displayedArticleId.innerHTML = articleId;
-				}
 
-				formDateInput.value = data.modifiedDate;
-				lockHolder.lock?.unlock();
+					formDateInput.value = data.modifiedDate;
+					lockHolder.lock?.unlock();
+					removeAlert();
+				}
+				else {
+					formDateInput.value = data.modifiedDate;
+					lockHolder.lock?.unlock(true);
+					showAlert(
+						Liferay.Language.get(
+							'please-complete-all-mandatory-fields-to-enable-autosave'
+						),
+						Liferay.Language.get('info'),
+						'info'
+					);
+				}
 			})
 			.catch((error) => {
 				console.error(error);
@@ -547,7 +566,7 @@ export default function _JournalPortlet({
 
 					handleDDMFormValid({
 						redirectOnSave: false,
-						showErrors: true,
+						showErrors: false,
 					});
 				},
 				namespace

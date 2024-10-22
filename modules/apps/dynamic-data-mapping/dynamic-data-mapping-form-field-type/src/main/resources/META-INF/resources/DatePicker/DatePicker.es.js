@@ -119,6 +119,19 @@ export default function DatePicker({
 	}, [date]);
 
 	/**
+	 * Always update formattedDate if there is a value in rawDate
+	 */
+	useEffect(() => {
+		if (date.rawDate !== '') {
+			const formattedDate = moment(rawDate, serverFormat, true)
+				.locale(locale ?? defaultLanguageId)
+				.format(momentFormat);
+
+			setDate((previousState) => ({...previousState, formattedDate}));
+		}
+	}, [date, defaultLanguageId, locale, momentFormat, rawDate, serverFormat]);
+
+	/**
 	 * Creates the input mask and update it whenever the format changes
 	 */
 	useEffect(() => {
@@ -243,7 +256,7 @@ export default function DatePicker({
 			localizedValue={localizedValue}
 			name={name}
 			readOnly={readOnly}
-			type="date"
+			type={type}
 			valid={validField.valid}
 			{...otherProps}
 		>

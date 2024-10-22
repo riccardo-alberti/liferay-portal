@@ -5,7 +5,7 @@
 
 import {Locator, Page} from '@playwright/test';
 
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {SiteSettingsPage} from './SiteSettingsPage';
 
 export class SiteSettingsLocalizationPage {
@@ -14,7 +14,6 @@ export class SiteSettingsLocalizationPage {
 	readonly customDefaultLanguageOption: Locator;
 	readonly defaultLanguageOption: Locator;
 	readonly defaultLanguageSingleSelect: Locator;
-	readonly saveButton: Locator;
 	readonly siteSettingsPage: SiteSettingsPage;
 
 	constructor(page: Page) {
@@ -29,17 +28,15 @@ export class SiteSettingsLocalizationPage {
 		this.defaultLanguageSingleSelect = page.locator(
 			`select[name="_com_liferay_site_admin_web_portlet_SiteSettingsPortlet_TypeSettingsProperties--languageId--"]`
 		);
-		this.saveButton = page.getByRole('button', {name: 'Save'});
 		this.siteSettingsPage = new SiteSettingsPage(page);
 	}
 
-	async goto() {
-		await this.siteSettingsPage.goToSiteSetting('Localization');
-	}
-
-	async saveConfiguration() {
-		this.saveButton.click();
-		await waitForSuccessAlert(this.page);
+	async goto(siteUrl?: Site['friendlyUrlPath']) {
+		await this.siteSettingsPage.goToSiteSetting(
+			'Localization',
+			'Languages',
+			siteUrl
+		);
 	}
 
 	async selectCustomDefaultLanguageOption() {
@@ -50,9 +47,23 @@ export class SiteSettingsLocalizationPage {
 		await this.defaultLanguageOption.click();
 	}
 
-	async setCustomDefaultLanguage(languageOption: string) {
-		await this.defaultLanguageSingleSelect.click();
+	async setCustomDefaultLanguage(
+		languageOption: string,
+		siteUrl?: Site['friendlyUrlPath']
+	) {
+		await this.goto(siteUrl);
+
+		await clickAndExpectToBeVisible({
+			target: this.defaultLanguageSingleSelect,
+			trigger: this.page.getByRole('radio', {
+				name: 'Define a custom default language',
+			}),
+		});
+
 		await this.defaultLanguageSingleSelect.selectOption(languageOption);
-		await this.saveConfiguration();
+
+		await this.siteSettingsPage.saveConfiguration();
+
+		await this.page.waitForLoadState();
 	}
 }

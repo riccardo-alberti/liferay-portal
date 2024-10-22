@@ -5,7 +5,6 @@
 
 import {Option, Picker} from '@clayui/core';
 import DropDown from '@clayui/drop-down';
-import {ClayTooltipProvider} from '@clayui/tooltip';
 import {useFormState} from 'data-engine-js-components-web';
 import React, {useEffect, useMemo, useState} from 'react';
 
@@ -103,7 +102,7 @@ function Select({
 
 	useEffect(() => {
 		const selectedOption = options.find(
-			(option) => option.value === selectedItem?.[0]
+			(option) => option.value === selectedItem
 		);
 
 		if (selectedOption) {
@@ -153,9 +152,7 @@ function Select({
 						}
 					}}
 					placeholder={placeholder}
-					selectedKey={
-						selectedItem === null ? 'chooseAnOption' : selectedItem
-					}
+					selectedKey={selectedItem ?? 'chooseAnOption'}
 				>
 					{(group) => (
 						<DropDown.Group
@@ -164,6 +161,7 @@ function Select({
 						>
 							{(item) => (
 								<Option
+									data-option-reference={item.reference}
 									disabled={item.disabled}
 									key={item.value}
 								>
@@ -266,50 +264,45 @@ const Main = ({
 			readOnly={readOnly}
 			{...otherProps}
 		>
-			<ClayTooltipProvider>
-				{multiple ? (
-					<MultipleSelection
-						fixedOptions={[]}
-						label={label}
-						localizedValue={undefined}
-						localizedValueEdited={undefined}
-						name={name}
-						onChange={onChange}
-						options={normalizedOptions}
-						predefinedValue={predefinedValueArray}
-						readOnly={readOnly}
-						required={otherProps.required}
-						showEmptyOption={false}
-						value={
-							viewMode || !!multipleSelectValues.length
-								? multipleSelectValues
-								: predefinedValue
-						}
-						{...otherProps}
-					/>
-				) : (
-					<Select
-						fixedOptions={fixedOptions}
-						id={id}
-						label={label}
-						localizedValue={undefined}
-						localizedValueEdited={undefined}
-						multiple={multiple}
-						name={name}
-						onChange={onChange}
-						onSelectionChange={onSelectionChange}
-						options={normalizedOptions}
-						placeholder={placeholder}
-						predefinedValue={newPredefinedValue}
-						readOnly={readOnly}
-						required={otherProps.required}
-						selectedKey={selectedKey ?? newValue}
-						showEmptyOption={showEmptyOption}
-						viewMode={viewMode}
-						{...otherProps}
-					/>
-				)}
-			</ClayTooltipProvider>
+			{multiple ? (
+				<MultipleSelection
+					fixedOptions={[]}
+					label={label}
+					name={name}
+					onChange={onChange}
+					options={normalizedOptions}
+					predefinedValue={predefinedValueArray}
+					readOnly={readOnly}
+					required={otherProps.required}
+					value={
+						viewMode || !!multipleSelectValues.length
+							? multipleSelectValues
+							: (predefinedValue as string[])
+					}
+					{...otherProps}
+				/>
+			) : (
+				<Select
+					fixedOptions={fixedOptions}
+					id={id}
+					label={label}
+					localizedValue={undefined}
+					localizedValueEdited={undefined}
+					multiple={multiple}
+					name={name}
+					onChange={onChange}
+					onSelectionChange={onSelectionChange}
+					options={normalizedOptions}
+					placeholder={placeholder}
+					predefinedValue={newPredefinedValue}
+					readOnly={readOnly}
+					required={otherProps.required}
+					selectedKey={selectedKey ?? newValue}
+					showEmptyOption={showEmptyOption}
+					viewMode={viewMode}
+					{...otherProps}
+				/>
+			)}
 
 			<input
 				name={name}

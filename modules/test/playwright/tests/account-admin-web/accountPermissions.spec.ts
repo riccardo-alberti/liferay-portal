@@ -93,7 +93,7 @@ async function postRoleWithAccountAdminPermissions(
 }
 
 test.describe('Test for Organization Account visibility depending on Permissions', () => {
-	test('LPD-28116 Edit Organizations permission visibility', async ({
+	test('LPD-28116 Update Organizations permission visibility', async ({
 		accountsPage,
 		apiHelpers,
 		context,
@@ -121,9 +121,9 @@ test.describe('Test for Organization Account visibility depending on Permissions
 			rolePermissions: [
 				{
 					actionIds: [
-						'EDIT_ORGANIZATIONS',
 						'MANAGE_USERS',
 						'UPDATE',
+						'UPDATE_ORGANIZATIONS',
 						'VIEW',
 						'VIEW_ORGANIZATIONS',
 					],
@@ -295,7 +295,7 @@ test.describe('Test for Organization Account visibility depending on Permissions
 		).toBeVisible();
 	});
 
-	test('LPD-28116 No Edit or Manage Organizations permission', async ({
+	test('LPD-28116 No Update or Manage Organizations permission', async ({
 		accountsPage,
 		apiHelpers,
 		context,

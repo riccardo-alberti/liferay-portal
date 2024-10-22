@@ -26,6 +26,7 @@ type TCart = {
 	paymentMethod?: string;
 	shippingAddressId?: number;
 	shippingMethod?: string;
+	shippingOption?: string;
 };
 
 export class HeadlessCommerceDeliveryCartApiHelper {
@@ -40,6 +41,12 @@ export class HeadlessCommerceDeliveryCartApiHelper {
 	async checkoutCart(cartId: number) {
 		return this.apiHelpers.post(
 			`${this.apiHelpers.baseUrl}${this.basePath}/carts/${cartId}/checkout`
+		);
+	}
+
+	async getComments(cartId: number) {
+		return this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${this.basePath}/carts/${cartId}/comments`
 		);
 	}
 

@@ -3,42 +3,35 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {FrameLocator, Locator, Page, expect} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
 import {clickAndExpectToBeHidden} from '../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import {PORTLET_URLS} from '../../utils/portletUrls';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {PageEditorPage} from '../layout-content-page-editor-web/PageEditorPage';
 
 export class PagesAdminPage {
 	readonly page: Page;
 
 	readonly addButton: Locator;
-	readonly addPageButton: Locator;
-	readonly addPageIFrame: FrameLocator;
-	readonly blankTypeButton: Locator;
-	readonly configurationSaveButton: Locator;
-	readonly javaScriptClientExtensionsTab: Locator;
 	readonly newButton: Locator;
-	readonly pageEditorPage: PageEditorPage;
-	readonly pageTitleBox: Locator;
-	readonly searchButton: Locator;
-	readonly searchInput: Locator;
+
+	private readonly configurationSaveButton: Locator;
+	private readonly javaScriptClientExtensionsTab: Locator;
+	private readonly pageEditorPage: PageEditorPage;
+	private readonly pageTitleBox: Locator;
+	private readonly searchButton: Locator;
+	private readonly searchInput: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 
-		this.addPageButton = page.getByRole('menuitem', {
-			exact: true,
-			name: 'Page',
-		});
-		this.addPageIFrame = page.frameLocator(
+		const addPageIFrame = page.frameLocator(
 			'iframe[id="addLayoutDialog_iframe_"]'
 		);
-		this.addButton = this.addPageIFrame.getByRole('button', {name: 'Add'});
-		this.blankTypeButton = page.getByRole('button', {name: 'Blank'});
+		this.addButton = addPageIFrame.getByRole('button', {name: 'Add'});
 		this.configurationSaveButton = page.getByRole('button', {
 			exact: true,
 			name: 'Save',
@@ -50,7 +43,7 @@ export class PagesAdminPage {
 			.locator('.management-bar')
 			.getByRole('button', {name: 'New'});
 		this.pageEditorPage = new PageEditorPage(this.page);
-		this.pageTitleBox = this.addPageIFrame.locator(
+		this.pageTitleBox = addPageIFrame.locator(
 			'input[id="_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_name"]'
 		);
 		this.searchButton = this.page.getByLabel('Search for', {exact: true});
@@ -185,8 +178,6 @@ export class PagesAdminPage {
 
 		await this.addPage({
 			name,
-			successMessage:
-				'Success:The collection page was created successfully',
 		});
 
 		// Publish is draft param is false
@@ -198,11 +189,9 @@ export class PagesAdminPage {
 
 	async addPage({
 		name,
-		successMessage,
 		template = 'Blank',
 	}: {
 		name: string;
-		successMessage: string;
 		template?: string;
 	}) {
 		await this.page
@@ -222,7 +211,7 @@ export class PagesAdminPage {
 		await this.addButton.hover();
 		await this.addButton.click();
 
-		await waitForSuccessAlert(this.page, successMessage);
+		await waitForAlert(this.page, 'page was created successfully.');
 	}
 
 	private async addThemeFaviconClientExtension(clientExtensionName: string) {
@@ -303,12 +292,7 @@ export class PagesAdminPage {
 
 		await iframe.getByRole('button', {exact: true, name: 'Add'}).click();
 
-		await this.configurationSaveButton.click();
-
-		await waitForSuccessAlert(
-			this.page,
-			'Success:The page was updated successfully.'
-		);
+		await this.saveConfiguration();
 	}
 
 	async clickOnJavaScriptClientExtensionsTab() {
@@ -361,10 +345,10 @@ export class PagesAdminPage {
 		await this.configurationSaveButton.click();
 
 		if (!layoutTitle) {
-			await waitForSuccessAlert(this.page);
+			await waitForAlert(this.page);
 		}
 		else {
-			await waitForSuccessAlert(
+			await waitForAlert(
 				this.page,
 				'Success:The page was updated successfully.'
 			);
@@ -412,7 +396,6 @@ export class PagesAdminPage {
 
 		await this.addPage({
 			name,
-			successMessage: 'Success:The page was created successfully.',
 			template,
 		});
 
@@ -433,7 +416,7 @@ export class PagesAdminPage {
 
 		await this.page.getByRole('button', {name: 'Delete'}).click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:Your request completed successfully.'
 		);
@@ -462,7 +445,7 @@ export class PagesAdminPage {
 		await this.page.getByRole('menuitem', {name: 'Configuration'}).click();
 	}
 
-	async gotoSelectGlobalTemplates() {
+	async gotoSelectTemplates(templateSetName: string) {
 		await this.newButton.click();
 
 		await this.page
@@ -472,8 +455,17 @@ export class PagesAdminPage {
 
 		await this.page
 			.getByRole('menuitem')
-			.getByText('Global Templates', {exact: true})
+			.getByText(templateSetName, {exact: true})
 			.click();
+	}
+
+	async saveConfiguration() {
+		await this.configurationSaveButton.click();
+
+		await waitForAlert(
+			this.page,
+			'Success:The page was updated successfully.'
+		);
 	}
 
 	async searchPage(keywords: string) {
@@ -521,10 +513,10 @@ export class PagesAdminPage {
 		}
 
 		if (!layoutTitle) {
-			await waitForSuccessAlert(this.page);
+			await waitForAlert(this.page);
 		}
 		else {
-			await waitForSuccessAlert(
+			await waitForAlert(
 				this.page,
 				'Success:The page was updated successfully.'
 			);
@@ -616,7 +608,7 @@ export class PagesAdminPage {
 				? `Success:${pageNames.length} permissions were updated successfully.`
 				: undefined;
 
-		await waitForSuccessAlert(permissionsFrame, successMessage);
+		await waitForAlert(permissionsFrame, successMessage);
 
 		await this.page.getByLabel('close', {exact: true}).click();
 

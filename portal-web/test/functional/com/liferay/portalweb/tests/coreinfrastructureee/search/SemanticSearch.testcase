@@ -1,7 +1,9 @@
 @component-name = "portal-search"
 definition {
 
-	property portal.release = "true";
+	property custom.properties = "feature.flag.LPD-35013=false";
+	property osgi.modules.includes = "wiki";
+	property portal.release = "false";
 	property portal.suite.search.engine = "elasticsearch7";
 	property portal.upstream = "true";
 	property test.run.environment = "EE";
@@ -11,6 +13,10 @@ definition {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
+
+		WikiPortlet.enableWiki();
+
+		Navigator.openURL();
 	}
 
 	tearDown {
@@ -24,7 +30,7 @@ definition {
 	@description = "This is a use case for LPS-168704."
 	@priority = 3
 	test AssertBlacklistedTextEmbeddingProvidersAreUnavailable {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
@@ -102,7 +108,7 @@ definition {
 	@description = "This is a use case for LPS-174623."
 	@priority = 3
 	test AssertReindexWarningAppearsForCriticalChanges {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
@@ -313,7 +319,7 @@ definition {
 
 	@priority = 3
 	test AssertSearchUsingTxtaiWithTextEmbeddingElementHasNoError {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property txtai.enabled = "true";
 
 		JSONWebcontent.addWebContent(
@@ -344,7 +350,7 @@ definition {
 
 	@priority = 3
 	test AssertTxtaiTextEmbeddingIndexFieldAddedToAssets {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property txtai.enabled = "true";
 
 		JSONWebcontent.addWebContent(
@@ -389,7 +395,7 @@ definition {
 
 	@priority = 3
 	test AssertTxtaiWithTextEmbeddingElementAffectsBlueprintPreview {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property txtai.enabled = "true";
 
 		JSONWebcontent.addWebContent(
@@ -406,6 +412,10 @@ definition {
 		Blueprints.searchBlueprintsPreview(searchTerm = "test");
 
 		AssertElementNotPresent(locator1 = "Message#ERROR");
+
+		AssertElementPresent(
+			key_assetTitle = "Test Web Content",
+			locator1 = "Blueprints#BLUEPRINTS_PREVIEW_SEARCH_RESULT_SCORE");
 
 		var key_assetTitle = "Test Web Content";
 		var assetScoreBoosted = selenium.getText("Blueprints#BLUEPRINTS_PREVIEW_SEARCH_RESULT_SCORE");
@@ -436,7 +446,7 @@ definition {
 
 	@priority = 3
 	test ViewHuggingFaceSystemSettingsRequiredFieldValidation {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 
 		PortalSettings.openToConfigInInstanceSettings(portletId = "com.liferay.portal.search.configuration.SemanticSearchConfiguration");
 
@@ -514,7 +524,7 @@ definition {
 	@description = "This is a use case for LPS-170345 and LPS-172161."
 	@priority = 3
 	test ViewSystemAndInstanceSettingsSaveUI {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
@@ -705,7 +715,7 @@ definition {
 	@description = "This is a use case for LPS-173824."
 	@priority = 3
 	test ViewSystemSettingUnsuccessfulConnectionWarning {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 		property txtai.enabled = "true";
@@ -782,7 +792,7 @@ definition {
 
 	@priority = 3
 	test ViewTxtaiSystemSettingsRequiredFieldValidation {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 
 		PortalSettings.openToConfigInInstanceSettings(portletId = "com.liferay.portal.search.configuration.SemanticSearchConfiguration");
 
@@ -814,7 +824,7 @@ definition {
 
 	@priority = 3
 	test ViewTxtaiSystemSettingsTestConfiguration {
-		property custom.properties = "feature.flag.LPS-122920=true";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}feature.flag.LPS-122920=true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 		property txtai.enabled = "true";

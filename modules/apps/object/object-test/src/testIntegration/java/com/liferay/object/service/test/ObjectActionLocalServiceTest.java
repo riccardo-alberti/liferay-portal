@@ -834,9 +834,9 @@ public class ObjectActionLocalServiceTest {
 				serviceContext);
 
 			_assertWebhookObjectAction(
-				null, "Peter", null,
+				null, "Peter", "",
 				ObjectActionTriggerConstants.KEY_ON_AFTER_UPDATE,
-				_objectDefinition, "John", null,
+				_objectDefinition, "John", "",
 				WorkflowConstants.STATUS_APPROVED);
 
 			// Hierarchy, root object entry
@@ -850,9 +850,17 @@ public class ObjectActionLocalServiceTest {
 							ObjectFieldConstants.DB_TYPE_STRING, "First Name",
 							"firstName")));
 
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinitionA.getObjectDefinitionId());
+
 			ObjectDefinition objectDefinitionAA =
 				ObjectDefinitionTestUtil.addCustomObjectDefinition(
 					ObjectDefinitionTestUtil.getRandomName());
+
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinitionAA.getObjectDefinitionId());
 
 			ObjectRelationship objectRelationshipA_AA =
 				ObjectRelationshipTestUtil.addObjectRelationship(
@@ -862,6 +870,10 @@ public class ObjectActionLocalServiceTest {
 			ObjectDefinition objectDefinitionAAA =
 				ObjectDefinitionTestUtil.addCustomObjectDefinition(
 					ObjectDefinitionTestUtil.getRandomName());
+
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinitionAAA.getObjectDefinitionId());
 
 			ObjectRelationship objectRelationshipAA_AAA =
 				ObjectRelationshipTestUtil.addObjectRelationship(
@@ -888,10 +900,6 @@ public class ObjectActionLocalServiceTest {
 					"url", "https://onafterrootupdate.com"
 				).build(),
 				false);
-
-			_objectDefinitionLocalService.publishCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				objectDefinitionA.getObjectDefinitionId());
 
 			ObjectEntry rootObjectEntry =
 				_objectEntryLocalService.addObjectEntry(
@@ -1563,8 +1571,9 @@ public class ObjectActionLocalServiceTest {
 			commerceOrder1.getOrderStatus());
 
 		CommerceOrder commerceOrder2 =
-			_commerceOrderLocalService.fetchByExternalReferenceCode(
-				"newCommerceOrder", TestPropsValues.getCompanyId());
+			_commerceOrderLocalService.
+				fetchCommerceOrderByExternalReferenceCode(
+					"newCommerceOrder", TestPropsValues.getCompanyId());
 
 		Assert.assertNotNull(commerceOrder2);
 
@@ -2012,6 +2021,26 @@ public class ObjectActionLocalServiceTest {
 					"usePreferredLanguageForGuests", "true"
 				).build(),
 				false));
+
+		ObjectAction objectAction = _addObjectAction(
+			RandomTestUtil.randomString(),
+			ObjectActionExecutorConstants.KEY_NOTIFICATION,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+			UnicodePropertiesBuilder.put(
+				"notificationTemplateExternalReferenceCode",
+				RandomTestUtil.randomString()
+			).put(
+				"type", NotificationConstants.TYPE_EMAIL
+			).build(),
+			false);
+
+		UnicodeProperties parametersUnicodeProperties =
+			objectAction.getParametersUnicodeProperties();
+
+		Assert.assertTrue(
+			GetterUtil.getBoolean(
+				parametersUnicodeProperties.get(
+					"usePreferredLanguageForGuests")));
 	}
 
 	@Test
@@ -2133,6 +2162,8 @@ public class ObjectActionLocalServiceTest {
 	public void testExecuteObjectActionWithUsePreferredLanguageForGuestsParameter()
 		throws Exception {
 
+		// Use default language for guest users
+
 		ObjectDefinition objectDefinition =
 			ObjectDefinitionTestUtil.publishObjectDefinition(
 				Collections.singletonList(
@@ -2176,7 +2207,14 @@ public class ObjectActionLocalServiceTest {
 						null, "Subject", "en_US"),
 					NotificationConstants.TYPE_EMAIL, Collections.emptyList()));
 
-		_objectActionLocalService.addObjectAction(
+		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.put(
+			"notificationTemplateId",
+			String.valueOf(notificationTemplate.getNotificationTemplateId())
+		).put(
+			"usePreferredLanguageForGuests", "false"
+		).build();
+
+		ObjectAction objectAction = _objectActionLocalService.addObjectAction(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			objectDefinition.getObjectDefinitionId(), true, StringPool.BLANK,
 			RandomTestUtil.randomString(),
@@ -2184,13 +2222,7 @@ public class ObjectActionLocalServiceTest {
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			RandomTestUtil.randomString(),
 			ObjectActionExecutorConstants.KEY_NOTIFICATION,
-			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
-			UnicodePropertiesBuilder.put(
-				"notificationTemplateId",
-				String.valueOf(notificationTemplate.getNotificationTemplateId())
-			).put(
-				"usePreferredLanguageForGuests", "true"
-			).build(),
+			ObjectActionTriggerConstants.KEY_ON_AFTER_ADD, unicodeProperties,
 			false);
 
 		ServiceContext serviceContext =
@@ -2214,19 +2246,63 @@ public class ObjectActionLocalServiceTest {
 			guestUser.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
 			Collections.emptyMap(), serviceContext);
 
-		List<NotificationQueueEntry> notificationQueueEntries =
-			_notificationQueueEntryLocalService.getNotificationEntries(
-				NotificationConstants.TYPE_EMAIL,
-				NotificationQueueEntryConstants.STATUS_SENT);
+		_assertNotificationQueueEntrySubject("Subject");
 
-		Assert.assertEquals(
-			notificationQueueEntries.toString(), 1,
-			notificationQueueEntries.size());
+		User user = UserTestUtil.addUser();
 
-		NotificationQueueEntry notificationQueueEntry =
-			notificationQueueEntries.get(0);
+		_userLocalService.updateLanguageId(
+			user.getUserId(), LocaleUtil.BRAZIL.toLanguageTag());
 
-		Assert.assertEquals("Assunto", notificationQueueEntry.getSubject());
+		_objectEntryLocalService.addObjectEntry(
+			user.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertNotificationQueueEntrySubject("Assunto");
+
+		// Use preferred language for guest users
+
+		unicodeProperties.put("usePreferredLanguageForGuests", "true");
+
+		_objectActionLocalService.updateObjectAction(
+			objectAction.getExternalReferenceCode(),
+			objectAction.getObjectActionId(), true,
+			objectAction.getConditionExpression(), StringPool.BLANK,
+			objectAction.getErrorMessageMap(), objectAction.getLabelMap(),
+			objectAction.getName(), objectAction.getObjectActionExecutorKey(),
+			objectAction.getObjectActionTriggerKey(), unicodeProperties);
+
+		_objectEntryLocalService.addObjectEntry(
+			guestUser.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertNotificationQueueEntrySubject("Assunto");
+
+		_userLocalService.updateLanguageId(
+			user.getUserId(), LocaleUtil.US.toLanguageTag());
+
+		_objectEntryLocalService.addObjectEntry(
+			user.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertNotificationQueueEntrySubject("Subject");
+
+		serviceContext.setLanguageId(LocaleUtil.HUNGARY.toLanguageTag());
+
+		_objectEntryLocalService.addObjectEntry(
+			guestUser.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertNotificationQueueEntrySubject("Subject");
+
+		_objectEntryLocalService.addObjectEntry(
+			user.getUserId(), 0, objectDefinition.getObjectDefinitionId(),
+			Collections.emptyMap(), serviceContext);
+
+		_assertNotificationQueueEntrySubject("Subject");
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+
+		_userLocalService.deleteUser(user);
 	}
 
 	@Test
@@ -2707,6 +2783,28 @@ public class ObjectActionLocalServiceTest {
 
 		Assert.assertEquals(Collections.emptySet(), arguments[1]);
 		Assert.assertEquals("println \"Hello World\"", arguments[2]);
+	}
+
+	private void _assertNotificationQueueEntrySubject(String expectedSubject)
+		throws Exception {
+
+		List<NotificationQueueEntry> notificationQueueEntries =
+			_notificationQueueEntryLocalService.getNotificationEntries(
+				NotificationConstants.TYPE_EMAIL,
+				NotificationQueueEntryConstants.STATUS_SENT);
+
+		Assert.assertEquals(
+			notificationQueueEntries.toString(), 1,
+			notificationQueueEntries.size());
+
+		NotificationQueueEntry notificationQueueEntry =
+			notificationQueueEntries.get(0);
+
+		Assert.assertEquals(
+			expectedSubject, notificationQueueEntry.getSubject());
+
+		_notificationQueueEntryLocalService.deleteNotificationQueueEntry(
+			notificationQueueEntry);
 	}
 
 	private void _assertObjectAction(

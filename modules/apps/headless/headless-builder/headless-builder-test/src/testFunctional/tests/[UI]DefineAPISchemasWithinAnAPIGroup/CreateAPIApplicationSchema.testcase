@@ -2,6 +2,7 @@
 definition {
 
 	property custom.properties = "feature.flag.LPS-178642=true";
+	property portal.acceptance = "quarantine";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "API Builder";
@@ -38,8 +39,6 @@ definition {
 
 	@priority = 5
 	test AllObjectDefinitionsAreAvailableInTheObjectMenu {
-		property portal.acceptance = "true";
-
 		task ("Given multiple custom object definitions created and published") {
 			ObjectAdmin.openObjectAdmin();
 
@@ -101,8 +100,6 @@ definition {
 
 	@priority = 5
 	test CanCreateMultipleSchemasInApplication {
-		property portal.acceptance = "true";
-
 		task ("And Given a Schema created in the API Application") {
 			SchemaAPI.createAPISchema(
 				apiApplicationERC = "My-app",
@@ -182,8 +179,6 @@ definition {
 
 	@priority = 4
 	test CanSeeInfoOfCreatedSchema {
-		property portal.acceptance = "true";
-
 		task ("When I create a schema with valid Name and Object") {
 			APIBuilderUI.createAPISchema(
 				confirmCreation = "true",
@@ -242,8 +237,6 @@ definition {
 
 	@priority = 5
 	test SchemaIsNotCreatedAfterClickingCancel {
-		property portal.acceptance = "true";
-
 		task ("And Given I fill in valid Name and Object fields") {
 			APIBuilderUI.createAPISchema(
 				name = "testSchema",
@@ -263,8 +256,6 @@ definition {
 
 	@priority = 5
 	test SchemaNameMustBeUnique {
-		property portal.acceptance = "true";
-
 		task ("And Given a Schema 'new' created in the API Application") {
 			SchemaAPI.createAPISchema(
 				apiApplicationERC = "My-app",

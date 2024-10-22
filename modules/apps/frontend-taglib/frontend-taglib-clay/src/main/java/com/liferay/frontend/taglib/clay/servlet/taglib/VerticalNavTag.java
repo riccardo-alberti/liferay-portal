@@ -8,6 +8,7 @@ package com.liferay.frontend.taglib.clay.servlet.taglib;
 import com.liferay.frontend.taglib.clay.internal.servlet.taglib.BaseContainerTag;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.VerticalNavItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.VerticalNavItemList;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -209,16 +210,16 @@ public class VerticalNavTag extends BaseContainerTag {
 			int depth)
 		throws Exception {
 
-		jspWriter.write("<ul aria-orientation=\"vertical\" role=\"menubar\"");
-
-		jspWriter.write("class=\"nav ");
+		jspWriter.write("<ul aria-orientation=\"vertical\" class=\"nav ");
 
 		if (depth == 0) {
-			jspWriter.write("nav-nested\">");
+			jspWriter.write("nav-nested");
 		}
 		else {
-			jspWriter.write("nav-stacked\">");
+			jspWriter.write("nav-stacked");
 		}
+
+		jspWriter.write("\" role=\"menubar\">");
 
 		for (VerticalNavItem verticalNavItem : verticalNavItems) {
 			VerticalNavItemList items =
@@ -290,7 +291,8 @@ public class VerticalNavTag extends BaseContainerTag {
 				jspWriter.write("\" role=\"menuitem\" tabindex=\"-1\">");
 			}
 
-			jspWriter.write((String)verticalNavItem.get("label"));
+			jspWriter.write(
+				HtmlUtil.escape((String)verticalNavItem.get("label")));
 
 			if (items != null) {
 				IconTag iconTag = new IconTag();

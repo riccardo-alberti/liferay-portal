@@ -661,6 +661,7 @@
 		<field name="mvccVersion" type="long" />
 		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="emailAddressId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
@@ -1135,6 +1136,7 @@
 		<field name="mvccVersion" type="long" />
 		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="phoneId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />
@@ -1338,6 +1340,7 @@
 		<field name="mvccVersion" type="long" />
 		<field name="ctCollectionId" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="repositoryId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
@@ -1717,6 +1720,7 @@
 	<model name="com.liferay.portal.kernel.model.Website">
 		<field name="mvccVersion" type="long" />
 		<field name="uuid" type="String" />
+		<field name="externalReferenceCode" type="String" />
 		<field name="websiteId" type="long" />
 		<field name="companyId" type="long" />
 		<field name="userId" type="long" />

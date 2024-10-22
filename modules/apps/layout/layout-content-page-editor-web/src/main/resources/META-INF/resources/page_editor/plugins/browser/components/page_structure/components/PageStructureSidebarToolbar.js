@@ -4,35 +4,46 @@
  */
 
 import {ClayButtonWithIcon} from '@clayui/button';
-import {ClayDropDownWithItems} from '@clayui/drop-down';
-import {ManagementToolbar} from 'frontend-js-components-web';
+import ClayDropDown from '@clayui/drop-down';
+import {FeatureIndicator, ManagementToolbar} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React from 'react';
 
 import hasDropZoneChild from '../../../../../app/components/layout_data_items/hasDropZoneChild';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../app/config/constants/layoutDataItemTypes';
 import {VIEWPORT_SIZES} from '../../../../../app/config/constants/viewportSizes';
+import {useSetCopiedItemIds} from '../../../../../app/contexts/ClipboardContext';
 import {useSelectMultipleItems} from '../../../../../app/contexts/ControlsContext';
+import {useSetMovementSources} from '../../../../../app/contexts/KeyboardMovementContext';
 import {
 	useDispatch,
 	useSelector,
+	useSelectorRef,
 } from '../../../../../app/contexts/StoreContext';
+import {useGetWidgets} from '../../../../../app/contexts/WidgetsContext';
 import deleteItem from '../../../../../app/thunks/deleteItem';
 import duplicateItem from '../../../../../app/thunks/duplicateItem';
 import canBeDuplicated from '../../../../../app/utils/canBeDuplicated';
 import canBeRemoved from '../../../../../app/utils/canBeRemoved';
 import isInputFragment from '../../../../../app/utils/isInputFragment';
+import isItemWidget from '../../../../../app/utils/isItemWidget';
 import updateItemStyle from '../../../../../app/utils/updateItemStyle';
+
+import './PageStructureSidebarToolbar.scss';
 
 export default function PageStructureSidebarToolbar({activeItemIds}) {
 	const dispatch = useDispatch();
 	const fragmentEntryLinks = useSelector((state) => state.fragmentEntryLinks);
-	const layoutData = useSelector((state) => state.layoutData);
+	const layoutDataRef = useSelectorRef((state) => state.layoutData);
 	const selectedViewportSize = useSelector(
 		(state) => state.selectedViewportSize
 	);
 	const selectItems = useSelectMultipleItems();
-	const widgets = useSelector((state) => state.widgets);
+	const setCopiedItemIds = useSetCopiedItemIds();
+	const setMovementSources = useSetMovementSources();
+	const getWidgets = useGetWidgets();
+
+	const layoutData = layoutDataRef.current;
 
 	const itemsCanBeDeleted = () =>
 		activeItemIds.every((activeItemId) =>
@@ -45,7 +56,7 @@ export default function PageStructureSidebarToolbar({activeItemIds}) {
 				fragmentEntryLinks,
 				layoutData.items[activeItemId],
 				layoutData,
-				widgets
+				getWidgets
 			)
 		);
 
@@ -88,6 +99,28 @@ export default function PageStructureSidebarToolbar({activeItemIds}) {
 			type: 'divider',
 		},
 		{
+			isBetaFeature: true,
+			label: Liferay.Language.get('copy'),
+			onClick: () => setCopiedItemIds(activeItemIds),
+			symbolLeft: 'copy',
+		},
+		{
+			isBetaFeature: true,
+			label: Liferay.Language.get('cut'),
+			onClick: () => {
+				if (itemsCanBeDeleted()) {
+					setCopiedItemIds(activeItemIds);
+					dispatch(
+						deleteItem({
+							itemIds: activeItemIds,
+							selectItems,
+						})
+					);
+				}
+			},
+			symbolLeft: 'cut',
+		},
+		{
 			label: Liferay.Language.get('duplicate'),
 			onClick: () => {
 				if (itemsCanBeDuplicated()) {
@@ -100,6 +133,31 @@ export default function PageStructureSidebarToolbar({activeItemIds}) {
 				}
 			},
 			symbolLeft: 'copy',
+		},
+		{
+			className: 'keyboard-only',
+			isBetaFeature: true,
+			label: sub(
+				Liferay.Language.get('move-x-items'),
+				activeItemIds.length
+			),
+			onClick: () => {
+				const sources = activeItemIds.map((itemId) => {
+					const item = layoutData.items[itemId];
+
+					return {
+						isWidget: isItemWidget(item, fragmentEntryLinks),
+						itemId,
+						type: item.type,
+					};
+				});
+
+				setMovementSources(sources);
+			},
+			symbolLeft: 'move',
+		},
+		{
+			type: 'divider',
 		},
 		{
 			label: Liferay.Language.get('delete'),
@@ -128,8 +186,9 @@ export default function PageStructureSidebarToolbar({activeItemIds}) {
 			)}
 
 			{selectedViewportSize === VIEWPORT_SIZES.desktop ? (
-				<ClayDropDownWithItems
-					items={dropdownItems}
+				<ClayDropDown
+					closeOnClick
+					hasLeftSymbols
 					trigger={
 						<ClayButtonWithIcon
 							aria-label={sub(
@@ -143,7 +202,29 @@ export default function PageStructureSidebarToolbar({activeItemIds}) {
 							title={Liferay.Language.get('actions')}
 						/>
 					}
-				/>
+				>
+					<ClayDropDown.ItemList items={dropdownItems}>
+						{(item) =>
+							item.type === 'divider' ? (
+								<ClayDropDown.Divider />
+							) : (
+								<ClayDropDown.Item
+									className={item.className}
+									onClick={() => item.onClick()}
+									symbolLeft={item.symbolLeft}
+								>
+									{item.label}
+
+									{item.isBetaFeature ? (
+										<span className="ml-2">
+											<FeatureIndicator type="beta" />
+										</span>
+									) : null}
+								</ClayDropDown.Item>
+							)
+						}
+					</ClayDropDown.ItemList>
+				</ClayDropDown>
 			) : null}
 		</ManagementToolbar.Container>
 	);

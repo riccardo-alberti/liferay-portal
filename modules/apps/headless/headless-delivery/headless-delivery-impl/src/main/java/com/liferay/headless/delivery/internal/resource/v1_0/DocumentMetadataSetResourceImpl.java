@@ -5,6 +5,7 @@
 
 package com.liferay.headless.delivery.internal.resource.v1_0;
 
+import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.document.library.kernel.model.DLFileEntryMetadata;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
@@ -39,6 +40,24 @@ import org.osgi.service.component.annotations.ServiceScope;
 )
 public class DocumentMetadataSetResourceImpl
 	extends BaseDocumentMetadataSetResourceImpl {
+
+	@Override
+	public void deleteDocumentMetadataSet(Long documentMetadataSetId)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled("LPD-32247")) {
+			throw new UnsupportedOperationException();
+		}
+
+		DataDefinitionResource.Builder builder =
+			_dataDefinitionResourceFactory.create();
+
+		DataDefinitionResource dataDefinitionResource = builder.user(
+			contextUser
+		).build();
+
+		dataDefinitionResource.deleteDataDefinition(documentMetadataSetId);
+	}
 
 	@Override
 	public Page<DocumentMetadataSet> getAssetLibraryDocumentMetadataSetsPage(
@@ -138,6 +157,9 @@ public class DocumentMetadataSetResourceImpl
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private DataDefinitionResource.Factory _dataDefinitionResourceFactory;
 
 	@Reference
 	private DDMStructureService _ddmStructureService;

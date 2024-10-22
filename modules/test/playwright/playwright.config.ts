@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import 'dotenv/config';
 import {defineConfig, devices} from '@playwright/test';
 
+import {config as accessibilityMenuWeb} from './tests/accessibility-menu-web/config';
 import {config as accountAdminWebConfig} from './tests/account-admin-web/config';
+import {config as analyticsReportsJsComponentsWeb} from './tests/analytics-reports-js-components-web/config';
 import {config as analyticsSettingsWebConfig} from './tests/analytics-settings-web/config';
 import {config as analyticsWebConfig} from './tests/analytics-web/config';
 import {config as announcementsWebConfig} from './tests/announcements-web/config';
@@ -13,6 +16,7 @@ import {config as assetPublisherWebConfig} from './tests/asset-publisher-web/con
 import {config as batchPlannerConfig} from './tests/batch-planner/config';
 import {config as blogsWebConfig} from './tests/blogs-web/config';
 import {config as calendarWebConfig} from './tests/calendar-web/config';
+import {config as captchaWebConfig} from './tests/captcha-web/config';
 import {config as changeTrackingWebConfig} from './tests/change-tracking-web/config';
 import {config as clientExtensionWebConfig} from './tests/client-extension-web/config';
 import {config as commerceConfig} from './tests/commerce/config';
@@ -28,16 +32,19 @@ import {config as featureFlagWebConfig} from './tests/feature-flag-web/config';
 import {config as fragmentWebConfig} from './tests/fragment-web/config';
 import {config as frontendDataSetAdminWebConfig} from './tests/frontend-data-set-admin-web/config';
 import {config as frontendDataSetWebConfig} from './tests/frontend-data-set-web/config';
-import {config as frontendEditorCKEditorSampleWebConfig} from './tests/frontend-editor-ckeditor-sample-web/config';
+import {config as frontendEditorCKEditorWebConfig} from './tests/frontend-editor-ckeditor-web/config';
 import {config as frontendJsSpaWebConfig} from './tests/frontend-js-spa-web/config';
 import {config as frontendTaglibClayConfig} from './tests/frontend-taglib-clay/config';
+import {config as frontendTaglibConfig} from './tests/frontend-taglib/config';
 import {config as headlessBuilderImplConfig} from './tests/headless-builder-impl/config';
 import {config as headlessBuilderWebConfig} from './tests/headless-builder-web/config';
+import {config as iframeWebConfig} from './tests/iframe-web/config';
 import {config as itemSelectorTaglibConfig} from './tests/item-selector-taglib/config';
 import {config as journalWebConfig} from './tests/journal-web/config';
 import {config as knowledgeBaseWebConfig} from './tests/knowledge-base-web/config';
 import {config as layoutAdminWebConfig} from './tests/layout-admin-web/config';
 import {config as layoutContentPageEditorWebConfig} from './tests/layout-content-page-editor-web/config';
+import {config as layoutLockedLayoutsWebConfig} from './tests/layout-locked-layouts-web/config';
 import {config as layoutPageTemplateAdminWebConfig} from './tests/layout-page-template-admin-web/config';
 import {config as layoutSetPrototypeWebConfig} from './tests/layout-set-prototype-web/config';
 import {config as lockedItemsWebConfig} from './tests/locked-items-web/config';
@@ -45,6 +52,7 @@ import {config as loginWebConfig} from './tests/login-web/config';
 import {config as messageBoardsWebConfig} from './tests/message-boards-web/config';
 import {config as nestedPortletsWebConfig} from './tests/nested-portlets-web/config';
 import {config as notificationWebConfig} from './tests/notification-web/config';
+import {config as notificationsWebConfig} from './tests/notifications-web/config';
 import {config as objectWebConfig} from './tests/object-web/config';
 import {config as openIdLinkConfig} from './tests/openid-link/config';
 import {config as osbFaroWebConfig} from './tests/osb-faro-web/config';
@@ -54,6 +62,8 @@ import {config as portalSearchAdminWebConfig} from './tests/portal-search-admin-
 import {config as portalSearchWebConfig} from './tests/portal-search-web/config';
 import {config as portalSecurityScriptManagementWebConfig} from './tests/portal-security-script-management-web/config';
 import {config as portalSecurityServiceAccessPolicyService} from './tests/portal-security-service-access-policy-service/config';
+import {config as portalToolsRestBuilderTestImpl} from './tests/portal-tools-rest-builder-test-impl/config';
+import {config as portalWebConfig} from './tests/portal-web/config';
 import {config as portalWorkflowKaleoDesignerWebConfig} from './tests/portal-workflow-kaleo-designer-web/config';
 import {config as portalWorkflowTaskWebConfig} from './tests/portal-workflow-task-web/config';
 import {config as portletConfigurationCssWebConfig} from './tests/portlet-configuration-css-web/config';
@@ -93,7 +103,9 @@ export default defineConfig({
 	},
 	forbidOnly: !!process.env.CI,
 	projects: [
+		accessibilityMenuWeb,
 		accountAdminWebConfig,
+		analyticsReportsJsComponentsWeb,
 		analyticsSettingsWebConfig,
 		analyticsWebConfig,
 		depotWebConfig,
@@ -102,6 +114,7 @@ export default defineConfig({
 		batchPlannerConfig,
 		blogsWebConfig,
 		calendarWebConfig,
+		captchaWebConfig,
 		cookiesBannerWebConfig,
 		changeTrackingWebConfig,
 		clientExtensionWebConfig,
@@ -118,17 +131,20 @@ export default defineConfig({
 		fragmentWebConfig,
 		frontendDataSetAdminWebConfig,
 		frontendDataSetWebConfig,
-		frontendEditorCKEditorSampleWebConfig,
+		frontendEditorCKEditorWebConfig,
 		frontendJsSpaWebConfig,
 		frontendTaglibClayConfig,
+		frontendTaglibConfig,
 		headlessBuilderImplConfig,
 		headlessBuilderWebConfig,
+		iframeWebConfig,
 		itemSelectorTaglibConfig,
 		jethr0Config,
 		journalWebConfig,
 		knowledgeBaseWebConfig,
 		layoutAdminWebConfig,
 		layoutContentPageEditorWebConfig,
+		layoutLockedLayoutsWebConfig,
 		layoutSetPrototypeWebConfig,
 		layoutPageTemplateAdminWebConfig,
 		lockedItemsWebConfig,
@@ -137,6 +153,7 @@ export default defineConfig({
 		messageBoardsWebConfig,
 		nestedPortletsWebConfig,
 		notificationWebConfig,
+		notificationsWebConfig,
 		objectWebConfig,
 		openIdLinkConfig,
 		osbFaroWebConfig,
@@ -147,6 +164,8 @@ export default defineConfig({
 		portalSearchWebConfig,
 		portalSecurityScriptManagementWebConfig,
 		portalSecurityServiceAccessPolicyService,
+		portalToolsRestBuilderTestImpl,
+		portalWebConfig,
 		portalWorkflowKaleoDesignerWebConfig,
 		portalWorkflowTaskWebConfig,
 		portletConfigurationCssWebConfig,

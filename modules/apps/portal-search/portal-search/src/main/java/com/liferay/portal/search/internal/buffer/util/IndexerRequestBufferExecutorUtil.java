@@ -10,6 +10,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.concurrent.SystemExecutorServiceUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.mass.delete.MassDeleteCacheThreadLocal;
 import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.search.IndexWriterHelper;
 import com.liferay.portal.kernel.search.SearchContext;
@@ -23,6 +24,9 @@ import com.liferay.portal.search.internal.buffer.IndexerRequestBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Michael C. Han
@@ -42,6 +46,12 @@ public class IndexerRequestBufferExecutorUtil {
 			return;
 		}
 
+		if (MassDeleteCacheThreadLocal.isMassDeleteMode()) {
+			_execute(indexerRequestBuffer, numRequests, false);
+
+			return;
+		}
+
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
@@ -54,21 +64,41 @@ public class IndexerRequestBufferExecutorUtil {
 		ExecutorService executorService =
 			SystemExecutorServiceUtil.getExecutorService();
 
-		SearchContext.registerBatchModeSyncFuture(
-			executorService.submit(
-				() -> {
-					ServiceContextThreadLocal.pushServiceContext(
-						finalServiceContext);
+		IndexerRequestBuffer transferCopyIndexerRequestBuffer =
+			indexerRequestBuffer.transferCopy();
 
-					try (SafeCloseable safeCloseable =
-							SearchContext.openBatchMode(false)) {
+		AtomicReference<Future<?>> futureReference = new AtomicReference<>();
 
-						_execute(indexerRequestBuffer, numRequests, false);
-					}
-					finally {
-						ServiceContextThreadLocal.popServiceContext();
-					}
-				}));
+		FutureTask<?> futureTask = new FutureTask<Void>(
+			() -> {
+				ServiceContextThreadLocal.pushServiceContext(
+					finalServiceContext);
+
+				try (SafeCloseable safeCloseable = SearchContext.openBatchMode(
+						false)) {
+
+					_execute(
+						transferCopyIndexerRequestBuffer,
+						transferCopyIndexerRequestBuffer.size(), false);
+				}
+				catch (Exception exception) {
+					_log.error(exception);
+				}
+				finally {
+					ServiceContextThreadLocal.popServiceContext();
+
+					SearchContext.unregisterBatchModeSyncFuture(
+						futureReference.get());
+				}
+
+				return null;
+			});
+
+		futureReference.set(futureTask);
+
+		SearchContext.registerBatchModeSyncFuture(futureTask);
+
+		executorService.execute(futureTask);
 	}
 
 	private static void _execute(

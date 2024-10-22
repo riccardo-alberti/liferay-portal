@@ -14,23 +14,22 @@ const lazyRoutes = {
 				'./pages/AdministratorDashboard/AdministratorDashboardRouter'
 			)
 	),
-	'customer-gate': React.lazy(() => import('./pages/CustomerGate')),
 	'get-app': React.lazy(() => import('./pages/GetApp/GetAppRouter')),
 	'license-agreement': React.lazy(
 		() => import('./pages/LicenseAgreementPage')
 	),
 	'next-steps': React.lazy(() => import('./pages/NextSteps')),
+	'product-purchase': React.lazy(
+		() => import('./pages/ProductPurchase/ProductPurchaseRouter')
+	),
 	'published-apps': React.lazy(
 		() => import('./pages/PublisherDashboard/PublisherDashboardRouter')
 	),
 	'publisher-gate': React.lazy(
-		() => import('./pages/PublisherGate/PublisheGateRouter')
+		() => import('./pages/PublisherGate/PublisherGateRouter')
 	),
 	'purchased-apps': React.lazy(
 		() => import('./pages/CustomerDashboard/CustomerDashboardRouter')
-	),
-	'purchased-solutions': React.lazy(
-		() => import('./pages/GetSolution/GetSolutionRouter')
 	),
 } as const;
 

@@ -22,9 +22,9 @@ jest.mock(
 	})
 );
 
-const EMPTY_REF = {current: {}};
-
 const IDS = {
+	collection: 'collection',
+	collectionItem: 'collectionItem',
 	container: 'container',
 	form: 'form-id',
 	formStep: 'form-step-id',
@@ -32,6 +32,25 @@ const IDS = {
 	fragment: 'fragment-id',
 	grid: 'grid-id',
 };
+
+function getCollection() {
+	return {
+		children: [IDS.collectionItem],
+		config: {},
+		itemId: IDS.collection,
+		type: LAYOUT_DATA_ITEM_TYPES.collection,
+	};
+}
+
+function getCollectionItem() {
+	return {
+		children: [],
+		config: {},
+		itemId: IDS.collectionItem,
+		parentId: IDS.collection,
+		type: LAYOUT_DATA_ITEM_TYPES.collectionItem,
+	};
+}
 
 function getContainer() {
 	return {
@@ -50,6 +69,7 @@ function getFragment(
 		isWidget = false,
 		itemId,
 		parentId,
+		portletId,
 	} = {
 		fieldTypes: [],
 		fragmentEntryType: 'component',
@@ -66,6 +86,7 @@ function getFragment(
 		isWidget,
 		itemId: itemId || IDS.fragment,
 		parentId,
+		portletId,
 		type: LAYOUT_DATA_ITEM_TYPES.fragment,
 	};
 }
@@ -123,13 +144,11 @@ describe('checkAllowedChild', () => {
 			const grid = getGrid();
 			const form = getForm({formType: 'multistep'});
 
-			expect(
-				checkAllowedChild(container, form, EMPTY_REF, EMPTY_REF)
-			).toBe(false);
-
-			expect(checkAllowedChild(grid, form, EMPTY_REF, EMPTY_REF)).toBe(
+			expect(checkAllowedChild(container, form, {}, {}, () => [])).toBe(
 				false
 			);
+
+			expect(checkAllowedChild(grid, form, {}, {}, () => [])).toBe(false);
 		});
 
 		it('it is not possible to add standard fragments and inputs to a form if it is multistep', () => {
@@ -137,11 +156,11 @@ describe('checkAllowedChild', () => {
 			const input = getFragment({fragmentEntryType: 'input'});
 			const form = getForm({formType: 'multistep'});
 
-			expect(
-				checkAllowedChild(fragment, form, EMPTY_REF, EMPTY_REF)
-			).toBe(false);
+			expect(checkAllowedChild(fragment, form, {}, {}, () => [])).toBe(
+				false
+			);
 
-			expect(checkAllowedChild(input, form, EMPTY_REF, EMPTY_REF)).toBe(
+			expect(checkAllowedChild(input, form, {}, {}, () => [])).toBe(
 				false
 			);
 		});
@@ -151,22 +170,20 @@ describe('checkAllowedChild', () => {
 			const input = getFragment({fragmentEntryType: 'input'});
 			const formStep = getFormStep();
 
-			const layoutDataRef = {
-				current: {
-					items: {
-						[IDS.form]: getForm({formType: 'multistep'}),
-						[IDS.formStepContainer]: getFormStepContainer(),
-						[IDS.formStep]: formStep,
-					},
+			const layoutData = {
+				items: {
+					[IDS.form]: getForm({formType: 'multistep'}),
+					[IDS.formStepContainer]: getFormStepContainer(),
+					[IDS.formStep]: formStep,
 				},
 			};
 
 			expect(
-				checkAllowedChild(fragment, formStep, layoutDataRef, EMPTY_REF)
+				checkAllowedChild(fragment, formStep, layoutData, {}, () => [])
 			).toBe(true);
 
 			expect(
-				checkAllowedChild(input, formStep, layoutDataRef, EMPTY_REF)
+				checkAllowedChild(input, formStep, layoutData, {}, () => [])
 			).toBe(true);
 		});
 
@@ -174,16 +191,16 @@ describe('checkAllowedChild', () => {
 			const fragment = getFragment();
 			const form = getForm();
 
-			expect(
-				checkAllowedChild(fragment, form, EMPTY_REF, EMPTY_REF)
-			).toBe(true);
+			expect(checkAllowedChild(fragment, form, {}, {}, () => [])).toBe(
+				true
+			);
 		});
 
 		it('it is not possible to add widgets to a form', () => {
 			const widget = getFragment({isWidget: true});
 			const form = getForm();
 
-			expect(checkAllowedChild(widget, form, EMPTY_REF, EMPTY_REF)).toBe(
+			expect(checkAllowedChild(widget, form, {}, {}, () => [])).toBe(
 				false
 			);
 		});
@@ -197,9 +214,9 @@ describe('checkAllowedChild', () => {
 
 			const container = getContainer();
 
-			expect(
-				checkAllowedChild(input, container, EMPTY_REF, EMPTY_REF)
-			).toBe(false);
+			expect(checkAllowedChild(input, container, {}, {}, () => [])).toBe(
+				false
+			);
 		});
 
 		it('it is possible to add inputs inside a form', () => {
@@ -209,9 +226,7 @@ describe('checkAllowedChild', () => {
 
 			const form = getForm();
 
-			expect(checkAllowedChild(input, form, EMPTY_REF, EMPTY_REF)).toBe(
-				true
-			);
+			expect(checkAllowedChild(input, form, {}, {}, () => [])).toBe(true);
 		});
 	});
 
@@ -225,36 +240,33 @@ describe('checkAllowedChild', () => {
 			const form = getForm();
 			const multistepForm = getForm({formType: 'multistep'});
 
-			const layoutDataRef = {
-				current: {
-					items: {
-						[IDS.form]: form,
-						[IDS.formStepContainer]: getFormStepContainer(),
-						[IDS.formStep]: getFormStep(),
-					},
+			const layoutData = {
+				items: {
+					[IDS.form]: form,
+					[IDS.formStepContainer]: getFormStepContainer(),
+					[IDS.formStep]: getFormStep(),
 				},
 			};
 
-			const layoutDataRefWithMultistep = {
-				current: {
-					items: {
-						[IDS.form]: multistepForm,
-						[IDS.formStepContainer]: getFormStepContainer(),
-						[IDS.formStep]: getFormStep(),
-					},
+			const layoutDataWithMultistep = {
+				items: {
+					[IDS.form]: multistepForm,
+					[IDS.formStepContainer]: getFormStepContainer(),
+					[IDS.formStep]: getFormStep(),
 				},
 			};
 
 			expect(
-				checkAllowedChild(stepper, form, layoutDataRef, EMPTY_REF)
+				checkAllowedChild(stepper, form, layoutData, {}, () => [])
 			).toBe(true);
 
 			expect(
 				checkAllowedChild(
 					stepper,
 					multistepForm,
-					layoutDataRefWithMultistep,
-					EMPTY_REF
+					layoutDataWithMultistep,
+					{},
+					[]
 				)
 			).toBe(true);
 		});
@@ -267,18 +279,16 @@ describe('checkAllowedChild', () => {
 
 			const formStep = getFormStep();
 
-			const layoutDataRef = {
-				current: {
-					items: {
-						[IDS.form]: getForm({formType: 'multistep'}),
-						[IDS.formStepContainer]: getFormStepContainer(),
-						[IDS.formStep]: formStep,
-					},
+			const layoutData = {
+				items: {
+					[IDS.form]: getForm({formType: 'multistep'}),
+					[IDS.formStepContainer]: getFormStepContainer(),
+					[IDS.formStep]: formStep,
 				},
 			};
 
 			expect(
-				checkAllowedChild(stepper, formStep, layoutDataRef, EMPTY_REF)
+				checkAllowedChild(stepper, formStep, layoutData, {}, () => [])
 			).toBe(false);
 		});
 
@@ -291,7 +301,7 @@ describe('checkAllowedChild', () => {
 			const container = getContainer();
 
 			expect(
-				checkAllowedChild(stepper, container, EMPTY_REF, EMPTY_REF)
+				checkAllowedChild(stepper, container, {}, {}, () => [])
 			).toBe(false);
 		});
 
@@ -312,24 +322,20 @@ describe('checkAllowedChild', () => {
 				formType: 'multistep',
 			});
 
-			const layoutDataRef = {
-				current: {
-					items: {
-						[IDS.form]: form,
-						[IDS.formStepContainer]: getFormStepContainer(),
-						[IDS.formStep]: getFormStep(),
-						[existingStepper.itemId]: existingStepper,
-					},
+			const layoutData = {
+				items: {
+					[IDS.form]: form,
+					[IDS.formStepContainer]: getFormStepContainer(),
+					[IDS.formStep]: getFormStep(),
+					[existingStepper.itemId]: existingStepper,
 				},
 			};
 
-			const fragmentEntryLinksRef = {
-				current: {
-					[existingStepper.config.fragmentEntryLinkId]: {
-						fieldTypes: ['stepper'],
-						fragmentEntryLinkId:
-							existingStepper.config.fragmentEntryLinkId,
-					},
+			const fragmentEntryLinks = {
+				[existingStepper.config.fragmentEntryLinkId]: {
+					fieldTypes: ['stepper'],
+					fragmentEntryLinkId:
+						existingStepper.config.fragmentEntryLinkId,
 				},
 			};
 
@@ -337,8 +343,48 @@ describe('checkAllowedChild', () => {
 				checkAllowedChild(
 					stepper,
 					form,
-					layoutDataRef,
-					fragmentEntryLinksRef
+					layoutData,
+					fragmentEntryLinks,
+					() => []
+				)
+			).toBe(false);
+		});
+	});
+
+	describe('Widgets', () => {
+		it('it is not possible to add a non-instanceable widget in a collection display', () => {
+			const widget = getFragment({
+				isWidget: true,
+				portletId: 'non-instanceable-widget',
+			});
+
+			const collectionItem = getCollectionItem();
+
+			const layoutData = {
+				items: {
+					[IDS.collection]: getCollection(),
+					[IDS.collectionItem]: collectionItem,
+				},
+			};
+
+			const widgets = [
+				{
+					portlets: [
+						{
+							instanceable: false,
+							portletId: 'non-instanceable-widget',
+						},
+					],
+				},
+			];
+
+			expect(
+				checkAllowedChild(
+					widget,
+					collectionItem,
+					layoutData,
+					{},
+					() => widgets
 				)
 			).toBe(false);
 		});

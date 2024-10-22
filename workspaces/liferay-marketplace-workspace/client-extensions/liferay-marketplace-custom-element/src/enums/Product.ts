@@ -5,11 +5,28 @@
 
 import i18n from '../i18n';
 
+export enum PRODUCT_TYPE_VOCABULARY {
+	APP = 'App',
+	SOLUTION = 'Solution',
+}
+
+export enum SOLUTION_TYPES {
+	ANALYTICS = 'analytics',
+	PRE_BUILT_TRIAL = 'pre-built-trial',
+}
+
 export enum PRODUCT_CATEGORIES {
 	MARKETPLACE_APP_CATEGORY = 'marketplace-app-category',
 	MARKETPLACE_APP_TAGS = 'marketplace-app-tags',
+	MARKETPLACE_LIFERAY_VERSION = 'marketplace-liferay-version',
+	MARKETPLACE_PRODUCT_TYPE = 'marketplace-product-type',
 	MARKETPLACE_SOLUTION_CATEGORY = 'marketplace-solution-category',
 	MARKETPLACE_SOLUTION_TAGS = 'marketplace-solution-tags',
+}
+
+export enum PRODUCT_IMAGE_FALLBACK_CATEGORIES {
+	PRODUCT_ICON = 'productIcon',
+	PRODUCT_IMAGE = 'productImage',
 }
 
 export enum PRODUCT_PRICE_MODEL {
@@ -33,6 +50,7 @@ export enum PRODUCT_SPECIFICATION_KEY {
 	APP_VERSION = 'latest-version',
 	APP_VERSION_NOTES = 'product-notes',
 	SOLUTION_COMPANY_DESCRIPTION = 'solution-company-description',
+	SOLUTION_TYPE = 'solution-type',
 	SOLUTION_COMPANY_EMAIL = 'solution-company-email',
 	SOLUTION_COMPANY_PHONE = 'solution-company-phone',
 	SOLUTION_COMPANY_WEBSITE = 'solution-company-website',

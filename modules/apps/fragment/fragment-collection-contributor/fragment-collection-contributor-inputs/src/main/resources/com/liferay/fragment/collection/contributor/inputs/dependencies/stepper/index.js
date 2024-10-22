@@ -19,7 +19,7 @@ function saveActiveIndexInSession(index) {
 	);
 }
 
-function setActiveStep(index, {sendEvent = true} = {}) {
+function setActiveStep(stepIndex, {sendEvent = true} = {}) {
 
 	// Deactivate current active step if it exists
 
@@ -27,9 +27,13 @@ function setActiveStep(index, {sendEvent = true} = {}) {
 
 	activeStep?.classList.remove('active');
 
-	// Set new active step, save index in session if it's edit mode
+	// Get step from event or get the last one if it does not exist
+
+	const index = stepIndex < steps.length ? stepIndex : steps.length - 1;
 
 	const step = steps[index];
+
+	// Set new active step, save index in session if it's edit mode
 
 	step.classList.add('active');
 
@@ -64,13 +68,21 @@ function main() {
 	}
 
 	Liferay.on('formFragment:changeStep', (event) => {
-		if (!event.emitter || event.emitter === fragmentElement) {
+		const {emitter, step} = event;
+
+		if (!emitter || emitter === fragmentElement) {
 			return;
 		}
 
-		const form = event.emitter.closest('.lfr-layout-structure-item-form');
+		const form = emitter.closest('.lfr-layout-structure-item-form');
 
 		if (!form || !form.contains(fragmentElement)) {
+			return;
+		}
+
+		if (typeof step === 'number') {
+			setActiveStep(step, {sendEvent: false});
+
 			return;
 		}
 
@@ -78,11 +90,11 @@ function main() {
 			step.classList.contains('active')
 		);
 
-		if (event.step === 'next' && activeIndex <= steps.length - 2) {
+		if (step === 'next' && activeIndex <= steps.length - 2) {
 			setActiveStep(activeIndex + 1, {sendEvent: false});
 		}
 
-		if (event.step === 'previous' && activeIndex !== 0) {
+		if (step === 'previous' && activeIndex !== 0) {
 			setActiveStep(activeIndex - 1, {sendEvent: false});
 		}
 	});

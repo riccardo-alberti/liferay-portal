@@ -230,8 +230,6 @@ components:
                 name:
                     example: AccountGroup Name
                     type: string
-            required:
-                - name
             type: object
         AccountRole:
             # @review
@@ -365,6 +363,11 @@ components:
                     description:
                         The email address.
                     type: string
+                externalReferenceCode:
+                    description:
+                        The email address's external reference code.
+                    example: AB-34098-789-N
+                    type: string
                 id:
                     description:
                         The email address's ID.
@@ -437,6 +440,10 @@ components:
                         A relative URL to the organization's image.
                     format: uri
                     readOnly: true
+                    type: string
+                imageExternalReferenceCode:
+                    description:
+                        The organization's image external reference code.
                     type: string
                 imageId:
                     description:
@@ -621,6 +628,10 @@ components:
                 extension:
                     description:
                         The phone number's extension.
+                    type: string
+                externalReferenceCode:
+                    description:
+                        The phone number's external reference code.
                     type: string
                 id:
                     description:
@@ -1116,6 +1127,11 @@ components:
                     description:
                         The user's first name.
                     type: string
+                hasLoginDate:
+                    description:
+                        A flag that indicates whether the user has been signed in.
+                    readOnly: true
+                    type: boolean
                 honorificPrefix:
                     description:
                         The user's title (e.g., Dr., Mr., Mrs, Ms., etc.).
@@ -1134,6 +1150,10 @@ components:
                         A relative URL to the user's profile image.
                     format: uri
                     readOnly: true
+                    type: string
+                imageExternalReferenceCode:
+                    description:
+                        The user's profile image external reference code.
                     type: string
                 imageId:
                     description:
@@ -1347,6 +1367,11 @@ components:
             description:
                 Represents a URL to an external site. This is modeled internally as a `WebSite`.
             properties:
+                externalReferenceCode:
+                    description:
+                        The optional external key of this URL.
+                    example: AB-34098-789-N
+                    type: string
                 id:
                     description:
                         The URL's ID.
@@ -1368,7 +1393,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.user.client', and version '4.0.67'."
+        'com.liferay.headless.admin.user.client', and version '4.0.68'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -3592,7 +3617,92 @@ paths:
                                     $ref: "#/components/schemas/WebUrl"
                                 type: array
             tags: ["WebUrl"]
+    "/email-addresses/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            description:
+                Deletes an email address.
+            operationId: deleteEmailAddressByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["EmailAddress"]
+        get:
+            description:
+                Retrieves the email address.
+            operationId: getEmailAddressByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+            tags: ["EmailAddress"]
+        patch:
+            description:
+                Updates the email address with the information sent in the request body. Fields not present in the
+                request body are left unchanged.
+            operationId: patchEmailAddressByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/EmailAddress"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/EmailAddress"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+                    description:
+                        "Email Address successfully updated"
+            tags: ["EmailAddress"]
     "/email-addresses/{emailAddressId}":
+        delete:
+            description:
+                Deletes an email address.
+            operationId: deleteEmailAddress
+            parameters:
+                - in: path
+                  name: emailAddressId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["EmailAddress"]
         get:
             description:
                 Retrieves the email address.
@@ -3613,6 +3723,38 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/EmailAddress"
+            tags: ["EmailAddress"]
+        patch:
+            description:
+                Updates the email address with the information sent in the request body. Fields not present in the
+                request body are left unchanged.
+            operationId: patchEmailAddress
+            parameters:
+                - in: path
+                  name: emailAddressId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/EmailAddress"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/EmailAddress"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/EmailAddress"
+                    description:
+                        "Email Address successfully updated"
             tags: ["EmailAddress"]
     "/my-user-account":
         get:
@@ -4715,7 +4857,89 @@ paths:
                                     $ref: "#/components/schemas/Organization"
                                 type: array
             tags: ["Organization"]
+    "/phones/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            description:
+                Deletes the phone number by external reference code.
+            operationId: deletePhoneByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Phone"]
+        get:
+            description:
+                Retrieves the phone number by external reference code.
+            operationId: getPhoneByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+            tags: ["Phone"]
+        patch:
+            description:
+                Updates the phone number by external reference code.
+            operationId: patchPhoneByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Phone"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Phone"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+            tags: ["Phone"]
     "/phones/{phoneId}":
+        delete:
+            description:
+                Deletes the phone number.
+            operationId: deletePhone
+            parameters:
+                - in: path
+                  name: phoneId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Phone"]
         get:
             description:
                 Retrieves the phone number.
@@ -4727,6 +4951,35 @@ paths:
                   schema:
                       format: int64
                       type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Phone"
+            tags: ["Phone"]
+        patch:
+            description:
+                Updates the phone number.
+            operationId: patchPhone
+            parameters:
+                - in: path
+                  name: phoneId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Phone"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Phone"
             responses:
                 200:
                     content:
@@ -4994,6 +5247,22 @@ paths:
                         "Roles successfully created"
             tags: ["Role"]
     "/roles/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            description:
+                Deletes the role by its external reference code.
+            operationId: deleteRoleByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Role"]
         get:
             description:
                 Retrieves the role by its external reference code.
@@ -5016,7 +5285,7 @@ paths:
             tags: ["Role"]
         patch:
             description:
-                update the given Role
+                Updates the role by its external reference code.
             operationId: patchRoleByExternalReferenceCode
             parameters:
                 - in: path
@@ -5044,7 +5313,7 @@ paths:
             tags: ["Role"]
         put:
             description:
-                update the given Role
+                Updates the role by its external reference code.
             operationId: putRoleByExternalReferenceCode
             parameters:
                 - in: path
@@ -5234,6 +5503,23 @@ paths:
                         application/xml: {}
             tags: ["Role"]
     "/roles/{roleId}":
+        delete:
+            description:
+                Deletes the role.
+            operationId: deleteRole
+            parameters:
+                - in: path
+                  name: roleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["Role"]
         get:
             description:
                 Retrieves the role.
@@ -5245,6 +5531,64 @@ paths:
                   schema:
                       format: int64
                       type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+            tags: ["Role"]
+        patch:
+            description:
+                Updates the role.
+            operationId: patchRole
+            parameters:
+                - in: path
+                  name: roleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Role"
+            tags: ["Role"]
+        put:
+            description:
+                Updates the role.
+            operationId: putRole
+            parameters:
+                - in: path
+                  name: roleId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/Role"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/Role"
             responses:
                 200:
                     content:
@@ -6562,7 +6906,89 @@ paths:
                         application/json: {}
                         application/xml: {}
             tags: ["UserGroup"]
+    "/web-urls/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            description:
+                Deletes the web URL by external reference code.
+            operationId: deleteWebUrlByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["WebUrl"]
+        get:
+            description:
+                Retrieves the web URL by external reference code.
+            operationId: getWebUrlByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+            tags: ["WebUrl"]
+        patch:
+            description:
+                Updates the web URL by external reference code.
+            operationId: patchWebUrlByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WebUrl"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WebUrl"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+            tags: ["WebUrl"]
     "/web-urls/{webUrlId}":
+        delete:
+            description:
+                Deletes the web URL.
+            operationId: deleteWebUrl
+            parameters:
+                - in: path
+                  name: webUrlId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["WebUrl"]
         get:
             description:
                 Retrieves the web URL.
@@ -6574,6 +7000,35 @@ paths:
                   schema:
                       format: int64
                       type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WebUrl"
+            tags: ["WebUrl"]
+        patch:
+            description:
+                Updates the web URL.
+            operationId: patchWebUrl
+            parameters:
+                - in: path
+                  name: webUrlId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WebUrl"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WebUrl"
             responses:
                 200:
                     content:

@@ -91,7 +91,7 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 					<aui:icon image="caret-double-l" markupView="lexicon" />
 				</button>
 
-				<ul class="dropdown-menu dropdown-menu-top" id="<%= ariaPaginationPicker %>" role="listbox" tabindex="-1">
+				<ul aria-labelledby="<%= ariaPagination %>" class="dropdown-menu dropdown-menu-top" id="<%= ariaPaginationPicker %>" role="listbox" tabindex="-1">
 
 					<%
 					for (int curDelta : PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES) {
@@ -102,8 +102,8 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 						String curDeltaURL = HttpComponentsUtil.setParameter(url + urlAnchor, namespace + deltaParam, curDelta);
 					%>
 
-						<li role="option">
-							<a class="dropdown-item <%= (delta == curDelta) ? "active" : "" %>" href="<%= HtmlUtil.escapeHREF(curDeltaURL) %>" id="<%= String.valueOf(curDelta) %>" onClick="<%= forcePost ? _getOnClick(namespace, deltaParam, curDelta) : "" %>">
+						<li role="presentation">
+							<a aria-selected="<%= (delta == curDelta) ? "true" : "false" %>" class="dropdown-item <%= (delta == curDelta) ? "active" : "" %>" href="<%= HtmlUtil.escapeHREF(curDeltaURL) %>" id="<%= String.valueOf(curDelta) %>" onClick="<%= forcePost ? _getOnClick(namespace, deltaParam, curDelta) : "" %>" role="option">
 								<%= String.valueOf(curDelta) %><span class="sr-only"><%= StringPool.NBSP %><liferay-ui:message key="entries-per-page" /></span>
 							</a>
 						</li>
@@ -116,7 +116,7 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 			</div>
 
 			<aui:script senna="temporary" type="text/javascript">
-				(function() {
+				(function () {
 					var dropdown = document.getElementById("<%= ariaPagination %>");
 
 					var button = dropdown.querySelector('.dropdown-toggle');
@@ -195,7 +195,7 @@ NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
 			<liferay-ui:message arguments="<%= new Object[] {numberFormat.format(start + 1), numberFormat.format(end), numberFormat.format(total)} %>" key="showing-x-to-x-of-x-entries" />
 		</p>
 
-		<nav aria-label="pagination">
+		<nav aria-label="<liferay-ui:message key="pagination" />">
 			<ul class="pagination">
 				<li class="page-item <%= (cur > 1) ? StringPool.BLANK : "disabled" %>">
 					<c:choose>

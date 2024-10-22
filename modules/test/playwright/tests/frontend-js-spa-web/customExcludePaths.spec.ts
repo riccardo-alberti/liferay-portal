@@ -8,7 +8,7 @@ import {expect, mergeTests} from '@playwright/test';
 import {isolatedLayoutTest} from '../../fixtures/isolatedLayoutTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {systemSettingsPageTest} from '../../fixtures/systemSettingsPageTest';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 
 export const test = mergeTests(
 	isolatedLayoutTest(),
@@ -52,16 +52,26 @@ test('@LPD-26354 Custom Exclude Path', async ({
 			name: 'Update',
 		});
 
-		await updateButton.isVisible();
-		await updateButton.click();
+		const saveButton = page.getByRole('button', {
+			name: 'Save',
+		});
 
-		await waitForSuccessAlert(page);
+		if (await saveButton.isVisible()) {
+			await saveButton.click();
+		}
+		else if (await updateButton.isVisible()) {
+			await updateButton.click();
+		}
+
+		await waitForAlert(page);
 	});
 
 	await test.step('Go to page and check SPA', async () => {
 		await page.goto(layout.friendlyURL);
 
 		await page.reload();
+
+		await page.locator('#content').waitFor({state: 'visible'});
 
 		// @ts-ignore
 

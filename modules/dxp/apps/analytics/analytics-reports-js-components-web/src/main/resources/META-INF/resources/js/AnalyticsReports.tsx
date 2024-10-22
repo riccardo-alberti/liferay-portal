@@ -3,46 +3,41 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 
 import AppSetup from './components/AppSetup';
 import GlobalFilters from './components/GlobalFilters';
 import OverviewMetrics from './components/OverviewMetrics';
+import InteractionsByPage from './components/interactions-by-page/InteractionsByPage';
+import Technology from './components/technology/Technology';
+import VisitorsBehavior from './components/visitors-behavior/VisitorsBehavior';
 
 import '../css/main.scss';
 
 interface AnalyticsReports {
 	contentPerformanceDataFetchURL: string;
+	getItemVersionsURL: string;
 }
 
 const AnalyticsReports: React.FC<AnalyticsReports> = ({
 	contentPerformanceDataFetchURL,
+	getItemVersionsURL,
 }) => {
-	const analyticsReportsRef = useRef<HTMLDivElement>(null);
-
-	// workaround to avoid a blink when the user clicks on the
-	// performance tab to load the Analytics Reports component.
-
-	useEffect(() => {
-		setTimeout(() => {
-			if (analyticsReportsRef.current) {
-				analyticsReportsRef.current.style.opacity = '1';
-			}
-		}, 500);
-	}, []);
-
 	return (
-		<div
-			className="analytics-reports"
-			ref={analyticsReportsRef}
-			style={{opacity: 0}}
-		>
+		<div className="analytics-reports">
 			<AppSetup
 				contentPerformanceDataFetchURL={contentPerformanceDataFetchURL}
+				getItemVersionsURL={getItemVersionsURL}
 			>
 				<GlobalFilters />
 
 				<OverviewMetrics />
+
+				<VisitorsBehavior />
+
+				<InteractionsByPage />
+
+				<Technology />
 			</AppSetup>
 		</div>
 	);

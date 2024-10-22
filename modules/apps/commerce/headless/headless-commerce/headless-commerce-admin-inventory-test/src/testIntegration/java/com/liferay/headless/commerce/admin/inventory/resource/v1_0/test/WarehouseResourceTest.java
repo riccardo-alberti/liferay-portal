@@ -153,6 +153,7 @@ public class WarehouseResourceTest extends BaseWarehouseResourceTestCase {
 				active = RandomTestUtil.randomBoolean();
 				city = "Milano";
 				countryISOCode = "IT";
+				externalReferenceCode = RandomTestUtil.randomString();
 				latitude = RandomTestUtil.randomDouble();
 				longitude = RandomTestUtil.randomDouble();
 				name = LanguageUtils.getLanguageIdMap(
@@ -209,6 +210,13 @@ public class WarehouseResourceTest extends BaseWarehouseResourceTestCase {
 		throws Exception {
 
 		return _addWarehouse(warehouse);
+	}
+
+	@Override
+	protected Warehouse testPutWarehouseByExternalReferenceCode_addWarehouse()
+		throws Exception {
+
+		return _addWarehouse(randomWarehouse());
 	}
 
 	private Warehouse _addWarehouse() throws Exception {

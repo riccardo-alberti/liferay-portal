@@ -59,7 +59,7 @@ public class ChannelResourceImpl extends BaseChannelResourceImpl {
 		throws Exception {
 
 		CommerceChannel commerceChannel =
-			_commerceChannelService.fetchByExternalReferenceCode(
+			_commerceChannelService.fetchCommerceChannelByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceChannel == null) {
@@ -102,7 +102,7 @@ public class ChannelResourceImpl extends BaseChannelResourceImpl {
 		throws Exception {
 
 		CommerceChannel commerceChannel =
-			_commerceChannelService.fetchByExternalReferenceCode(
+			_commerceChannelService.fetchCommerceChannelByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceChannel == null) {
@@ -168,7 +168,7 @@ public class ChannelResourceImpl extends BaseChannelResourceImpl {
 		throws Exception {
 
 		CommerceChannel commerceChannel =
-			_commerceChannelService.fetchByExternalReferenceCode(
+			_commerceChannelService.fetchCommerceChannelByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceChannel == null) {
@@ -237,8 +237,8 @@ public class ChannelResourceImpl extends BaseChannelResourceImpl {
 				externalReferenceCode,
 				_getAccountEntryId(
 					channel, AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT),
-				channel.getSiteGroupId(), channel.getName(), channel.getType(),
-				null, channel.getCurrencyCode(),
+				GetterUtil.getLong(channel.getSiteGroupId()), channel.getName(),
+				channel.getType(), null, channel.getCurrencyCode(),
 				_serviceContextHelper.getServiceContext()));
 	}
 

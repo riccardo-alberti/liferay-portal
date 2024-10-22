@@ -9,6 +9,7 @@ import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {formsPagesTest} from '../../fixtures/formsPagesTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {getRandomInt} from '../../utils/getRandomInt';
+import {deleteItems} from './utils/deleteItems';
 
 export const xssBypassTest = mergeTests(
 	featureFlagsTest({
@@ -25,6 +26,14 @@ export const xssDisabledTest = mergeTests(
 	loginTest(),
 	formsPagesTest
 );
+
+[xssBypassTest, xssDisabledTest].forEach((testSuite) => {
+	testSuite.afterEach(async ({formsPage, page}) => {
+		await formsPage.goTo();
+
+		await deleteItems(formsPage, page);
+	});
+});
 
 const content = '<script>alert("Hello! I am an alert box!");</script>';
 const sanitizedContent = '<script>;</script>';
@@ -78,6 +87,8 @@ const assertRichTextContent = async (
 		.first();
 
 	await expect(input).toHaveValue(expected);
+
+	await newTabPage.close();
 };
 
 xssBypassTest(

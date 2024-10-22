@@ -7,7 +7,7 @@ import React, {useContext} from 'react';
 
 import {AnalyticsReportsContext} from '../AnalyticsReportsContext';
 import {Individuals, RangeSelectors} from '../types/global';
-import {formatDate} from '../utils/date';
+import {formatDate, getDateRange} from '../utils/date';
 import Filter from './Filter';
 import Title from './Title';
 
@@ -19,23 +19,62 @@ const individualFilterLang = {
 	[Individuals.KnownIndividuals]: Liferay.Language.get('known-individuals'),
 };
 
-const getDateRange = (rangeSelector: RangeSelectors) => {
-	function getDate(value: number) {
-		return new Date(new Date().setDate(new Date().getDate() - value));
-	}
-
-	const startDate = getDate(1);
-	const endDate = getDate(Number(rangeSelector));
+function formatDateRange(rangeSelector: RangeSelectors) {
+	const {endDate, startDate} = getDateRange(rangeSelector);
 
 	return `${formatDate(endDate)} - ${formatDate(startDate)}`;
-};
+}
 
 const GlobalFilters = () => {
 	const {changeIndividualFilter, changeRangeSelectorFilter, filters} =
 		useContext(AnalyticsReportsContext);
 
+	let timeFilterItems = [
+		{
+			description: formatDateRange(RangeSelectors.Last7Days),
+			label: Liferay.Util.sub(Liferay.Language.get('last-x-days'), [
+				RangeSelectors.Last7Days,
+			]),
+			value: RangeSelectors.Last7Days,
+		},
+		{
+			description: formatDateRange(RangeSelectors.Last28Days),
+			label: Liferay.Util.sub(Liferay.Language.get('last-x-days'), [
+				RangeSelectors.Last28Days,
+			]),
+			value: RangeSelectors.Last28Days,
+		},
+		{
+			description: formatDateRange(RangeSelectors.Last30Days),
+			label: Liferay.Util.sub(Liferay.Language.get('last-x-days'), [
+				RangeSelectors.Last30Days,
+			]),
+			value: RangeSelectors.Last30Days,
+		},
+		{
+			description: formatDateRange(RangeSelectors.Last90Days),
+			label: Liferay.Util.sub(Liferay.Language.get('last-x-days'), [
+				RangeSelectors.Last90Days,
+			]),
+			value: RangeSelectors.Last90Days,
+		},
+	];
+
+	if (process.env.NODE_ENV === 'development') {
+		timeFilterItems = [
+			{
+				description: formatDateRange(RangeSelectors.Last24Hours),
+				label: Liferay.Util.sub(Liferay.Language.get('last-x-hours'), [
+					24,
+				]),
+				value: RangeSelectors.Last24Hours,
+			},
+			...timeFilterItems,
+		];
+	}
+
 	return (
-		<div className="d-flex global-filters justify-content-between">
+		<div className="d-flex global-filters justify-content-between mb-3">
 			<Title value={Liferay.Language.get('overview')} />
 
 			<div className="d-flex">
@@ -68,53 +107,15 @@ const GlobalFilters = () => {
 					active={filters.rangeSelector}
 					filterByValue="rangeSelectors"
 					icon="calendar"
-					items={[
-						{
-							description: getDateRange(RangeSelectors.Last7Days),
-							label: Liferay.Util.sub(
-								Liferay.Language.get('last-x-days'),
-								[RangeSelectors.Last7Days]
-							),
-							value: RangeSelectors.Last7Days,
-						},
-						{
-							description: getDateRange(
-								RangeSelectors.Last28Days
-							),
-							label: Liferay.Util.sub(
-								Liferay.Language.get('last-x-days'),
-								[RangeSelectors.Last28Days]
-							),
-							value: RangeSelectors.Last28Days,
-						},
-						{
-							description: getDateRange(
-								RangeSelectors.Last30Days
-							),
-							label: Liferay.Util.sub(
-								Liferay.Language.get('last-x-days'),
-								[RangeSelectors.Last30Days]
-							),
-							value: RangeSelectors.Last30Days,
-						},
-						{
-							description: getDateRange(
-								RangeSelectors.Last90Days
-							),
-							label: Liferay.Util.sub(
-								Liferay.Language.get('last-x-days'),
-								[RangeSelectors.Last90Days]
-							),
-							value: RangeSelectors.Last90Days,
-						},
-					]}
+					items={timeFilterItems}
 					onSelectItem={(item) =>
 						changeRangeSelectorFilter(item.value)
 					}
-					triggerLabel={Liferay.Util.sub(
-						Liferay.Language.get('last-x-days'),
-						[filters.rangeSelector]
-					)}
+					triggerLabel={
+						timeFilterItems.find(
+							({value}) => value === filters.rangeSelector
+						)?.label ?? ''
+					}
 				/>
 			</div>
 		</div>

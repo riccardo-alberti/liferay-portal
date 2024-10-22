@@ -265,6 +265,16 @@ public class UserAccountSerDes {
 			sb.append("\"");
 		}
 
+		if (userAccount.getHasLoginDate() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"hasLoginDate\": ");
+
+			sb.append(userAccount.getHasLoginDate());
+		}
+
 		if (userAccount.getHonorificPrefix() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -313,6 +323,20 @@ public class UserAccountSerDes {
 			sb.append("\"");
 
 			sb.append(_escape(userAccount.getImage()));
+
+			sb.append("\"");
+		}
+
+		if (userAccount.getImageExternalReferenceCode() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"imageExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(userAccount.getImageExternalReferenceCode()));
 
 			sb.append("\"");
 		}
@@ -693,6 +717,14 @@ public class UserAccountSerDes {
 			map.put("givenName", String.valueOf(userAccount.getGivenName()));
 		}
 
+		if (userAccount.getHasLoginDate() == null) {
+			map.put("hasLoginDate", null);
+		}
+		else {
+			map.put(
+				"hasLoginDate", String.valueOf(userAccount.getHasLoginDate()));
+		}
+
 		if (userAccount.getHonorificPrefix() == null) {
 			map.put("honorificPrefix", null);
 		}
@@ -723,6 +755,15 @@ public class UserAccountSerDes {
 		}
 		else {
 			map.put("image", String.valueOf(userAccount.getImage()));
+		}
+
+		if (userAccount.getImageExternalReferenceCode() == null) {
+			map.put("imageExternalReferenceCode", null);
+		}
+		else {
+			map.put(
+				"imageExternalReferenceCode",
+				String.valueOf(userAccount.getImageExternalReferenceCode()));
 		}
 
 		if (userAccount.getImageId() == null) {
@@ -902,6 +943,9 @@ public class UserAccountSerDes {
 			else if (Objects.equals(jsonParserFieldName, "givenName")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "hasLoginDate")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "honorificPrefix")) {
 				return false;
 			}
@@ -912,6 +956,11 @@ public class UserAccountSerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "image")) {
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "imageExternalReferenceCode")) {
+
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "imageId")) {
@@ -1074,6 +1123,11 @@ public class UserAccountSerDes {
 					userAccount.setGivenName((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "hasLoginDate")) {
+				if (jsonParserFieldValue != null) {
+					userAccount.setHasLoginDate((Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "honorificPrefix")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setHonorificPrefix(
@@ -1095,6 +1149,14 @@ public class UserAccountSerDes {
 			else if (Objects.equals(jsonParserFieldName, "image")) {
 				if (jsonParserFieldValue != null) {
 					userAccount.setImage((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "imageExternalReferenceCode")) {
+
+				if (jsonParserFieldValue != null) {
+					userAccount.setImageExternalReferenceCode(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "imageId")) {

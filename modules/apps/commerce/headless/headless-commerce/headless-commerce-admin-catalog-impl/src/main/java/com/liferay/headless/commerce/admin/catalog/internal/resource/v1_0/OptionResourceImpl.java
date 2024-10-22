@@ -72,8 +72,9 @@ public class OptionResourceImpl extends BaseOptionResourceImpl {
 			String externalReferenceCode)
 		throws Exception {
 
-		CPOption cpOption = _cpOptionService.fetchByExternalReferenceCode(
-			externalReferenceCode, contextCompany.getCompanyId());
+		CPOption cpOption =
+			_cpOptionService.fetchCPOptionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
@@ -104,8 +105,9 @@ public class OptionResourceImpl extends BaseOptionResourceImpl {
 	public Option getOptionByExternalReferenceCode(String externalReferenceCode)
 		throws Exception {
 
-		CPOption cpOption = _cpOptionService.fetchByExternalReferenceCode(
-			externalReferenceCode, contextCompany.getCompanyId());
+		CPOption cpOption =
+			_cpOptionService.fetchCPOptionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
 
 		return _toOption(cpOption.getCPOptionId());
 	}
@@ -142,8 +144,9 @@ public class OptionResourceImpl extends BaseOptionResourceImpl {
 			String externalReferenceCode, Option option)
 		throws Exception {
 
-		CPOption cpOption = _cpOptionService.fetchByExternalReferenceCode(
-			externalReferenceCode, contextCompany.getCompanyId());
+		CPOption cpOption =
+			_cpOptionService.fetchCPOptionByExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (cpOption == null) {
 			throw new NoSuchCPOptionException(
@@ -160,10 +163,21 @@ public class OptionResourceImpl extends BaseOptionResourceImpl {
 
 	@Override
 	public Option postOption(Option option) throws Exception {
-		return _addOrUpdateOption(option);
+		return _addOrUpdateOption(option.getExternalReferenceCode(), option);
 	}
 
-	private Option _addOrUpdateOption(Option option) throws Exception {
+	@Override
+	public Option putOptionByExternalReferenceCode(
+			String externalReferenceCode, Option option)
+		throws Exception {
+
+		return _addOrUpdateOption(externalReferenceCode, option);
+	}
+
+	private Option _addOrUpdateOption(
+			String externalReferenceCode, Option option)
+		throws Exception {
+
 		Option.FieldType fieldType = option.getFieldType();
 
 		ServiceContext serviceContext =
@@ -173,7 +187,7 @@ public class OptionResourceImpl extends BaseOptionResourceImpl {
 			_getExpandoBridgeAttributes(option));
 
 		CPOption cpOption = _cpOptionService.addOrUpdateCPOption(
-			option.getExternalReferenceCode(),
+			externalReferenceCode,
 			LanguageUtils.getLocalizedMap(option.getName()),
 			LanguageUtils.getLocalizedMap(option.getDescription()),
 			fieldType.getValue(), GetterUtil.get(option.getFacetable(), false),

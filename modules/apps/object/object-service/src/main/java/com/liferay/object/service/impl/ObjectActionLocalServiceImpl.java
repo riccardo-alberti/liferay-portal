@@ -19,6 +19,7 @@ import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.definition.util.ObjectDefinitionUtil;
 import com.liferay.object.exception.DuplicateObjectActionExternalReferenceCodeException;
 import com.liferay.object.exception.LockedObjectActionException;
+import com.liferay.object.exception.ObjectActionActiveException;
 import com.liferay.object.exception.ObjectActionConditionExpressionException;
 import com.liferay.object.exception.ObjectActionErrorMessageException;
 import com.liferay.object.exception.ObjectActionExecutorKeyException;
@@ -37,9 +38,10 @@ import com.liferay.object.scope.ObjectDefinitionScoped;
 import com.liferay.object.scripting.exception.ObjectScriptingException;
 import com.liferay.object.scripting.validator.ObjectScriptingValidator;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.base.ObjectActionLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
-import com.liferay.object.tree.TreeFactory;
+import com.liferay.object.tree.ObjectDefinitionTreeFactory;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
@@ -167,8 +169,11 @@ public class ObjectActionLocalServiceImpl
 
 				ObjectDefinitionResourcePermissionUtil.populateResourceActions(
 					objectActionLocalService, objectDefinition,
-					_objectDefinitionPersistence, _portletLocalService,
-					_resourceActions, _treeFactory);
+					_objectDefinitionPersistence,
+					new ObjectDefinitionTreeFactory(
+						_objectDefinitionPersistence,
+						_objectRelationshipLocalService),
+					_portletLocalService, _resourceActions);
 			}
 			catch (Exception exception) {
 				ReflectionUtil.throwException(exception);
@@ -349,12 +354,14 @@ public class ObjectActionLocalServiceImpl
 			externalReferenceCode, objectAction.getObjectActionId(),
 			objectAction.getCompanyId(), objectAction.getObjectDefinitionId());
 
-		_validateErrorMessage(errorMessageMap, objectActionTriggerKey);
-		_validateLabel(labelMap);
-
 		ObjectDefinition objectDefinition =
 			_objectDefinitionPersistence.findByPrimaryKey(
 				objectAction.getObjectDefinitionId());
+
+		_validateActive(active, objectAction, objectDefinition);
+
+		_validateErrorMessage(errorMessageMap, objectActionTriggerKey);
+		_validateLabel(labelMap);
 
 		_validateObjectActionExecutorKey(
 			objectActionExecutorKey, objectDefinition);
@@ -459,6 +466,29 @@ public class ObjectActionLocalServiceImpl
 		}
 
 		return false;
+	}
+
+	private void _validateActive(
+			boolean active, ObjectAction objectAction,
+			ObjectDefinition objectDefinition)
+		throws PortalException {
+
+		if (!FeatureFlagManagerUtil.isEnabled("LPS-187142") ||
+			objectDefinition.isRootNode()) {
+
+			return;
+		}
+
+		if (active &&
+			StringUtil.equals(
+				objectAction.getObjectActionTriggerKey(),
+				ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE)) {
+
+			throw new ObjectActionActiveException(
+				"Object action trigger is " +
+					ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE +
+						" but object definition is not a root node");
+		}
 	}
 
 	private void _validateErrorMessage(
@@ -617,7 +647,8 @@ public class ObjectActionLocalServiceImpl
 			ObjectDefinition objectDefinition)
 		throws PortalException {
 
-		if (FeatureFlagManagerUtil.isEnabled("LPS-187142") &&
+		if (FeatureFlagManagerUtil.isEnabled(
+				objectDefinition.getCompanyId(), "LPS-187142") &&
 			StringUtil.equals(
 				objectActionTriggerKey,
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE) &&
@@ -717,58 +748,58 @@ public class ObjectActionLocalServiceImpl
 					ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE));
 		}
 
+//		if (Objects.equals(
+//				objectActionExecutorKey,
+//				ObjectActionExecutorConstants.KEY_ADD_OBJECT_ENTRY) ||
+//			Objects.equals(
+//				objectActionExecutorKey,
+//				ObjectActionExecutorConstants.KEY_UPDATE_OBJECT_ENTRY)) {
+//
+//			long objectDefinitionId = GetterUtil.getLong(
+//				parametersUnicodeProperties.get("objectDefinitionId"));
+//
+//			ObjectDefinition objectDefinition =
+//				_objectDefinitionPersistence.fetchByPrimaryKey(
+//					objectDefinitionId);
+//
+//			String objectDefinitionExternalReferenceCode = GetterUtil.getString(
+//				parametersUnicodeProperties.remove(
+//					"objectDefinitionExternalReferenceCode"));
+//
+//			if (Validator.isNotNull(objectDefinitionExternalReferenceCode)) {
+//				ObjectDefinition existingObjectDefinition =
+//					_objectDefinitionPersistence.fetchByERC_C(
+//						objectDefinitionExternalReferenceCode, companyId);
+//
+//				if (existingObjectDefinition != null) {
+//					objectDefinition = existingObjectDefinition;
+//
+//					parametersUnicodeProperties.put(
+//						"objectDefinitionId",
+//						String.valueOf(
+//							objectDefinition.getObjectDefinitionId()));
+//				}
+//			}
+//
+//			if ((objectDefinition == null) ||
+//				(Objects.equals(
+//					objectActionExecutorKey,
+//					ObjectActionExecutorConstants.KEY_ADD_OBJECT_ENTRY) &&
+//				 (!objectDefinition.isActive() ||
+//				  !objectDefinition.isApproved()) &&
+//				 !objectDefinition.isModifiableAndSystem())) {
+//
+//				errorMessageKeys.put("objectDefinitionId", "invalid");
+//			}
+//			else {
+//				_validatePredefinedValues(
+//					errorMessageKeys, objectActionExecutorKey,
+//					objectDefinition.getObjectDefinitionId(),
+//					_jsonFactory.createJSONArray(
+//						parametersUnicodeProperties.get("predefinedValues")));
+//			}
+//		}
 		if (Objects.equals(
-				objectActionExecutorKey,
-				ObjectActionExecutorConstants.KEY_ADD_OBJECT_ENTRY) ||
-			Objects.equals(
-				objectActionExecutorKey,
-				ObjectActionExecutorConstants.KEY_UPDATE_OBJECT_ENTRY)) {
-
-			long objectDefinitionId = GetterUtil.getLong(
-				parametersUnicodeProperties.get("objectDefinitionId"));
-
-			ObjectDefinition objectDefinition =
-				_objectDefinitionPersistence.fetchByPrimaryKey(
-					objectDefinitionId);
-
-			String objectDefinitionExternalReferenceCode = GetterUtil.getString(
-				parametersUnicodeProperties.remove(
-					"objectDefinitionExternalReferenceCode"));
-
-			if (Validator.isNotNull(objectDefinitionExternalReferenceCode)) {
-				ObjectDefinition existingObjectDefinition =
-					_objectDefinitionPersistence.fetchByERC_C(
-						objectDefinitionExternalReferenceCode, companyId);
-
-				if (existingObjectDefinition != null) {
-					objectDefinition = existingObjectDefinition;
-
-					parametersUnicodeProperties.put(
-						"objectDefinitionId",
-						String.valueOf(
-							objectDefinition.getObjectDefinitionId()));
-				}
-			}
-
-			if ((objectDefinition == null) ||
-				(Objects.equals(
-					objectActionExecutorKey,
-					ObjectActionExecutorConstants.KEY_ADD_OBJECT_ENTRY) &&
-				 (!objectDefinition.isActive() ||
-				  !objectDefinition.isApproved()) &&
-				 !objectDefinition.isModifiableAndSystem())) {
-
-				errorMessageKeys.put("objectDefinitionId", "invalid");
-			}
-			else {
-				_validatePredefinedValues(
-					errorMessageKeys, objectActionExecutorKey,
-					objectDefinition.getObjectDefinitionId(),
-					_jsonFactory.createJSONArray(
-						parametersUnicodeProperties.get("predefinedValues")));
-			}
-		}
-		else if (Objects.equals(
 					objectActionExecutorKey,
 					ObjectActionExecutorConstants.KEY_GROOVY)) {
 
@@ -981,6 +1012,9 @@ public class ObjectActionLocalServiceImpl
 	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Reference
+	private ObjectRelationshipLocalService _objectRelationshipLocalService;
+
+	@Reference
 	private ObjectScriptingValidator _objectScriptingValidator;
 
 	@Reference
@@ -992,9 +1026,6 @@ public class ObjectActionLocalServiceImpl
 	@Reference
 	private ScriptManagementConfigurationHelper
 		_scriptManagementConfigurationHelper;
-
-	@Reference
-	private TreeFactory _treeFactory;
 
 	@Reference
 	private UserLocalService _userLocalService;

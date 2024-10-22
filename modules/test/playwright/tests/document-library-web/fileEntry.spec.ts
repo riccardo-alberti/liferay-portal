@@ -4,7 +4,7 @@
  */
 
 import {expect, mergeTests} from '@playwright/test';
-import moment from 'moment';
+import {createReadStream} from 'fs';
 import path from 'path';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
@@ -12,37 +12,25 @@ import {documentLibraryPagesTest} from '../../fixtures/documentLibraryPages.fixt
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {createCategories} from '../../helpers/CreateCategories';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
 import {performLogout} from '../../utils/performLogin';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import getPageDefinition from '../layout-content-page-editor-web/utils/getPageDefinition';
 import getWidgetDefinition from '../layout-content-page-editor-web/utils/getWidgetDefinition';
 
-const baseTest = mergeTests(
+const test = mergeTests(
+	apiHelpersTest,
 	documentLibraryPagesTest,
+	featureFlagsTest({
+		'LPS-178052': true,
+	}),
 	isolatedSiteTest,
 	loginTest()
 );
 
-export const testSearchInDlPortlet = mergeTests(
-	apiHelpersTest,
-	baseTest,
-	featureFlagsTest({
-		'LPS-178052': true,
-	})
-);
-export const testFeatureFlagsEnabled = mergeTests(
-	baseTest,
-	featureFlagsTest({
-		'LPD-10701': true,
-	})
-);
-
-export const testUploadMultipleFieldsWithCustomDocumentType =
-	mergeTests(baseTest);
-
-baseTest(
+test(
 	'Check order by Relevance in Search of DL',
 	{
 		tag: '@LPD-32481',
@@ -77,7 +65,7 @@ baseTest(
 	}
 );
 
-baseTest(
+test(
 	'Check if Ordering by Modified Date working, after editing a document',
 	{
 		tag: '@LPD-32483',
@@ -95,12 +83,12 @@ baseTest(
 			site.friendlyUrlPath
 		);
 
-		await documentLibraryPage.editFileEntry(title);
+		await documentLibraryPage.goToEditFileEntry(title);
 		await documentLibraryEditFilePage.descriptionInput.fill(
 			getRandomString()
 		);
 		await documentLibraryEditFilePage.publishButton.click();
-		await waitForSuccessAlert(
+		await waitForAlert(
 			page,
 			'Success:Your request completed successfully.'
 		);
@@ -117,15 +105,17 @@ baseTest(
 	}
 );
 
-testFeatureFlagsEnabled(
-	'LPD-16658 Show a success message after scheduling a new file',
-	async ({documentLibraryEditFilePage, documentLibraryPage, page}) => {
+test(
+	'Show a success message after scheduling a new file',
+	{tag: '@LPD-16658'},
+	async ({documentLibraryEditFilePage, page, site}) => {
 		const scheduleDate = `01/01/${new Date().getFullYear() + 1}`;
 		const title = getRandomString();
 
 		await documentLibraryEditFilePage.publishNewFileWithScheduleDate(
 			scheduleDate,
-			title
+			title,
+			site.friendlyUrlPath
 		);
 
 		await expect(page.getByRole('link', {name: title})).toBeVisible();
@@ -135,78 +125,85 @@ testFeatureFlagsEnabled(
 		await expect(toastAlertContainer).toBeVisible();
 
 		await expect(toastAlertContainer).toHaveText(
-			'Success:' +
-				title +
-				' will be published on ' +
-				moment(new Date(scheduleDate)).format('M/D/YY h:mm A') +
-				'.'
+			`Success:${title} will be published on ${new Intl.DateTimeFormat(
+				'en-US',
+				{
+					day: 'numeric',
+					hour: 'numeric',
+					hour12: true,
+					minute: 'numeric',
+					month: 'numeric',
+					year: '2-digit',
+				}
+			)
+				.format(new Date(scheduleDate))
+				.replace(',', '')}.`
 		);
-		await documentLibraryPage.deleteFileEntry(title);
 	}
 );
 
-testFeatureFlagsEnabled(
-	'LPD-16313 Identify at a glance if a Document is visible for guests',
-	async ({documentLibraryEditFilePage, documentLibraryPage}) => {
+test(
+	'Identify at a glance if a Document is visible for guests',
+	{tag: '@LPD-16313'},
+	async ({documentLibraryEditFilePage, documentLibraryPage, site}) => {
 		const title = getRandomString();
 
 		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
-			title
+			title,
+			site.friendlyUrlPath
 		);
 
 		await documentLibraryPage.changeView('cards');
-
 		await documentLibraryPage.assertPrivateFileIcon();
 
 		await documentLibraryPage.changeView('table');
-
 		await documentLibraryPage.assertPrivateFileIcon();
 
 		await documentLibraryPage.changeView('list');
-
 		await documentLibraryPage.assertPrivateFileIcon();
-
-		await documentLibraryPage.deleteFileEntry(title);
 	}
 );
 
-testFeatureFlagsEnabled(
-	'LPD-16313 Show icon in the content admin and content editor',
-	async ({documentLibraryEditFilePage, documentLibraryPage, page}) => {
+test(
+	'Show icon in the content admin and content editor',
+	{tag: '@LPD-16313'},
+	async ({documentLibraryEditFilePage, documentLibraryPage, page, site}) => {
 		const title = getRandomString();
 
 		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
-			title
+			title,
+			site.friendlyUrlPath
 		);
 
 		await documentLibraryPage.changeView('cards');
 
-		await documentLibraryPage.editFileEntry(title);
+		await documentLibraryPage.goToEditFileEntry(title);
 
 		await documentLibraryPage.assertPrivateFileIcon();
 
-		await documentLibraryEditFilePage.goBack();
+		await documentLibraryPage.goto(site.friendlyUrlPath);
 
 		await page.getByRole('link', {name: title}).click();
 
 		await documentLibraryPage.assertPrivateFileIcon();
-
-		await documentLibraryPage.deleteFileEntry(title);
 	}
 );
 
-testFeatureFlagsEnabled(
-	'LPD-16313 Show icon in the DL item selector',
+test(
+	'Show icon in the DL item selector',
+	{tag: '@LPD-16313'},
 	async ({
 		documentLibraryEditDocumentTypesPage,
 		documentLibraryEditFilePage,
 		documentLibraryPage,
+		site,
 	}) => {
 		const dTypeTitle = getRandomString();
 		const title = getRandomString();
 
 		await documentLibraryEditDocumentTypesPage.createNewDLTypeWithUploadField(
-			dTypeTitle
+			dTypeTitle,
+			site.friendlyUrlPath
 		);
 
 		await documentLibraryEditFilePage.publishNewFileWithoutGuestViewPermission(
@@ -245,7 +242,7 @@ testFeatureFlagsEnabled(
 	}
 );
 
-testUploadMultipleFieldsWithCustomDocumentType(
+test(
 	'Error uploading multiples files with custom document type',
 	{
 		tag: '@LPD-29609',
@@ -275,8 +272,9 @@ testUploadMultipleFieldsWithCustomDocumentType(
 	}
 );
 
-testSearchInDlPortlet(
-	'LPD-31694 Search in DL portlet does not show results in card view for LPS-202909',
+test(
+	'Search in DL portlet does not show results in card view',
+	{tag: ['@LPD-31694', '@LPD-202909']},
 	async ({
 		apiHelpers,
 		documentLibraryEditFilePage,
@@ -306,7 +304,7 @@ testSearchInDlPortlet(
 
 		await page.goto('/web' + site.friendlyUrlPath);
 
-		await documentLibraryPage.searchFor(title);
+		await documentLibraryPage.search(title);
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
@@ -318,5 +316,85 @@ testSearchInDlPortlet(
 				.locator('.portlet-document-library')
 				.getByRole('link', {name: title})
 		).toBeVisible();
+	}
+);
+
+test(
+	'Replace option does not work on Categories Selector',
+	{
+		tag: ['@LPD-27899', '@LPSA-74819'],
+	},
+
+	async ({
+		apiHelpers,
+		documentLibraryEditFilePage,
+		documentLibraryPage,
+		page,
+		site,
+	}) => {
+		const vocabularyName = getRandomString();
+
+		const categories = await createCategories({
+			apiHelpers,
+			categoryNames: [
+				{name: 'Books'},
+				{name: 'Plants'},
+				{name: 'Pets'},
+				{name: 'Furniture'},
+			],
+			site,
+			vocabularyName,
+		});
+
+		const document1 = await apiHelpers.headlessDelivery.postDocument(
+			site.id,
+			createReadStream(path.join(__dirname, '/dependencies/image1.jpeg')),
+			{
+				description: getRandomString(),
+				fileName: getRandomString(),
+				taxonomyCategoryIds: [categories[0].id, categories[1].id],
+				title: getRandomString(),
+			}
+		);
+
+		const document2 = await apiHelpers.headlessDelivery.postDocument(
+			site.id,
+			createReadStream(path.join(__dirname, '/dependencies/image1.jpeg')),
+			{
+				description: getRandomString(),
+				fileName: getRandomString(),
+				taxonomyCategoryIds: [categories[0].id, categories[2].id],
+				title: getRandomString(),
+			}
+		);
+
+		await documentLibraryPage.goto(site.friendlyUrlPath);
+
+		await documentLibraryPage.openBulkEditCategoriesModal([
+			document1.title,
+			document2.title,
+		]);
+
+		await expect(
+			page.locator('.modal .label-item-expand', {hasText: 'Books'})
+		).toBeVisible();
+
+		await documentLibraryPage.goto(site.friendlyUrlPath);
+
+		await documentLibraryPage.replaceCategoriesUsingBulkEditCategoriesModal(
+			[document1.title, document2.title],
+			[{categoryNames: ['Furniture'], vocabularyName}]
+		);
+
+		await waitForAlert(page, 'Success:Changes Saved');
+
+		for (const document of [document1, document2]) {
+			await documentLibraryPage.goto(site.friendlyUrlPath);
+			await documentLibraryPage.goToEditFileEntry(document.title);
+			await documentLibraryEditFilePage.openFieldset('Categorization');
+			await page.getByText(vocabularyName).waitFor();
+
+			await expect(await page.getByText(document.title)).toBeVisible();
+		}
 	}
 );

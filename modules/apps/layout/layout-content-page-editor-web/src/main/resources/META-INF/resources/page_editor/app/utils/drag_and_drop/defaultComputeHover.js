@@ -24,10 +24,11 @@ const ORIENTATION_BORDER_SIZE = 80;
 export default function defaultComputeHover({
 	dispatch,
 	fragmentEntryLinksRef,
+	getWidgets,
 	layoutDataRef,
 	monitor,
-	siblingItem = null,
 	sourceItem,
+	state,
 	targetItem,
 	targetRefs,
 }) {
@@ -45,7 +46,7 @@ export default function defaultComputeHover({
 	// nesting validation
 
 	const orientation = getOrientation(
-		siblingItem || targetItem,
+		targetItem,
 		monitor,
 		targetRefs,
 		layoutDataRef
@@ -55,12 +56,7 @@ export default function defaultComputeHover({
 		targetPositionWithMiddle,
 		targetPositionWithoutMiddle,
 		elevationDepth,
-	] = getItemPosition(
-		siblingItem || targetItem,
-		monitor,
-		targetRefs,
-		orientation
-	);
+	] = getItemPosition(targetItem, monitor, targetRefs, orientation);
 
 	// Drop inside target
 
@@ -102,7 +98,12 @@ export default function defaultComputeHover({
 	})();
 
 	if (
-		!siblingItem &&
+		stateHasChanged(
+			state,
+			sourceItem,
+			targetItem,
+			targetPositionWithMiddle
+		) &&
 		validDropInsideTarget &&
 		!itemIsAncestor(sourceItem, targetItem, layoutDataRef)
 	) {
@@ -112,42 +113,14 @@ export default function defaultComputeHover({
 			droppable: checkAllowedChild(
 				sourceItem,
 				targetItem,
-				layoutDataRef,
-				fragmentEntryLinksRef
+				layoutDataRef.current,
+				fragmentEntryLinksRef.current,
+				getWidgets
 			),
 			elevate: null,
 			targetPositionWithMiddle,
 			targetPositionWithoutMiddle,
 			type: DRAG_DROP_TARGET_TYPE.INSIDE,
-		});
-	}
-
-	// Valid elevation:
-	// - sourceItem should be child of dropTargetItem
-	// - sourceItem should be sibling of siblingItem
-	// - siblingItem should have flex parent for horizontal elevation
-	//   and no-flex parent for vertical elevation
-	// - sourceItem should not be ancestor of siblingItem
-
-	if (
-		siblingItem &&
-		!shouldBeIgnoredInElevation(parent) &&
-		validElevation(siblingItem, orientation, layoutDataRef) &&
-		!itemIsAncestor(sourceItem, siblingItem, layoutDataRef)
-	) {
-		return dispatch({
-			dropItem: sourceItem,
-			dropTargetItem: siblingItem,
-			droppable: checkAllowedChild(
-				sourceItem,
-				targetItem,
-				layoutDataRef,
-				fragmentEntryLinksRef
-			),
-			elevate: true,
-			targetPositionWithMiddle,
-			targetPositionWithoutMiddle,
-			type: DRAG_DROP_TARGET_TYPE.ELEVATE,
 		});
 	}
 
@@ -218,16 +191,42 @@ export default function defaultComputeHover({
 		);
 
 		if (elevatedTargetItem && elevatedTargetItem !== targetItem) {
-			return defaultComputeHover({
-				dispatch,
-				fragmentEntryLinksRef,
-				layoutDataRef,
-				monitor,
-				siblingItem,
-				sourceItem,
-				targetItem: elevatedTargetItem,
-				targetRefs,
-			});
+
+			// Valid elevation:
+			// - sourceItem should be child of dropTargetItem
+			// - sourceItem should be sibling of siblingItem
+			// - siblingItem should have flex parent for horizontal elevation
+			//   and no-flex parent for vertical elevation
+			// - sourceItem should not be ancestor of siblingItem
+
+			if (
+				siblingItem &&
+				stateHasChanged(
+					state,
+					sourceItem,
+					siblingItem,
+					targetPositionWithMiddle
+				) &&
+				!shouldBeIgnoredInElevation(parent) &&
+				validElevation(siblingItem, orientation, layoutDataRef) &&
+				!itemIsAncestor(sourceItem, siblingItem, layoutDataRef)
+			) {
+				return dispatch({
+					dropItem: sourceItem,
+					dropTargetItem: siblingItem,
+					droppable: checkAllowedChild(
+						sourceItem,
+						elevatedTargetItem,
+						layoutDataRef.current,
+						fragmentEntryLinksRef.current,
+						getWidgets
+					),
+					elevate: true,
+					targetPositionWithMiddle,
+					targetPositionWithoutMiddle,
+					type: DRAG_DROP_TARGET_TYPE.ELEVATE,
+				});
+			}
 		}
 	}
 }
@@ -334,4 +333,18 @@ function validElevation(siblingItem, orientation, layoutDataRef) {
 	return orientation === ORIENTATIONS.horizontal
 		? isItemContainerFlex(targetItemParent)
 		: !isItemContainerFlex(targetItemParent);
+}
+
+function stateHasChanged(state, sourceItem, targetItem, position) {
+	if (
+		state.dropItem?.itemId === sourceItem.itemId &&
+		state.dropTargetItem?.itemId === targetItem.itemId &&
+		state.dropTargetItem?.collectionItemIndex ===
+			targetItem.collectionItemIndex &&
+		state.targetPositionWithMiddle === position
+	) {
+		return false;
+	}
+
+	return true;
 }

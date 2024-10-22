@@ -2,7 +2,9 @@
 definition {
 
 	property ci.retries.disabled = "true";
-	property portal.release = "true";
+	property custom.properties = "feature.flag.LPD-35013=false";
+	property osgi.modules.includes = "wiki";
+	property portal.release = "false";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Asset Publisher Widget";
 
@@ -13,6 +15,10 @@ definition {
 
 		task ("Sign in") {
 			User.firstLoginPG();
+		}
+
+		task ("Enable wiki") {
+			WikiPortlet.enableWiki();
 		}
 
 		task ("Add a site") {
@@ -65,47 +71,11 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-132428. The user could configure Asset Publisher after adding the Kaleo Forms admin portlet to blacklist."
-	@priority = 4
-	test ConfigureAssetPublisherAfterAddingKaleoFormsAdminPortletToBlackList {
-		property test.liferay.virtual.instance = "false";
-		property test.run.environment = "EE";
-		property test.run.type = "single";
-
-		task ("Add the Kaleo Forms admin portlet to blacklist") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "System Settings");
-
-			SystemSettings.gotoConfiguration(
-				configurationCategory = "Module Container",
-				configurationName = "Component Blacklist",
-				configurationScope = "System Scope");
-
-			BundleBlacklist.blacklistModuleAndComponentConfiguration(
-				label = "Blacklist Component Names",
-				symbolicName = "com.liferay.portal.workflow.kaleo.forms.web.internal.portlet.KaleoFormsAdminPortlet");
-		}
-
-		task ("Configure the Asset Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "Asset Publisher Page",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.configureDisplaySettings(displaySettings = "Print");
-		}
-
-		task ("View no NullPointerException thrown") {
-			AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
-		}
-	}
-
 	@description = "Configure the Asset Publisher as Site Administrator."
 	@priority = 4
 	test ConfigureAssetPublisherAsSiteAdministrater {
 		property asset.publisher.selection.style = "asset-list";
-		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}jsonws.web.service.paths.excludes=";
 
 		var userEmailAddress = StringUtil.randomString(8);
 		var userFirstName = StringUtil.randomString(8);
@@ -380,7 +350,9 @@ definition {
 		}
 
 		task ("Add the localized contents") {
-			PortletEntry.changeLocale(locale = "de-DE");
+			PortletEntry.changeLocale(
+				locale = "de-DE",
+				translated = "true");
 
 			WebContent.addCP(webContentTitle = "Netz Inhalt1 Titel");
 
@@ -398,7 +370,9 @@ definition {
 		}
 
 		task ("Add the localized contents") {
-			PortletEntry.changeLocale(locale = "de-DE");
+			PortletEntry.changeLocale(
+				locale = "de-DE",
+				translated = "true");
 
 			WebContent.addCP(webContentTitle = "Netz Inhalt2 Titel");
 
@@ -416,7 +390,9 @@ definition {
 		}
 
 		task ("Add the localized contents") {
-			PortletEntry.changeLocale(locale = "de-DE");
+			PortletEntry.changeLocale(
+				locale = "de-DE",
+				translated = "true");
 
 			WebContent.addCP(webContentTitle = "Netz Inhalt3 Titel");
 
@@ -531,102 +507,6 @@ definition {
 				locale = "en-US",
 				textIcon = "english-United States");
 		}
-
-		task ("Change the subtype to Any") {
-			Navigator.gotoSitePage(
-				pageName = "Asset Publisher Page",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.configureAssetTypePG(
-				assetSubtype = "Any",
-				selectedAsset = "Web Content Article");
-		}
-
-		task ("View the displayed assets") {
-			Navigator.gotoSitePage(
-				pageName = "Asset Publisher Page",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 345,
-				assetTitle = "Web Content1 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 123,
-				assetTitle = "Web Content2 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 567,
-				assetTitle = "Web Content3 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = "Web Content4 Content",
-				assetTitle = "Web Content4 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = "Web Content5 Text",
-				assetTitle = "Web Content5 Title");
-		}
-
-		task ("Move the second structure to Available") {
-			AssetPublisherPortlet.configureAssetTypePG(
-				selectContent = "WC Structure1 Name",
-				selectedAsset = "Web Content Article",
-				selectMoreThanOneSubtype = "true");
-		}
-
-		task ("View the displayed assets") {
-			Navigator.gotoSitePage(
-				pageName = "Asset Publisher Page",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 345,
-				assetTitle = "Web Content1 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 123,
-				assetTitle = "Web Content2 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = 567,
-				assetTitle = "Web Content3 Title");
-
-			AssetPublisherPortlet.viewAssetPG(
-				assetContent = "Web Content4 Content",
-				assetTitle = "Web Content4 Title");
-
-			AssetPublisherPortlet.viewAssetNotPresentPG(
-				assetContent = "Web Content5 Text",
-				assetTitle = "Web Content5 Title");
-		}
-
-		task ("Disable the Searchable of the first structure's fields") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-			NavItem.gotoStructures();
-
-			WebContentNavigator.gotoEditStructure(structureName = "WC Structure Name");
-
-			for (var fieldFieldLabel : list "Boolean,Multiple Selection,Text,Select from List,Single Selection,Date,Numeric,Rich Text,Image,Text Box,Decimal") {
-				DataEngine.editFieldSearchable(
-					fieldFieldLabel = ${fieldFieldLabel},
-					searchableType = "Disable");
-			}
-
-			WebContentStructures.saveCP();
-		}
-
-		task ("View no available filter fields of the first structure") {
-			Navigator.gotoSitePage(
-				pageName = "Asset Publisher Page",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.viewFilterAndFieldsPG(
-				assetSubtype = "WC Structure Name",
-				noneIndexable = "true",
-				selectedAsset = "Web Content Article");
-		}
 	}
 
 	@description = "This is a test for LPS-135460. Filter the displayed assets by categories when enable pagination."
@@ -679,20 +559,27 @@ definition {
 				pageName = "Asset Publisher Page",
 				siteName = "Test Site Name");
 
-			AssetPublisherPortlet.viewPaginatedAssetsPG(
-				nextPageClick = "true",
-				pageMod = "1 - 3 of 5",
-				pageNumber = "1 of 2",
-				paginationNumber = 3,
-				paginationType = "Regular");
+			AssertTextEquals.assertPartialText(
+				key_pageNumber = 1,
+				locator1 = "Pagination#PARTICULAR_PAGE",
+				value1 = "Page  1");
+
+			AssertTextEquals(
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 1 to 3 of 5 entries.");
+
+			Click(locator1 = "Pagination#NEXT_LINK");
 		}
 
 		task ("View the number of displayed assets in Page 2") {
-			AssetPublisherPortlet.viewPaginatedAssetsPG(
-				pageMod = "4 - 5 of 5",
-				pageNumber = "2 of 2",
-				paginationNumber = 3,
-				paginationType = "Regular");
+			AssertTextEquals.assertPartialText(
+				key_pageNumber = 2,
+				locator1 = "Pagination#PARTICULAR_PAGE",
+				value1 = "Page  2");
+
+			AssertTextEquals(
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 4 to 5 of 5 entries.");
 		}
 
 		task ("Configure the ordering") {
@@ -736,33 +623,30 @@ definition {
 		}
 
 		task ("View the number of displayed assets in Page 1") {
-			AssetPublisherPortlet.viewPaginatedAssetsPG(
-				nextPageClick = "true",
-				pageMod = "1 - 3 of 5",
-				pageNumber = "1 of 2",
-				paginationNumber = 3,
-				paginationType = "Regular");
+			AssertTextEquals.assertPartialText(
+				key_pageNumber = 1,
+				locator1 = "Pagination#PARTICULAR_PAGE",
+				value1 = "Page  1");
+
+			AssertTextEquals(
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 1 to 3 of 5 entries.");
+
+			Click(locator1 = "Pagination#NEXT_LINK");
 		}
 
 		task ("View the number of displayed assets in Page 1") {
-			AssetPublisherPortlet.viewPaginatedAssetsPG(
-				pageMod = "4 - 5 of 5",
-				pageNumber = "2 of 2",
-				paginationNumber = 3,
-				paginationType = "Regular");
+			AssertTextEquals.assertPartialText(
+				key_pageNumber = 2,
+				locator1 = "Pagination#PARTICULAR_PAGE",
+				value1 = "Page  2");
+
+			AssertTextEquals(
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 4 to 5 of 5 entries.");
 		}
 
 		task ("Assert URL contains delta by click next pagination") {
-			AssertLocation.assertPartialLocation(value1 = "_delta");
-		}
-
-		task ("Assert URL contains delta by dropdown pagination") {
-			ClickNoError(
-				key_pageNumber = "2 of 2",
-				locator1 = "Pagination#PARTICULAR_PAGE");
-
-			SelectFrame(value1 = "relative=top");
-
 			AssertLocation.assertPartialLocation(value1 = "_delta");
 		}
 	}
@@ -964,9 +848,6 @@ definition {
 	@description = "This is a test for LPS-129830. The user could remove multiple manual selection asset entries in Asset Publisher."
 	@priority = 4
 	test RemoveMultipleManualSelectionAssetEntries {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
 		task ("Add three web contents based on Basic Web Content") {
 			for (var n : list "1,2,3") {
 				JSONWebcontent.addWebContent(
@@ -1157,6 +1038,8 @@ definition {
 	@description = "View assets filter by tag or category in Asset Publisher."
 	@priority = 4
 	test ViewAssetsFilterByTagOrCategoryInAssetPublisher {
+		property custom.properties = "feature.flag.LPD-35013=true";
+
 		task ("Add a vocabulary") {
 			JSONCategory.addVocabulary(
 				groupName = "Test Site Name",
@@ -1588,7 +1471,9 @@ definition {
 
 		WebContent.editFriendlyURL(webContentFriendlyURL = "webcontentenglish");
 
-		PortletEntry.changeLocale(locale = "de-DE");
+		PortletEntry.changeLocale(
+			locale = "de-DE",
+			translated = "true");
 
 		WebContent.addCP(
 			webContentContent = "WC WebContent German Content",
@@ -2041,24 +1926,24 @@ definition {
 			Click(locator1 = "Pagination#NEXT_LINK");
 
 			AssertTextEquals(
-				locator1 = "Pagination#CURRENT_PAGE_MENU",
-				value1 = "Page 2 of 3");
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 2 to 2 of 3 entries.");
 
 			AssertTextEquals(
 				key_index = 2,
-				locator1 = "Pagination#CURRENT_PAGE_MENU_INDEX",
-				value1 = "Page 1 of 3");
+				locator1 = "Pagination#CURRENT_PAGE_SELECT_INDEX",
+				value1 = "Showing 1 to 1 of 3 entries.");
 
 			Click(locator1 = "Pagination#NEXT_LINK_2");
 
 			AssertTextEquals(
-				locator1 = "Pagination#CURRENT_PAGE_MENU",
-				value1 = "Page 2 of 3");
+				locator1 = "Pagination#CURRENT_PAGE_SELECT",
+				value1 = "Showing 2 to 2 of 3 entries.");
 
 			AssertTextEquals(
 				key_index = 2,
-				locator1 = "Pagination#CURRENT_PAGE_MENU_INDEX",
-				value1 = "Page 2 of 3");
+				locator1 = "Pagination#CURRENT_PAGE_SELECT_INDEX",
+				value1 = "Showing 2 to 2 of 3 entries.");
 		}
 	}
 
@@ -2128,7 +2013,7 @@ definition {
 	@priority = 3
 	@uitest
 	test ViewWebContentAuthor {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property custom.properties = "feature.flag.LPD-35013=true${line.separator}jsonws.web.service.paths.excludes=";
 
 		var userScreenName1 = StringUtil.randomString(8);
 		var userScreenName2 = StringUtil.randomString(8);

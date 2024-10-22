@@ -49,20 +49,35 @@ test.describe('Visualization Modes in Data Set fragment', () => {
 		page,
 	}) => {
 		const SAMPLE_SCALAR_FIELD = 'id';
-		const SAMPLE_OBJECT_FIELD = 'fdsViewFDSFieldRelationship';
+		const SAMPLE_OBJECT_FIELD = 'dataSetToDataSetTableSections';
 		const SAMPLE_OBJECT_CHILD_FIELD = 'label';
 
+		await test.step('Update Data Set to include additionalAPIURLParameters', async () => {
+			await dataSetManagerApiHelpers.updateDataSet({
+				additionalAPIURLParameters:
+					'fields=dataSetToDataSetTableSections.label,id,label',
+				erc: dataSetERC,
+			});
+		});
+
 		await test.step('Create table fields', async () => {
-			await dataSetManagerApiHelpers.createDataSetField({
+			await dataSetManagerApiHelpers.createDataSetTableSection({
 				dataSetERC,
-				label_i18n: {en_US: 'Label'},
-				name: `${SAMPLE_OBJECT_FIELD}.${SAMPLE_OBJECT_CHILD_FIELD}`,
+				fieldName: `${SAMPLE_OBJECT_FIELD}.${SAMPLE_OBJECT_CHILD_FIELD}`,
+				label_i18n: {en_US: 'Data Set Label'},
 				type: 'string',
 			});
-			await dataSetManagerApiHelpers.createDataSetField({
+			await dataSetManagerApiHelpers.createDataSetTableSection({
 				dataSetERC,
+				fieldName: `${SAMPLE_OBJECT_CHILD_FIELD}`,
+				label_i18n: {en_US: 'Table Section Label'},
+				type: 'string',
+			});
+			await dataSetManagerApiHelpers.createDataSetTableSection({
+				dataSetERC,
+				fieldName: `${SAMPLE_SCALAR_FIELD}`,
 				label_i18n: {en_US: 'Id'},
-				name: `${SAMPLE_SCALAR_FIELD}`,
+				sortable: true,
 				type: 'string',
 			});
 		});
@@ -156,9 +171,7 @@ test.describe('Visualization Modes in Data Set fragment', () => {
 				state: 'visible',
 			});
 
-			await expect(
-				await fdsFragmentPage.fdsTableWrapper
-			).toBeInViewport();
+			await expect(fdsFragmentPage.fdsTableWrapper).toBeInViewport();
 
 			expect(
 				await page
@@ -166,7 +179,49 @@ test.describe('Visualization Modes in Data Set fragment', () => {
 					.first()
 					.locator('.dnd-th')
 					.allInnerTexts()
-			).toEqual(['Label', 'Id', '']);
+			).toEqual(['Data Set Label', 'Table Section Label', 'Id', '']);
+		});
+
+		await test.step('Data Set request URL contains additionalAPIURLParameters and nestedFields', async () => {
+			const nestedFieldsValue =
+				'nestedFields=dataSetToDataSetTableSections';
+			const additionalAPIURLParameters =
+				'fields=dataSetToDataSetTableSections.label%2Cid%2Clabel';
+
+			const datasetRequestPromise = page.waitForRequest((request) => {
+				return request
+					.url()
+					.includes(
+						`${nestedFieldsValue}&page=1&pageSize=20&sort=id%3Aasc&${additionalAPIURLParameters}`
+					);
+			});
+
+			// Force data request
+
+			await fdsFragmentPage.sortBy(SAMPLE_SCALAR_FIELD);
+
+			const datasetRequest = await datasetRequestPromise;
+
+			let datasetRequestUrl: string;
+
+			if (datasetRequest) {
+				try {
+					datasetRequestUrl = datasetRequest.url();
+				}
+				catch (error) {
+					console.error(
+						'Error reading request datasetRequest.url:',
+						error
+					);
+				}
+			}
+			else {
+				console.error('Request not received within the timeout period');
+			}
+
+			expect(datasetRequestUrl).toContain(nestedFieldsValue);
+
+			expect(datasetRequestUrl).toContain(additionalAPIURLParameters);
 		});
 	});
 
@@ -180,13 +235,13 @@ test.describe('Visualization Modes in Data Set fragment', () => {
 		const SAMPLE_SCALAR_ARRAY_CONTENT = ['one', 'two', 'three'];
 
 		await test.step('Create table fields', async () => {
-			await dataSetManagerApiHelpers.createDataSetField({
+			await dataSetManagerApiHelpers.createDataSetTableSection({
 				dataSetERC,
 				extraBodyParams: {
 					keywords: SAMPLE_SCALAR_ARRAY_CONTENT,
 				},
+				fieldName: SAMPLE_SCALAR_ARRAY_FIELD,
 				label_i18n: {en_US: SAMPLE_SCALAR_ARRAY_FIELD},
-				name: SAMPLE_SCALAR_ARRAY_FIELD,
 				type: 'array',
 			});
 		});

@@ -5,6 +5,7 @@
 
 import addStepperAction from '../actions/addStepper';
 import {FORM_DEFAULT_NUMBER_OF_STEPS} from '../config/constants/formDefaultNumberOfSteps';
+import {LAYOUT_DATA_ITEM_TYPES} from '../config/constants/layoutDataItemTypes';
 import FragmentService from '../services/FragmentService';
 import selectFirstControlsItem from '../utils/selectFirstControlsItem';
 
@@ -17,24 +18,23 @@ export default function addStepper({
 	type,
 }) {
 	return (dispatch, getState) => {
-		const params = {
+		const form = getState().layoutData.items[parentItemId];
+
+		const numberOfSteps =
+			form.config.formType === 'simple'
+				? FORM_DEFAULT_NUMBER_OF_STEPS
+				: form.config.numberOfSteps;
+
+		return FragmentService.addStepperFragmentEntryLink({
 			fragmentEntryKey,
 			groupId,
+			numberOfSteps,
 			onNetworkStatus: dispatch,
 			parentItemId,
 			position,
 			segmentsExperienceId: getState().segmentsExperienceId,
 			type,
-		};
-
-		const form = getState().layoutData.items[parentItemId];
-
-		params.numberOfSteps =
-			form.config.formType === 'simple'
-				? FORM_DEFAULT_NUMBER_OF_STEPS
-				: form.config.numberOfSteps;
-
-		return FragmentService.addStepperFragmentEntryLink(params).then(
+		}).then(
 			({
 				addedItemIds,
 				fragmentEntryLinks,
@@ -42,21 +42,26 @@ export default function addStepper({
 				movedItemIds,
 				removedItemIds,
 			}) => {
+				const stepperId = addedItemIds.find(
+					(id) =>
+						layoutData.items[id].type ===
+						LAYOUT_DATA_ITEM_TYPES.fragment
+				);
+
 				dispatch(
 					addStepperAction({
 						addedItemIds,
 						formId: parentItemId,
 						fragmentEntryLinks,
+						itemId: stepperId,
 						layoutData,
 						movedItemIds,
 						removedItemIds,
 					})
 				);
 
-				const [itemId] = addedItemIds;
-
 				selectFirstControlsItem({
-					itemId,
+					itemId: stepperId,
 					layoutData,
 					selectItems,
 				});

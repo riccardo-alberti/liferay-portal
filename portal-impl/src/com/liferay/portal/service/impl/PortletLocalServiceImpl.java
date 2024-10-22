@@ -8,12 +8,11 @@ package com.liferay.portal.service.impl;
 import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
 import com.liferay.expando.kernel.model.CustomAttributesDisplay;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
-import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.ConfigurationFactoryImpl;
-import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.application.type.ApplicationType;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.PortalCache;
@@ -23,10 +22,10 @@ import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
-import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.PortletIdException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -196,6 +195,36 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	@Override
 	public void checkPortlet(Portlet portlet) throws PortalException {
 		_resourcePermissionLocalService.initPortletDefaultPermissions(portlet);
+
+		List<String> modelResources =
+			ResourceActionsUtil.getPortletModelResources(
+				portlet.getRootPortletId());
+
+		if (!modelResources.isEmpty()) {
+			_companyDefaultModelResources.compute(
+				portlet.getCompanyId(),
+				(key, value) -> {
+					if (value == null) {
+						value = new HashSet<>();
+					}
+
+					Set<String> set = SetUtil.intersect(modelResources, value);
+
+					if (!set.isEmpty()) {
+						modelResources.removeAll(set);
+					}
+
+					value.addAll(modelResources);
+
+					return value;
+				});
+
+			if (!modelResources.isEmpty()) {
+				_resourcePermissionLocalService.
+					initDefaultModelResourcePermissions(
+						portlet.getCompanyId(), modelResources);
+			}
+		}
 
 		initPortletAddToPagePermissions(portlet);
 	}
@@ -489,7 +518,22 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 				!portletCustomAttributesDisplays.isEmpty()) {
 
 				customAttributesDisplays.addAll(
-					portletCustomAttributesDisplays);
+					TransformUtil.transform(
+						portletCustomAttributesDisplays,
+						customAttributesDisplay -> {
+							String featureFlagKey =
+								customAttributesDisplay.getFeatureFlagKey();
+
+							if ((featureFlagKey == null) ||
+								FeatureFlagManagerUtil.isEnabled(
+									CompanyThreadLocal.getCompanyId(),
+									featureFlagKey)) {
+
+								return customAttributesDisplay;
+							}
+
+							return null;
+						}));
 			}
 		}
 
@@ -2762,22 +2806,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 		_updatePortletCategory(portletCategory, companyPortlet);
 
-		if (StartupHelperUtil.isDBWarmed()) {
-			checkPortlet(companyPortlet);
-		}
-		else {
-			DependencyManagerSyncUtil.registerSyncCallable(
-				() -> {
-					try (SafeCloseable safeCloseable =
-							CompanyThreadLocal.setWithSafeCloseable(
-								companyId)) {
-
-						portletLocalService.checkPortlet(companyPortlet);
-					}
-
-					return null;
-				});
-		}
+		checkPortlet(companyPortlet);
 	}
 
 	private Configuration _getConfiguration(PortletApp portletApp) {
@@ -2885,6 +2914,9 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	private static final Map<String, Portlet> _portletsMap =
 		new ConcurrentHashMap<>();
 	private static final Map<Long, Map<String, Portlet>> _portletsMaps =
+		new ConcurrentHashMap<>();
+
+	private final Map<Long, Set<String>> _companyDefaultModelResources =
 		new ConcurrentHashMap<>();
 
 	@BeanReference(type = CompanyLocalService.class)

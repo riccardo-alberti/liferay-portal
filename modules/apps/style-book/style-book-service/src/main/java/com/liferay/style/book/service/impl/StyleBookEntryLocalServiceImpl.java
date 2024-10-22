@@ -51,7 +51,7 @@ public class StyleBookEntryLocalServiceImpl
 	public StyleBookEntry addStyleBookEntry(
 			String externalReferenceCode, long userId, long groupId,
 			boolean defaultStyleBookEntry, String frontendTokensValues,
-			String name, String styleBookEntryKey,
+			String name, String styleBookEntryKey, String themeId,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -95,6 +95,7 @@ public class StyleBookEntryLocalServiceImpl
 		styleBookEntry.setFrontendTokensValues(frontendTokensValues);
 		styleBookEntry.setName(name);
 		styleBookEntry.setStyleBookEntryKey(styleBookEntryKey);
+		styleBookEntry.setThemeId(themeId);
 
 		return publishDraft(styleBookEntry);
 	}
@@ -113,7 +114,8 @@ public class StyleBookEntryLocalServiceImpl
 		StyleBookEntry targetStyleBookEntry = addStyleBookEntry(
 			null, userId, groupId, false,
 			sourceStyleBookEntry.getFrontendTokensValues(), name,
-			StringPool.BLANK, serviceContext);
+			StringPool.BLANK, sourceStyleBookEntry.getThemeId(),
+			serviceContext);
 
 		long previewFileEntryId = _copyStyleBookEntryPreviewFileEntry(
 			userId, groupId, sourceStyleBookEntry, targetStyleBookEntry);

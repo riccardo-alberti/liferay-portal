@@ -18,6 +18,7 @@ import com.liferay.change.tracking.spi.history.CTCollectionHistoryProviderRegist
 import com.liferay.change.tracking.web.internal.spi.history.DefaultCTCollectionHistoryProvider;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -76,8 +77,13 @@ public class GetConflictInfoMVCResourceCommand extends BaseMVCResourceCommand {
 			return _jsonFactory.createJSONObject();
 		}
 
-		long classNameId = ParamUtil.getLong(resourceRequest, "classNameId");
 		long classPK = ParamUtil.getLong(resourceRequest, "classPK");
+
+		if (classPK == 0) {
+			return _jsonFactory.createJSONObject();
+		}
+
+		long classNameId = ParamUtil.getLong(resourceRequest, "classNameId");
 
 		List<CTEntry> ctEntries = _ctEntryLocalService.dslQuery(
 			DSLQueryFactoryUtil.select(
@@ -99,16 +105,7 @@ public class GetConflictInfoMVCResourceCommand extends BaseMVCResourceCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (ListUtil.isEmpty(ctEntries)) {
-			return JSONUtil.put(
-				"conflictIconClass", "change-tracking-conflict-icon"
-			).put(
-				"conflictIconLabel",
-				_language.get(themeDisplay.getLocale(), "no-modifications-help")
-			).put(
-				"conflictIconName", "check"
-			);
-		}
+		JSONObject conflictInfoJSONObject = _jsonFactory.createJSONObject();
 
 		Map<Long, List<ConflictInfo>> conflictInfoMap =
 			_ctCollectionLocalService.checkConflicts(
@@ -119,15 +116,29 @@ public class GetConflictInfoMVCResourceCommand extends BaseMVCResourceCommand {
 				_language.get(themeDisplay.getLocale(), "production"));
 
 		if (!conflictInfoMap.isEmpty()) {
-			return JSONUtil.put(
-				"conflictIconClass", "change-tracking-conflict-icon-danger"
-			).put(
-				"conflictIconLabel",
-				_language.get(
-					themeDisplay.getLocale(), "conflict-detected-help")
-			).put(
-				"conflictIconName", "warning-full"
-			);
+			if (!FeatureFlagManagerUtil.isEnabled("LPD-20556")) {
+				return JSONUtil.put(
+					"conflictIconClass", "change-tracking-conflict-icon-danger"
+				).put(
+					"conflictIconLabel",
+					_language.get(
+						themeDisplay.getLocale(), "conflict-detected-help")
+				).put(
+					"conflictIconName", "warning-full"
+				);
+			}
+
+			conflictInfoJSONObject.put(
+				"danger",
+				JSONUtil.put(
+					"conflictIconClass", "change-tracking-conflict-icon-danger"
+				).put(
+					"conflictIconLabel",
+					_language.get(
+						themeDisplay.getLocale(), "conflict-detected-help")
+				).put(
+					"conflictIconName", "warning-full"
+				));
 		}
 
 		CTCollectionHistoryProvider<?> ctCollectionHistoryProvider =
@@ -160,26 +171,63 @@ public class GetConflictInfoMVCResourceCommand extends BaseMVCResourceCommand {
 		}
 
 		if (possibleConflictCollection != null) {
+			if (!FeatureFlagManagerUtil.isEnabled("LPD-20556")) {
+				return JSONUtil.put(
+					"conflictIconClass", "change-tracking-conflict-icon-warning"
+				).put(
+					"conflictIconLabel",
+					_language.format(
+						themeDisplay.getLocale(),
+						"concurrent-modification-help-x",
+						possibleConflictCollection.getName())
+				).put(
+					"conflictIconName", "warning-full"
+				);
+			}
+
+			conflictInfoJSONObject.put(
+				"warning",
+				JSONUtil.put(
+					"conflictIconClass", "change-tracking-conflict-icon-warning"
+				).put(
+					"conflictIconLabel",
+					_language.get(
+						themeDisplay.getLocale(),
+						"concurrent-modification-help")
+				).put(
+					"conflictIconName", "warning-full"
+				));
+		}
+
+		if (ListUtil.isEmpty(ctEntries) &&
+			(possibleConflictCollection == null)) {
+
+			if (FeatureFlagManagerUtil.isEnabled("LPD-20556")) {
+				return _jsonFactory.createJSONObject();
+			}
+
 			return JSONUtil.put(
-				"conflictIconClass", "change-tracking-conflict-icon-warning"
+				"conflictIconClass", "change-tracking-conflict-icon"
 			).put(
 				"conflictIconLabel",
-				_language.format(
-					themeDisplay.getLocale(), "concurrent-modification-help-x",
-					possibleConflictCollection.getName())
+				_language.get(themeDisplay.getLocale(), "no-modifications-help")
 			).put(
-				"conflictIconName", "warning-full"
+				"conflictIconName", "check"
 			);
 		}
 
-		return JSONUtil.put(
-			"conflictIconClass", "change-tracking-conflict-icon"
-		).put(
-			"conflictIconLabel",
-			_language.get(themeDisplay.getLocale(), "no-modifications-help")
-		).put(
-			"conflictIconName", "check"
-		);
+		if (!FeatureFlagManagerUtil.isEnabled("LPD-20556")) {
+			return JSONUtil.put(
+				"conflictIconClass", "change-tracking-conflict-icon"
+			).put(
+				"conflictIconLabel",
+				_language.get(themeDisplay.getLocale(), "no-modifications-help")
+			).put(
+				"conflictIconName", "check"
+			);
+		}
+
+		return conflictInfoJSONObject;
 	}
 
 	@Reference

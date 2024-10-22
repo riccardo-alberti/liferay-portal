@@ -30,6 +30,8 @@ public class LiferayIntegrationTestRule extends AggregateTestRule {
 	private static TestRule[] _getTestRules() {
 		List<TestRule> testRules = new ArrayList<>();
 
+		testRules.add(DBPartitionTestRule.INSTANCE);
+
 		if (System.getenv("JENKINS_HOME") != null) {
 			testRules.add(TimeoutTestRule.INSTANCE);
 		}

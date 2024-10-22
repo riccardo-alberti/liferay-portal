@@ -9,16 +9,20 @@ import {ApiHelpers} from '../../helpers/ApiHelpers';
 import getRandomString from '../../utils/getRandomString';
 import {userData} from '../../utils/performLogin';
 import {PORTLET_URLS} from '../../utils/portletUrls';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {InstanceSettingsPage} from '../configuration-admin-web/InstanceSettingsPage';
 
 export class ChangeTrackingPage {
+	readonly frontendDataSetEntries: Locator;
 	readonly instanceSettingsPage: InstanceSettingsPage;
 	readonly page: Page;
 	readonly reviewChangesButton: Locator;
 	readonly tabsContainer: Locator;
 
 	constructor(page: Page) {
+		this.frontendDataSetEntries = page.locator(
+			'[data-testid="visualization-mode-table"]'
+		);
 		this.instanceSettingsPage = new InstanceSettingsPage(page);
 		this.page = page;
 		this.reviewChangesButton = page.getByRole('menuitem', {
@@ -64,7 +68,7 @@ export class ChangeTrackingPage {
 
 		await this.page.getByLabel('Submit').click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:Users were invited successfully.'
 		);
@@ -270,7 +274,7 @@ export class ChangeTrackingPage {
 
 		await this.instanceSettingsPage.saveButton.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			`Success:Your request completed successfully.`
 		);
@@ -286,12 +290,14 @@ export class ChangeTrackingPage {
 
 		const checkBox = this.page.getByLabel('Sandbox Enabled');
 
-		if (check) {
+		const checked = await checkBox.isChecked();
+
+		if (check && !checked) {
 			await checkBox.setChecked(true);
 
 			await this.instanceSettingsPage.saveButton.click();
 
-			await waitForSuccessAlert(
+			await waitForAlert(
 				this.page,
 				`Success:Your request completed successfully.`
 			);
@@ -301,7 +307,7 @@ export class ChangeTrackingPage {
 
 			await this.instanceSettingsPage.saveButton.click();
 
-			await waitForSuccessAlert(
+			await waitForAlert(
 				this.page,
 				`Success:Your request completed successfully.`
 			);

@@ -158,6 +158,17 @@ public class MBServiceUpgradeStepRegistrator implements UpgradeStepRegistrator {
 			"6.5.0", "6.5.1",
 			UpgradeProcessFactory.alterColumnType(
 				"MBCategory", "name", "VARCHAR(255) null"));
+
+		registry.register(
+			"6.5.1", "6.6.0",
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[][] getTableAndPrimaryKeyColumnNames() {
+					return new String[][] {{"MBCategory", "categoryId"}};
+				}
+
+			});
 	}
 
 	@Reference(

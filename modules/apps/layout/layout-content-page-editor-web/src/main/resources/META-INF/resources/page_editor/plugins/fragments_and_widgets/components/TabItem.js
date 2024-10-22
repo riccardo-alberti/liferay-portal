@@ -20,7 +20,7 @@ import {
 } from '../../../app/contexts/ControlsContext';
 import {
 	useDisableKeyboardMovement,
-	useSetMovementSource,
+	useSetMovementSources,
 } from '../../../app/contexts/KeyboardMovementContext';
 import {useDispatch} from '../../../app/contexts/StoreContext';
 import addFragment from '../../../app/thunks/addFragment';
@@ -44,7 +44,7 @@ const ITEM_PROPTYPES_SHAPE = PropTypes.shape({
 export default function TabItem({displayStyle, item, onRemoveHighlighted}) {
 	const dispatch = useDispatch();
 	const [disabled, setDisabled] = useState(item.disabled);
-	const setMovementSource = useSetMovementSource();
+	const setMovementSources = useSetMovementSources();
 	const selectItem = useSelectItem();
 	const selectMultipleItems = useSelectMultipleItems();
 
@@ -52,14 +52,17 @@ export default function TabItem({displayStyle, item, onRemoveHighlighted}) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
 
-			setMovementSource({
-				...item.data,
-				fragmentEntryType: item.data.type,
-				icon: item.icon,
-				isWidget: Boolean(item.data.portletId),
-				name: item.label,
-				type: item.type,
-			});
+			setMovementSources([
+				{
+					...item.data,
+					fragmentEntryType: item.data.type,
+					icon: item.icon,
+					isWidget: Boolean(item.data.portletId),
+					name: item.label,
+					portletId: item.data.portletId,
+					type: item.type,
+				},
+			]);
 		}
 	};
 
@@ -93,8 +96,9 @@ export default function TabItem({displayStyle, item, onRemoveHighlighted}) {
 			fieldTypes: item.data.fieldTypes,
 			fragmentEntryType: item.data.type,
 			icon: item.icon,
-			isWidget: item.data.portletId,
+			isWidget: Boolean(item.data.portletId),
 			label: item.label,
+			portletId: item.data.portletId,
 			type: item.type,
 		},
 		(parentId, position) => {
@@ -104,7 +108,7 @@ export default function TabItem({displayStyle, item, onRemoveHighlighted}) {
 				if (item.data.portletId) {
 					thunk = addWidget;
 				}
-				else if (item.data.fieldTypes.includes('stepper')) {
+				else if (item.data.fieldTypes?.includes('stepper')) {
 					thunk = addStepper;
 				}
 				else {
@@ -379,7 +383,7 @@ HighlightButton.propTypes = {
 };
 
 const AddButton = ({isNavigationTarget, item, setItemActive}) => {
-	const setMovementSource = useSetMovementSource();
+	const setMovementSources = useSetMovementSources();
 	const disableMovement = useDisableKeyboardMovement();
 
 	return (
@@ -393,14 +397,16 @@ const AddButton = ({isNavigationTarget, item, setItemActive}) => {
 				disableMovement();
 			}}
 			onClick={() =>
-				setMovementSource({
-					...item.data,
-					fragmentEntryType: item.data.type,
-					icon: item.icon,
-					isWidget: Boolean(item.data.portletId),
-					name: item.label,
-					type: item.type,
-				})
+				setMovementSources([
+					{
+						...item.data,
+						fragmentEntryType: item.data.type,
+						icon: item.icon,
+						isWidget: Boolean(item.data.portletId),
+						name: item.label,
+						type: item.type,
+					},
+				])
 			}
 			onFocus={() => setItemActive(true)}
 			onKeyDown={(event) => event.stopPropagation()}

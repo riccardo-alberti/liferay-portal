@@ -49,6 +49,7 @@ const DEFAULT_PAGINATION_PAGE_NUMBER = 1;
 const FrontendDataSet = ({
 	actionParameterName,
 	activeViewSettings,
+	additionalAPIURLParameters,
 	apiURL,
 	appURL,
 	bulkActions,
@@ -74,12 +75,15 @@ const FrontendDataSet = ({
 	onActionDropdownItemClick,
 	onBulkActionItemClick,
 	onSelect,
+	onSelectedItemsChange,
 	overrideEmptyResultView,
 	pagination,
 	portletId,
 	selectedItems: initialSelectedItemsValues,
 	selectedItemsKey,
 	selectionType,
+	showBulkActionsManagementBar,
+	showBulkActionsManagementBarActions,
 	showManagementBar,
 	showPagination,
 	showSearch,
@@ -219,9 +223,11 @@ const FrontendDataSet = ({
 			searchParam,
 			paginationDelta,
 			pageNumber,
-			activeSorts
+			activeSorts,
+			additionalAPIURLParameters
 		);
 	}, [
+		additionalAPIURLParameters,
 		apiURL,
 		currentURL,
 		paginationDelta,
@@ -428,9 +434,11 @@ const FrontendDataSet = ({
 				}
 			});
 
+			onSelectedItemsChange(newSelectedItems);
+
 			return newSelectedItems;
 		});
-	}, [selectedItemsValue, items, selectedItemsKey]);
+	}, [selectedItemsValue, items, onSelectedItemsChange, selectedItemsKey]);
 
 	useEffect(() => {
 		if (View || !contentRendererModuleURL) {
@@ -646,18 +654,25 @@ const FrontendDataSet = ({
 	function executeAsyncItemAction({
 		errorMessage,
 		method = 'GET',
+		requestBody,
 		setActionItemLoading,
 		successMessage,
 		url,
 	}) {
-		return fetch(url, {
+		const requestOptions = {
 			headers: {
 				'Accept': 'application/json',
 				'Accept-Language': Liferay.ThemeDisplay.getBCP47LanguageId(),
 				'Content-Type': 'application/json',
 			},
 			method,
-		})
+		};
+
+		if (method.toUpperCase() !== 'GET') {
+			requestOptions.body = requestBody ? requestBody : '{}';
+		}
+
+		return fetch(url, requestOptions)
 			.then((response) => {
 				if (response.ok) {
 					Liferay.fire(EVENTS.ACTION_PERFORMED, {
@@ -887,6 +902,8 @@ const FrontendDataSet = ({
 				selectedItemsKey,
 				selectedItemsValue,
 				selectionType,
+				showBulkActionsManagementBar,
+				showBulkActionsManagementBarActions,
 				sidePanelId: dataSetSupportSidePanelId,
 				sorts,
 				style,
@@ -957,8 +974,11 @@ FrontendDataSet.defaultProps = {
 	inlineEditingSettings: null,
 	items: null,
 	itemsActions: null,
+	onSelectedItemsChange: () => {},
 	selectedItemsKey: 'id',
 	selectionType: 'multiple',
+	showBulkActionsManagementBar: true,
+	showBulkActionsManagementBarActions: true,
 	showManagementBar: true,
 	showPagination: true,
 	showSearch: true,

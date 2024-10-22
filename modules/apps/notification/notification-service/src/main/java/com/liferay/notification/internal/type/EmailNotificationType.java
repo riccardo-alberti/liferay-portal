@@ -37,6 +37,8 @@ import com.liferay.notification.util.NotificationRecipientSettingUtil;
 import com.liferay.object.action.util.ObjectActionThreadLocal;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -52,6 +54,7 @@ import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.EmailAddressValidator;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
@@ -63,6 +66,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.template.TemplateContextContributor;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.templateparser.TemplateNode;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -97,6 +101,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -247,6 +252,8 @@ public class EmailNotificationType extends BaseNotificationType {
 			userLocale = LocaleUtil.fromLanguageId(
 				notificationContext.getPreferredLanguageId());
 		}
+
+		notificationContext.setUserLocale(userLocale);
 
 		NotificationTemplate notificationTemplate =
 			notificationContext.getNotificationTemplate();
@@ -476,8 +483,18 @@ public class EmailNotificationType extends BaseNotificationType {
 				_accountEntryOrganizationRelLocalService,
 				_accountEntryUserRelLocalService, _groupLocalService,
 				_objectDefinitionLocalService, _objectFieldLocalService,
-				_organizationLocalService, _roleLocalService,
-				_userGroupRoleLocalService, _userLocalService));
+				_organizationLocalService, _permissionCheckerFactory,
+				_roleLocalService, _userGroupRoleLocalService,
+				_userLocalService));
+
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, TemplateContextContributor.class,
+			"(type=" + TemplateContextContributor.TYPE_GLOBAL + ")");
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerList.close();
 	}
 
 	private void _addFileAttachments(
@@ -536,6 +553,12 @@ public class EmailNotificationType extends BaseNotificationType {
 				body),
 			!PropsValues.NOTIFICATION_EMAIL_TEMPLATE_ENABLED);
 
+		for (TemplateContextContributor templateContextContributor :
+				_serviceTrackerList) {
+
+			templateContextContributor.prepare(template, null);
+		}
+
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
 		themeDisplay.setLocale(siteDefaultLocale);
@@ -583,6 +606,7 @@ public class EmailNotificationType extends BaseNotificationType {
 			}
 
 			if (httpServletRequest != null) {
+				template.put("locale", portal.getLocale(httpServletRequest));
 				template.put(
 					"portalURL", portal.getPortalURL(httpServletRequest));
 			}
@@ -747,10 +771,16 @@ public class EmailNotificationType extends BaseNotificationType {
 	private OrganizationLocalService _organizationLocalService;
 
 	@Reference
+	private PermissionCheckerFactory _permissionCheckerFactory;
+
+	@Reference
 	private PortletFileRepository _portletFileRepository;
 
 	@Reference
 	private RoleLocalService _roleLocalService;
+
+	private volatile ServiceTrackerList<TemplateContextContributor>
+		_serviceTrackerList;
 
 	@Reference
 	private TemplateNodeFactory _templateNodeFactory;

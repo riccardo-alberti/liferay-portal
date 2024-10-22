@@ -9,12 +9,11 @@
 			"importStrategy": "ON_ERROR_FAIL",
 			"updateStrategy": "UPDATE"
 		},
-		"taskItemDelegateName": "DEFAULT",
-		"userId": 0,
-		"version": "v1.0"
+		"taskItemDelegateName": "DEFAULT"
 	},
 	"items": [
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"externalReferenceCode": "L_API_SORT",
 			"label": {
@@ -60,6 +59,7 @@
 			"system": true
 		},
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"externalReferenceCode": "L_API_FILTER",
 			"label": {
@@ -105,6 +105,7 @@
 			"system": true
 		},
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"externalReferenceCode": "L_API_ENDPOINT",
 			"label": {
@@ -362,6 +363,7 @@
 			"system": true
 		},
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"enableComments": false,
 			"externalReferenceCode": "L_API_PROPERTY",
@@ -480,6 +482,7 @@
 			"system": true
 		},
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"externalReferenceCode": "L_API_SCHEMA",
 			"label": {
@@ -597,6 +600,7 @@
 			"system": true
 		},
 		{
+			"defaultLanguageId": "en_US",
 			"enableCategorization": true,
 			"externalReferenceCode": "L_API_APPLICATION",
 			"label": {

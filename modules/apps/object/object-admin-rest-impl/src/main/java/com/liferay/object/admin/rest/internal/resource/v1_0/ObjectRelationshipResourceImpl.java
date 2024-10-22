@@ -181,6 +181,7 @@ public class ObjectRelationshipResourceImpl
 				objectDefinition2.getObjectDefinitionId(),
 				objectRelationship.getParameterObjectFieldId(),
 				objectRelationship.getDeletionTypeAsString(),
+				GetterUtil.getBoolean(objectRelationship.getEdge()),
 				LocalizedMapUtil.getLocalizedMap(objectRelationship.getLabel()),
 				objectRelationship.getName(),
 				GetterUtil.getBoolean(objectRelationship.getSystem()),
@@ -211,6 +212,7 @@ public class ObjectRelationshipResourceImpl
 				GetterUtil.getLong(
 					objectRelationship.getParameterObjectFieldId()),
 				objectRelationship.getDeletionTypeAsString(),
+				GetterUtil.getBoolean(objectRelationship.getEdge()),
 				LocalizedMapUtil.getLocalizedMap(objectRelationship.getLabel()),
 				objectRelationship.getName(),
 				GetterUtil.getBoolean(objectRelationship.getSystem()),
@@ -229,7 +231,8 @@ public class ObjectRelationshipResourceImpl
 		throws Exception {
 
 		if (Validator.isNotNull(objectRelationship.getEdge()) &&
-			!FeatureFlagManagerUtil.isEnabled("LPS-187142")) {
+			!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPS-187142")) {
 
 			throw new UnsupportedOperationException();
 		}
@@ -317,25 +320,9 @@ public class ObjectRelationshipResourceImpl
 			_objectFolderLocalService.getOrAddDefaultObjectFolder(
 				contextCompany.getCompanyId());
 
-		long rootObjectDefinitionId = 0;
-
-		if (GetterUtil.getBoolean(objectRelationship.getEdge())) {
-			com.liferay.object.model.ObjectDefinition
-				serviceBuilderObjectDefinition1 =
-					_objectDefinitionLocalService.
-						getObjectDefinitionByExternalReferenceCode(
-							objectRelationship.
-								getObjectDefinitionExternalReferenceCode1(),
-							contextCompany.getCompanyId());
-
-			rootObjectDefinitionId =
-				serviceBuilderObjectDefinition1.getRootObjectDefinitionId();
-		}
-
 		return _objectDefinitionLocalService.addObjectDefinition(
 			objectRelationship.getObjectDefinitionExternalReferenceCode2(),
 			contextUser.getUserId(), defaultObjectFolder.getObjectFolderId(),
-			rootObjectDefinitionId,
 			GetterUtil.get(
 				objectRelationship.getObjectDefinitionModifiable2(), true),
 			GetterUtil.get(

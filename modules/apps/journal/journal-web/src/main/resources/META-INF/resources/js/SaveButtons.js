@@ -6,13 +6,11 @@
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import {sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
 import initializeLock from './initializeLock';
 import PublishModal from './modals/PublishModal';
 import removeAlert from './removeAlert';
-import showAlert from './showAlert';
 
 const ACTION_PUBLISH = 'publish';
 const ACTION_DRAFT = 'draft';
@@ -83,18 +81,8 @@ export default function SaveButtons({
 				});
 			}
 		}
-		else if (!Liferay.FeatureFlags['LPS-114700']) {
-			showAlert(
-				sub(
-					Liferay.Language.get(
-						'please-enter-a-valid-title-for-the-default-language-x'
-					),
-					defaultLanguageId.replaceAll('_', '-')
-				)
-			);
-		}
 		else {
-			validateRequiredFields();
+			validateRequiredFields(formId);
 		}
 	};
 
@@ -166,7 +154,7 @@ export default function SaveButtons({
 		);
 	};
 
-	const validateRequiredFields = () => {
+	const validateRequiredFields = (formId) => {
 		Liferay.Form.get(formId).formValidator.validate();
 		Liferay.componentReady(
 			`${portletNamespace}dataEngineLayoutRenderer`
@@ -287,18 +275,8 @@ export default function SaveButtons({
 									publishModalVisible: true,
 								});
 							}
-							else if (!Liferay.FeatureFlags['LPS-114700']) {
-								showAlert(
-									sub(
-										Liferay.Language.get(
-											'please-enter-a-valid-title-for-the-default-language-x'
-										),
-										defaultLanguageId.replaceAll('_', '-')
-									)
-								);
-							}
 							else {
-								validateRequiredFields();
+								validateRequiredFields(formId);
 							}
 						}}
 						symbolLeft="date-time"
@@ -323,9 +301,7 @@ export default function SaveButtons({
 							publishModalVisible: false,
 						})
 					}
-					onPublishButtonClick={() => {
-						handleButtonClick(ACTION_PUBLISH);
-					}}
+					onPublishButtonClick={handleButtonClick}
 					permissionsURL={permissionsURL}
 					portletNamespace={portletNamespace}
 					showPermissionsOptions={showPublishModal}

@@ -13,14 +13,18 @@ type ConfigurationSection =
 	| 'Spacing'
 	| 'Text';
 
-type ConfigurationTab = 'Advanced' | 'General' | 'Styles';
+type EditableConfigurationTab = 'Link' | 'Mapping';
+
+type FragmentConfigurationTab = 'Advanced' | 'General' | 'Styles';
+
+type ConfigurationTab = EditableConfigurationTab | FragmentConfigurationTab;
 
 type SidebarTab =
-	| 'Fragments and Widgets'
 	| 'Browser'
-	| 'Page Design Options'
-	| 'Page Rules'
+	| 'Comments'
+	| 'Fragments and Widgets'
 	| 'Page Content'
-	| 'Comments';
+	| 'Page Design Options'
+	| 'Page Rules';
 
 type Viewport = 'Desktop' | 'Landscape Phone' | 'Portrait Phone' | 'Tablet';

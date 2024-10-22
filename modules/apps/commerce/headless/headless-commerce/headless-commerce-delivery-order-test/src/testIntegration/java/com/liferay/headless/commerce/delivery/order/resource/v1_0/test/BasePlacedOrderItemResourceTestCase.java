@@ -165,12 +165,15 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 		PlacedOrderItem placedOrderItem = randomPlacedOrderItem();
 
 		placedOrderItem.setAdaptiveMediaImageHTMLTag(regex);
+		placedOrderItem.setDeliveryGroup(regex);
 		placedOrderItem.setExternalReferenceCode(regex);
 		placedOrderItem.setName(regex);
 		placedOrderItem.setOptions(regex);
 		placedOrderItem.setReplacedSku(regex);
+		placedOrderItem.setShippingAddressExternalReferenceCode(regex);
 		placedOrderItem.setSku(regex);
 		placedOrderItem.setThumbnail(regex);
+		placedOrderItem.setUnitOfMeasure(regex);
 		placedOrderItem.setUnitOfMeasureKey(regex);
 
 		String json = PlacedOrderItemSerDes.toJSON(placedOrderItem);
@@ -181,12 +184,16 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 
 		Assert.assertEquals(
 			regex, placedOrderItem.getAdaptiveMediaImageHTMLTag());
+		Assert.assertEquals(regex, placedOrderItem.getDeliveryGroup());
 		Assert.assertEquals(regex, placedOrderItem.getExternalReferenceCode());
 		Assert.assertEquals(regex, placedOrderItem.getName());
 		Assert.assertEquals(regex, placedOrderItem.getOptions());
 		Assert.assertEquals(regex, placedOrderItem.getReplacedSku());
+		Assert.assertEquals(
+			regex, placedOrderItem.getShippingAddressExternalReferenceCode());
 		Assert.assertEquals(regex, placedOrderItem.getSku());
 		Assert.assertEquals(regex, placedOrderItem.getThumbnail());
+		Assert.assertEquals(regex, placedOrderItem.getUnitOfMeasure());
 		Assert.assertEquals(regex, placedOrderItem.getUnitOfMeasureKey());
 	}
 
@@ -1279,6 +1286,14 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("deliveryGroup", additionalAssertFieldName)) {
+				if (placedOrderItem.getDeliveryGroup() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("errorMessages", additionalAssertFieldName)) {
 				if (placedOrderItem.getErrorMessages() == null) {
 					valid = false;
@@ -1381,8 +1396,41 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (placedOrderItem.getRequestedDeliveryDate() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("settings", additionalAssertFieldName)) {
 				if (placedOrderItem.getSettings() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"shippingAddressExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (placedOrderItem.getShippingAddressExternalReferenceCode() ==
+						null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"shippingAddressId", additionalAssertFieldName)) {
+
+				if (placedOrderItem.getShippingAddressId() == null) {
 					valid = false;
 				}
 
@@ -1415,6 +1463,14 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 
 			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
 				if (placedOrderItem.getThumbnail() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unitOfMeasure", additionalAssertFieldName)) {
+				if (placedOrderItem.getUnitOfMeasure() == null) {
 					valid = false;
 				}
 
@@ -1597,6 +1653,17 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("deliveryGroup", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						placedOrderItem1.getDeliveryGroup(),
+						placedOrderItem2.getDeliveryGroup())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("errorMessages", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						placedOrderItem1.getErrorMessages(),
@@ -1745,10 +1812,52 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"requestedDeliveryDate", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						placedOrderItem1.getRequestedDeliveryDate(),
+						placedOrderItem2.getRequestedDeliveryDate())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("settings", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						placedOrderItem1.getSettings(),
 						placedOrderItem2.getSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"shippingAddressExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						placedOrderItem1.
+							getShippingAddressExternalReferenceCode(),
+						placedOrderItem2.
+							getShippingAddressExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"shippingAddressId", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						placedOrderItem1.getShippingAddressId(),
+						placedOrderItem2.getShippingAddressId())) {
 
 					return false;
 				}
@@ -1792,6 +1901,17 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				if (!Objects.deepEquals(
 						placedOrderItem1.getThumbnail(),
 						placedOrderItem2.getThumbnail())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("unitOfMeasure", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						placedOrderItem1.getUnitOfMeasure(),
+						placedOrderItem2.getUnitOfMeasure())) {
 
 					return false;
 				}
@@ -2000,6 +2120,52 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 		if (entityFieldName.equals("customFields")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("deliveryGroup")) {
+			Object object = placedOrderItem.getDeliveryGroup();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
 		}
 
 		if (entityFieldName.equals("errorMessages")) {
@@ -2231,7 +2397,92 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("requestedDeliveryDate")) {
+			if (operator.equals("between")) {
+				Date date = placedOrderItem.getRequestedDeliveryDate();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(
+					_dateFormat.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(
+					_dateFormat.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(
+					_dateFormat.format(
+						placedOrderItem.getRequestedDeliveryDate()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("settings")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("shippingAddressExternalReferenceCode")) {
+			Object object =
+				placedOrderItem.getShippingAddressExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("shippingAddressId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -2294,6 +2545,52 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 
 		if (entityFieldName.equals("thumbnail")) {
 			Object object = placedOrderItem.getThumbnail();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("unitOfMeasure")) {
+			Object object = placedOrderItem.getUnitOfMeasure();
 
 			String value = String.valueOf(object);
 
@@ -2446,6 +2743,8 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 			{
 				adaptiveMediaImageHTMLTag = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				deliveryGroup = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
@@ -2455,10 +2754,16 @@ public abstract class BasePlacedOrderItemResourceTestCase {
 				productId = RandomTestUtil.randomLong();
 				replacedSku = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				requestedDeliveryDate = RandomTestUtil.nextDate();
+				shippingAddressExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				shippingAddressId = RandomTestUtil.randomLong();
 				sku = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				skuId = RandomTestUtil.randomLong();
 				subscription = RandomTestUtil.randomBoolean();
 				thumbnail = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				unitOfMeasure = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				unitOfMeasureKey = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());

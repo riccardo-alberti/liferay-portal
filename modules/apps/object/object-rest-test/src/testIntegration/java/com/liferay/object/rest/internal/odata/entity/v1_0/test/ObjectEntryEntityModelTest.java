@@ -137,8 +137,7 @@ public class ObjectEntryEntityModelTest {
 						"keywords", locale -> "assetTagNames.lowercase"))
 			).put(
 				"status",
-				new CollectionEntityField(
-					new IntegerEntityField("status", locale -> Field.STATUS))
+				new IntegerEntityField("status", locale -> Field.STATUS)
 			).put(
 				"taxonomyCategoryIds",
 				new CollectionEntityField(
@@ -165,7 +164,7 @@ public class ObjectEntryEntityModelTest {
 				null, TestPropsValues.getUserId(),
 				relatedObjectDefinition.getObjectDefinitionId(),
 				objectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);

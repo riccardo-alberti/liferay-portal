@@ -80,20 +80,6 @@ public class IndexActionsDisplayContextBuilder {
 
 		indexActionsDisplayContext.setData(getData());
 
-		if (_isStatsInformationAvailable()) {
-			StatsInformation statsInformation =
-				_statsInformationFactory.getStatsInformation();
-
-			indexActionsDisplayContext.setAvailableDiskSpace(
-				statsInformation.getAvailableDiskSpace());
-			indexActionsDisplayContext.setCurrentDiskSpaceUsed(
-				statsInformation.getUsedDiskSpace());
-			indexActionsDisplayContext.setIsLowOnDiskSpace(
-				_isLowOnDiskSpace(
-					statsInformation.getAvailableDiskSpace(),
-					statsInformation.getSizeOfLargestIndex()));
-		}
-
 		return indexActionsDisplayContext;
 	}
 
@@ -117,8 +103,6 @@ public class IndexActionsDisplayContextBuilder {
 			"controlMenuCategoryKey",
 			ProductNavigationControlMenuCategoryKeys.TOOLS
 		).put(
-			"elasticSearchDiskSpace", _getElasticSearchDiskSpace()
-		).put(
 			"indexersMap", _getIndexersMap()
 		).put(
 			"indexReindexerNames", _getIndexReindexerNames()
@@ -131,29 +115,10 @@ public class IndexActionsDisplayContextBuilder {
 		).put(
 			"omniadmin", _permissionChecker.isOmniadmin()
 		).put(
+			"searchEngineDiskSpace", _getSearchEngineDiskSpace()
+		).put(
 			"virtualInstances", _getVirtualInstancesJSONArray()
 		).build();
-	}
-
-	private Map<String, Object> _getElasticSearchDiskSpace() {
-		Map<String, Object> elasticSearchDiskSpace = new HashMap<>();
-
-		if (_isStatsInformationAvailable()) {
-			StatsInformation statsInformation =
-				_statsInformationFactory.getStatsInformation();
-
-			elasticSearchDiskSpace.put(
-				"availableDiskSpace", statsInformation.getAvailableDiskSpace());
-			elasticSearchDiskSpace.put(
-				"currentDiskSpaceUsed", statsInformation.getUsedDiskSpace());
-			elasticSearchDiskSpace.put(
-				"isLowOnDiskSpace",
-				_isLowOnDiskSpace(
-					statsInformation.getAvailableDiskSpace(),
-					statsInformation.getSizeOfLargestIndex()));
-		}
-
-		return elasticSearchDiskSpace;
 	}
 
 	private Map<String, List<Object>> _getIndexersMap() {
@@ -276,6 +241,27 @@ public class IndexActionsDisplayContextBuilder {
 
 	private String _getInitialScope() {
 		return ParamUtil.getString(_httpServletRequest, "scope");
+	}
+
+	private Map<String, Object> _getSearchEngineDiskSpace() {
+		Map<String, Object> searchEngineDiskSpace = new HashMap<>();
+
+		if (_isStatsInformationAvailable()) {
+			StatsInformation statsInformation =
+				_statsInformationFactory.getStatsInformation();
+
+			searchEngineDiskSpace.put(
+				"availableDiskSpace", statsInformation.getAvailableDiskSpace());
+			searchEngineDiskSpace.put(
+				"isLowOnDiskSpace",
+				_isLowOnDiskSpace(
+					statsInformation.getAvailableDiskSpace(),
+					statsInformation.getSizeOfLargestIndex()));
+			searchEngineDiskSpace.put(
+				"usedDiskSpace", statsInformation.getUsedDiskSpace());
+		}
+
+		return searchEngineDiskSpace;
 	}
 
 	private JSONArray _getVirtualInstancesJSONArray() {

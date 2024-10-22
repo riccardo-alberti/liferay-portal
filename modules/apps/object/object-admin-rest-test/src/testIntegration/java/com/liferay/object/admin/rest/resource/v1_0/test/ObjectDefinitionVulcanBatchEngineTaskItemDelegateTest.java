@@ -62,7 +62,7 @@ public class ObjectDefinitionVulcanBatchEngineTaskItemDelegateTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_company = CompanyTestUtil.addCompany(true);
+		_company = CompanyTestUtil.addCompany();
 
 		User user = UserTestUtil.addCompanyAdminUser(_company);
 

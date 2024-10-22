@@ -465,6 +465,16 @@ public class ObjectServiceUpgradeStepRegistrator
 			"9.2.0", "9.2.1",
 			new com.liferay.object.internal.upgrade.v9_2_1.
 				ObjectActionUpgradeProcess(_notificationTemplateLocalService));
+
+		registry.register(
+			"9.2.1", "9.2.2",
+			new com.liferay.object.internal.upgrade.v9_2_2.
+				SchemaUpgradeProcess());
+
+		registry.register(
+			"9.2.2", "10.0.0",
+			new com.liferay.object.internal.upgrade.v10_0_0.
+				ObjectDefinitionUpgradeProcess());
 	}
 
 	@Reference

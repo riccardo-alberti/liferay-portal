@@ -81,7 +81,7 @@ public class OrganizationTestUtil {
 		throws Exception {
 
 		return EmailAddressLocalServiceUtil.addEmailAddress(
-			organization.getUserId(), organization.getModelClassName(),
+			null, organization.getUserId(), organization.getModelClassName(),
 			organization.getOrganizationId(), "test@liferay.com",
 			_getListTypeId(
 				organization.getCompanyId(),
@@ -155,7 +155,7 @@ public class OrganizationTestUtil {
 
 	public static Phone addPhone(Organization organization) throws Exception {
 		return PhoneLocalServiceUtil.addPhone(
-			organization.getUserId(), organization.getModelClassName(),
+			null, organization.getUserId(), organization.getModelClassName(),
 			organization.getOrganizationId(), "0000000000", "000",
 			_getListTypeId(
 				organization.getCompanyId(),
@@ -179,7 +179,7 @@ public class OrganizationTestUtil {
 		throws Exception {
 
 		return WebsiteLocalServiceUtil.addWebsite(
-			organization.getUserId(), organization.getModelClassName(),
+			null, organization.getUserId(), organization.getModelClassName(),
 			organization.getOrganizationId(), "http://www.test.com",
 			_getListTypeId(
 				organization.getCompanyId(),

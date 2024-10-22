@@ -16,9 +16,10 @@ import {workflowPagesTest} from '../../fixtures/workflowPagesTest';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import fillAndClickOutside from '../../utils/fillAndClickOutside';
 import getRandomString from '../../utils/getRandomString';
+import {openFieldset} from '../../utils/openFieldset';
 import addApprovedStructuredContent from '../../utils/structured-content/addApprovedStructuredContent';
 import getBasicWebContentStructureId from '../../utils/structured-content/getBasicWebContentStructureId';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {journalPagesTest} from './fixtures/journalPagesTest';
 import getDataStructureDefinition from './utils/getDataStructureDefinition';
 
@@ -70,27 +71,12 @@ const keepTitlesUntranslated = mergeTests(baseTest);
 const prefixUrlTest = mergeTests(
 	baseTest,
 	featureFlagsTest({
-		'LPS-203351': true,
-	})
-);
-
-const scheduleTest = mergeTests(
-	baseTest,
-	featureFlagsTest({
-		'LPD-15596': true,
-	})
-);
-
-const translationTest = mergeTests(
-	baseTest,
-	featureFlagsTest({
-		'LPD-11253': true,
-		'LPS-114700': true,
+		'LPD-11147': true,
 	})
 );
 
 const translationAndAutosaveTest = mergeTests(
-	translationTest,
+	baseTest,
 	featureFlagsTest({
 		'LPD-11228': true,
 		'LPD-15596': true,
@@ -105,28 +91,56 @@ baseTest(
 		tag: '@LPD-32185',
 	},
 	async ({journalEditArticlePage, page, site}) => {
-		await page.goto(`/fr/`);
+		await page.goto('/fr');
 		await journalEditArticlePage.createBasicArticleWithFriendlyURL(
 			site,
-			page,
 			'Contenu web basique'
 		);
 		await journalEditArticlePage.createBasicArticleWithFriendlyURL(
 			site,
-			page,
 			'Contenu web basique'
 		);
 
+		await waitForAlert(
+			page,
+			"Avertissement:Les URL simplifiées suivantes ont été modifiées pour garantir l'unicité",
+			{type: 'warning'}
+		);
+
+		// change back to english language
+
+		await page.goto('/en');
+	}
+);
+
+baseTest(
+	'Check error message on invalid friendly URL',
+	{
+		tag: '@LPD-38754',
+	},
+	async ({journalEditArticlePage, site}) => {
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		const title = getRandomString();
+
+		await journalEditArticlePage.fillTitle(title);
+		await journalEditArticlePage.fillFriendlyURL(title + '/' || 'test');
+		await journalEditArticlePage.publishButton.waitFor();
+		await journalEditArticlePage.publishButton.click();
+
 		await expect(
-			page
-				.locator('#ToastAlertContainer')
-				.getByText('test', {exact: true})
+			journalEditArticlePage.alertErrorMessage.getByText(
+				'Please enter a friendly URL that does not end with a slash'
+			)
 		).toBeVisible();
 	}
 );
 
 baseTest(
-	'LPD-31427: Select web content display template with the Preview feature',
+	'Select web content display template with the Preview feature',
+	{
+		tag: '@LPD-31427',
+	},
 	async ({journalEditArticlePage, page, site}) => {
 		page.on('dialog', (dialog) => dialog.accept());
 
@@ -134,29 +148,29 @@ baseTest(
 
 		const title = getRandomString();
 
-		await page.getByText('Content', {exact: true}).waitFor();
+		await journalEditArticlePage.content.waitFor();
 
 		await journalEditArticlePage.fillTitle(title);
 
-		await page.getByRole('button', {name: 'Publish'}).click();
+		await journalEditArticlePage.publishButton.click();
 
 		await journalEditArticlePage.editArticle(title);
 
-		await page.getByText('Content', {exact: true}).waitFor();
+		await journalEditArticlePage.content.waitFor();
 
-		await page.getByRole('link', {name: 'Default Template'}).click();
+		await journalEditArticlePage.defaultTemplateButton.click();
 
-		await page.getByRole('button', {name: 'Clear'}).waitFor();
+		await journalEditArticlePage.clearButton.waitFor();
 
-		await page.getByRole('button', {name: 'Clear'}).click();
+		await journalEditArticlePage.clearButton.click();
 
-		await page.getByText('Content', {exact: true}).waitFor();
+		await journalEditArticlePage.content.waitFor();
 
 		let templateName = page.getByLabel('Template Name');
 
 		await expect(templateName).toHaveValue('No Template');
 
-		await page.getByRole('link', {name: 'Default Template'}).click();
+		await journalEditArticlePage.defaultTemplateButton.click();
 
 		await page
 			.locator(
@@ -182,11 +196,33 @@ baseTest(
 
 		await dialogIFrame.getByRole('button', {name: 'Apply'}).click();
 
-		await page.getByText('Content', {exact: true}).waitFor();
+		await journalEditArticlePage.content.waitFor();
 
 		templateName = page.getByLabel('Template Name');
 
 		await expect(templateName).toHaveValue('Basic Web Content');
+	}
+);
+
+baseTest(
+	'Navigate in ddm template selector',
+	{
+		tag: '@LPD-36441',
+	},
+	async ({journalEditArticlePage, page, site}) => {
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		await journalEditArticlePage.defaultTemplateButton.click();
+
+		await journalEditArticlePage.selectButton.waitFor();
+
+		await journalEditArticlePage.selectButton.click();
+
+		const breadcrumb = page
+			.frameLocator('iframe[title="Templates"]')
+			.getByRole('link', {name: 'Sites and Libraries'});
+
+		await expect(breadcrumb).toBeVisible();
 	}
 );
 
@@ -256,31 +292,50 @@ baseTest(
 
 		await page.getByLabel(`${childFolder.name}`).check();
 
-		await page.getByRole('button', {name: 'Move'}).click();
-
-		await page.getByRole('button', {name: 'Select'}).click();
-
-		await page
-			.frameLocator('iframe[title="Select Folder"]')
-			.getByRole('button')
-			.click();
-
-		await page
-			.frameLocator('iframe[title="Select Folder"]')
-			.getByText(`${parentFolder.name}`)
-			.click();
-
-		await page.getByRole('button', {name: 'Move'}).click();
-
-		await expect(
-			page.getByText('Success:Your request completed successfully.')
-		).toBeVisible();
+		await journalPage.moveToFolder(parentFolder.name);
 
 		await expect(page.getByText(`${childFolder.name}`)).toBeHidden();
 
 		await page.getByRole('link', {name: `${parentFolder.name}`}).click();
 
 		await expect(page.getByText(`${childFolder.name}`)).toBeVisible();
+	}
+);
+
+baseTest(
+	'Move web content to another folder via management toolbar',
+	{
+		tag: '@LPD-36955',
+	},
+	async ({apiHelpers, journalPage, page, site}) => {
+		const folder = await apiHelpers.jsonWebServicesJournal.addFolder({
+			groupId: site.id,
+		});
+
+		const basicWebContentStructureId =
+			await getBasicWebContentStructureId(apiHelpers);
+
+		const title = getRandomString();
+
+		await apiHelpers.jsonWebServicesJournal.addWebContent({
+			ddmStructureId: basicWebContentStructureId,
+			groupId: site.id,
+			titleMap: {en_US: title},
+		});
+
+		await journalPage.goto(site.friendlyUrlPath);
+
+		await expect(page.getByText(`${title}`)).toBeVisible();
+
+		await page.getByLabel(`${title}`).check();
+
+		await journalPage.moveToFolder(folder.name);
+
+		await expect(page.getByText(`${title}`)).toBeHidden();
+
+		await page.getByRole('link', {name: `${folder.name}`}).click();
+
+		await expect(page.getByText(`${title}`)).toBeVisible();
 	}
 );
 
@@ -559,52 +614,31 @@ baseTest(
 
 		await journalEditArticlePage.fillTitle(title);
 
-		const translationButton = page.locator(
-			'[id="_com_liferay_journal_web_portlet_JournalPortlet__com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXMLMenu"]'
-		);
+		const translationButton = page.getByLabel('Select a language, current');
 
 		for (const language of ['Finnish', 'French', 'German']) {
 			await clickAndExpectToBeVisible({
 				autoClick: true,
-				target: page.getByRole('menuitem', {
-					name:
-						'Not translated into ' +
-						language +
-						'. Press enter to edit ' +
-						language +
-						' translation.',
+				target: page.getByRole('option', {
+					name: language + ' Language: Not Translated',
 				}),
 				trigger: translationButton,
 			});
 
-			await expect(async () => {
-				await fillAndClickOutside(
-					page,
-					journalEditArticlePage.titleInput
-				);
+			await journalEditArticlePage.fillContent(getRandomString());
 
-				await translationButton.click();
-
-				await expect(
-					page.getByRole('menuitem', {
-						exact: true,
-						name:
-							'Translated into ' +
-							language +
-							'. Press enter to edit ' +
-							language +
-							' translation.',
-					})
-				).toBeVisible();
-			}).toPass();
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page.getByRole('option', {
+					name: language + ' Language: Translating 1/',
+				}),
+				trigger: translationButton,
+			});
 		}
 
 		await journalEditArticlePage.publishButton.click();
 
-		await waitForSuccessAlert(
-			page,
-			`Success:${title} was created successfully.`
-		);
+		await waitForAlert(page, `Success:${title} was created successfully.`);
 
 		await journalPage.goToJournalArticleAction(
 			'Delete Translations',
@@ -625,12 +659,51 @@ baseTest(
 
 		await page.getByRole('button', {name: 'Delete'}).click();
 
-		await waitForSuccessAlert(page);
+		await waitForAlert(page);
+	}
+);
+baseTest(
+	'It ensures that translate side by side shows the duplicate fields',
+	{
+		tag: '@LPS-142169',
+	},
+	async ({apiHelpers, journalEditArticlePage, journalPage, page, site}) => {
+		const localizableFieldName = 'Text5678';
+		const structureName = 'Structure 1';
+
+		const dataDefinition = getDataStructureDefinition({
+			defaultLanguageId: 'en_US',
+			fields: [{name: localizableFieldName, repeatable: true}],
+			name: structureName,
+		});
+
+		await apiHelpers.dataEngine.createStructure(site.id, dataDefinition);
+
+		const title = getRandomString();
+		await journalEditArticlePage.createArticleWithDuplicatedField(
+			structureName,
+			site,
+			title
+		);
+
+		await journalPage.goToJournalArticleAction('Translate', title);
+
+		const duplicateFields = page.locator(
+			'[id^="_com_liferay_translation_web_internal_portlet_TranslationPortlet_infoField--DDMStructure_Text"]'
+		);
+
+		await duplicateFields.first().waitFor({state: 'visible'});
+
+		expect(duplicateFields.nth(0)).toBeVisible();
+		expect(duplicateFields.nth(1)).toBeVisible();
 	}
 );
 
-translationTest(
-	'LPD-13732: This is a test for reset translations button in web content',
+baseTest(
+	'This is a test for reset translations button in web content',
+	{
+		tag: '@LPD-13732',
+	},
 	async ({journalEditArticlePage, journalPage, page, site}) => {
 		await journalPage.goto();
 
@@ -688,8 +761,11 @@ translationTest(
 	}
 );
 
-translationTest(
-	'LPD-23278: This is a test for mark as translated button in web content',
+baseTest(
+	'This is a test for mark as translated button in web content',
+	{
+		tag: '@LPD-23278',
+	},
 	async ({journalEditArticlePage, journalPage, page, site}) => {
 		await journalPage.goto();
 
@@ -741,8 +817,11 @@ translationTest(
 	}
 );
 
-translationTest(
-	'LPD-24942: This is a test for translations filter button in web content',
+baseTest(
+	'This is a test for translations filter button in web content',
+	{
+		tag: '@LPD-24942',
+	},
 	async ({journalEditArticlePage, journalPage, page, site}) => {
 		await journalPage.goto();
 
@@ -775,7 +854,7 @@ translationTest(
 			trigger: translationFilterButton,
 		});
 
-		const fieldsWrapper = page.getByRole('link', {name: 'Fields'});
+		const fieldsWrapper = page.getByRole('button', {name: 'Fields'});
 
 		const metadataWapper = page.getByRole('button', {name: 'Metadata'});
 
@@ -826,6 +905,9 @@ translationTest(
 
 		await expect(noResultsWrapper).toBeHidden();
 
+		if (await journalPage.articleContentTextBox.isHidden()) {
+			await fieldsWrapper.click();
+		}
 		await journalEditArticlePage.fillContent(getRandomString());
 
 		await clickAndExpectToBeVisible({
@@ -844,8 +926,11 @@ translationTest(
 	}
 );
 
-translationTest(
-	'LPD-17245: Add error message in Translation for concurrent users',
+baseTest(
+	'Add error message in Translation for concurrent users',
+	{
+		tag: '@LPD-17245',
+	},
 	async ({
 		apiHelpers,
 		journalEditArticlePage,
@@ -942,8 +1027,11 @@ bulkTest(
 	}
 );
 
-translationTest(
-	'LPD-19627: Translate several fields in a Basic Web Content and check how many fields have been translated',
+baseTest(
+	'Translate several fields in a Basic Web Content and check how many fields have been translated',
+	{
+		tag: '@LPD-19627',
+	},
 	async ({journalEditArticlePage, page, site}) => {
 		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
 
@@ -973,7 +1061,65 @@ translationTest(
 	}
 );
 
-translationTest(
+baseTest(
+	'Translate the Rich Text field and check if the translation persists after coming back to the page',
+	{
+		tag: '@LPD-37236',
+	},
+	async ({journalEditArticlePage, journalPage, page, site}) => {
+		await journalPage.goto();
+
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		const title = getRandomString();
+
+		await journalEditArticlePage.fillTitle(title);
+
+		const englishContent = 'English Language Text';
+
+		const catalanContent = 'Catalan Language Text';
+
+		await journalEditArticlePage.fillContent(englishContent);
+
+		const translationButton = page.getByRole('combobox', {
+			name: 'Select a language',
+		});
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not Translated',
+			}),
+			trigger: translationButton,
+		});
+
+		await journalEditArticlePage.fillContent(catalanContent);
+
+		await journalEditArticlePage.publishButton.click();
+
+		await waitForAlert(page, `Success:${title} was created successfully.`);
+
+		await page.getByRole('link', {name: title}).click();
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Translating 1/2',
+			}),
+			trigger: translationButton,
+		});
+
+		await expect(
+			page
+				.getByLabel('Content', {exact: true})
+				.locator('iframe[title="editor"]')
+				.contentFrame()
+				.getByText(catalanContent)
+		).toBeVisible();
+	}
+);
+
+baseTest(
 	'LPD-19627: Translate all fields of a Web Content based on a custom structure with repeatable fields',
 	async ({apiHelpers, journalEditArticlePage, page, site}) => {
 		const localizableFieldName = 'Text5678';
@@ -1045,7 +1191,7 @@ translationTest(
 	}
 );
 
-translationTest(
+baseTest(
 	'A non-localizabled field is disabled when another translation language is selected',
 	{
 		tag: '@LPD-19627',
@@ -1083,9 +1229,7 @@ translationTest(
 			name: nonLocalizableFieldName,
 		});
 
-		if (await textBox.isHidden()) {
-			await page.getByRole('link', {name: 'Fields'}).click();
-		}
+		await openFieldset(page, 'Fields');
 
 		await expect(textBox).toBeDisabled();
 	}
@@ -1134,37 +1278,37 @@ baseTest(
 			content
 		);
 
-		const translationButton = page.locator(
-			'[id="_com_liferay_journal_web_portlet_JournalPortlet__com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXMLMenu"]'
-		);
+		const translationButton = page.getByLabel('Select a language, current');
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Not translated into Catalan. Press enter to edit Catalan translation.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not Translated',
 			}),
 			trigger: translationButton,
 		});
 
 		await expect(async () => {
-			await journalEditArticlePage.fillTitle(title);
+			await fillAndClickOutside(
+				page,
+				page.getByLabel(basicTextFieldName),
+				content
+			);
 
 			await translationButton.click();
 
-			await expect(
-				page.getByRole('menuitem', {
-					exact: true,
-					name: 'Translated into Catalan. Press enter to edit Catalan translation.',
-				})
-			).toBeVisible();
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page.getByRole('option', {
+					name: 'Catalan Language: Translating 1/',
+				}),
+				trigger: translationButton,
+			});
 		}).toPass();
 
 		await journalEditArticlePage.publishButton.click();
 
-		await waitForSuccessAlert(
-			page,
-			`Success:${title} was created successfully.`
-		);
+		await waitForAlert(page, `Success:${title} was created successfully.`);
 
 		await page.getByLabel('Close', {exact: true});
 
@@ -1186,70 +1330,11 @@ baseTest(
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Not translated into Catalan. Press enter to edit Catalan translation.',
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not',
 			}),
 			trigger: translationButton,
 		});
-	}
-);
-
-scheduleTest(
-	'Change permission of a web content in edition mode',
-	async ({journalEditArticlePage, journalPage, page, site}) => {
-		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
-
-		const title = getRandomString();
-
-		await journalEditArticlePage.fillTitle(title);
-
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Publish With Permissions',
-			}),
-			trigger: page.getByRole('button', {
-				name: 'Select and Confirm Publish Settings',
-			}),
-		});
-
-		await page.getByRole('button', {exact: true, name: 'Publish'}).click();
-
-		await waitForSuccessAlert(
-			page,
-			`Success:${title} was created successfully.`
-		);
-
-		await page.getByLabel(`Actions for ${title}`).waitFor();
-
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: page.getByRole('menuitem', {
-				exact: true,
-				name: 'Edit',
-			}),
-			trigger: page.getByLabel(`Actions for ${title}`, {
-				exact: true,
-			}),
-		});
-
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: page.getByRole('menuitem', {
-				name: 'Permissions',
-			}),
-			trigger: page.getByRole('button', {
-				name: 'Options',
-			}),
-		});
-
-		await journalPage.setPermissions(['#power-user_ACTION_DELETE']);
-
-		await journalPage.goto(site.friendlyUrlPath);
-
-		await journalPage.assertJournalArticlePermissions(title, [
-			{enabled: true, locator: '#power-user_ACTION_DELETE'},
-		]);
 	}
 );
 
@@ -1428,10 +1513,7 @@ baseTest(
 
 		await journalEditArticlePage.publishButton.click();
 
-		await waitForSuccessAlert(
-			page,
-			`Success:${title} was created successfully.`
-		);
+		await waitForAlert(page, `Success:${title} was created successfully.`);
 
 		await pagesAdminPage.goto(site.friendlyUrlPath);
 
@@ -1477,79 +1559,8 @@ baseTest(
 	}
 );
 
-scheduleTest(
-	'Create a web content scheduled',
-	async ({journalEditArticlePage, site}) => {
-		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
-
-		const articleTitle = getRandomString();
-		const expirationDate = '01/01/9999';
-		const publishDate = '9987-11-26 13:00';
-		const reviewDate = '01/01/9999';
-
-		await journalEditArticlePage.scheduleArticle(
-			articleTitle,
-			publishDate,
-			undefined,
-			expirationDate,
-			reviewDate
-		);
-
-		await journalEditArticlePage.assertScheduledArticleDates(
-			articleTitle,
-			publishDate,
-			undefined,
-			expirationDate,
-			reviewDate
-		);
-	}
-);
-
-scheduleTest(
-	'Create a web content scheduled with workflow activated',
-	async ({
-		journalEditArticlePage,
-		journalPage,
-		site,
-		workflowPage,
-		workflowTasksPage,
-	}) => {
-		await workflowPage.goto(site.friendlyUrlPath);
-
-		await workflowPage.changeWorkflow(
-			'Web Content Article',
-			'Single Approver'
-		);
-
-		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
-
-		const articleTitle = getRandomString();
-		const articleDate = '9987-11-26 13:00';
-
-		await journalEditArticlePage.scheduleArticle(
-			articleTitle,
-			articleDate,
-			{workflow: true}
-		);
-
-		await workflowTasksPage.goToAssignedToMyRoles(site.friendlyUrlPath);
-
-		await workflowTasksPage.assignToMe(articleTitle);
-
-		await workflowTasksPage.approve(articleTitle);
-
-		await journalPage.goto(site.friendlyUrlPath);
-
-		await journalEditArticlePage.assertScheduledArticleDates(
-			articleTitle,
-			articleDate,
-			{workflow: true}
-		);
-	}
-);
-
 translationAndAutosaveTest(
-	'Web Content is published when Feature Flags LPS-114700, LPD-11228 and LPD-15596 are active',
+	'Web Content is published when Feature Flags LPD-11228 and LPD-15596 are active',
 	{
 		tag: '@LPD-33570',
 	},

@@ -8,7 +8,7 @@ import {Locator, expect, mergeTests} from '@playwright/test';
 import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import getRandomString from '../../../../utils/getRandomString';
-import {waitForSuccessAlert} from '../../../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../../../utils/waitForAlert';
 import {dataSetManagerApiHelpersTest} from '../../fixtures/dataSetManagerApiHelpersTest';
 import checkHelperTooltip from '../../utils/checkHelperTooltip';
 import checkLocalized from '../../utils/checkLocalized';
@@ -54,6 +54,28 @@ test.beforeEach(async ({dataSetManagerApiHelpers}) => {
 test.afterEach(async ({dataSetManagerApiHelpers}) => {
 	await dataSetManagerApiHelpers.deleteDataSet({erc: dataSetERC});
 });
+
+async function assertTableCellContent({actionData, page, rowIndex = 0}) {
+	await test.step('Assert table cell content', async () => {
+		await page
+			.locator('.orderable-table > tbody > .orderable-table-row')
+			.first()
+			.waitFor();
+
+		const tableRowContent = await page
+			.locator('.orderable-table-row')
+			.nth(rowIndex)
+			.locator('td');
+
+		const expectedRowContent = [
+			actionData.icon,
+			actionData.label,
+			actionData.type,
+		];
+
+		await expect(tableRowContent).toContainText(expectedRowContent);
+	});
+}
 
 test(
 	'Check interactive options in item action form',
@@ -166,6 +188,14 @@ test(
 
 			await form.typeSelect.selectOption('Async');
 
+			await expect(form.requestBodyInput).toBeVisible();
+
+			await checkHelperTooltip({
+				formElement: form.requestBodyInput,
+				page,
+				text: 'This field must be a valid JSON that matches the schema of the endpoint used in this action. Use it to send data to the server.',
+			});
+
 			await actionsPage.selectTab({
 				container: actionsPage.statusMessagesTabs,
 				label: 'Success',
@@ -259,6 +289,32 @@ test(
 				page,
 			});
 		});
+
+		await test.step('Validate valid JSON in request body', async () => {
+			const requestBodyInput = form.requestBodyInput;
+
+			await form.typeSelect.selectOption('Headless');
+
+			await requestBodyInput.fill(getRandomString());
+
+			const parent = page
+				.locator('.form-group.has-error')
+				.filter({has: requestBodyInput});
+
+			expect(parent).toBeVisible();
+
+			expect(
+				parent.getByText('This field must contain a valid JSON.')
+			).toBeVisible();
+
+			await requestBodyInput.fill('{}');
+
+			expect(
+				parent.getByText('This field must contain a valid JSON.')
+			).not.toBeVisible();
+
+			await requestBodyInput.clear();
+		});
 	}
 );
 
@@ -274,6 +330,7 @@ test(
 		let icon: string = 'catalog';
 		let label: string = getRandomString();
 		let method: EAsyncActionMethod = EAsyncActionMethod.GET;
+		const requestBody: string = '{"Async": "async"}';
 		let successStatusMessage: string = getRandomString();
 		const type: EItemActionType = EItemActionType.ASYNC;
 		let url: string = getRandomString();
@@ -291,6 +348,7 @@ test(
 				icon,
 				label,
 				method,
+				requestBody,
 				successStatusMessage,
 				type,
 				url,
@@ -343,6 +401,7 @@ test(
 			await expect(form.iconInput).toHaveValue(icon);
 			await expect(form.labelInput).toHaveValue(label);
 			await expect(form.methodSelect).toHaveValue(method);
+			await expect(form.requestBodyInput).toHaveValue(requestBody);
 			await expect(form.successStatusMessageInput).toHaveValue(
 				successStatusMessage
 			);
@@ -374,9 +433,11 @@ test(
 				url,
 			});
 
+			await actionsPage.actionForm.requestBodyInput.clear();
+
 			await actionsPage.actionForm.saveButton.click();
 
-			await waitForSuccessAlert(page);
+			await waitForAlert(page);
 		});
 
 		await test.step('Open edit page of the saved item', async () => {
@@ -418,6 +479,7 @@ test(
 		let headlessActionKey: string = getRandomString();
 		let icon: string = 'heading';
 		let label: string = getRandomString();
+		const requestBody: string = '{"Headless": "sdfs"}';
 		let successStatusMessage: string = getRandomString();
 		const type: EItemActionType = EItemActionType.HEADLESS;
 
@@ -433,6 +495,7 @@ test(
 				headlessActionKey,
 				icon,
 				label,
+				requestBody,
 				successStatusMessage,
 				type,
 			});
@@ -483,6 +546,7 @@ test(
 			);
 			await expect(form.iconInput).toHaveValue(icon);
 			await expect(form.labelInput).toHaveValue(label);
+			await expect(form.requestBodyInput).toHaveValue(requestBody);
 			await expect(form.successStatusMessageInput).toHaveValue(
 				successStatusMessage
 			);
@@ -509,9 +573,11 @@ test(
 				type,
 			});
 
+			await actionsPage.actionForm.requestBodyInput.clear();
+
 			await actionsPage.actionForm.saveButton.click();
 
-			await waitForSuccessAlert(page);
+			await waitForAlert(page);
 		});
 
 		await test.step('Open edit page of the saved item', async () => {
@@ -640,7 +706,7 @@ test(
 
 			await actionsPage.actionForm.saveButton.click();
 
-			await waitForSuccessAlert(page);
+			await waitForAlert(page);
 		});
 
 		await test.step('Open edit page of the saved item', async () => {
@@ -776,7 +842,7 @@ test(
 
 			await actionsPage.actionForm.saveButton.click();
 
-			await waitForSuccessAlert(page);
+			await waitForAlert(page);
 		});
 
 		await test.step('Open edit page of the saved item', async () => {
@@ -904,7 +970,7 @@ test(
 
 			await actionsPage.actionForm.saveButton.click();
 
-			await waitForSuccessAlert(page);
+			await waitForAlert(page);
 		});
 
 		await test.step('Open edit page of the saved item', async () => {
@@ -1035,6 +1101,131 @@ test(
 			).not.toBeInViewport();
 
 			await expect(actionRow).not.toBeInViewport();
+		});
+	}
+);
+
+test(
+	'Item actions can be reordered',
+	{tag: '@LPD-11300'},
+	async ({actionsPage, dataSetManagerApiHelpers, page}) => {
+		const firstAction = {
+			icon: 'angle-left-double',
+			label: getRandomString(),
+			type: EItemActionType.LINK,
+		};
+		const secondAction = {
+			icon: 'angle-left-small',
+			label: getRandomString(),
+			type: EItemActionType.LINK,
+		};
+		const thirdAction = {
+			icon: 'angle-left',
+			label: getRandomString(),
+			type: EItemActionType.LINK,
+		};
+
+		await test.step('Create some item actions', async () => {
+			await dataSetManagerApiHelpers.createDataSetItemAction({
+				dataSetERC,
+				icon: firstAction.icon,
+				label_i18n: {en_US: firstAction.label},
+				type: firstAction.type,
+			});
+
+			await dataSetManagerApiHelpers.createDataSetItemAction({
+				dataSetERC,
+				icon: secondAction.icon,
+				label_i18n: {en_US: secondAction.label},
+				type: secondAction.type,
+			});
+
+			await dataSetManagerApiHelpers.createDataSetItemAction({
+				dataSetERC,
+				icon: thirdAction.icon,
+				label_i18n: {en_US: thirdAction.label},
+				type: thirdAction.type,
+			});
+		});
+
+		await test.step('Go to item actions tab', async () => {
+			await actionsPage.gotoItemActionsTab({dataSetLabel});
+		});
+
+		await test.step('Check that the item action are in the list', async () => {
+			await expect(actionsPage.itemActionsTab).toBeInViewport();
+
+			assertTableCellContent({
+				actionData: firstAction,
+				page,
+				rowIndex: 0,
+			});
+			assertTableCellContent({
+				actionData: secondAction,
+				page,
+				rowIndex: 1,
+			});
+			assertTableCellContent({
+				actionData: thirdAction,
+				page,
+				rowIndex: 2,
+			});
+		});
+
+		await test.step('Move second item action to the top', async () => {
+			const secondRow = actionsPage.page
+				.locator('.orderable-table-row')
+				.nth(2);
+
+			const firstRow = actionsPage.page
+				.locator('.orderable-table-row')
+				.nth(0);
+
+			await secondRow.dragTo(firstRow);
+		});
+
+		await test.step('Check that the item actions order has changed', async () => {
+			await expect(actionsPage.itemActionsTab).toBeInViewport();
+			assertTableCellContent({
+				actionData: firstAction,
+				page,
+				rowIndex: 1,
+			});
+			assertTableCellContent({
+				actionData: secondAction,
+				page,
+				rowIndex: 2,
+			});
+			assertTableCellContent({
+				actionData: thirdAction,
+				page,
+				rowIndex: 0,
+			});
+		});
+
+		await test.step('Navigate to the "Creation Actions" tab and back to "Item Actions" tab', async () => {
+			await actionsPage.gotoCreationActionsTab({dataSetLabel});
+			await actionsPage.gotoItemActionsTab({dataSetLabel});
+		});
+
+		await test.step('Check that the item actions keep the last order saved', async () => {
+			await expect(actionsPage.itemActionsTab).toBeInViewport();
+
+			assertTableCellContent({
+				actionData: firstAction,
+				page,
+				rowIndex: 1,
+			});
+			assertTableCellContent({
+				actionData: secondAction,
+				page,
+				rowIndex: 2,
+			});
+			assertTableCellContent({
+				actionData: thirdAction,
+				page,
+				rowIndex: 0,
+			});
 		});
 	}
 );

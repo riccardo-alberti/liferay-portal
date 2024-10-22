@@ -29,7 +29,7 @@ import {ProductMenuPage} from '../../pages/product-navigation-control-menu-web/P
 import {UIElementsPage} from '../../pages/uielements/UIElementsPage';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../utils/getRandomString';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
 import {JournalPage} from '../journal-web/pages/JournalPage';
 import {pagesPagesTest} from '../layout-admin-web/fixtures/pagesPagesTest';
@@ -139,7 +139,6 @@ test(
 			await layoutSetPrototypePage.addTemplatePageButton.click();
 			await pagesAdminPage.addPage({
 				name: secondPageNameOnSiteTemplate,
-				successMessage: 'Success:The page was created successfully.',
 			});
 
 			await journalPage.goto('/global');
@@ -576,7 +575,6 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 	await layoutSetPrototypePage.addTemplatePageButton.click();
 	await pagesAdminPage.addPage({
 		name: templateName,
-		successMessage: 'Success:The page was created successfully.',
 	});
 	await pageEditorPage.addWidget('Content Management', 'Asset Publisher');
 
@@ -611,7 +609,7 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 	if (!(await configurationManualInput.isChecked())) {
 		await configurationManualInput.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			configurationModal,
 			'Success:You have successfully updated the setup.'
 		);
@@ -619,7 +617,7 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 
 	const scopeSection = configurationModal.locator('#scopeContent');
 	if (await scopeSection.isHidden()) {
-		await configurationModal.getByRole('link', {name: 'Scope'}).click();
+		await configurationModal.getByRole('button', {name: 'Scope'}).click();
 	}
 	await scopeSection.waitFor();
 
@@ -633,7 +631,7 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 	});
 	await globalOption.click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		configurationModal,
 		'Success:You have successfully updated the setup.'
 	);
@@ -643,7 +641,7 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 		.getByLabel('Delete');
 	await currentSiteDeleteButton.click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		configurationModal,
 		'Success:You have successfully updated the setup.'
 	);
@@ -653,7 +651,7 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 	);
 	if (await assetEntriesSection.isHidden()) {
 		await configurationModal
-			.getByRole('link', {name: 'Asset Entries'})
+			.getByRole('button', {name: 'Asset Entries'})
 			.click();
 	}
 	await assetEntriesSection.waitFor();
@@ -684,14 +682,14 @@ async function createSiteTemplateWithContentPageAndAssetPublisher({
 	const addButton = configurationModal.getByRole('button', {name: 'Add'});
 	await addButton.click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		configurationModal,
 		'Success:You have successfully updated the setup.'
 	);
 
 	await configurationModal.getByRole('button', {name: 'Save'}).click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		configurationModal,
 		'Success:You have successfully updated the setup.'
 	);
@@ -812,7 +810,6 @@ async function createSiteTemplateWithWebContentOnContentPage({
 	await layoutSetPrototypePage.addTemplatePageButton.click();
 	await pagesAdminPage.addPage({
 		name: templateName,
-		successMessage: 'Success:The page was created successfully.',
 	});
 
 	await pageEditorPage.addWidget('Content Management', 'Web Content Display');

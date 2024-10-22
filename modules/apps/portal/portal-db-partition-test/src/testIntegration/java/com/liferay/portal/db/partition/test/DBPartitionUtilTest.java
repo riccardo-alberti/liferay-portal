@@ -143,7 +143,10 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 		CurrentConnection defaultCurrentConnection =
 			CurrentConnectionUtil.getCurrentConnection();
 
-		try {
+		try (SafeCloseable safeCloseable1 =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+					PortalInstancePool.getDefaultCompanyId())) {
+
 			CurrentConnection currentConnection = dataSource -> connection;
 
 			ReflectionTestUtil.setFieldValue(
@@ -159,8 +162,9 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 			String testObjectTableNamePrefix = dbInspector.normalizeName(
 				"TestObjectTable_x_");
 
-			try (SafeCloseable safeCloseable =
-					CompanyThreadLocal.setWithSafeCloseable(COMPANY_IDS[0])) {
+			try (SafeCloseable safeCloseable2 =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						COMPANY_IDS[0])) {
 
 				createAndPopulateTable(
 					testObjectTableNamePrefix + COMPANY_IDS[0]);
@@ -460,7 +464,7 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 		throws Exception {
 
 		try (SafeCloseable safeCloseable =
-				CompanyThreadLocal.setWithSafeCloseable(companyId);
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(companyId);
 			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select primKey, primKeyId from ResourcePermission");
 			ResultSet resultSet = preparedStatement.executeQuery()) {

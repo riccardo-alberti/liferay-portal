@@ -5,10 +5,12 @@
 
 import {Page, expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {displayPageTemplatesPagesTest} from '../../fixtures/displayPageTemplatesPagesTest';
 import {documentLibraryPagesTest} from '../../fixtures/documentLibraryPages.fixtures';
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
+import {fragmentsPagesTest} from '../../fixtures/fragmentPagesTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {masterPagesPagesTest} from '../../fixtures/masterPagesPagesTest';
@@ -26,6 +28,7 @@ import {PORTLET_URLS} from '../../utils/portletUrls';
 import getBasicWebContentStructureId, {
 	getWebContentStructureId,
 } from '../../utils/structured-content/getBasicWebContentStructureId';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
 import {
 	ANIMAL_DDM_STRUCTURE_KEY,
@@ -33,6 +36,7 @@ import {
 	LEMON_BASKET_OBJECT_ERC,
 	LEMON_OBJECT_ERC,
 } from '../setup/page-management-site/constants';
+import {deleteObjectEntries} from '../setup/page-management-site/utils/deleteObjectEntries';
 import getContainerDefinition from './utils/getContainerDefinition';
 import getFormContainerDefinition from './utils/getFormContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
@@ -45,6 +49,7 @@ const test = mergeTests(
 	featureFlagsTest({
 		'LPS-178052': true,
 	}),
+	fragmentsPagesTest,
 	isolatedSiteTest,
 	journalPagesTest,
 	loginTest(),
@@ -200,7 +205,7 @@ test.describe('Content Display Fragment', () => {
 				name: fragmentEntryName,
 			});
 
-			// Create a content page with Wem Site's Apple fragment
+			// Create a content page with created fragment
 
 			const fragmentName = getRandomString();
 
@@ -333,7 +338,7 @@ test.describe('Content Display Fragment', () => {
 				name: fragmentEntryName,
 			});
 
-			// Create a content page with Wem Site's Apple fragment
+			// Create a content page with created fragment
 
 			const fragmentName = getRandomString();
 
@@ -434,6 +439,208 @@ test.describe('Content Display Fragment', () => {
 			);
 		}
 	);
+});
+
+test.describe('Related Asset Fragment', () => {
+	test(
+		'Related Asset fragment displays linked web contents',
+		{
+			tag: '@LPD-38492',
+		},
+		async ({
+			apiHelpers,
+			context,
+			displayPageTemplatesPage,
+			journalEditArticlePage,
+			journalPage,
+			page,
+			pageEditorPage,
+			pageManagementSite,
+		}) => {
+
+			// Create two web contents
+
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
+
+			const journalArticleTitle1 = getRandomString();
+
+			await apiHelpers.headlessDelivery.postStructuredContent({
+				contentStructureId,
+				datePublished: null,
+				description: getRandomString(),
+				siteId: pageManagementSite.id,
+				title: journalArticleTitle1,
+				viewableBy: 'Anyone',
+			});
+
+			const journalArticleTitle2 = getRandomString();
+
+			await apiHelpers.headlessDelivery.postStructuredContent({
+				contentStructureId,
+				datePublished: null,
+				description: getRandomString(),
+				siteId: pageManagementSite.id,
+				title: journalArticleTitle2,
+				viewableBy: 'Anyone',
+			});
+
+			// Add related asset to the first web content
+
+			await journalPage.goto(pageManagementSite.friendlyUrlPath);
+
+			await journalEditArticlePage.editArticle(journalArticleTitle1);
+
+			await journalEditArticlePage.openRelatedAsset('Basic Web Content');
+
+			const row = page
+				.frameLocator('iframe[title="Select Basic Web Content"]')
+				.locator('.list-group-item', {hasText: journalArticleTitle2});
+
+			await row.getByRole('checkbox').check({trial: true});
+
+			await row.getByRole('checkbox').check();
+
+			await clickAndExpectToBeHidden({
+				target: page.locator('.modal-dialog'),
+				trigger: page.getByRole('button', {name: 'Done'}),
+			});
+
+			await page
+				.getByRole('button', {exact: true, name: 'Publish'})
+				.click();
+
+			await waitForAlert(page, `was updated successfully.`);
+
+			// Create a display page template for Basic Web Content
+
+			await displayPageTemplatesPage.goto(
+				pageManagementSite.friendlyUrlPath
+			);
+
+			const displayPageTemplateName = getRandomString();
+
+			await displayPageTemplatesPage.createTemplate({
+				contentSubtype: 'Basic Web Content',
+				contentType: 'Web Content Article',
+				name: displayPageTemplateName,
+			});
+
+			await displayPageTemplatesPage.editTemplate(
+				displayPageTemplateName
+			);
+
+			// Add related assets widget to the template
+
+			await pageEditorPage.addWidget(
+				'Content Management',
+				'Related Assets'
+			);
+
+			// Check that the related assets widget is displayed in the preview with feature
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page.getByRole('menuitem', {
+					name: 'Select Other Item',
+				}),
+				trigger: page.getByLabel('Preview With'),
+			});
+
+			await clickAndExpectToBeHidden({
+				target: page.locator('.modal-dialog'),
+				trigger: page
+					.frameLocator('iframe[title="Select"]')
+					.getByText(journalArticleTitle1, {exact: false}),
+			});
+
+			await expect(page.getByText(journalArticleTitle2)).toBeVisible();
+
+			// Check that the related assets widget is displayed in the preview in a new page
+
+			const pagePromise = context.waitForEvent('page');
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page.getByRole('menuitem', {
+					name: 'Preview in a New Tab',
+				}),
+				trigger: page
+					.locator('.control-menu-nav-item')
+					.getByLabel('Options', {exact: true}),
+			});
+
+			const newPage = await pagePromise;
+
+			await expect(newPage.getByText(journalArticleTitle2)).toBeVisible();
+		}
+	);
+});
+
+test.describe('Banner Slider Fragment', () => {
+	test('Check the functionality of the Dropdown fragment', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		site,
+	}) => {
+
+		// Create a content page with a Banner Slider fragment
+
+		const bannerSliderId = getRandomString();
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getFragmentDefinition({
+					id: bannerSliderId,
+					key: 'FEATURED_CONTENT-banner-slider',
+				}),
+			]),
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+		// Change the number of slides
+
+		await pageEditorPage.selectFragment(bannerSliderId);
+
+		await pageEditorPage.changeFragmentConfiguration({
+			fieldLabel: 'Number of Slides',
+			fragmentId: bannerSliderId,
+			tab: 'General',
+			value: '4',
+		});
+
+		// Check that the number of slides is displayed correctly
+
+		expect(await page.getByLabel('Focus slide').count()).toBe(4);
+
+		// Check that the fourth slide is displayed
+
+		await page.getByLabel('Focus Slide 4').click();
+
+		await expect(
+			page.locator('[data-lfr-editable-id="04-01-image"]')
+		).toBeVisible();
+
+		await pageEditorPage.editTextEditable(
+			bannerSliderId,
+			'04-02-title',
+			'New title'
+		);
+
+		// Check the banner slider is displayed correctly in the view mode
+
+		await pageEditorPage.publishPage();
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`);
+
+		expect(await page.getByLabel('Focus slide').count()).toBe(4);
+
+		await expect(page.getByText('New title')).toBeVisible();
+	});
 });
 
 test.describe('Dropdown Fragment', () => {
@@ -595,7 +802,9 @@ test.describe('Dropdown Fragment', () => {
 		await pageEditorPage.addFragment(
 			'Basic Components',
 			'Heading',
-			page.getByText('Place fragments or widgets here.', {exact: true})
+			page.getByText('Drag and drop fragments or widgets here.', {
+				exact: true,
+			})
 		);
 
 		await expect(page.getByText('Heading Example')).toBeVisible();
@@ -796,41 +1005,202 @@ test.describe('External Video', () => {
 	);
 });
 
+test.describe('Heading Fragment', () => {
+	test(
+		'Can edit text editable',
+		{tag: ['@LPS-78726', '@LPS-85872']},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Create page with a heading fragment and go to edit mode
+
+			const fragmentId = getRandomString();
+
+			const fragment = getFragmentDefinition({
+				id: fragmentId,
+				key: 'BASIC_COMPONENT-heading',
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([fragment]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			// Check heading editable can be edited
+
+			await pageEditorPage.editTextEditable(
+				fragmentId,
+				'element-text',
+				'New editable fragment text'
+			);
+
+			await expect(
+				page.getByText('New editable fragment text')
+			).toBeAttached();
+		}
+	);
+});
+
 test.describe('HTML Fragment', () => {
-	test('Can edit html editable', async ({
-		apiHelpers,
-		page,
-		pageEditorPage,
-		site,
-	}) => {
+	const CUSTOM_FRAGMENT_HTML = `<lfr-editable id="element-html" type="html">
+		<h1>HTML Example</h1>
+	</lfr-editable>`;
 
-		// Create page with a HTML fragment and go to edit mode
+	test(
+		'Can edit custom html editable with lfr-editable',
+		{tag: '@LPS-98553'},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
 
-		const fragmentId = getRandomString();
+			// Create a fragment with lfr-editable
 
-		const fragment = getFragmentDefinition({
-			id: fragmentId,
-			key: 'BASIC_COMPONENT-html',
-		});
+			const {fragmentCollectionId} =
+				await apiHelpers.jsonWebServicesFragmentCollection.addFragmentCollection(
+					{
+						groupId: site.id,
+						name: getRandomString(),
+					}
+				);
 
-		const layout = await apiHelpers.headlessDelivery.createSitePage({
-			pageDefinition: getPageDefinition([fragment]),
-			siteId: site.id,
-			title: getRandomString(),
-		});
+			const fragmentEntryName = getRandomString();
 
-		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+			await apiHelpers.jsonWebServicesFragmentEntry.addFragmentEntry({
+				fragmentCollectionId,
+				groupId: site.id,
+				html: CUSTOM_FRAGMENT_HTML,
+				name: fragmentEntryName,
+			});
 
-		// Check html editable can be edited
+			// Create a content page with created fragment
 
-		await pageEditorPage.editHTMLEditable(
-			fragmentId,
-			'element-html',
-			'<div class="text-success"><h1>test html</h1></div>'
-		);
+			const fragmentName = getRandomString();
 
-		await expect(page.getByText('test html')).toBeAttached();
-	});
+			const fragmentDefinition = getFragmentDefinition({
+				id: fragmentName,
+				key: fragmentEntryName,
+			});
+
+			// Create a content page and go to edit mode
+
+			const layoutTitle = getRandomString();
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([fragmentDefinition]),
+				siteId: site.id,
+				title: layoutTitle,
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			// Check html editable can be edited
+
+			await pageEditorPage.editHTMLEditable({
+				editableId: 'element-html',
+				fragmentId: fragmentName,
+				value: '<div class="text-success"><h1>test html</h1></div>',
+			});
+
+			await expect(page.getByText('test html')).toBeAttached();
+
+			// Remove the page
+
+			await apiHelpers.jsonWebServicesLayout.deleteLayout(layout.id);
+
+			// Delete data
+
+			await apiHelpers.jsonWebServicesFragmentCollection.deleteFragmentCollection(
+				fragmentCollectionId
+			);
+		}
+	);
+
+	test(
+		'Can edit html editable',
+		{tag: '@LPS-98553'},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Create page with a HTML fragment and go to edit mode
+
+			const fragmentId = getRandomString();
+
+			const fragment = getFragmentDefinition({
+				id: fragmentId,
+				key: 'BASIC_COMPONENT-html',
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([fragment]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			// Check html editable can be edited
+
+			await pageEditorPage.editHTMLEditable({
+				editableId: 'element-html',
+				fragmentId,
+				value: '<div class="text-success"><h1>test html</h1></div>',
+			});
+
+			await expect(page.getByText('test html')).toBeAttached();
+		}
+	);
+});
+
+test.describe('Image Fragment', () => {
+	test(
+		'Select image from document and media',
+		{tag: ['@LPS-95045', '@LPS-101328']},
+		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
+
+			// Create a page with an image fragment
+
+			const imageId = getRandomString();
+
+			const imageFragment = getFragmentDefinition({
+				id: imageId,
+				key: 'BASIC_COMPONENT-image',
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([imageFragment]),
+				siteId: pageManagementSite.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(
+				layout,
+				pageManagementSite.friendlyUrlPath
+			);
+
+			// Select the image directly
+
+			await pageEditorPage.selectEditable(imageId, 'image-square');
+
+			await page.getByTitle('Select Image').click();
+
+			const imageCard = page
+				.frameLocator('iframe[title="Select"]')
+				.getByText('poodle.jpg');
+
+			await clickAndExpectToBeHidden({
+				target: page.locator('.modal-dialog'),
+				trigger: imageCard,
+			});
+
+			await pageEditorPage.waitForChangesSaved();
+
+			expect(
+				await page
+					.locator('.component-image img')
+					.first()
+					.getAttribute('src')
+			).toContain('poodle-jpg');
+		}
+	);
 });
 
 test.describe('Multiselect Fragment', () => {
@@ -928,6 +1298,44 @@ test.describe('Multiselect Fragment', () => {
 					'Thank you. Your information was successfully received.'
 				)
 			).toBeVisible();
+		}
+	);
+});
+
+test.describe('Paragraph Fragment', () => {
+	test(
+		'Can edit text editable',
+		{tag: ['@LPS-127732']},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Create page with a paragraph fragment and go to edit mode
+
+			const fragmentId = getRandomString();
+
+			const fragment = getFragmentDefinition({
+				id: fragmentId,
+				key: 'BASIC_COMPONENT-paragraph',
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([fragment]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			// Check paragraph editable can be edited
+
+			await pageEditorPage.editTextEditable(
+				fragmentId,
+				'element-text',
+				'New editable fragment text'
+			);
+
+			await expect(
+				page.getByText('New editable fragment text')
+			).toBeAttached();
 		}
 	);
 });
@@ -1257,7 +1665,7 @@ test.describe('Tabs Fragment', () => {
 		// Add the main drop zone on the first tab and a Heading fragment in the second tab
 
 		const tabDropZone = page
-			.getByText('Place fragments or widgets here.')
+			.getByText('Drag and drop fragments or widgets here.')
 			.first();
 
 		await dragAndDropElement({
@@ -1277,7 +1685,7 @@ test.describe('Tabs Fragment', () => {
 		await dragAndDropElement({
 			dragTarget: page.locator('[data-name="Heading"]'),
 			dropTarget: page
-				.getByText('Place fragments or widgets here.')
+				.getByText('Drag and drop fragments or widgets here.')
 				.first(),
 			page,
 		});
@@ -1309,9 +1717,15 @@ test.describe('Tags Fragment', () => {
 
 		// Get the id of Lemon object from the site initializer
 
+		const objectAdminRestClient = await apiHelpers.buildRestClient(
+			ObjectAdminRestClient
+		);
+
 		const {id: objectDefinitionId} =
-			await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-				LEMON_OBJECT_ERC
+			await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+				{
+					externalReferenceCode: LEMON_OBJECT_ERC,
+				}
 			);
 
 		// Create a Form Container with a Tags fragment and Submit fragment
@@ -1344,10 +1758,19 @@ test.describe('Tags Fragment', () => {
 			key: 'INPUTS-submit-button',
 		});
 
+		const inputDefinition = getFragmentDefinition({
+			fragmentConfig: {
+				inputFieldId: 'ObjectField_lemonSize',
+			},
+			id: getRandomString(),
+			key: 'INPUTS-text-input',
+		});
+
 		const formDefinition = getFormContainerDefinition({
 			id: getRandomString(),
 			objectDefinitionId,
 			pageElements: [
+				inputDefinition,
 				firstTagsFragmentDefinition,
 				secondTagsFragmentDefinition,
 				submitFragmentDefinition,
@@ -1360,7 +1783,7 @@ test.describe('Tags Fragment', () => {
 			title: getRandomString(),
 		});
 
-		// Create two tags in Wem Site
+		// Create two tags in Page Management Site
 
 		for (const tagName of ['Dogs', 'Cats']) {
 			await apiHelpers.headlessAdminTaxonomy.postSiteKeyword({
@@ -1385,6 +1808,8 @@ test.describe('Tags Fragment', () => {
 			`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
 		);
 
+		await page.getByLabel('Lemon Size').fill('Tags test');
+
 		await page.getByRole('combobox').first().click();
 		await page.getByRole('option', {exact: true, name: 'Dogs'}).click();
 
@@ -1406,22 +1831,30 @@ test.describe('Tags Fragment', () => {
 			`/group${pageManagementSite.friendlyUrlPath}${PORTLET_URLS.objects}_${objectDefinitionId}`
 		);
 
-		await page
-			.locator('.table-list-title')
-			.getByRole('link')
-			.first()
-			.click();
+		const objectRow = page
+			.locator('.dnd-tr')
+			.filter({hasText: 'Tags test'});
 
-		const grid = page.getByRole('grid');
+		await objectRow.waitFor();
 
-		await grid.waitFor();
+		await objectRow.getByRole('link').click();
 
-		await expect(grid).toHaveText('RabbitsCatsDogs');
+		await expect(page.getByLabel('Other Metadata')).toContainText(
+			'RabbitsCatsDogs'
+		);
 
 		// Remove the tag created on Global
 
 		await apiHelpers.headlessAdminTaxonomy.deleteKeyword({
 			id: globalTag.id,
+		});
+
+		// Delete Lemon entry
+
+		await deleteObjectEntries({
+			entityName: 'Lemons',
+			page,
+			siteUrl: pageManagementSite.friendlyUrlPath,
 		});
 	});
 
@@ -1435,9 +1868,15 @@ test.describe('Tags Fragment', () => {
 
 		// Get Lemon Basket object id from the site initializer
 
+		const objectAdminRestClient = await apiHelpers.buildRestClient(
+			ObjectAdminRestClient
+		);
+
 		const {id: objectDefinitionId} =
-			await apiHelpers.objectAdmin.getObjectDefinitionByExternalReferenceCode(
-				LEMON_BASKET_OBJECT_ERC
+			await objectAdminRestClient.objectDefinition.getObjectDefinitionByExternalReferenceCode(
+				{
+					externalReferenceCode: LEMON_BASKET_OBJECT_ERC,
+				}
 			);
 
 		// Set the "Enable Categorization of Object entries" configuration to false
@@ -1540,6 +1979,192 @@ test.describe('Video URL', () => {
 					'Life at Liferay - A Look into Liferay Culture'
 				)
 			).toBeVisible();
+		}
+	);
+});
+
+test.describe('Dropzone', () => {
+	test(
+		'Create a fragment with multiple Drop Zone areas and add a fragment into one of them to save it as a composition',
+		{
+			tag: '@LPS-101258',
+		},
+		async ({
+			apiHelpers,
+			fragmentEditorPage,
+			fragmentsPage,
+			page,
+			pageEditorPage,
+			site,
+		}) => {
+
+			// Go to fragment administration and create fragment set
+
+			await fragmentsPage.goto(site.friendlyUrlPath);
+
+			const fragmentSetName = getRandomString();
+
+			await fragmentsPage.createFragmentSet(fragmentSetName);
+
+			// Create fragment
+
+			const fragmentName = getRandomString();
+
+			await fragmentsPage.createFragment(
+				fragmentSetName,
+				fragmentName,
+				'basic'
+			);
+
+			await fragmentEditorPage.addHTML(` 
+			<lfr-drop-zone></lfr-drop-zone>	
+			<lfr-drop-zone></lfr-drop-zone>	
+			`);
+
+			await fragmentEditorPage.publish();
+
+			// Create a page with a container and the fragment inside
+
+			const title = getRandomString();
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				siteId: site.id,
+				title,
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			await pageEditorPage.addFragment('Layout Elements', 'Container');
+
+			const containerId = await pageEditorPage.getFragmentId('Container');
+
+			await pageEditorPage.addFragment(
+				fragmentSetName,
+				fragmentName,
+				pageEditorPage.getFragment(containerId)
+			);
+
+			// Add a fragment in one of the drop zones
+
+			await pageEditorPage.addFragment(
+				'Basic Components',
+				'Button',
+				page
+					.getByText('Drag and drop fragments or widgets here.')
+					.first()
+			);
+
+			// Verify that the fragments are present
+
+			await expect(page.getByText('Go Somewhere')).toBeVisible();
+
+			await expect(
+				page.getByText('Drag and drop fragments or widgets here.')
+			).toBeVisible();
+
+			// Save the composition
+
+			await pageEditorPage.clickFragmentOption(
+				containerId,
+				'Save Composition'
+			);
+
+			const compositionName = getRandomString();
+
+			await page.getByPlaceholder('Name').fill(compositionName);
+
+			await page.getByRole('button', {name: 'Save'}).click();
+
+			// Check the composition has been saved
+
+			await fragmentsPage.goto(site.friendlyUrlPath);
+
+			await fragmentsPage.gotoFragmentSet(fragmentSetName);
+
+			await expect(page.getByText(compositionName)).toBeVisible();
+		}
+	);
+});
+
+test.describe('Custom Fragments', () => {
+	test(
+		'Create a fragment using data-lfr-priority and check it works',
+		{
+			tag: '@LPS-121281',
+		},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Create new fragment collection
+
+			const fragmentCollectionName = getRandomString();
+
+			const {fragmentCollectionId} =
+				await apiHelpers.jsonWebServicesFragmentCollection.addFragmentCollection(
+					{
+						groupId: site.id,
+						name: fragmentCollectionName,
+					}
+				);
+
+			// Create custom fragment using data-lfr-priority
+
+			const fragmentName = getRandomString();
+
+			await apiHelpers.jsonWebServicesFragmentEntry.addFragmentEntry({
+				fragmentCollectionId,
+				groupId: site.id,
+				html: `<div class="fragment-example">
+					<p data-lfr-editable-id="priority-2" data-lfr-editable-type="text" data-lfr-priority="2">
+							Priority 2
+					</p>
+					<p data-lfr-editable-id="priority-1" data-lfr-editable-type="text" data-lfr-priority="1">
+						Priority 1
+					</p>
+				</div>`,
+				name: fragmentName,
+				type: 'component',
+			});
+
+			// Create a content page and go to edit mode
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			// Add the fragment to the page and go to Browser panel
+
+			await pageEditorPage.addFragment(
+				fragmentCollectionName,
+				fragmentName
+			);
+
+			await pageEditorPage.goToSidebarTab('Browser');
+
+			// Check data-lfr-priority works
+
+			const fragmentId = await pageEditorPage.getFragmentId(fragmentName);
+
+			await pageEditorPage.selectFragment(fragmentId);
+
+			await page
+				.locator('.page-editor__page-structure__tree-node')
+				.filter({hasText: 'priority-1'})
+				.waitFor();
+
+			const fragmentNode = page.locator('.treeview-item', {
+				hasText: fragmentName,
+			});
+
+			await expect(
+				fragmentNode.locator('.treeview-item').nth(0)
+			).toContainText('priority-1');
+
+			await expect(
+				fragmentNode.locator('.treeview-item').nth(1)
+			).toContainText('priority-2');
 		}
 	);
 });

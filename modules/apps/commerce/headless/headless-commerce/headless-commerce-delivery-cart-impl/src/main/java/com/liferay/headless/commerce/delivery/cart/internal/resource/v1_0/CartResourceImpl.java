@@ -46,6 +46,7 @@ import com.liferay.commerce.service.CommerceShippingMethodLocalService;
 import com.liferay.commerce.util.CommerceAccountHelper;
 import com.liferay.commerce.util.CommerceCheckoutStep;
 import com.liferay.commerce.util.CommerceCheckoutStepRegistry;
+import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.core.util.ServiceContextHelper;
 import com.liferay.headless.commerce.delivery.cart.dto.v1_0.Address;
@@ -83,6 +84,7 @@ import com.liferay.portal.kernel.servlet.DummyHttpServletResponse;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.URLCodec;
@@ -100,6 +102,8 @@ import java.math.BigDecimal;
 import java.security.Key;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -137,7 +141,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -164,7 +168,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -184,7 +188,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -312,7 +316,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -337,7 +341,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -355,7 +359,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -446,7 +450,7 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		throws Exception {
 
 		CommerceOrder commerceOrder =
-			_commerceOrderService.fetchByExternalReferenceCode(
+			_commerceOrderService.fetchCommerceOrderByExternalReferenceCode(
 				externalReferenceCode, contextCompany.getCompanyId());
 
 		if (commerceOrder == null) {
@@ -568,19 +572,17 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 			skuUnitOfMeasureKey = skuUnitOfMeasure.getKey();
 		}
 
-		CommerceChannel commerceChannel =
-			_commerceChannelLocalService.getCommerceChannelByOrderGroupId(
-				commerceOrder.getGroupId());
-
 		CommerceOrderCheckoutConfiguration commerceOrderCheckoutConfiguration =
 			_configurationProvider.getConfiguration(
 				CommerceOrderCheckoutConfiguration.class,
 				new GroupServiceSettingsLocator(
-					commerceChannel.getGroupId(),
+					commerceOrder.getGroupId(),
 					CommerceConstants.SERVICE_NAME_COMMERCE_ORDER));
 
+		CommerceOrderItem commerceOrderItem = null;
+
 		if (commerceOrderCheckoutConfiguration.showSeparateOrderItems()) {
-			_commerceOrderItemService.addCommerceOrderItem(
+			commerceOrderItem = _commerceOrderItemService.addCommerceOrderItem(
 				commerceOrder.getCommerceOrderId(),
 				cpInstance.getCPInstanceId(), cartItem.getOptions(),
 				BigDecimalUtil.get(cartItem.getQuantity(), BigDecimal.ONE),
@@ -589,13 +591,56 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 				serviceContext);
 		}
 		else {
-			_commerceOrderItemService.addOrUpdateCommerceOrderItem(
-				commerceOrder.getCommerceOrderId(),
-				cpInstance.getCPInstanceId(), cartItem.getOptions(),
-				BigDecimalUtil.get(cartItem.getQuantity(), BigDecimal.ONE),
-				GetterUtil.getLong(cartItem.getReplacedSkuId()),
-				BigDecimal.ZERO, skuUnitOfMeasureKey, commerceContext,
-				serviceContext);
+			commerceOrderItem =
+				_commerceOrderItemService.addOrUpdateCommerceOrderItem(
+					commerceOrder.getCommerceOrderId(),
+					cpInstance.getCPInstanceId(), cartItem.getOptions(),
+					BigDecimalUtil.get(cartItem.getQuantity(), BigDecimal.ONE),
+					GetterUtil.getLong(cartItem.getReplacedSkuId()),
+					BigDecimal.ZERO, skuUnitOfMeasureKey, commerceContext,
+					serviceContext);
+		}
+
+		long shippingAddressId = GetterUtil.getLong(
+			cartItem.getShippingAddressId());
+
+		if (shippingAddressId == 0) {
+			CommerceAddress commerceAddress =
+				_commerceAddressService.
+					fetchCommerceAddressByExternalReferenceCode(
+						cartItem.getShippingAddressExternalReferenceCode(),
+						contextCompany.getCompanyId());
+
+			if (commerceAddress != null) {
+				shippingAddressId = commerceAddress.getCommerceAddressId();
+			}
+			else {
+				shippingAddressId = commerceOrderItem.getShippingAddressId();
+			}
+		}
+
+		Date requestedDeliveryDate = cartItem.getRequestedDeliveryDate();
+
+		if (requestedDeliveryDate != null) {
+			Calendar requestedDeliveryDateCalendar =
+				CalendarFactoryUtil.getCalendar(
+					requestedDeliveryDate.getTime());
+
+			DateConfig requestedDeliveryDateConfig = new DateConfig(
+				requestedDeliveryDateCalendar);
+
+			_commerceOrderItemService.updateCommerceOrderItemInfo(
+				commerceOrderItem.getCommerceOrderItemId(), shippingAddressId,
+				cartItem.getDeliveryGroup(), commerceOrderItem.getPrintedNote(),
+				requestedDeliveryDateConfig.getMonth(),
+				requestedDeliveryDateConfig.getDay(),
+				requestedDeliveryDateConfig.getYear());
+		}
+		else {
+			_commerceOrderItemService.updateCommerceOrderItemInfo(
+				commerceOrderItem.getCommerceOrderItemId(), shippingAddressId,
+				cartItem.getDeliveryGroup(),
+				commerceOrderItem.getPrintedNote());
 		}
 	}
 
@@ -800,9 +845,10 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		}
 
 		CommerceOrderType commerceOrderType =
-			_commerceOrderTypeService.fetchByExternalReferenceCode(
-				cart.getOrderTypeExternalReferenceCode(),
-				contextCompany.getCompanyId());
+			_commerceOrderTypeService.
+				fetchCommerceOrderTypeByExternalReferenceCode(
+					cart.getOrderTypeExternalReferenceCode(),
+					contextCompany.getCompanyId());
 
 		if (commerceOrderType == null) {
 			return 0;
@@ -1033,9 +1079,10 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 
 		if (billingAddressId == 0) {
 			CommerceAddress commerceAddress =
-				_commerceAddressService.fetchByExternalReferenceCode(
-					cart.getBillingAddressExternalReferenceCode(),
-					contextCompany.getCompanyId());
+				_commerceAddressService.
+					fetchCommerceAddressByExternalReferenceCode(
+						cart.getBillingAddressExternalReferenceCode(),
+						contextCompany.getCompanyId());
 
 			if (commerceAddress == null) {
 				billingAddressId = commerceOrder.getBillingAddressId();
@@ -1062,9 +1109,10 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 
 		if (shippingAddressId == 0) {
 			CommerceAddress commerceAddress =
-				_commerceAddressService.fetchByExternalReferenceCode(
-					cart.getShippingAddressExternalReferenceCode(),
-					contextCompany.getCompanyId());
+				_commerceAddressService.
+					fetchCommerceAddressByExternalReferenceCode(
+						cart.getShippingAddressExternalReferenceCode(),
+						contextCompany.getCompanyId());
 
 			if (commerceAddress == null) {
 				shippingAddressId = commerceOrder.getShippingAddressId();
@@ -1102,10 +1150,35 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 			commerceOrder.getTotalDiscountAmount(),
 			commerceOrder.getTotalWithTaxAmount(), commerceContext, true);
 
-		commerceOrder = _commerceOrderService.updatePrintedNote(
-			commerceOrder.getCommerceOrderId(),
-			GetterUtil.get(
-				cart.getPrintedNote(), commerceOrder.getPrintedNote()));
+		ServiceContext serviceContext = _serviceContextHelper.getServiceContext(
+			commerceOrder.getGroupId());
+
+		if (cart.getRequestedDeliveryDate() != null) {
+			Calendar requestedDeliveryDateCalendar =
+				CalendarFactoryUtil.getCalendar(serviceContext.getTimeZone());
+
+			requestedDeliveryDateCalendar.setTime(
+				cart.getRequestedDeliveryDate());
+
+			DateConfig requestedDeliveryDateConfig = new DateConfig(
+				requestedDeliveryDateCalendar);
+
+			_commerceOrderService.updateInfo(
+				commerceOrder.getCommerceOrderId(),
+				GetterUtil.getString(
+					cart.getPrintedNote(), commerceOrder.getPrintedNote()),
+				requestedDeliveryDateConfig.getMonth(),
+				requestedDeliveryDateConfig.getDay(),
+				requestedDeliveryDateConfig.getYear(),
+				requestedDeliveryDateConfig.getHour(),
+				requestedDeliveryDateConfig.getMinute(), serviceContext);
+		}
+		else {
+			_commerceOrderService.updatePrintedNote(
+				commerceOrder.getCommerceOrderId(),
+				GetterUtil.getString(
+					cart.getPrintedNote(), commerceOrder.getPrintedNote()));
+		}
 
 		Map<String, ?> customFields = cart.getCustomFields();
 

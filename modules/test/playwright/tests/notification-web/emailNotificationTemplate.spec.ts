@@ -5,6 +5,10 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {
+	ObjectAdminRestClient,
+	ObjectDefinition,
+} from '../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {loginTest} from '../../fixtures/loginTest';
 import {notificationPagesTest} from '../../fixtures/notificationPagesTest';
@@ -26,7 +30,13 @@ test.beforeEach(async ({apiHelpers}) => {
 });
 
 test.afterEach(async ({apiHelpers, notificationTemplatesPage, page}) => {
-	await apiHelpers.objectAdmin.deleteObjectDefinition(objectDefinition.id);
+	const objectAdminRestClient = await apiHelpers.buildRestClient(
+		ObjectAdminRestClient
+	);
+
+	await objectAdminRestClient.objectDefinition.deleteObjectDefinition({
+		objectDefinitionId: objectDefinition.id,
+	});
 
 	await notificationTemplatesPage.goto();
 
@@ -433,17 +443,13 @@ test('can use notification terms and freeMarker variables in notification templa
 	const freeMarkerVariables = [
 		'Author',
 		'Create Date',
-		'Current URL',
 		'Default',
 		'External Reference Code',
-		'HTTP Request',
 		'ID',
 		'Locale',
 		'Modified Date',
 		'Portal URL',
 		'Publish Date',
-		'Template ID',
-		'Theme Display',
 		'Status',
 		'User Profile Image',
 		objectFieldName,
@@ -454,8 +460,6 @@ test('can use notification terms and freeMarker variables in notification templa
 			page.getByRole('button', {exact: true, name: freeMarkerVariable})
 		).toBeVisible();
 	}
-
-	await page.getByRole('button', {name: 'Current URL'}).click();
 
 	await page.getByRole('button', {name: objectFieldName}).click();
 
@@ -468,8 +472,6 @@ test('can use notification terms and freeMarker variables in notification templa
 	await expect(
 		page
 			.locator('.CodeMirror-lines')
-			.getByText(
-				'currentURL$' + `{ObjectField_${objectFieldName}.getData()}`
-			)
+			.getByText(`{ObjectField_${objectFieldName}.getData()}`)
 	).toBeVisible();
 });

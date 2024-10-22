@@ -16,6 +16,7 @@ import com.liferay.dynamic.data.mapping.io.DDMFormSerializerSerializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormSerializerSerializeResponse;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
@@ -30,6 +31,9 @@ import com.liferay.dynamic.data.mapping.util.DDMIndexer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.json.JSONFactoryImpl;
+import com.liferay.portal.kernel.json.JSONException;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
@@ -115,13 +119,13 @@ public class DDMIndexerImplTest {
 
 	@Before
 	public void setUp() throws Exception {
+		_ddmIndexer = _createDDMIndexer(false);
 		_ddmFixture.setUp();
 		_documentFixture.setUp();
 
+		_setUpJSONFactoryUtil();
 		_setUpPortalUtil();
 		_setUpPropsUtil();
-
-		_ddmIndexer = _createDDMIndexer(false);
 	}
 
 	@After
@@ -212,6 +216,51 @@ public class DDMIndexerImplTest {
 		_testFormWithRepeatableField("keyword");
 		_testFormWithRepeatableField("text");
 		_testFormWithRepeatableRichTextField();
+	}
+
+	@Test
+	public void testFormWithSelectField() throws JSONException {
+		Document document = _createDocument();
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
+			SetUtil.fromArray(LocaleUtil.US), LocaleUtil.US);
+
+		DDMFormField ddmFormField = DDMFormTestUtil.createDDMFormField(
+			_FIELD_NAME, RandomTestUtil.randomString(), DDMFormFieldType.SELECT,
+			"string", true, false, false);
+
+		DDMFormFieldOptions ddmFormFieldOptions = new DDMFormFieldOptions();
+
+		ddmFormFieldOptions.addOptionLabel(
+			"Option Value", LocaleUtil.US, "Option Label");
+
+		ddmFormField.setDDMFormFieldOptions(ddmFormFieldOptions);
+
+		ddmFormField.setIndexType("keyword");
+
+		ddmForm.addDDMFormField(ddmFormField);
+
+		_ddmIndexer.addAttributes(
+			document, _createDDMStructure(ddmForm),
+			_createDDMFormValues(
+				ddmForm,
+				DDMFormValuesTestUtil.createDDMFormFieldValue(
+					_FIELD_NAME,
+					DDMFormValuesTestUtil.createLocalizedValue(
+						"[\"Option Value\"]", LocaleUtil.US))));
+
+		FieldValuesAssert.assertFieldValues(
+			HashMapBuilder.put(
+				"ddmFieldArray.ddmFieldValueKeyword_en_US", "Option Value"
+			).put(
+				"ddmFieldArray.ddmFieldValueKeyword_en_US_String",
+				"Option Label"
+			).put(
+				"ddmFieldArray.ddmFieldValueKeyword_en_US_String_sortable",
+				"option label"
+			).build(),
+			"ddmFieldArray.ddmFieldValueKeyword_en_US", document,
+			StringPool.BLANK);
 	}
 
 	@Test
@@ -391,6 +440,17 @@ public class DDMIndexerImplTest {
 		return simpleDateFormat.format(new Date());
 	}
 
+	private void _setUpJSONFactoryUtil() {
+		JSONFactoryUtil jsonFactoryUtil = new JSONFactoryUtil();
+
+		JSONFactory jsonFactory = new JSONFactoryImpl();
+
+		ReflectionTestUtil.setFieldValue(
+			_ddmIndexer, "_jsonFactory", jsonFactory);
+
+		jsonFactoryUtil.setJSONFactory(jsonFactory);
+	}
+
 	private void _setUpPortalUtil() {
 		PortalUtil portalUtil = new PortalUtil();
 
@@ -471,9 +531,15 @@ public class DDMIndexerImplTest {
 		HtmlParser htmlParser = Mockito.mock(HtmlParser.class);
 
 		Mockito.when(
-			htmlParser.extractText("<h1>test</h1>")
+			htmlParser.extractText("<h1>able</h1>")
 		).thenReturn(
-			"test"
+			"able"
+		);
+
+		Mockito.when(
+			htmlParser.extractText("<h1>baker</h1>")
+		).thenReturn(
+			"baker"
 		);
 
 		ReflectionTestUtil.setFieldValue(ddmIndexer, "_htmlParser", htmlParser);
@@ -494,17 +560,69 @@ public class DDMIndexerImplTest {
 				DDMFormValuesTestUtil.createDDMFormFieldValue(
 					_FIELD_NAME,
 					DDMFormValuesTestUtil.createLocalizedValue(
-						"<h1>test</h1>", LocaleUtil.US))));
+						"<h1>able</h1>", LocaleUtil.US)),
+				DDMFormValuesTestUtil.createDDMFormFieldValue(
+					_FIELD_NAME,
+					DDMFormValuesTestUtil.createLocalizedValue(
+						"<h1>baker</h1>", LocaleUtil.US))));
 
-		Assert.assertEquals(
-			"test",
-			document.get(
+		Assert.assertArrayEquals(
+			new String[] {"able", "baker"},
+			document.getValues(
 				StringBundler.concat(
 					"ddm__text__", ddmStructure.getStructureId(), "__",
 					_FIELD_NAME, "_en_US")));
+		Assert.assertArrayEquals(
+			new String[] {"able", "baker"},
+			document.getValues(
+				StringBundler.concat(
+					"ddm__text__", ddmStructure.getStructureId(), "__",
+					_FIELD_NAME, "_en_US_String_sortable")));
+
+		String value = RandomTestUtil.randomString(10000);
+
+		String valueHTML = "<h1>" + value + "</h1>";
+
+		Mockito.when(
+			htmlParser.extractText(valueHTML)
+		).thenReturn(
+			value
+		);
+
+		ddmIndexer.addAttributes(
+			document, ddmStructure,
+			_createDDMFormValues(
+				ddmForm,
+				DDMFormValuesTestUtil.createDDMFormFieldValue(
+					_FIELD_NAME,
+					DDMFormValuesTestUtil.createLocalizedValue(
+						valueHTML, LocaleUtil.US)),
+				DDMFormValuesTestUtil.createDDMFormFieldValue(
+					_FIELD_NAME,
+					DDMFormValuesTestUtil.createLocalizedValue(
+						valueHTML, LocaleUtil.US))));
+
+		Assert.assertArrayEquals(
+			new String[] {value, value},
+			document.getValues(
+				StringBundler.concat(
+					"ddm__text__", ddmStructure.getStructureId(), "__",
+					_FIELD_NAME, "_en_US")));
+
+		String truncatedValue = value.substring(
+			0, _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH);
+
+		Assert.assertArrayEquals(
+			new String[] {truncatedValue, truncatedValue},
+			document.getValues(
+				StringBundler.concat(
+					"ddm__text__", ddmStructure.getStructureId(), "__",
+					_FIELD_NAME, "_en_US_String_sortable")));
 	}
 
 	private static final String _FIELD_NAME = RandomTestUtil.randomString();
+
+	private static final int _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH = 255;
 
 	private static final DDMFormDeserializer _ddmFormDeserializer =
 		new DDMFormJSONDeserializer();

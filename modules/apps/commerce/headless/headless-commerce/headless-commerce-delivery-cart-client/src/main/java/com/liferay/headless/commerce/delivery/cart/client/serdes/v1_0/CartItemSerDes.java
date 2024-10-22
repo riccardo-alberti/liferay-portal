@@ -10,6 +10,9 @@ import com.liferay.headless.commerce.delivery.cart.client.json.BaseJSONParser;
 
 import java.math.BigDecimal;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +48,9 @@ public class CartItemSerDes {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("{");
+
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (cartItem.getAdaptiveMediaImageHTMLTag() != null) {
 			if (sb.length() > 1) {
@@ -88,6 +94,20 @@ public class CartItemSerDes {
 			sb.append("\"customFields\": ");
 
 			sb.append(_toJSON(cartItem.getCustomFields()));
+		}
+
+		if (cartItem.getDeliveryGroup() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"deliveryGroup\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(cartItem.getDeliveryGroup()));
+
+			sb.append("\"");
 		}
 
 		if (cartItem.getErrorMessages() != null) {
@@ -250,6 +270,22 @@ public class CartItemSerDes {
 			sb.append(cartItem.getReplacedSkuId());
 		}
 
+		if (cartItem.getRequestedDeliveryDate() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"requestedDeliveryDate\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				liferayToJSONDateFormat.format(
+					cartItem.getRequestedDeliveryDate()));
+
+			sb.append("\"");
+		}
+
 		if (cartItem.getSettings() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -353,6 +389,20 @@ public class CartItemSerDes {
 			sb.append("\"");
 		}
 
+		if (cartItem.getUnitOfMeasure() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"unitOfMeasure\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(cartItem.getUnitOfMeasure()));
+
+			sb.append("\"");
+		}
+
 		if (cartItem.getValid() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -381,6 +431,9 @@ public class CartItemSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
+
 		if (cartItem.getAdaptiveMediaImageHTMLTag() == null) {
 			map.put("adaptiveMediaImageHTMLTag", null);
 		}
@@ -402,6 +455,14 @@ public class CartItemSerDes {
 		}
 		else {
 			map.put("customFields", String.valueOf(cartItem.getCustomFields()));
+		}
+
+		if (cartItem.getDeliveryGroup() == null) {
+			map.put("deliveryGroup", null);
+		}
+		else {
+			map.put(
+				"deliveryGroup", String.valueOf(cartItem.getDeliveryGroup()));
 		}
 
 		if (cartItem.getErrorMessages() == null) {
@@ -503,6 +564,16 @@ public class CartItemSerDes {
 				"replacedSkuId", String.valueOf(cartItem.getReplacedSkuId()));
 		}
 
+		if (cartItem.getRequestedDeliveryDate() == null) {
+			map.put("requestedDeliveryDate", null);
+		}
+		else {
+			map.put(
+				"requestedDeliveryDate",
+				liferayToJSONDateFormat.format(
+					cartItem.getRequestedDeliveryDate()));
+		}
+
 		if (cartItem.getSettings() == null) {
 			map.put("settings", null);
 		}
@@ -575,6 +646,14 @@ public class CartItemSerDes {
 			map.put("thumbnail", String.valueOf(cartItem.getThumbnail()));
 		}
 
+		if (cartItem.getUnitOfMeasure() == null) {
+			map.put("unitOfMeasure", null);
+		}
+		else {
+			map.put(
+				"unitOfMeasure", String.valueOf(cartItem.getUnitOfMeasure()));
+		}
+
 		if (cartItem.getValid() == null) {
 			map.put("valid", null);
 		}
@@ -609,6 +688,9 @@ public class CartItemSerDes {
 			}
 			else if (Objects.equals(jsonParserFieldName, "customFields")) {
 				return true;
+			}
+			else if (Objects.equals(jsonParserFieldName, "deliveryGroup")) {
+				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "errorMessages")) {
 				return false;
@@ -654,6 +736,11 @@ public class CartItemSerDes {
 			else if (Objects.equals(jsonParserFieldName, "replacedSkuId")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "requestedDeliveryDate")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "settings")) {
 				return false;
 			}
@@ -682,6 +769,9 @@ public class CartItemSerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "thumbnail")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "unitOfMeasure")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "valid")) {
@@ -724,6 +814,11 @@ public class CartItemSerDes {
 				if (jsonParserFieldValue != null) {
 					cartItem.setCustomFields(
 						(Map<String, ?>)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "deliveryGroup")) {
+				if (jsonParserFieldValue != null) {
+					cartItem.setDeliveryGroup((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "errorMessages")) {
@@ -805,6 +900,14 @@ public class CartItemSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "requestedDeliveryDate")) {
+
+				if (jsonParserFieldValue != null) {
+					cartItem.setRequestedDeliveryDate(
+						toDate((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "settings")) {
 				if (jsonParserFieldValue != null) {
 					cartItem.setSettings(
@@ -858,6 +961,11 @@ public class CartItemSerDes {
 			else if (Objects.equals(jsonParserFieldName, "thumbnail")) {
 				if (jsonParserFieldValue != null) {
 					cartItem.setThumbnail((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "unitOfMeasure")) {
+				if (jsonParserFieldValue != null) {
+					cartItem.setUnitOfMeasure((String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "valid")) {

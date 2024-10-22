@@ -492,6 +492,12 @@ public class ObjectEntryLocalServiceWrapper
 	}
 
 	@Override
+	public int getObjectEntriesCount(long objectDefinitionId) {
+		return _objectEntryLocalService.getObjectEntriesCount(
+			objectDefinitionId);
+	}
+
+	@Override
 	public long getObjectEntriesCount(
 			long userId, java.util.Date createDate, long objectDefinitionId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -737,6 +743,17 @@ public class ObjectEntryLocalServiceWrapper
 		com.liferay.object.model.ObjectEntry objectEntry) {
 
 		return _objectEntryLocalService.updateObjectEntry(objectEntry);
+	}
+
+	@Override
+	public void updateRootObjectEntryIds(
+			com.liferay.object.model.ObjectDefinition objectDefinition1,
+			com.liferay.object.model.ObjectDefinition objectDefinition2,
+			com.liferay.object.model.ObjectRelationship objectRelationship)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_objectEntryLocalService.updateRootObjectEntryIds(
+			objectDefinition1, objectDefinition2, objectRelationship);
 	}
 
 	@Override

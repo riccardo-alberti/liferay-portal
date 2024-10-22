@@ -5,6 +5,7 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
+import {ObjectAdminRestClient} from '../../../../apps/object/object-admin-rest-client-js/src/main/resources/META-INF/resources/node';
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {headlessDiscoveryPagesTest} from '../../fixtures/headlessDiscoveryWebPagesTest';
 import {loginTest} from '../../fixtures/loginTest';
@@ -49,9 +50,9 @@ test('can associate and disassociate schema', async ({
 			httpMethod: 'get',
 			name: 'Basic API Endpoint',
 			path: '/endpoint/',
-			r_apiApplicationToAPIEndpoints_c_apiApplicationERC:
+			r_apiApplicationToAPIEndpoints_l_apiApplicationERC:
 				application.externalReferenceCode,
-			r_responseAPISchemaToAPIEndpoints_c_apiSchemaERC:
+			r_responseAPISchemaToAPIEndpoints_l_apiSchemaERC:
 				application.apiApplicationToAPISchemas[0].externalReferenceCode,
 			retrieveType: 'collection',
 			scope: 'company',
@@ -203,9 +204,9 @@ test('can see schema unique fields as path parameter properties', async ({
 			httpMethod: 'get',
 			name: 'Basic API Endpoint',
 			path: '/endpoint/{pathParam}',
-			r_apiApplicationToAPIEndpoints_c_apiApplicationERC:
+			r_apiApplicationToAPIEndpoints_l_apiApplicationERC:
 				application.externalReferenceCode,
-			r_responseAPISchemaToAPIEndpoints_c_apiSchemaERC:
+			r_responseAPISchemaToAPIEndpoints_l_apiSchemaERC:
 				application.apiApplicationToAPISchemas[0].externalReferenceCode,
 			retrieveType: 'singleElement',
 			scope: 'company',
@@ -239,41 +240,47 @@ test('can list site scoped endpoint', async ({
 	headlessBuilderPage,
 	page,
 }) => {
+	const objectAdminRestClient = await apiHelpers.buildRestClient(
+		ObjectAdminRestClient
+	);
+
 	const studentSiteDefinition =
-		await apiHelpers.objectAdmin.postObjectDefinition({
-			active: true,
-			externalReferenceCode: 'site-student-definition',
-			label: {
-				en_US: 'Student',
-			},
-			name: 'Student',
-			objectFields: [
-				{
-					DBType: 'String',
-					businessType: 'Text',
-					externalReferenceCode: 'student-name-field',
-					indexed: true,
-					indexedAsKeyword: false,
-					indexedLanguageId: 'en_US',
-					label: {
-						en_US: 'Student name',
-					},
-					listTypeDefinitionId: 0,
-					name: 'studentName',
-					required: true,
-					state: false,
-					system: false,
-					type: 'String',
+		await objectAdminRestClient.objectDefinition.postObjectDefinition({
+			requestBody: {
+				active: true,
+				externalReferenceCode: 'site-student-definition',
+				label: {
+					en_US: 'Student',
 				},
-			],
-			pluralLabel: {
-				en_US: 'Students',
-			},
-			portlet: true,
-			restContextPath: '/o/c/students',
-			scope: 'site',
-			status: {
-				code: 0,
+				name: 'Student',
+				objectFields: [
+					{
+						DBType: 'String',
+						businessType: 'Text',
+						externalReferenceCode: 'student-name-field',
+						indexed: true,
+						indexedAsKeyword: false,
+						indexedLanguageId: 'en_US',
+						label: {
+							en_US: 'Student name',
+						},
+						listTypeDefinitionId: 0,
+						name: 'studentName',
+						required: true,
+						state: false,
+						system: false,
+						type: 'String',
+					},
+				],
+				pluralLabel: {
+					en_US: 'Students',
+				},
+				portlet: true,
+				restContextPath: '/o/c/students',
+				scope: 'site',
+				status: {
+					code: 0,
+				},
 			},
 		});
 
@@ -332,7 +339,8 @@ test('can list site scoped endpoint', async ({
 		'headless-builder/applications',
 		studentApplication.externalReferenceCode
 	);
-	await apiHelpers.objectAdmin.deleteObjectDefinition(
-		studentSiteDefinition.id
-	);
+
+	await objectAdminRestClient.objectDefinition.deleteObjectDefinition({
+		objectDefinitionId: studentSiteDefinition.id,
+	});
 });

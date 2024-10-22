@@ -77,13 +77,13 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				RandomTestUtil.randomString(), "STYLE_BOOK_ENTRY_KEY_1",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 		StyleBookEntry styleBookEntry2 =
 			_styleBookEntryLocalService.addStyleBookEntry(
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				RandomTestUtil.randomString(), "STYLE_BOOK_ENTRY_KEY_2",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 
 		File file = ReflectionTestUtil.invoke(
 			_exportStyleBookEntriesMVCResourceCommand,
@@ -122,7 +122,7 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				"Style Book Entry Name", "STYLE_BOOK_ENTRY_KEY",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 
 		File file = ReflectionTestUtil.invoke(
 			_exportStyleBookEntriesMVCResourceCommand,
@@ -174,7 +174,7 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				"Style Book Entry Name", "STYLE_BOOK_ENTRY_KEY",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 
 		File file = ReflectionTestUtil.invoke(
 			_exportStyleBookEntriesMVCResourceCommand,
@@ -218,7 +218,7 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				"Style Book Entry Name", "STYLE_BOOK_ENTRY_KEY",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 
 		File file = ReflectionTestUtil.invoke(
 			_exportStyleBookEntriesMVCResourceCommand,
@@ -283,7 +283,7 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
 				false, _read("frontend-tokens-values.json"),
 				RandomTestUtil.randomString(), "STYLE_BOOK_ENTRY_KEY",
-				serviceContext);
+				RandomTestUtil.randomString(), serviceContext);
 
 		FileEntry fileEntry = _addFileEntry(styleBookEntry);
 

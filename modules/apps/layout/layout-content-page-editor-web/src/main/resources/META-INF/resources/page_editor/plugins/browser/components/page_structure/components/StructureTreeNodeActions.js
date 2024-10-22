@@ -8,6 +8,7 @@ import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import {FocusScope} from '@clayui/shared';
 import classNames from 'classnames';
+import {FeatureIndicator} from 'frontend-js-components-web';
 import {openToast} from 'frontend-js-web';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
@@ -16,6 +17,10 @@ import SaveFragmentCompositionModal from '../../../../../app/components/SaveFrag
 import hasDropZoneChild from '../../../../../app/components/layout_data_items/hasDropZoneChild';
 import {ITEM_ACTIVATION_ORIGINS} from '../../../../../app/config/constants/itemActivationOrigins';
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../app/config/constants/layoutDataItemTypes';
+import {
+	useCopiedItemIds,
+	useSetCopiedItemIds,
+} from '../../../../../app/contexts/ClipboardContext';
 import {
 	useSelectItem,
 	useSelectMultipleItems,
@@ -26,8 +31,11 @@ import {
 	useDispatch,
 	useSelector,
 } from '../../../../../app/contexts/StoreContext';
+import {useGetWidgets} from '../../../../../app/contexts/WidgetsContext';
 import deleteItem from '../../../../../app/thunks/deleteItem';
 import duplicateItem from '../../../../../app/thunks/duplicateItem';
+import pasteItem from '../../../../../app/thunks/pasteItem';
+import canBeCopied from '../../../../../app/utils/canBeCopied';
 import canBeDuplicated from '../../../../../app/utils/canBeDuplicated';
 import canBeRemoved from '../../../../../app/utils/canBeRemoved';
 import canBeRenamed from '../../../../../app/utils/canBeRenamed';
@@ -109,6 +117,7 @@ export default function StructureTreeNodeActions({disabled, item, visible}) {
 				containerProps={{
 					className: 'cadmin',
 				}}
+				hasLeftSymbols
 				onActiveChange={updateActive}
 				ref={dropdownRef}
 			>
@@ -132,13 +141,15 @@ export default function StructureTreeNodeActions({disabled, item, visible}) {
 }
 
 const ActionList = ({item, setActive, setOpenSaveModal}) => {
+	const copiedItemIds = useCopiedItemIds();
 	const dispatch = useDispatch();
 	const hasRequiredChild = useHasRequiredChild(item.id);
 	const selectItem = useSelectItem();
 	const selectMultipleItems = useSelectMultipleItems();
+	const setCopiedItemIds = useSetCopiedItemIds();
 	const setEditedNodeId = useSetEditedNodeId();
 	const setText = useSetMovementText();
-	const widgets = useSelector((state) => state.widgets);
+	const getWidgets = useGetWidgets();
 
 	const selectItems = Liferay.FeatureFlags['LPD-18221']
 		? selectMultipleItems
@@ -148,12 +159,15 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 		(state) => state
 	);
 
-	const isHidden = item.config.styles.display === 'none';
+	const isHidden = item.config?.styles?.display === 'none';
 
 	const dropdownItems = useMemo(() => {
 		const items = [];
 
 		if (
+			item.type !== LAYOUT_DATA_ITEM_TYPES.column &&
+			item.type !== LAYOUT_DATA_ITEM_TYPES.formStep &&
+			item.type !== LAYOUT_DATA_ITEM_TYPES.fragmentDropZone &&
 			item.type !== LAYOUT_DATA_ITEM_TYPES.dropZone &&
 			!hasDropZoneChild(item, layoutData) &&
 			!isInputFragment(item, fragmentEntryLinks)
@@ -206,11 +220,48 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 
 		if (items.length) {
 			items.push({
-				type: 'separator',
+				type: 'divider',
 			});
 		}
 
-		if (canBeDuplicated(fragmentEntryLinks, item, layoutData, widgets)) {
+		if (
+			Liferay.FeatureFlags['LPD-18221'] &&
+			canBeRemoved(item, layoutData)
+		) {
+			items.push({
+				action: () => {
+					setCopiedItemIds([item.id]);
+					dispatch(
+						deleteItem({
+							itemIds: [item.id],
+							selectItems,
+						})
+					);
+					setText(Liferay.Language.get('item-was-cut'));
+				},
+				icon: 'cut',
+				isBetaFeature: true,
+				label: Liferay.Language.get('cut'),
+			});
+		}
+
+		if (
+			Liferay.FeatureFlags['LPD-18221'] &&
+			canBeDuplicated(fragmentEntryLinks, item, layoutData, getWidgets)
+		) {
+			items.push({
+				action: () => {
+					setCopiedItemIds([item.id]);
+
+					setText(Liferay.Language.get('item-copied'));
+				},
+				icon: 'copy',
+				isBetaFeature: true,
+				label: Liferay.Language.get('copy'),
+			});
+		}
+
+		if (canBeDuplicated(fragmentEntryLinks, item, layoutData, getWidgets)) {
 			items.push({
 				action: () => {
 					dispatch(
@@ -227,6 +278,52 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 			});
 		}
 
+		if (
+			Liferay.FeatureFlags['LPD-18221'] &&
+			(canBeDuplicated(
+				fragmentEntryLinks,
+				item,
+				layoutData,
+				getWidgets
+			) ||
+				item.type === LAYOUT_DATA_ITEM_TYPES.column ||
+				item.type === LAYOUT_DATA_ITEM_TYPES.fragmentDropZone ||
+				item.type === LAYOUT_DATA_ITEM_TYPES.formStep)
+		) {
+			items.push({
+				action: () => {
+					if (
+						copiedItemIds.every(
+							(copiedItemId) =>
+								!!layoutData.items[copiedItemId] &&
+								!!item &&
+								canBeCopied(
+									copiedItemId,
+									fragmentEntryLinks,
+									item.id,
+									layoutData,
+									getWidgets
+								)
+						)
+					) {
+						dispatch(
+							pasteItem({
+								copiedItemIds,
+								parentItemId: item.id,
+								selectItems,
+							})
+						);
+
+						setText(Liferay.Language.get('item-pasted'));
+					}
+				},
+				disabled: !copiedItemIds?.length,
+				icon: 'paste',
+				isBetaFeature: true,
+				label: Liferay.Language.get('paste'),
+			});
+		}
+
 		if (canBeRenamed(item)) {
 			items.push({
 				action: () => {
@@ -236,11 +333,11 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 			});
 		}
 
-		items.push({
-			type: 'separator',
-		});
-
 		if (canBeRemoved(item, layoutData)) {
+			items.push({
+				type: 'divider',
+			});
+
 			items.push({
 				action: () => {
 					dispatch(
@@ -259,14 +356,16 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 
 		return items;
 	}, [
+		copiedItemIds,
 		dispatch,
 		fragmentEntryLinks,
+		getWidgets,
 		hasRequiredChild,
 		item,
 		layoutData,
 		selectedViewportSize,
 		selectItem,
-		widgets,
+		setCopiedItemIds,
 		setEditedNodeId,
 		setOpenSaveModal,
 		setText,
@@ -277,32 +376,31 @@ const ActionList = ({item, setActive, setOpenSaveModal}) => {
 	return (
 		<FocusScope>
 			<div>
-				<ClayDropDown.ItemList>
-					{dropdownItems.map((dropdownItem, index, array) =>
-						dropdownItem.type === 'separator' ? (
-							index !== array.length - 1 && (
-								<ClayDropDown.Divider key={index} />
-							)
+				<ClayDropDown.ItemList items={dropdownItems}>
+					{(item) =>
+						item.type === 'divider' ? (
+							<ClayDropDown.Divider />
 						) : (
-							<React.Fragment key={index}>
-								<ClayDropDown.Item
-									aria-label={Liferay.Language.get(
-										dropdownItem.label
-									)}
-									onClick={() => {
-										setActive(false);
+							<ClayDropDown.Item
+								aria-label={item.label}
+								disabled={item.disabled}
+								onClick={() => {
+									setActive(false);
 
-										dropdownItem.action();
-									}}
-									symbolLeft={dropdownItem.icon}
-								>
-									<p className="d-inline-block m-0 ml-4">
-										{dropdownItem.label}
-									</p>
-								</ClayDropDown.Item>
-							</React.Fragment>
+									item.action();
+								}}
+								symbolLeft={item.icon}
+							>
+								{item.label}
+
+								{item.isBetaFeature ? (
+									<span className="ml-2">
+										<FeatureIndicator type="beta" />
+									</span>
+								) : null}
+							</ClayDropDown.Item>
 						)
-					)}
+					}
 				</ClayDropDown.ItemList>
 			</div>
 		</FocusScope>

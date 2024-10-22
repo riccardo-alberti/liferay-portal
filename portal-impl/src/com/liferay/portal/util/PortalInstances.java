@@ -60,13 +60,14 @@ public class PortalInstances {
 			UnsafeSupplier<Company, PortalException> unsafeSupplier)
 		throws PortalException {
 
-		try (SafeCloseable safeCloseable1 = SiteInitializerThreadLocal.setKey(
-				siteInitializerKey)) {
+		try (SafeCloseable safeCloseable1 =
+				SiteInitializerThreadLocal.setKeyWithSafeCloseable(
+					siteInitializerKey)) {
 
 			Company company = unsafeSupplier.get();
 
 			try (SafeCloseable safeCloseable2 =
-					CompanyThreadLocal.setWithSafeCloseable(
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 						company.getCompanyId())) {
 
 				initCompany(company, true);
@@ -389,7 +390,9 @@ public class PortalInstances {
 		WebAppPool.remove(companyId, WebKeys.PORTLET_CATEGORY);
 	}
 
-	public static SafeCloseable setCompanyInDeletionProcess(long companyId) {
+	public static SafeCloseable setCompanyInDeletionProcessWithSafeCloseable(
+		long companyId) {
+
 		if (_companyIdsInDeletionProcess.contains(companyId)) {
 			throw new UnsupportedOperationException(
 				companyId + " is already in deletion");
@@ -400,7 +403,9 @@ public class PortalInstances {
 		return () -> _companyIdsInDeletionProcess.remove(companyId);
 	}
 
-	public static SafeCloseable setCopyInProcessCompanyId(long companyId) {
+	public static SafeCloseable setCopyInProcessCompanyIdWithSafeCloseable(
+		long companyId) {
+
 		if (_copyInProcessCompanyId != null) {
 			throw new UnsupportedOperationException(
 				"Company in process company ID is not null");

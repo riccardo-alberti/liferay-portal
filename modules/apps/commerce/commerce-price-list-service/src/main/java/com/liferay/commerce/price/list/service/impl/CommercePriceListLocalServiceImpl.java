@@ -14,7 +14,6 @@ import com.liferay.commerce.price.list.exception.CommercePriceListDisplayDateExc
 import com.liferay.commerce.price.list.exception.CommercePriceListExpirationDateException;
 import com.liferay.commerce.price.list.exception.CommercePriceListParentPriceListGroupIdException;
 import com.liferay.commerce.price.list.exception.DuplicateCommerceBasePriceListException;
-import com.liferay.commerce.price.list.exception.DuplicateCommercePriceListException;
 import com.liferay.commerce.price.list.exception.NoSuchPriceListException;
 import com.liferay.commerce.price.list.model.CommercePriceEntry;
 import com.liferay.commerce.price.list.model.CommercePriceEntryTable;
@@ -171,16 +170,9 @@ public class CommercePriceListLocalServiceImpl
 
 		User user = _userLocalService.getUser(userId);
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		_validate(
 			groupId, commerceCurrencyId, parentCommercePriceListId,
 			catalogBasePriceList, 0, type);
-
-		_validateExternalReferenceCode(
-			externalReferenceCode, serviceContext.getCompanyId());
 
 		Date expirationDate = null;
 		Date date = new Date();
@@ -285,10 +277,6 @@ public class CommercePriceListLocalServiceImpl
 			}
 		}
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		if (Validator.isNotNull(externalReferenceCode)) {
 			CommercePriceList commercePriceList =
 				commercePriceListPersistence.fetchByERC_C(
@@ -366,18 +354,6 @@ public class CommercePriceListLocalServiceImpl
 			commercePriceListLocalService.forceDeleteCommercePriceList(
 				commercePriceList);
 		}
-	}
-
-	@Override
-	public CommercePriceList fetchByExternalReferenceCode(
-		String externalReferenceCode, long companyId) {
-
-		if (Validator.isBlank(externalReferenceCode)) {
-			return null;
-		}
-
-		return commercePriceListPersistence.fetchByERC_C(
-			externalReferenceCode, companyId);
 	}
 
 	@Override
@@ -1311,10 +1287,6 @@ public class CommercePriceListLocalServiceImpl
 			CommercePriceList commercePriceList, String externalReferenceCode)
 		throws PortalException {
 
-		if (Validator.isBlank(externalReferenceCode)) {
-			externalReferenceCode = null;
-		}
-
 		commercePriceList.setExternalReferenceCode(externalReferenceCode);
 
 		return commercePriceListPersistence.update(commercePriceList);
@@ -1837,25 +1809,6 @@ public class CommercePriceListLocalServiceImpl
 
 		if (commerceCurrency == null) {
 			throw new CommercePriceListCurrencyException();
-		}
-	}
-
-	private void _validateExternalReferenceCode(
-			String externalReferenceCode, long companyId)
-		throws PortalException {
-
-		if (Validator.isNull(externalReferenceCode)) {
-			return;
-		}
-
-		CommercePriceList commercePriceList =
-			commercePriceListPersistence.fetchByERC_C(
-				externalReferenceCode, companyId);
-
-		if (commercePriceList != null) {
-			throw new DuplicateCommercePriceListException(
-				"There is another commerce price list with external " +
-					"reference code " + externalReferenceCode);
 		}
 	}
 

@@ -76,7 +76,6 @@ import com.liferay.object.test.util.TreeTestUtil;
 import com.liferay.object.tree.Edge;
 import com.liferay.object.tree.Node;
 import com.liferay.object.tree.Tree;
-import com.liferay.object.tree.TreeFactory;
 import com.liferay.object.tree.constants.TreeConstants;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -125,6 +124,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlParserUtil;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -456,7 +456,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				_objectDefinition1.getObjectDefinitionId(),
 				_objectDefinition2.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"oneToManyRelationshipName", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -527,7 +527,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				_objectDefinition3.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"oneToManyRelationshipName1", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -567,8 +567,18 @@ public class DefaultObjectEntryManagerImplTest
 				null, null, null, null));
 
 		_tree = TreeTestUtil.createObjectDefinitionTree(
-			objectDefinitionLocalService, _objectRelationshipLocalService,
-			_treeFactory);
+			objectDefinitionLocalService, _objectRelationshipLocalService, true,
+			LinkedHashMapBuilder.put(
+				"A", new String[] {"AA", "AB"}
+			).put(
+				"AA", new String[] {"AAA", "AAB"}
+			).put(
+				"AB", new String[0]
+			).put(
+				"AAA", new String[0]
+			).put(
+				"AAB", new String[0]
+			).build());
 
 		Node rootNode = _tree.getRootNode();
 
@@ -578,14 +588,11 @@ public class DefaultObjectEntryManagerImplTest
 					null, adminUser.getUserId(),
 					accountEntryObjectDefinition.getObjectDefinitionId(),
 					rootNode.getPrimaryKey(), 0,
-					ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+					ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 					LocalizedMapUtil.getLocalizedMap(
 						RandomTestUtil.randomString()),
 					"oneToManyRelationshipName2", false,
 					ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null));
-
-		objectDefinitionLocalService.publishCustomObjectDefinition(
-			adminUser.getUserId(), rootNode.getPrimaryKey());
 	}
 
 	@After
@@ -865,7 +872,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				_objectDefinition1.getObjectDefinitionId(),
 				_objectDefinition1.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_MANY_TO_MANY, null);
@@ -1696,7 +1703,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				objectDefinition1.getObjectDefinitionId(),
 				objectDefinition2.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"oneToManyRelationship", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -3132,7 +3139,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				_objectDefinition3.getObjectDefinitionId(),
 				childObjectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -3146,7 +3153,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				childObjectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -3298,7 +3305,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				_objectDefinition3.getObjectDefinitionId(),
 				childObjectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_MANY_TO_MANY, null);
@@ -4156,7 +4163,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				accountEntryObjectDefinition.getObjectDefinitionId(),
 				objectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"oneToManyRelationship", false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -4197,7 +4204,7 @@ public class DefaultObjectEntryManagerImplTest
 				null, adminUser.getUserId(),
 				_objectDefinition3.getObjectDefinitionId(),
 				objectDefinition.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
+				ObjectRelationshipConstants.DELETION_TYPE_CASCADE, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), false,
 				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
@@ -4892,10 +4899,10 @@ public class DefaultObjectEntryManagerImplTest
 		throws Exception {
 
 		Tree tree = TreeTestUtil.createObjectEntryTree(
-			externalReferenceCodeSuffix, _objectEntryLocalService,
-			objectFieldLocalService,
-			_rootObjectDefinition.getObjectDefinitionId(),
-			_objectRelationshipLocalService, _treeFactory);
+			externalReferenceCodeSuffix, objectDefinitionLocalService,
+			_objectEntryLocalService, objectFieldLocalService,
+			_objectRelationshipLocalService,
+			_rootObjectDefinition.getObjectDefinitionId());
 
 		Node node = tree.getRootNode();
 
@@ -5188,9 +5195,6 @@ public class DefaultObjectEntryManagerImplTest
 	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
 	private Tree _tree;
-
-	@Inject
-	private TreeFactory _treeFactory;
 
 	@DeleteAfterTestRun
 	private User _user;

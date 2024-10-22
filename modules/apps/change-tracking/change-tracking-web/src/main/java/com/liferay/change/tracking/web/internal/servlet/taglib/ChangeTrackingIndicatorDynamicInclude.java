@@ -24,9 +24,11 @@ import com.liferay.change.tracking.web.internal.security.permission.resource.CTP
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
+import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -39,6 +41,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
@@ -46,7 +49,6 @@ import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
-import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -145,8 +147,11 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 									_servletContext.getContextPath(),
 									"/publications/css",
 									"/ChangeTrackingIndicator.css")));
+						writer.write(StringPool.QUOTE);
 						writer.write(
-							"\" rel=\"stylesheet\" type=\"text/css\" />");
+							ContentSecurityPolicyNonceProviderUtil.getNonce(
+								httpServletRequest));
+						writer.write(" rel=\"stylesheet\" type=\"text/css\"/>");
 					}
 					catch (IOException ioException) {
 						ReflectionUtil.throwException(ioException);
@@ -620,7 +625,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 		long classPK = GetterUtil.getLong(
 			httpServletRequest.getAttribute(CTTimelineKeys.CLASS_PK));
 
-		if ((className == null) || (classPK == 0)) {
+		if ((className == null) && (classPK == 0)) {
 			Layout layout = themeDisplay.getLayout();
 
 			if (!layout.isTypeControlPanel()) {
@@ -629,7 +634,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			}
 		}
 
-		if ((className != null) && (classPK != 0)) {
+		if (className != null) {
 			long classNameId = _portal.getClassNameId(className);
 
 			if (currentCTCollection != null) {
@@ -672,7 +677,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 				"timelineItemsURL",
 				StringBundler.concat(
 					_portal.getPortalURL(themeDisplay),
-					"/o/change-tracking-rest/v1.0/ct-collections/history?",
+					"/o/change-tracking-rest/v1.0/ct-entries/history?",
 					"classNameId=", classNameId, "&classPK=", classPK));
 
 			CTDisplayRenderer<?> ctDisplayRenderer =
@@ -681,6 +686,25 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			data.put(
 				"timelineType",
 				ctDisplayRenderer.getTypeName(themeDisplay.getLocale()));
+
+			data.put(
+				"viewTimelineHistoryURL",
+				PortletURLBuilder.create(
+					_portal.getControlPanelPortletURL(
+						httpServletRequest, themeDisplay.getScopeGroup(),
+						CTPortletKeys.PUBLICATIONS, 0, 0,
+						PortletRequest.RENDER_PHASE)
+				).setMVCRenderCommandName(
+					"/change_tracking/view_timeline_history"
+				).setRedirect(
+					_portal.getCurrentURL(httpServletRequest)
+				).setParameter(
+					"classNameId", classNameId
+				).setParameter(
+					"classPK", classPK
+				).setWindowState(
+					LiferayWindowState.POP_UP
+				).buildString());
 		}
 	}
 
@@ -697,7 +721,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			return false;
 		}
 
-		HttpSession httpSession = PortalSessionThreadLocal.getHttpSession();
+		HttpSession httpSession = httpServletRequest.getSession();
 
 		long ctLastGroupId = GetterUtil.getLong(
 			httpSession.getAttribute(CTWebKeys.CT_LAST_GROUP_ID));

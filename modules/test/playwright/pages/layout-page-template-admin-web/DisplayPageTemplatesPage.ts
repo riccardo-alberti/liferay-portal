@@ -6,8 +6,9 @@
 import {Locator, Page} from '@playwright/test';
 
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
+import {hoverAndExpectToBeVisible} from '../../utils/hoverAndExpectToBeVisible';
 import {PORTLET_URLS} from '../../utils/portletUrls';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 
 export class DisplayPageTemplatesPage {
 	readonly page: Page;
@@ -43,12 +44,31 @@ export class DisplayPageTemplatesPage {
 			.click();
 	}
 
+	async copyTemplate(name: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: false,
+			target: this.page.getByRole('menuitem', {name: 'Make a Copy'}),
+			trigger: this.page
+				.locator('.card-page-item')
+				.filter({hasText: name})
+				.getByLabel('More actions'),
+		});
+
+		await hoverAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByText('Display Page', {exact: true}).nth(1),
+			trigger: this.page.getByRole('menuitem', {name: 'Make a Copy'}),
+		});
+
+		await waitForAlert(this.page);
+	}
+
 	async deleteTemplate(name: string) {
 		await this.clickMoreActions(name, 'Delete');
 
 		await this.page.getByRole('button', {name: 'Delete'}).click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:You successfully deleted 1 display page template(s).'
 		);
@@ -88,6 +108,31 @@ export class DisplayPageTemplatesPage {
 		});
 	}
 
+	async mapConfiguration({
+		field,
+		mappingField,
+	}: {
+		field: string;
+		mappingField: string;
+	}) {
+		await this.page
+			.locator('.form-group')
+			.filter({has: this.page.getByLabel(field, {exact: true})})
+			.getByTitle('Map', {exact: true})
+			.click();
+
+		await this.page
+			.getByLabel('Field', {exact: true})
+			.selectOption(mappingField);
+
+		await this.page
+			.locator('.dpt-mapping-panel')
+			.getByRole('button')
+			.click();
+
+		await this.saveConfiguration();
+	}
+
 	async markAsDefault(name: string) {
 		this.page.once('dialog', (dialog) => {
 			dialog.accept().catch(() => {});
@@ -95,7 +140,7 @@ export class DisplayPageTemplatesPage {
 
 		await this.clickMoreActions(name, 'Mark as Default');
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
 	}
 
 	async renameTemplate(newName: string, oldName: string) {
@@ -105,7 +150,18 @@ export class DisplayPageTemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Save'}).click();
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
+	}
+
+	async saveConfiguration() {
+		await this.page
+			.getByRole('button', {exact: true, name: 'Save'})
+			.click();
+
+		await waitForAlert(
+			this.page,
+			'Success:The page was updated successfully.'
+		);
 	}
 
 	async createFolder(name: string) {
@@ -121,7 +177,7 @@ export class DisplayPageTemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Create'}).click();
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
 	}
 
 	async createTemplate({
@@ -155,7 +211,11 @@ export class DisplayPageTemplatesPage {
 				.click();
 		}
 		else {
-			await this.newButton.click();
+			await clickAndExpectToBeVisible({
+				target: this.page.getByRole('button', {name: 'Blank'}),
+				timeout: 3000,
+				trigger: this.newButton,
+			});
 		}
 
 		await this.page.getByRole('button', {name: 'Blank'}).click();
@@ -173,7 +233,7 @@ export class DisplayPageTemplatesPage {
 
 		await this.page.getByRole('button', {name: 'Save'}).click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The display page template was created successfully.'
 		);
@@ -185,7 +245,7 @@ export class DisplayPageTemplatesPage {
 		await this.publishButton.waitFor();
 		await this.publishButton.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The display page template was published successfully.'
 		);

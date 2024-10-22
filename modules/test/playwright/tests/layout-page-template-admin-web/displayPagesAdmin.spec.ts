@@ -4,6 +4,8 @@
  */
 
 import {Page, expect, mergeTests} from '@playwright/test';
+import {createReadStream} from 'fs';
+import path from 'path';
 
 import {apiHelpersTest} from '../../fixtures/apiHelpersTest';
 import {displayPageTemplatesPagesTest} from '../../fixtures/displayPageTemplatesPagesTest';
@@ -11,12 +13,14 @@ import {documentLibraryPagesTest} from '../../fixtures/documentLibraryPages.fixt
 import {featureFlagsTest} from '../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../fixtures/loginTest';
+import {pageEditorPagesTest} from '../../fixtures/pageEditorPagesTest';
 import {ApiHelpers} from '../../helpers/ApiHelpers';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {getRandomInt} from '../../utils/getRandomInt';
 import getRandomString from '../../utils/getRandomString';
 import {performLogout} from '../../utils/performLogin';
 import getBasicWebContentStructureId from '../../utils/structured-content/getBasicWebContentStructureId';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {blogsPagesTest} from '../blogs-web/fixtures/blogsPagesTest';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
 import {JournalEditArticlePage} from '../journal-web/pages/JournalEditArticlePage';
@@ -32,7 +36,8 @@ const test = mergeTests(
 	}),
 	isolatedSiteTest,
 	journalPagesTest,
-	loginTest()
+	loginTest(),
+	pageEditorPagesTest
 );
 
 const testInfoPanel = mergeTests(
@@ -69,9 +74,36 @@ async function addBasicJournalArticleWithSpecificDisplayPageTemplate(
 
 	await page.getByRole('button', {name: 'Publish'}).click();
 
-	await waitForSuccessAlert(
+	await waitForAlert(
 		page,
 		`Success:${journalArticleTitle} was updated successfully.`
+	);
+}
+
+async function addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+	apiHelpers: ApiHelpers,
+	contentStructureId: string,
+	displayPageTemplateName: string,
+	site: Site
+) {
+	const className = await apiHelpers.jsonWebServicesClassName.fetchClassName(
+		'com.liferay.journal.model.JournalArticle'
+	);
+
+	const displayPage =
+		await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.addDisplayPageLayoutPageTemplateEntry(
+			{
+				classNameId: className.classNameId,
+				classTypeId: contentStructureId,
+				groupId: site.id,
+				name: displayPageTemplateName,
+			}
+		);
+
+	await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.markAsDefaultDisplayPageLayoutPageTemplateEntry(
+		{
+			layoutPageTemplateEntryId: displayPage.layoutPageTemplateEntryId,
+		}
 	);
 }
 
@@ -186,6 +218,372 @@ testInfoPanel.describe('InfoPanel', () => {
 	);
 });
 
+test.describe('Configuration', () => {
+	test(
+		'User can configure header and footer in a display page',
+		{
+			tag: ['@LPS-86191', '@LPS-96438'],
+		},
+		async ({apiHelpers, displayPageTemplatesPage, page, site}) => {
+
+			// Create a display page template for Basic Web Content and mark as default
+
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
+
+			const displayPageTemplateName = getRandomString();
+
+			await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+				apiHelpers,
+				String(contentStructureId),
+				displayPageTemplateName,
+				site
+			);
+
+			// Go to configuration
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+			await displayPageTemplatesPage.clickMoreActions(
+				displayPageTemplateName,
+				'Edit'
+			);
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page
+					.locator('.dropdown-menu')
+					.getByRole('menuitem', {name: 'Configure'}),
+				trigger: page
+					.locator('.control-menu-nav-item')
+					.getByLabel('Options', {exact: true}),
+			});
+
+			// Configure theme
+
+			await page
+				.locator('nav.menubar .nav-link', {
+					has: page.getByText('Design'),
+				})
+				.click();
+
+			await page
+				.getByLabel('Define a custom theme for this page.', {
+					exact: true,
+				})
+				.check();
+
+			await page.getByRole('checkbox', {name: 'Show Footer'}).uncheck();
+
+			await page
+				.getByRole('checkbox', {exact: true, name: 'Show Header'})
+				.uncheck();
+
+			await displayPageTemplatesPage.saveConfiguration();
+
+			await page.getByTitle(`Go to ${displayPageTemplateName}`).click();
+
+			await displayPageTemplatesPage.publishTemplate();
+
+			// Create a Basic Web Content
+
+			const journalArticleTitle = getRandomString();
+
+			await apiHelpers.headlessDelivery.postStructuredContent({
+				contentStructureId,
+				datePublished: null,
+				siteId: site.id,
+				title: journalArticleTitle,
+				viewableBy: 'Anyone',
+			});
+
+			// Assert header and footer are not visible
+
+			await page.goto(
+				`web${site.friendlyUrlPath}/w/${journalArticleTitle}`
+			);
+
+			await expect(page.locator('[id="banner"]')).not.toBeAttached();
+
+			await expect(page.locator('[id="footer"]')).not.toBeAttached();
+		}
+	);
+
+	test('User can map a web content to open graph meta tags in a display page', async ({
+		apiHelpers,
+		displayPageTemplatesPage,
+		page,
+		site,
+	}) => {
+
+		// Create a display page template for Basic Web Content and mark as default
+
+		const contentStructureId =
+			await getBasicWebContentStructureId(apiHelpers);
+
+		const displayPageTemplateName = getRandomString();
+
+		await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+			apiHelpers,
+			String(contentStructureId),
+			displayPageTemplateName,
+			site
+		);
+
+		// Go to configuration
+
+		await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+		await displayPageTemplatesPage.clickMoreActions(
+			displayPageTemplateName,
+			'Edit'
+		);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page
+				.locator('.dropdown-menu')
+				.getByRole('menuitem', {name: 'Configure'}),
+			trigger: page
+				.locator('.control-menu-nav-item')
+				.getByLabel('Options', {exact: true}),
+		});
+
+		await page
+			.locator('.portlet-body li', {has: page.getByText('Open Graph')})
+			.click();
+
+		// Map HTML Title
+
+		await page.getByLabel('Title', {exact: true}).fill('');
+
+		await displayPageTemplatesPage.mapConfiguration({
+			field: 'Title',
+			mappingField: 'Title',
+		});
+
+		await expect(page.getByLabel('Title', {exact: true})).toHaveValue(
+			'${title:Title}'
+		);
+
+		await page.getByLabel('Description', {exact: true}).fill('');
+
+		await displayPageTemplatesPage.mapConfiguration({
+			field: 'Description',
+			mappingField: 'Description',
+		});
+
+		await expect(page.getByLabel('Description', {exact: true})).toHaveValue(
+			'${description:Description}'
+		);
+
+		await displayPageTemplatesPage.mapConfiguration({
+			field: 'Image',
+			mappingField: 'Author Profile Image',
+		});
+
+		await expect(page.getByLabel('Image', {exact: true})).toHaveValue(
+			'Basic Web Content: Author Profile Image'
+		);
+
+		await displayPageTemplatesPage.mapConfiguration({
+			field: 'Image Alt Description',
+			mappingField: 'Title',
+		});
+
+		await expect(
+			page.getByLabel('Image Alt Description', {exact: true})
+		).toHaveValue('${title:Title}');
+
+		await page.getByTitle(`Go to ${displayPageTemplateName}`).click();
+
+		await displayPageTemplatesPage.publishTemplate();
+
+		// Create a Basic Web Content
+
+		const journalArticleTitle = getRandomString();
+
+		const journalArticleDescription = getRandomString();
+
+		await apiHelpers.headlessDelivery.postStructuredContent({
+			contentStructureId,
+			datePublished: null,
+			description: journalArticleDescription,
+			siteId: site.id,
+			title: journalArticleTitle,
+			viewableBy: 'Anyone',
+		});
+
+		// Assert open graph tags
+
+		await performLogout(page);
+
+		await page.goto(`web${site.friendlyUrlPath}/w/${journalArticleTitle}`);
+
+		await expect(
+			page.locator(
+				`meta[property="og:title"][content="${journalArticleTitle}"]`
+			)
+		).toBeAttached();
+
+		await expect(
+			page.locator(
+				`meta[property="og:description"][content="${journalArticleDescription}"]`
+			)
+		).toBeAttached();
+
+		await expect(
+			page.locator(
+				`meta[property="og:image"][content*="/image/user_portrait"]`
+			)
+		).toBeAttached();
+
+		await expect(
+			page.locator(
+				`meta[property="og:image:alt"][content="${journalArticleTitle}"]`
+			)
+		).toBeAttached();
+	});
+
+	test('User can map a web content to SEO meta tags in a display page', async ({
+		apiHelpers,
+		displayPageTemplatesPage,
+		page,
+		site,
+	}) => {
+
+		// Create a display page template for Basic Web Content and mark as default
+
+		const contentStructureId =
+			await getBasicWebContentStructureId(apiHelpers);
+
+		const displayPageTemplateName = getRandomString();
+
+		await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+			apiHelpers,
+			String(contentStructureId),
+			displayPageTemplateName,
+			site
+		);
+
+		// Go to configuration
+
+		await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+		await displayPageTemplatesPage.clickMoreActions(
+			displayPageTemplateName,
+			'Edit'
+		);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page
+				.locator('.dropdown-menu')
+				.getByRole('menuitem', {name: 'Configure'}),
+			trigger: page
+				.locator('.control-menu-nav-item')
+				.getByLabel('Options', {exact: true}),
+		});
+
+		await page.locator('nav.menubar', {has: page.getByText('SEO')}).click();
+
+		// Map HTML Title
+
+		await page.getByLabel('HTML Title', {exact: true}).fill('');
+
+		await displayPageTemplatesPage.mapConfiguration({
+			field: 'HTML Title',
+			mappingField: 'Title',
+		});
+
+		await expect(page.getByLabel('HTML Title', {exact: true})).toHaveValue(
+			'${title:Title}'
+		);
+
+		await expect(page.getByLabel('Description', {exact: true})).toHaveValue(
+			'${description}'
+		);
+
+		await page.getByTitle(`Go to ${displayPageTemplateName}`).click();
+
+		await displayPageTemplatesPage.publishTemplate();
+
+		// Create a Basic Web Content
+
+		const journalArticleTitle = getRandomString();
+
+		await apiHelpers.headlessDelivery.postStructuredContent({
+			contentStructureId,
+			datePublished: null,
+			siteId: site.id,
+			title: journalArticleTitle,
+			viewableBy: 'Anyone',
+		});
+
+		// Assert SEO HTML Title
+
+		await performLogout(page);
+
+		await page.goto(`web${site.friendlyUrlPath}/w/${journalArticleTitle}`);
+
+		await expect(
+			page.locator(
+				`meta[property="og:title"][content="${journalArticleTitle}"]`
+			)
+		).toBeAttached();
+	});
+
+	test(
+		'User can see friendly url and sitemap configuration in a default display page',
+		{
+			tag: ['@LPS-191986', '@LPS-193213'],
+		},
+		async ({apiHelpers, displayPageTemplatesPage, page, site}) => {
+
+			// Create a display page template for Basic Web Content and mark as default
+
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
+
+			const displayPageTemplateName = getRandomString();
+
+			await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+				apiHelpers,
+				String(contentStructureId),
+				displayPageTemplateName,
+				site
+			);
+
+			// Go to configuration
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+			await displayPageTemplatesPage.clickMoreActions(
+				displayPageTemplateName,
+				'Configure'
+			);
+
+			// Assert general configuration
+
+			await expect(page.getByLabel('Friendly URL')).toBeAttached();
+
+			// Assert sitemap configuration
+
+			await page
+				.locator('nav.menubar', {has: page.getByText('SEO')})
+				.click();
+
+			await expect(page.getByPlaceholder('Robots')).toBeAttached();
+
+			await expect(page.getByLabel('Include')).toBeAttached();
+
+			await expect(page.getByLabel('Page Priority')).toBeAttached();
+
+			await expect(page.getByLabel('Change Frequency')).toBeAttached();
+		}
+	);
+});
+
 test.describe('UI', () => {
 	test(
 		'Assert warning message when user change the content type',
@@ -270,6 +668,71 @@ test.describe('UI', () => {
 			page.getByLabel(`Select ${displayPageTemplateName}`)
 		).toBeVisible();
 	});
+
+	test(
+		'User can copy a display page',
+		{
+			tag: '@LPS-192724',
+		},
+		async ({displayPageTemplatesPage, page, pageEditorPage, site}) => {
+
+			// Create a display page template for Blogs Entry
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+			const displayPageTemplateName = getRandomString();
+
+			await displayPageTemplatesPage.createTemplate({
+				contentType: 'Blogs Entry',
+				name: displayPageTemplateName,
+			});
+
+			// Add fragment and select editable
+
+			await displayPageTemplatesPage.editTemplate(
+				displayPageTemplateName
+			);
+
+			await pageEditorPage.addFragment('Basic Components', 'Heading');
+
+			const headingId = await pageEditorPage.getFragmentId('Heading');
+
+			await pageEditorPage.selectEditable(headingId, 'element-text');
+
+			await page.getByLabel('Field').selectOption('Title');
+
+			await displayPageTemplatesPage.publishTemplate();
+
+			// Copy display page template
+
+			await displayPageTemplatesPage.copyTemplate(
+				displayPageTemplateName
+			);
+
+			// Assert copy display page template
+
+			await expect(
+				page.getByRole('link', {
+					exact: true,
+					name: `${displayPageTemplateName} (Copy)`,
+				})
+			).toBeVisible();
+
+			// Go to copied display page template edit mode
+
+			await displayPageTemplatesPage.editTemplate(
+				`${displayPageTemplateName} (Copy)`
+			);
+
+			const copyHeadingId = await pageEditorPage.getFragmentId('Heading');
+
+			await pageEditorPage.selectEditable(copyHeadingId, 'element-text');
+
+			await expect(page.getByLabel('Field')).toHaveValue(
+				'BlogsEntry_title'
+			);
+		}
+	);
 
 	test('User can delete default display page template', async ({
 		displayPageTemplatesPage,
@@ -416,21 +879,21 @@ test.describe('Usages', () => {
 
 			// Create a display page template for Basic Web Content and mark as default
 
-			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
 
 			const defaultDisplayPageTemplateName = getRandomString();
 
-			await displayPageTemplatesPage.createTemplate({
-				contentSubtype: 'Basic Web Content',
-				contentType: 'Web Content Article',
-				name: defaultDisplayPageTemplateName,
-			});
-
-			await displayPageTemplatesPage.markAsDefault(
-				defaultDisplayPageTemplateName
+			await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+				apiHelpers,
+				String(contentStructureId),
+				defaultDisplayPageTemplateName,
+				site
 			);
 
 			// Create a display page template for Basic Web Content
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
 
 			const displayPageTemplateName =
 				'basicWebContentDpt' + getRandomInt();
@@ -681,7 +1144,7 @@ test.describe('View', () => {
 				'@LPS-150919',
 			],
 		},
-		async ({apiHelpers, displayPageTemplatesPage, page, site}) => {
+		async ({apiHelpers, page, site}) => {
 
 			// Create a content page
 
@@ -692,27 +1155,22 @@ test.describe('View', () => {
 
 			// Create a display page template for Basic Web Content
 
-			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
 
 			const displayPageTemplateName =
 				'basicWebContentDpt' + getRandomInt();
 
-			await displayPageTemplatesPage.createTemplate({
-				contentSubtype: 'Basic Web Content',
-				contentType: 'Web Content Article',
-				name: displayPageTemplateName,
-			});
-
-			await displayPageTemplatesPage.markAsDefault(
-				displayPageTemplateName
+			await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+				apiHelpers,
+				String(contentStructureId),
+				displayPageTemplateName,
+				site
 			);
 
 			// Create a Basic Web Content
 
 			const journalArticleTitle = getRandomString();
-
-			const contentStructureId =
-				await getBasicWebContentStructureId(apiHelpers);
 
 			await apiHelpers.headlessDelivery.postStructuredContent({
 				contentStructureId,
@@ -784,6 +1242,110 @@ test.describe('View', () => {
 				page.locator(
 					`link[href*="zh/web${site.friendlyUrlPath}/w/${journalArticleTitle}"][hreflang="zh-CN"][rel="alternate"]`
 				)
+			).toBeAttached();
+		}
+	);
+
+	test(
+		'User can interact with widgets in a display page',
+		{
+			tag: ['@LPS-106776', '@LPS-120504', '@ LPS-129360'],
+		},
+		async ({
+			apiHelpers,
+			displayPageTemplatesPage,
+			page,
+			pageEditorPage,
+			site,
+		}) => {
+
+			// Create a display page template for Basic Web Content and mark as default
+
+			const contentStructureId =
+				await getBasicWebContentStructureId(apiHelpers);
+
+			const displayPageTemplateName = getRandomString();
+
+			await addDefaultJournalArticleDisplayPageLayoutPageTemplateEntry(
+				apiHelpers,
+				String(contentStructureId),
+				displayPageTemplateName,
+				site
+			);
+
+			// Go to configuration
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+			await displayPageTemplatesPage.clickMoreActions(
+				displayPageTemplateName,
+				'Edit'
+			);
+
+			// Add heading fragment and map it to title
+
+			await pageEditorPage.addFragment('Basic Components', 'Heading');
+
+			const headingId = await pageEditorPage.getFragmentId('Heading');
+
+			await pageEditorPage.selectEditable(headingId, 'element-text');
+
+			await page.getByLabel('Field').selectOption('Title');
+
+			// Add documents and media widget
+
+			await pageEditorPage.addWidget(
+				'Highlighted',
+				'Documents and Media'
+			);
+
+			await displayPageTemplatesPage.publishTemplate();
+
+			// Create a Basic Web Content
+
+			const journalArticleTitle = getRandomString();
+
+			await apiHelpers.headlessDelivery.postStructuredContent({
+				contentStructureId,
+				datePublished: null,
+				siteId: site.id,
+				title: journalArticleTitle,
+				viewableBy: 'Anyone',
+			});
+
+			// Create a basic document
+
+			const document = await apiHelpers.headlessDelivery.postDocument(
+				site.id,
+				createReadStream(
+					path.join(__dirname, '/dependencies/image.jpg')
+				)
+			);
+
+			// Assert can change display style of documents and media
+
+			await page.goto(
+				`web${site.friendlyUrlPath}/w/${journalArticleTitle}`
+			);
+
+			const headingFragment = page.locator('.component-heading');
+
+			await expect(headingFragment).toHaveText(journalArticleTitle);
+
+			await expect(
+				page.getByRole('link', {name: document.title})
+			).toBeAttached();
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: page.getByRole('menuitem', {name: 'list'}),
+				trigger: page.getByLabel('Select View, Currently'),
+			});
+
+			await expect(headingFragment).toHaveText(journalArticleTitle);
+
+			await expect(
+				page.getByRole('link', {name: document.title})
 			).toBeAttached();
 		}
 	);

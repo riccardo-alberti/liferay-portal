@@ -272,6 +272,10 @@ public interface ResourcePermissionLocalService
 	public ResourcePermission deleteResourcePermission(
 		ResourcePermission resourcePermission);
 
+	public void deleteResourcePermissions(
+			long companyId, String name, int scope)
+		throws PortalException;
+
 	/**
 	 * Deletes all resource permissions at the scope to resources of the type.
 	 * This method should not be confused with any of the
@@ -321,6 +325,8 @@ public interface ResourcePermissionLocalService
 	public void deleteResourcePermissions(
 			long companyId, String name, int scope, String primKey)
 		throws PortalException;
+
+	public void deleteResourcePermissions(String name);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public <T> T dslQuery(DSLQuery dslQuery);
@@ -723,6 +729,10 @@ public interface ResourcePermissionLocalService
 	public boolean hasScopeResourcePermission(
 			long companyId, String name, int scope, long roleId,
 			String actionId)
+		throws PortalException;
+
+	public void initDefaultModelResourcePermissions(
+			long companyId, Collection<String> modelResources)
 		throws PortalException;
 
 	public void initPortletDefaultPermissions(Portlet portlet)

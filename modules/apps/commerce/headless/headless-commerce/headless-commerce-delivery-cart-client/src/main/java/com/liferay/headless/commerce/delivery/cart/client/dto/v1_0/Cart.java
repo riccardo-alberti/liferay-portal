@@ -69,6 +69,27 @@ public class Cart implements Cloneable, Serializable {
 
 	protected Long accountId;
 
+	public Attachment[] getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(Attachment[] attachments) {
+		this.attachments = attachments;
+	}
+
+	public void setAttachments(
+		UnsafeSupplier<Attachment[], Exception> attachmentsUnsafeSupplier) {
+
+		try {
+			attachments = attachmentsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Attachment[] attachments;
+
 	public String getAuthor() {
 		return author;
 	}
@@ -326,6 +347,27 @@ public class Cart implements Cloneable, Serializable {
 
 	protected String externalReferenceCode;
 
+	public String getFriendlyURLSeparator() {
+		return friendlyURLSeparator;
+	}
+
+	public void setFriendlyURLSeparator(String friendlyURLSeparator) {
+		this.friendlyURLSeparator = friendlyURLSeparator;
+	}
+
+	public void setFriendlyURLSeparator(
+		UnsafeSupplier<String, Exception> friendlyURLSeparatorUnsafeSupplier) {
+
+		try {
+			friendlyURLSeparator = friendlyURLSeparatorUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String friendlyURLSeparator;
+
 	public Long getId() {
 		return id;
 	}
@@ -448,6 +490,27 @@ public class Cart implements Cloneable, Serializable {
 
 	protected Status orderStatusInfo;
 
+	public String getOrderType() {
+		return orderType;
+	}
+
+	public void setOrderType(String orderType) {
+		this.orderType = orderType;
+	}
+
+	public void setOrderType(
+		UnsafeSupplier<String, Exception> orderTypeUnsafeSupplier) {
+
+		try {
+			orderType = orderTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String orderType;
+
 	public String getOrderTypeExternalReferenceCode() {
 		return orderTypeExternalReferenceCode;
 	}
@@ -557,6 +620,27 @@ public class Cart implements Cloneable, Serializable {
 
 	protected String paymentMethodLabel;
 
+	public Integer getPaymentMethodType() {
+		return paymentMethodType;
+	}
+
+	public void setPaymentMethodType(Integer paymentMethodType) {
+		this.paymentMethodType = paymentMethodType;
+	}
+
+	public void setPaymentMethodType(
+		UnsafeSupplier<Integer, Exception> paymentMethodTypeUnsafeSupplier) {
+
+		try {
+			paymentMethodType = paymentMethodTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Integer paymentMethodType;
+
 	public Integer getPaymentStatus() {
 		return paymentStatus;
 	}
@@ -661,6 +745,27 @@ public class Cart implements Cloneable, Serializable {
 	}
 
 	protected String purchaseOrderNumber;
+
+	public Date getRequestedDeliveryDate() {
+		return requestedDeliveryDate;
+	}
+
+	public void setRequestedDeliveryDate(Date requestedDeliveryDate) {
+		this.requestedDeliveryDate = requestedDeliveryDate;
+	}
+
+	public void setRequestedDeliveryDate(
+		UnsafeSupplier<Date, Exception> requestedDeliveryDateUnsafeSupplier) {
+
+		try {
+			requestedDeliveryDate = requestedDeliveryDateUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Date requestedDeliveryDate;
 
 	public Address getShippingAddress() {
 		return shippingAddress;
@@ -792,6 +897,27 @@ public class Cart implements Cloneable, Serializable {
 	}
 
 	protected String status;
+
+	public Step[] getSteps() {
+		return steps;
+	}
+
+	public void setSteps(Step[] steps) {
+		this.steps = steps;
+	}
+
+	public void setSteps(
+		UnsafeSupplier<Step[], Exception> stepsUnsafeSupplier) {
+
+		try {
+			steps = stepsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Step[] steps;
 
 	public Summary getSummary() {
 		return summary;

@@ -106,7 +106,7 @@ public class StyleBookEntryZipProcessorImpl
 
 	private StyleBookEntry _addStyleBookEntry(
 			long groupId, String frontendTokensValues, String name,
-			boolean overwrite, String styleBookEntryKey)
+			boolean overwrite, String styleBookEntryKey, String themeId)
 		throws Exception {
 
 		StyleBookEntry styleBookEntry =
@@ -121,7 +121,7 @@ public class StyleBookEntryZipProcessorImpl
 			if (styleBookEntry == null) {
 				styleBookEntry = _styleBookEntryEntryService.addStyleBookEntry(
 					null, groupId, frontendTokensValues, name,
-					styleBookEntryKey,
+					styleBookEntryKey, themeId,
 					ServiceContextThreadLocal.getServiceContext());
 			}
 			else {
@@ -304,6 +304,8 @@ public class StyleBookEntryZipProcessorImpl
 
 		String styleBookEntryContent = _getContent(zipFile, fileName);
 
+		String themeId = StringPool.BLANK;
+
 		if (Validator.isNotNull(styleBookEntryContent)) {
 			JSONObject styleBookEntryJSONObject = _jsonFactory.createJSONObject(
 				styleBookEntryContent);
@@ -314,10 +316,12 @@ public class StyleBookEntryZipProcessorImpl
 				zipFile, fileName,
 				styleBookEntryJSONObject.getString("frontendTokensValuesPath"));
 			name = styleBookEntryJSONObject.getString("name");
+			themeId = styleBookEntryJSONObject.getString("themeId");
 		}
 
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(
-			groupId, frontendTokensValues, name, overwrite, styleBookEntryKey);
+			groupId, frontendTokensValues, name, overwrite, styleBookEntryKey,
+			themeId);
 
 		if (styleBookEntry == null) {
 			return;

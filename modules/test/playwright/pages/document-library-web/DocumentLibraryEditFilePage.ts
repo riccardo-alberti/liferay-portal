@@ -7,14 +7,13 @@ import {Locator, Page} from '@playwright/test';
 
 import {clickAndExpectToBeHidden} from '../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
-import {expandSection} from '../../utils/expandSection';
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {openFieldset} from '../../utils/openFieldset';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {DocumentLibraryPage} from './DocumentLibraryPage';
 
 export class DocumentLibraryEditFilePage {
 	readonly page: Page;
 
-	readonly backButton: Locator;
 	readonly descriptionInput: Locator;
 	readonly documentLibraryPage: DocumentLibraryPage;
 	readonly permissionViewSelector: Locator;
@@ -28,7 +27,6 @@ export class DocumentLibraryEditFilePage {
 	constructor(page: Page) {
 		this.page = page;
 
-		this.backButton = page.getByRole('link', {name: 'Back'});
 		this.descriptionInput = page.locator(
 			'#_com_liferay_document_library_web_portlet_DLAdminPortlet_description'
 		);
@@ -70,14 +68,23 @@ export class DocumentLibraryEditFilePage {
 		});
 	}
 
-	async goBack() {
-		await this.backButton.click();
-	}
-
-	async goToNewFileDifferentType(type: string) {
-		await this.documentLibraryPage.goto();
+	async goToNewFileDifferentType(
+		type: string,
+		siteUrl?: Site['friendlyUrlPath']
+	) {
+		await this.documentLibraryPage.goto(siteUrl);
 
 		await this.documentLibraryPage.goToCreateNewFileWithDifferentType(type);
+	}
+
+	async openFieldset(name: 'Categorization') {
+		const fieldset = await this.page.getByRole('group', {
+			name,
+		});
+
+		if (await fieldset.locator('.panel-body').isHidden()) {
+			await fieldset.getByRole('button', {name}).click();
+		}
 	}
 
 	async publishFileEntry() {
@@ -88,7 +95,7 @@ export class DocumentLibraryEditFilePage {
 			await this.publishButton.click();
 		}
 
-		await waitForSuccessAlert(this.page);
+		await waitForAlert(this.page);
 	}
 
 	async publishNewBasicFileEntry(
@@ -105,7 +112,7 @@ export class DocumentLibraryEditFilePage {
 		else {
 			await this.publishButton.click();
 		}
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:Your request completed successfully.'
 		);
@@ -141,8 +148,11 @@ export class DocumentLibraryEditFilePage {
 		});
 	}
 
-	async publishNewFileWithoutGuestViewPermission(title: string) {
-		await this.goto();
+	async publishNewFileWithoutGuestViewPermission(
+		title: string,
+		siteUrl?: Site['friendlyUrlPath']
+	) {
+		await this.goto(siteUrl);
 
 		await this.titleSelector.fill(title);
 		if (await this.permissionViewSelector.isVisible()) {
@@ -156,8 +166,12 @@ export class DocumentLibraryEditFilePage {
 		await this.publishButton.click();
 	}
 
-	async publishNewFileWithScheduleDate(scheduleDate: string, title: string) {
-		await this.goto();
+	async publishNewFileWithScheduleDate(
+		scheduleDate: string,
+		title: string,
+		siteUrl?: Site['friendlyUrlPath']
+	) {
+		await this.goto(siteUrl);
 
 		await this.titleSelector.fill(title);
 
@@ -189,15 +203,14 @@ export class DocumentLibraryEditFilePage {
 	}
 
 	async selectSpecificDisplayPage(displayPageName: string) {
-		const displayPageFieldSet = this.page.locator('fieldset', {
-			hasText: 'Display Page',
-		});
+		const fieldset = await openFieldset(this.page, 'Display Page');
 
-		await expandSection(displayPageFieldSet);
-		await displayPageFieldSet
+		await fieldset
 			.getByTitle('Display Page Template Type')
 			.selectOption('Specific');
-		displayPageFieldSet.getByRole('button', {name: 'Select'}).click();
+
+		await fieldset.getByRole('button', {name: 'Select'}).click();
+
 		const selectDisplayPageModal = await this.page.frameLocator(
 			'iframe[title*="Select Page"]'
 		);

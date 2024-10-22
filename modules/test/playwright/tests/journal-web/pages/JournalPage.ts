@@ -8,7 +8,7 @@ import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import {expandSection} from '../../../utils/expandSection';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
-import {waitForSuccessAlert} from '../../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../../utils/waitForAlert';
 
 export class JournalPage {
 	readonly page: Page;
@@ -68,6 +68,7 @@ export class JournalPage {
 	}
 
 	async fillArticleDataSiteTemplate(title: string, content: string) {
+		await this.articleTitleInput.focus();
 		await this.articleTitleInput.click();
 		await this.page.keyboard.type(title);
 
@@ -153,10 +154,32 @@ export class JournalPage {
 		});
 	}
 
+	async moveToFolder(folderName: String) {
+		await this.page.getByRole('button', {name: 'Move'}).click();
+
+		await this.page.getByRole('button', {name: 'Select'}).click();
+
+		await this.page
+			.frameLocator('iframe[title="Select Folder"]')
+			.getByRole('button')
+			.click();
+
+		await this.page
+			.frameLocator('iframe[title="Select Folder"]')
+			.getByText(`${folderName}`)
+			.click();
+
+		await this.page.getByRole('button', {name: 'Move'}).click();
+
+		await expect(
+			this.page.getByText('Success:Your request completed successfully.')
+		).toBeVisible();
+	}
+
 	async publishArticle() {
 		await this.publishButton.click();
 
-		await waitForSuccessAlert(this.page, `was created successfully.`);
+		await waitForAlert(this.page, `was created successfully.`);
 	}
 
 	async setJournalArticlePermissions(
@@ -199,7 +222,7 @@ export class JournalPage {
 	}
 
 	async setArticleViewableBy(value: 'Anyone' | 'Site Members' | 'Owner') {
-		const permissionsGroup = this.page.getByRole('link', {
+		const permissionsGroup = this.page.getByRole('button', {
 			name: 'Permissions',
 		});
 

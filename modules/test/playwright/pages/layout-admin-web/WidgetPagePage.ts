@@ -5,12 +5,13 @@
 
 import {Locator, Page} from '@playwright/test';
 
-import {waitForSuccessAlert} from '../../utils/waitForSuccessAlert';
+import {waitForAlert} from '../../utils/waitForAlert';
 
 export class WidgetPagePage {
 	readonly page: Page;
 
 	readonly addButton: Locator;
+	readonly addPanelBody: Locator;
 	readonly contentTab: Locator;
 	readonly toggleControlsButton: Locator;
 	readonly widgetsTab: Locator;
@@ -49,13 +50,13 @@ export class WidgetPagePage {
 			.getByRole('button', {name: 'Add Content'})
 			.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			'Success:The application was added to the page.'
 		);
 	}
 
-	async addPortlet(portletName: string) {
+	async addPortlet(portletName: string, category: string = undefined) {
 		await this.openAddPanel();
 
 		await this.widgetsTab.click();
@@ -64,14 +65,32 @@ export class WidgetPagePage {
 			.getByRole('textbox', {name: 'Search Form'})
 			.fill(portletName);
 
-		await this.page
-			.locator('.sidebar-body__add-panel__tab-item')
-			.filter({hasText: portletName})
-			.getByRole('button', {name: 'Add Content'})
-			.first()
-			.click();
+		if (category) {
+			const categoryPanel = this.page.locator(
+				'.add-content-menu .panel',
+				{
+					has: this.page
+						.locator('.panel-header')
+						.getByText(category, {exact: true}),
+				}
+			);
 
-		await waitForSuccessAlert(
+			categoryPanel
+				.locator('.panel-body')
+				.filter({hasText: portletName})
+				.getByRole('button', {name: 'Add Content'})
+				.click();
+		}
+		else {
+			await this.page
+				.locator('.sidebar-body__add-panel__tab-item')
+				.filter({hasText: portletName})
+				.getByRole('button', {name: 'Add Content'})
+				.first()
+				.click();
+		}
+
+		await waitForAlert(
 			this.page,
 			'Success:The application was added to the page.'
 		);
@@ -132,6 +151,10 @@ export class WidgetPagePage {
 		await this.page.mouse.up();
 	}
 
+	async goto(layout: Layout, siteUrl?: Site['friendlyUrlPath']) {
+		await this.page.goto(`/web${siteUrl || '/guest'}${layout.friendlyURL}`);
+	}
+
 	async openAddPanel() {
 		const isOpen = await this.addButton.evaluate((element) =>
 			element.classList.contains('open')
@@ -149,7 +172,7 @@ export class WidgetPagePage {
 
 		await configurationIFrame.getByRole('button', {name: 'Save'}).click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			configurationIFrame,
 			'Success:You have successfully updated the setup.'
 		);

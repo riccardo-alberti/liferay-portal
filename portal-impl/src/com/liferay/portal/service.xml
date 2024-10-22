@@ -330,7 +330,7 @@
 			<finder-column name="shippingAllowed" />
 		</finder>
 	</entity>
-	<entity change-tracking-enabled="true" local-service="true" name="EmailAddress" remote-service="true" uuid="true">
+	<entity change-tracking-enabled="true" external-reference-code="company" local-service="true" name="EmailAddress" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1440,7 +1440,7 @@
 	</entity>
 	<entity change-tracking-enabled="true" local-service="false" name="Permission" remote-service="true">
 	</entity>
-	<entity change-tracking-enabled="true" local-service="true" name="Phone" remote-service="true" uuid="true">
+	<entity change-tracking-enabled="true" external-reference-code="company" local-service="true" name="Phone" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
@@ -2000,7 +2000,7 @@
 			<finder-column comparator="&lt;=" name="expirationDate" />
 		</finder>
 	</entity>
-	<entity change-tracking-enabled="true" local-service="true" name="Repository" remote-service="true" uad-dir-path="../modules/apps/portal/portal-uad/src/main/java" uad-package-path="com.liferay.portal" uuid="true">
+	<entity change-tracking-enabled="true" external-reference-code="group" local-service="true" name="Repository" remote-service="true" uad-dir-path="../modules/apps/portal/portal-uad/src/main/java" uad-package-path="com.liferay.portal" uuid="true">
 
 		<!-- PK fields -->
 
@@ -2140,6 +2140,11 @@
 		<finder name="C_LikeP" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column comparator="LIKE" name="primKey" />
+		</finder>
+		<finder name="C_N_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="name" />
+			<finder-column name="scope" />
 		</finder>
 		<finder name="C_S_P" return-type="Collection">
 			<finder-column name="companyId" />
@@ -3059,7 +3064,7 @@
 			<finder-column name="classPK" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="Website" remote-service="true" uuid="true">
+	<entity external-reference-code="company" local-service="true" name="Website" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 

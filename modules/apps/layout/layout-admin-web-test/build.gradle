@@ -1,5 +1,6 @@
 dependencies {
 	testIntegrationImplementation project(":apps:asset:asset-list-api")
+	testIntegrationImplementation project(":apps:asset:asset-publisher-api")
 	testIntegrationImplementation project(":apps:asset:asset-test-util")
 	testIntegrationImplementation project(":apps:client-extension:client-extension-api")
 	testIntegrationImplementation project(":apps:document-library:document-library-api")
@@ -14,6 +15,7 @@ dependencies {
 	testIntegrationImplementation project(":apps:journal:journal-api")
 	testIntegrationImplementation project(":apps:journal:journal-test-util")
 	testIntegrationImplementation project(":apps:layout:layout-api")
+	testIntegrationImplementation project(":apps:layout:layout-content-page-editor-api")
 	testIntegrationImplementation project(":apps:layout:layout-page-template-api")
 	testIntegrationImplementation project(":apps:layout:layout-seo-api")
 	testIntegrationImplementation project(":apps:layout:layout-test-util")

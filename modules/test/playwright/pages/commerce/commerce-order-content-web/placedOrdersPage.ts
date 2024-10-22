@@ -5,10 +5,11 @@
 
 import {FrameLocator, Locator, Page} from '@playwright/test';
 
+import {CommerceDNDTablePage} from '../commerceDNDTablePage';
 import {CommerceLayoutsPage} from '../commerceLayoutsPage';
 
-export class PlacedOrdersPage {
-	readonly billingAddress: Locator;
+export class PlacedOrdersPage extends CommerceDNDTablePage {
+	readonly commerceBillingAddress: Locator;
 	readonly configurationIFrame: FrameLocator;
 	readonly configurationIFrameSaveButton: Locator;
 	readonly configurationIFrameShowFullAddressToggle: Locator;
@@ -25,11 +26,18 @@ export class PlacedOrdersPage {
 	readonly panelList: Locator;
 	readonly searchButton: Locator;
 	readonly searchInput: Locator;
-	readonly shippingAddress: Locator;
+	readonly commerceShippingAddress: Locator;
 	readonly viewButton: Locator;
 
 	constructor(page: Page) {
-		this.billingAddress = page.getByTestId('commerceBillingAddress');
+		super(
+			page,
+			'#portlet_com_liferay_commerce_order_content_web_internal_portlet_CommerceOrderContentPortlet .dnd-table'
+		);
+
+		this.commerceBillingAddress = page.getByTestId(
+			'commerceBillingAddress'
+		);
 		this.configurationIFrame = page.frameLocator(
 			'iframe[id="modalIframe"]'
 		);
@@ -72,7 +80,9 @@ export class PlacedOrdersPage {
 			.getByRole('button');
 		this.searchButton = page.getByRole('button', {name: 'Search'});
 		this.searchInput = page.getByPlaceholder('Search');
-		this.shippingAddress = page.getByTestId('commerceShippingAddress');
+		this.commerceShippingAddress = page.getByTestId(
+			'commerceShippingAddress'
+		);
 		this.viewButton = page.getByLabel('View');
 	}
 

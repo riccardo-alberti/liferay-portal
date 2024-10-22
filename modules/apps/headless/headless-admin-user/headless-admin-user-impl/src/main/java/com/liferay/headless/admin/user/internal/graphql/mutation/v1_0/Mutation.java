@@ -8,11 +8,14 @@ package com.liferay.headless.admin.user.internal.graphql.mutation.v1_0;
 import com.liferay.headless.admin.user.dto.v1_0.Account;
 import com.liferay.headless.admin.user.dto.v1_0.AccountGroup;
 import com.liferay.headless.admin.user.dto.v1_0.AccountRole;
+import com.liferay.headless.admin.user.dto.v1_0.EmailAddress;
 import com.liferay.headless.admin.user.dto.v1_0.Organization;
+import com.liferay.headless.admin.user.dto.v1_0.Phone;
 import com.liferay.headless.admin.user.dto.v1_0.PostalAddress;
 import com.liferay.headless.admin.user.dto.v1_0.Role;
 import com.liferay.headless.admin.user.dto.v1_0.UserAccount;
 import com.liferay.headless.admin.user.dto.v1_0.UserGroup;
+import com.liferay.headless.admin.user.dto.v1_0.WebUrl;
 import com.liferay.headless.admin.user.resource.v1_0.AccountGroupResource;
 import com.liferay.headless.admin.user.resource.v1_0.AccountResource;
 import com.liferay.headless.admin.user.resource.v1_0.AccountRoleResource;
@@ -995,6 +998,80 @@ public class Mutation {
 					accountId, callbackURL, contentType, fieldNames));
 	}
 
+	@GraphQLField(description = "Deletes an email address.")
+	public boolean deleteEmailAddressByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_emailAddressResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			emailAddressResource ->
+				emailAddressResource.deleteEmailAddressByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the email address with the information sent in the request body. Fields not present in the request body are left unchanged."
+	)
+	public EmailAddress patchEmailAddressByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("emailAddress") EmailAddress emailAddress)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_emailAddressResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			emailAddressResource ->
+				emailAddressResource.patchEmailAddressByExternalReferenceCode(
+					externalReferenceCode, emailAddress));
+	}
+
+	@GraphQLField(description = "Deletes an email address.")
+	public boolean deleteEmailAddress(
+			@GraphQLName("emailAddressId") Long emailAddressId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_emailAddressResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			emailAddressResource -> emailAddressResource.deleteEmailAddress(
+				emailAddressId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteEmailAddressBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_emailAddressResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			emailAddressResource ->
+				emailAddressResource.deleteEmailAddressBatch(
+					callbackURL, object));
+	}
+
+	@GraphQLField(
+		description = "Updates the email address with the information sent in the request body. Fields not present in the request body are left unchanged."
+	)
+	public EmailAddress patchEmailAddress(
+			@GraphQLName("emailAddressId") Long emailAddressId,
+			@GraphQLName("emailAddress") EmailAddress emailAddress)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_emailAddressResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			emailAddressResource -> emailAddressResource.patchEmailAddress(
+				emailAddressId, emailAddress));
+	}
+
 	@GraphQLField
 	public Response createOrganizationEmailAddressesPageExportBatch(
 			@GraphQLName("organizationId") String organizationId,
@@ -1385,6 +1462,74 @@ public class Mutation {
 					organizationId, callbackURL, contentType, fieldNames));
 	}
 
+	@GraphQLField(
+		description = "Deletes the phone number by external reference code."
+	)
+	public boolean deletePhoneByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_phoneResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			phoneResource -> phoneResource.deletePhoneByExternalReferenceCode(
+				externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the phone number by external reference code."
+	)
+	public Phone patchPhoneByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("phone") Phone phone)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_phoneResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			phoneResource -> phoneResource.patchPhoneByExternalReferenceCode(
+				externalReferenceCode, phone));
+	}
+
+	@GraphQLField(description = "Deletes the phone number.")
+	public boolean deletePhone(@GraphQLName("phoneId") Long phoneId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_phoneResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			phoneResource -> phoneResource.deletePhone(phoneId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deletePhoneBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_phoneResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			phoneResource -> phoneResource.deletePhoneBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField(description = "Updates the phone number.")
+	public Phone patchPhone(
+			@GraphQLName("phoneId") Long phoneId,
+			@GraphQLName("phone") Phone phone)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_phoneResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			phoneResource -> phoneResource.patchPhone(phoneId, phone));
+	}
+
 	@GraphQLField
 	public Response createUserAccountPhonesPageExportBatch(
 			@GraphQLName("userAccountId") Long userAccountId,
@@ -1633,7 +1778,25 @@ public class Mutation {
 			roleResource -> roleResource.postRoleBatch(callbackURL, object));
 	}
 
-	@GraphQLField(description = "update the given Role")
+	@GraphQLField(
+		description = "Deletes the role by its external reference code."
+	)
+	public boolean deleteRoleByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.deleteRoleByExternalReferenceCode(
+				externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the role by its external reference code."
+	)
 	public Role patchRoleByExternalReferenceCode(
 			@GraphQLName("externalReferenceCode") String externalReferenceCode,
 			@GraphQLName("role") Role role)
@@ -1646,7 +1809,9 @@ public class Mutation {
 				externalReferenceCode, role));
 	}
 
-	@GraphQLField(description = "update the given Role")
+	@GraphQLField(
+		description = "Updates the role by its external reference code."
+	)
 	public Role updateRoleByExternalReferenceCode(
 			@GraphQLName("externalReferenceCode") String externalReferenceCode,
 			@GraphQLName("role") Role role)
@@ -1781,6 +1946,64 @@ public class Mutation {
 						Long.valueOf(siteKey)));
 
 		return true;
+	}
+
+	@GraphQLField(description = "Deletes the role.")
+	public boolean deleteRole(@GraphQLName("roleId") Long roleId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.deleteRole(roleId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteRoleBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.deleteRoleBatch(callbackURL, object));
+	}
+
+	@GraphQLField(description = "Updates the role.")
+	public Role patchRole(
+			@GraphQLName("roleId") Long roleId, @GraphQLName("role") Role role)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.patchRole(roleId, role));
+	}
+
+	@GraphQLField(description = "Updates the role.")
+	public Role updateRole(
+			@GraphQLName("roleId") Long roleId, @GraphQLName("role") Role role)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.putRole(roleId, role));
+	}
+
+	@GraphQLField
+	public Response updateRoleBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_roleResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			roleResource -> roleResource.putRoleBatch(callbackURL, object));
 	}
 
 	@GraphQLField(description = "Unassociates a role with a user account")
@@ -2633,6 +2856,75 @@ public class Mutation {
 			webUrlResource ->
 				webUrlResource.postUserAccountWebUrlsPageExportBatch(
 					userAccountId, callbackURL, contentType, fieldNames));
+	}
+
+	@GraphQLField(
+		description = "Deletes the web URL by external reference code."
+	)
+	public boolean deleteWebUrlByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_webUrlResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			webUrlResource ->
+				webUrlResource.deleteWebUrlByExternalReferenceCode(
+					externalReferenceCode));
+
+		return true;
+	}
+
+	@GraphQLField(
+		description = "Updates the web URL by external reference code."
+	)
+	public WebUrl patchWebUrlByExternalReferenceCode(
+			@GraphQLName("externalReferenceCode") String externalReferenceCode,
+			@GraphQLName("webUrl") WebUrl webUrl)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_webUrlResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			webUrlResource -> webUrlResource.patchWebUrlByExternalReferenceCode(
+				externalReferenceCode, webUrl));
+	}
+
+	@GraphQLField(description = "Deletes the web URL.")
+	public boolean deleteWebUrl(@GraphQLName("webUrlId") Long webUrlId)
+		throws Exception {
+
+		_applyVoidComponentServiceObjects(
+			_webUrlResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			webUrlResource -> webUrlResource.deleteWebUrl(webUrlId));
+
+		return true;
+	}
+
+	@GraphQLField
+	public Response deleteWebUrlBatch(
+			@GraphQLName("callbackURL") String callbackURL,
+			@GraphQLName("object") Object object)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_webUrlResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			webUrlResource -> webUrlResource.deleteWebUrlBatch(
+				callbackURL, object));
+	}
+
+	@GraphQLField(description = "Updates the web URL.")
+	public WebUrl patchWebUrl(
+			@GraphQLName("webUrlId") Long webUrlId,
+			@GraphQLName("webUrl") WebUrl webUrl)
+		throws Exception {
+
+		return _applyComponentServiceObjects(
+			_webUrlResourceComponentServiceObjects,
+			this::_populateResourceContext,
+			webUrlResource -> webUrlResource.patchWebUrl(webUrlId, webUrl));
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R

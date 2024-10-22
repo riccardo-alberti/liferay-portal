@@ -9,13 +9,18 @@ import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden'
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import fillAndClickOutside from '../../../utils/fillAndClickOutside';
 import getRandomString from '../../../utils/getRandomString';
-import {waitForSuccessAlert} from '../../../utils/waitForSuccessAlert';
+import {openFieldset} from '../../../utils/openFieldset';
+import {waitForAlert} from '../../../utils/waitForAlert';
 import {JournalPage} from './JournalPage';
 
 export class JournalEditArticlePage {
 	readonly page: Page;
 
 	readonly changesSavedIndicator: Locator;
+	readonly clearButton: Locator;
+	readonly content: Locator;
+	readonly defaultTemplateButton: Locator;
+	readonly duplicateButton: Locator;
 	readonly friendlyURLInput: Locator;
 	readonly friendlyUrlToggle: Locator;
 	readonly historyButton: Locator;
@@ -23,27 +28,43 @@ export class JournalEditArticlePage {
 	readonly propertiesTab: Locator;
 	readonly publishButton: Locator;
 	readonly redoButton: Locator;
+	readonly selectButton: Locator;
 	readonly submitForWorkflowButton: Locator;
 	readonly titleInput: Locator;
 	readonly undoButton: Locator;
+	readonly alertErrorMessage: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
-
+		this.alertErrorMessage = page.locator(
+			'div.article-content-content >> div.alert-danger'
+		);
 		this.changesSavedIndicator = page.locator(
 			'#_com_liferay_journal_web_portlet_JournalPortlet_changesSavedIndicator'
 		);
+		this.clearButton = page.getByRole('button', {name: 'Clear'});
+		this.content = page.getByText('Content', {exact: true});
+		this.defaultTemplateButton = page.getByRole('button', {
+			name: 'Default Template',
+		});
+		this.duplicateButton = page.getByLabel('Add Duplicate Field Text');
 		this.friendlyURLInput = page.locator(
 			'#_com_liferay_journal_web_portlet_JournalPortlet_friendlyURL'
 		);
-		this.friendlyUrlToggle = page.locator('#friendlyUrlToggle');
+		this.friendlyUrlToggle = page.locator('a[href="#friendlyUrlContent"]');
 		this.historyButton = page.getByLabel('History');
 		this.journalPage = new JournalPage(page);
-		this.propertiesTab = page.getByRole('tab', {name: 'Properties'});
+		this.propertiesTab = page.getByRole('tab', {
+			name: /properties|propriétés/i,
+		});
 		this.publishButton = page.locator(
 			'#_com_liferay_journal_web_portlet_JournalPortlet_publishButton'
 		);
 		this.redoButton = page.getByTitle('Redo', {exact: true});
+		this.selectButton = page.getByRole('button', {
+			exact: true,
+			name: 'Select',
+		});
 		this.submitForWorkflowButton = page.getByRole('button', {
 			name: 'Submit for Workflow',
 		});
@@ -110,7 +131,7 @@ export class JournalEditArticlePage {
 
 		await this.publishArticle();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			`Success:${title} was created successfully.`
 		);
@@ -154,22 +175,69 @@ export class JournalEditArticlePage {
 	}
 
 	async fillFriendlyURL(friendlyURL: string) {
-		if (await this.friendlyURLInput.isHidden()) {
-			await this.friendlyUrlToggle.click();
-		}
-		await this.friendlyURLInput.fill(friendlyURL);
+		await fillAndClickOutside(
+			this.page,
+			this.friendlyURLInput,
+			friendlyURL
+		);
 	}
 
-	async createBasicArticleWithFriendlyURL(site, page, articleTitle?: string) {
+	async createBasicArticleWithFriendlyURL(site, structureName?: string) {
 		await this.journalPage.goto(site.friendlyUrlPath);
 		await this.journalPage.goToCreateArticle(
-			articleTitle || 'Basic Web Content'
+			structureName || 'Basic Web Content'
 		);
-		await this.fillFriendlyURL('test');
+
 		const title = getRandomString();
-		await this.titleInput.fill(title);
+		await this.fillTitle(title);
+		await this.fillFriendlyURL('test');
+
 		await this.publishButton.click();
-		await expect(page.getByTitle(title, {exact: true})).toBeVisible();
+		await expect(this.page.getByTitle(title, {exact: true})).toBeVisible();
+	}
+
+	async createWCWithBasicPublishButton(articleTitle: string) {
+		await this.titleInput.fill(articleTitle);
+		await this.publishButton.waitFor();
+		await this.publishButton.click();
+
+		await waitForAlert(
+			this.page,
+			`Success:${articleTitle} was created successfully.`
+		);
+	}
+	async createArticleWithDuplicatedField(
+		structureName: string,
+		site?: Site,
+		title?: string
+	) {
+		await this.goto({
+			siteUrl: site.friendlyUrlPath,
+			structureName,
+		});
+
+		await fillAndClickOutside(
+			this.page,
+			this.titleInput,
+			title || getRandomString()
+		);
+
+		const field = this.page.locator(
+			'input[id^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text"]'
+		);
+
+		await fillAndClickOutside(this.page, field, 'Text Field');
+
+		await this.duplicateButton.click();
+
+		await this.page
+			.locator(
+				'input[id^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text"]'
+			)
+			.nth(1)
+			.fill('Duplicated Text Field');
+
+		await this.publishButton.click();
 	}
 
 	async fillTitle(title: string) {
@@ -187,7 +255,7 @@ export class JournalEditArticlePage {
 
 		await this.publishButton.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			`Success:${title} was updated successfully.`
 		);
@@ -202,12 +270,12 @@ export class JournalEditArticlePage {
 	}
 
 	async openFieldSet(assetType: string, fieldSetId: string) {
-		if (
-			!(await this.page.$eval('#' + fieldSetId + 'Content', (item) =>
-				item.classList.contains('show')
-			))
-		) {
-			await this.page.getByRole('link', {name: assetType}).click();
+		const isOpened = await this.page
+			.locator(`#${fieldSetId}Content`)
+			.evaluate((element) => element.classList.contains('show'));
+
+		if (!isOpened) {
+			await this.page.getByRole('button', {name: assetType}).click();
 		}
 	}
 
@@ -247,6 +315,26 @@ export class JournalEditArticlePage {
 		});
 	}
 
+	async saveAsDraftWithPermissions(title: string) {
+		await this.fillTitle(title);
+
+		await this.page
+			.getByRole('button', {exact: true, name: 'Save as Draft'})
+			.click();
+
+		await expect(async () => {
+			const draftButton = await this.page
+				.getByLabel('Save as Draft With Permissions')
+				.getByRole('button', {name: 'Save as Draft'});
+
+			await draftButton.waitFor();
+
+			await draftButton.click();
+		}).toPass();
+
+		await expect(this.page.getByText('Version: 1.0 Draft')).toBeVisible();
+	}
+
 	async scheduleArticle(
 		title: string,
 		publishDate: string,
@@ -256,9 +344,7 @@ export class JournalEditArticlePage {
 	) {
 		await this.fillTitle(title);
 
-		if (!(await this.page.getByText('Never Expire').isVisible())) {
-			await this.page.getByRole('link', {name: 'Schedule'}).click();
-		}
+		await openFieldset(this.page, 'Schedule');
 
 		if (expirationDate) {
 			await this.page.getByText('Never Expire').click();
@@ -299,7 +385,7 @@ export class JournalEditArticlePage {
 			})
 			.click();
 
-		await waitForSuccessAlert(
+		await waitForAlert(
 			this.page,
 			workflow
 				? `Success:${title} has been scheduled and submitted for workflow.`

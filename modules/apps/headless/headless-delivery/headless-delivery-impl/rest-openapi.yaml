@@ -244,6 +244,10 @@ components:
                         The image's content type (e.g., `application/png`, etc.).
                     readOnly: true
                     type: string
+                externalReferenceCode:
+                    description:
+                        The image's external reference code.
+                    type: string
                 fileExtension:
                     description:
                         The image's file extension.
@@ -266,6 +270,7 @@ components:
                         The image's title text.
                     type: string
                 viewableBy:
+                    deprecated: true
                     description:
                         A write-only property that specifies the default permissions.
                     enum: [Anyone, Members, Owner]
@@ -1007,6 +1012,11 @@ components:
                     # @review
                     description:
                         The type of the content.
+                    readOnly: true
+                    type: string
+                externalReferenceCode:
+                    description:
+                        The external reference code of the author.
                     readOnly: true
                     type: string
                 familyName:
@@ -6128,7 +6138,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.delivery.client', and version '4.0.86'."
+        'com.liferay.headless.delivery.client', and version '4.0.87'."
     license:
         name: "Apache 2.0"
         url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -6460,9 +6470,71 @@ paths:
                                 type: array
             tags: ["ContentTemplate"]
     "/asset-libraries/{assetLibraryId}/document-data-definition-types":
+        get:
+            operationId: getAssetLibraryDocumentDataDefinitionTypesPage
+            parameters:
+                - in: path
+                  name: assetLibraryId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: aggregationTerms
+                  schema:
+                      items:
+                          type: string
+                      type: array
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: nestedFields
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentDataDefinitionType"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentDataDefinitionType"
+                                type: array
+            tags: ["DocumentDataDefinitionType"]
         post:
             description:
                 Creates a new document data definition type.
+            operationId: postAssetLibraryDocumentDataDefinitionType
             parameters:
                 - in: path
                   name: assetLibraryId
@@ -6487,7 +6559,7 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentDataDefinitionType"
-            tags: ["DocumentDataDefinitionTypes"]
+            tags: ["DocumentDataDefinitionType"]
     "/asset-libraries/{assetLibraryId}/document-folders":
         get:
             operationId: getAssetLibraryDocumentFoldersPage
@@ -8407,6 +8479,49 @@ paths:
                                     $ref: "#/components/schemas/StructuredContent"
                                 type: array
             tags: ["StructuredContent"]
+    "/document-data-definition-types/{documentDataDefinitionTypeId}":
+        delete:
+            operationId: deleteDocumentDataDefinitionType
+            parameters:
+                - in: path
+                  name: documentDataDefinitionTypeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["DocumentDataDefinitionType"]
+        get:
+            operationId: getDocumentDataDefinitionType
+            parameters:
+                - in: path
+                  name: documentDataDefinitionTypeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DocumentDataDefinitionType"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/DocumentDataDefinitionType"
+            tags: ["DocumentDataDefinitionType"]
     "/document-folders/{documentFolderId}":
         delete:
             description:
@@ -8906,6 +9021,23 @@ paths:
                                 $ref: "#/components/schemas/DocumentFolder"
             tags: ["DocumentFolder"]
     "/document-metadata-sets/{documentMetadataSetId}":
+        delete:
+            description:
+                Deletes the document metadata set and returns a 204 if the operation succeeds.
+            operationId: deleteDocumentMetadataSet
+            parameters:
+                - in: path
+                  name: documentMetadataSetId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["DocumentMetadataSet"]
         get:
             description:
                 Retrieves the document metadata set.
@@ -11991,6 +12123,70 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/BlogPostingImage"
             tags: ["BlogPostingImage"]
+    "/sites/{siteId}/blog-posting-images/by-external-reference-code/{externalReferenceCode}":
+        delete:
+            # @review
+            description:
+                Deletes the site's blog post image by external reference code.
+            operationId: deleteSiteBlogPostingImageByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["BlogPostingImage"]
+        get:
+            # @review
+            description:
+                Retrieves the site's blog post image by external reference code. The binary image is returned as a
+                relative URL to the image itself.
+            operationId: getSiteBlogPostingImageByExternalReferenceCode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: path
+                  name: externalReferenceCode
+                  required: true
+                  schema:
+                      type: string
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: nestedFields
+                  schema:
+                      type: string
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BlogPostingImage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/BlogPostingImage"
+            tags: ["BlogPostingImage"]
     "/sites/{siteId}/blog-postings":
         get:
             description:
@@ -12905,9 +13101,71 @@ paths:
                                 $ref: "#/components/schemas/ContentTemplate"
             tags: ["ContentTemplate"]
     "/sites/{siteId}/document-data-definition-types":
+        get:
+            operationId: getSiteDocumentDataDefinitionTypesPage
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: aggregationTerms
+                  schema:
+                      items:
+                          type: string
+                      type: array
+                - in: query
+                  name: fields
+                  schema:
+                      type: string
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: nestedFields
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: restrictFields
+                  schema:
+                      type: string
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentDataDefinitionType"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/DocumentDataDefinitionType"
+                                type: array
+            tags: ["DocumentDataDefinitionType"]
         post:
             description:
                 Creates a new document data definition type.
+            operationId: postSiteDocumentDataDefinitionType
             parameters:
                 - in: path
                   name: siteId
@@ -12932,7 +13190,7 @@ paths:
                         application/xml:
                             schema:
                                 $ref: "#/components/schemas/DocumentDataDefinitionType"
-            tags: ["DocumentDataDefinitionTypes"]
+            tags: ["DocumentDataDefinitionType"]
     "/sites/{siteId}/document-folders":
         get:
             description:
